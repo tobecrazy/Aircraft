@@ -2,4 +2,5 @@
     <string name="app_name">Aircraft</string>
     <string name="play">Play</string>
     <string name="fire">Fire</string>
+    <string name="exit_warning_msg">再按一次退出程序</string>
 </resources>

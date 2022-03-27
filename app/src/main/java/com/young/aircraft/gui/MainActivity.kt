@@ -9,16 +9,19 @@ import android.os.IBinder
 import android.view.KeyEvent
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityMainBinding
 import com.young.aircraft.service.MusicService
+import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var mService: MusicService
     private var mBound: Boolean = false
+    private var exitTime: Long = 0
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
@@ -54,10 +57,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        return super.onKeyDown(keyCode, event)
         when (keyCode) {
+            KeyEvent.KEYCODE_BACK -> {
+                exitApp()
+                return false
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 
-
+    private fun exitApp() {
+        if ((System.currentTimeMillis() - exitTime) > 2000) {
+            Toast.makeText(
+                this, getString(R.string.exit_warning_msg),
+                Toast.LENGTH_SHORT
+            ).show();
+            exitTime = System.currentTimeMillis();
+        } else {
+            finish();
+            exitProcess(0);
         }
     }
 
