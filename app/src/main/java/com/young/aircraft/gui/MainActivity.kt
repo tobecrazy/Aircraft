@@ -42,11 +42,11 @@ class MainActivity : AppCompatActivity() {
         val textView = TextView(this)
         textView.text = getString(R.string.app_name)
         binding.container.addView(textView)
-        binding.play.setOnClickListener {
+        binding.playLl.setOnClickListener {
             if (mBound) {
                 mService.soundPlay()
             }
-            binding.play.visibility = View.GONE
+            binding.playLl.visibility = View.GONE
         }
 
         binding.root.setOnClickListener {
