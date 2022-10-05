@@ -11,7 +11,6 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityMainBinding
 import com.young.aircraft.service.MusicService
@@ -38,7 +37,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val textView = TextView(this)
         textView.text = getString(R.string.app_name)
         binding.container.addView(textView)

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.young.aircraft">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
 
     <application
         android:allowBackup="true"
@@ -15,9 +18,7 @@
         <service
             android:name=".service.MusicService"
             android:enabled="true"
-            android:exported="true">
-        </service>
-
+            android:exported="false" />
         <activity
             android:name="com.young.aircraft.gui.MainActivity"
             android:exported="true">
