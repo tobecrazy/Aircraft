@@ -23,7 +23,9 @@ class MusicService : Service() {
         super.onCreate()
         soundPool = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             val attribution: AudioAttributes =
-                AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_GAME)
                     .build()
             SoundPool.Builder().setMaxStreams(MAX_STREAMS).setAudioAttributes(attribution).build()
         } else {
@@ -38,6 +40,7 @@ class MusicService : Service() {
         soundMap[0x005] = soundPool.load(this, R.raw.game_over, 1)
     }
 
+    @Synchronized
     fun playSound(sound: Int, fSpeed: Float, loop: Int = 0) {
         val audioManager: AudioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val streamVolumeCurrent: Float =
@@ -52,6 +55,10 @@ class MusicService : Service() {
         return mBinder
     }
 
+    override fun onUnbind(intent: Intent?): Boolean {
+        soundPool.release()
+        return super.onUnbind(intent)
+    }
     fun backgroundSoundPlay() {
         playSound(0x000, 1.0f, 100)
     }
