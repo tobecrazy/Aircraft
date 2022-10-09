@@ -7,9 +7,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
 import android.util.Log
-import android.view.KeyEvent
-import android.view.MotionEvent
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -52,10 +50,24 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
         setContentView(binding.root)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val controller = window.insetsController
+            if (controller != null) {
+                controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
+        }
         viewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
             .create(MainActivityViewModel::class.java)
-        addEnemy(5)
+
         viewModel.isReadToPlaySound.observe(this, Observer {
             if (it) {
                 Log.d("YoungTest", "===> to play background sound")
@@ -122,7 +134,6 @@ class MainActivity : AppCompatActivity() {
                 else -> {}
             }
             true
-
         }
     }
 
@@ -132,8 +143,6 @@ class MainActivity : AppCompatActivity() {
         enemy_back.add(R.drawable.enemy_2)
         enemy_back.add(R.drawable.enemy_3)
         for (i in 1..number) {
-            Log.d("YoungTest", "====> getScreenWidth() ${getScreenWidth()}")
-            Log.d("YoungTest", "====> getScreenHeight() ${getScreenHeight()}")
             val enemy = ImageView(this)
             val params = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -178,8 +187,6 @@ class MainActivity : AppCompatActivity() {
         Intent(this, MusicService::class.java).also { intent ->
             bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
-
-
     }
 
 
@@ -196,10 +203,8 @@ class MainActivity : AppCompatActivity() {
 
     fun getScreenWidth(): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Log.d("YoungTest", "Current metrics")
             windowManager.currentWindowMetrics.bounds.width()
         } else {
-            Log.d("YoungTest", "Resource metrics")
             val metrics = resources.displayMetrics
             metrics.widthPixels
         }
@@ -207,10 +212,8 @@ class MainActivity : AppCompatActivity() {
 
     fun getScreenHeight(): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Log.d("YoungTest", "Current metrics")
             windowManager.currentWindowMetrics.bounds.height()
         } else {
-            Log.d("YoungTest", "Resource metrics")
             val metrics = resources.displayMetrics
             metrics.heightPixels
         }

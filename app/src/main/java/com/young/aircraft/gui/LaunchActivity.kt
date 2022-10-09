@@ -15,5 +15,12 @@ class LaunchActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
+        binding.gameHistory.setOnClickListener {
+            //TODO
+        }
+
+        binding.gameSettings.setOnClickListener {
+            //TODO
+        }
     }
 }
