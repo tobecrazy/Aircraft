@@ -3,4 +3,7 @@
     <string name="play">Play</string>
     <string name="fire">Fire</string>
     <string name="exit_warning_msg">再按一次退出程序</string>
+    <string name="start_game">开始游戏</string>
+    <string name="start_history">历史成绩</string>
+    <string name="game_settings">游戏设置</string>
 </resources>

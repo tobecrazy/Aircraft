@@ -10,32 +10,6 @@
         android:background="@color/white"
         tools:context=".gui.MainActivity">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/play_control_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/play_arrow_black_24dp" />
-
-            <androidx.appcompat.widget.AppCompatTextView
-                style="@style/TextAppearance.AppCompat.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="@string/play"
-                android:textStyle="bold" />
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/jet_plane"
             android:layout_width="60dp"
@@ -43,7 +17,7 @@
             android:contentDescription="@null"
             android:scaleType="fitCenter"
             android:src="@drawable/jet_plane"
-            app:layout_constraintBottom_toBottomOf="@id/play_control_layout"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

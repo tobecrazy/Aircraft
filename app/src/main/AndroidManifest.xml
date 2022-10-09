@@ -15,18 +15,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/TransparentTheme">
-        <service
-            android:name=".service.MusicService"
-            android:enabled="true"
-            android:exported="false" />
         <activity
-            android:name="com.young.aircraft.gui.MainActivity"
-            android:exported="true">
+            android:name=".gui.LaunchActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".gui.MainActivity"
+            android:exported="true"
+            android:theme="@style/TransparentTheme" />
+
+        <service
+            android:name=".service.MusicService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -5,30 +5,30 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Build
-import android.os.Bundle
-import android.os.IBinder
+import android.os.*
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityMainBinding
 import com.young.aircraft.service.MusicService
+import com.young.aircraft.viewmodel.MainActivityViewModel
 import kotlin.properties.Delegates
 import kotlin.system.exitProcess
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: MainActivityViewModel
     private lateinit var mService: MusicService
-    private var mBound: Boolean = false
     private var exitTime: Long = 0
     private var lastX = 0
     private var lastY = 0
@@ -39,11 +39,11 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
             val binder = service as MusicService.MusicBinder
             mService = binder.getService()
-            mBound = true
+            viewModel.updateSoundServiceStatus(true)
         }
 
         override fun onServiceDisconnected(componentName: ComponentName?) {
-            mBound = false
+            viewModel.updateSoundServiceStatus(false)
         }
 
     }
@@ -53,17 +53,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        viewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+            .create(MainActivityViewModel::class.java)
         addEnemy(5)
-        binding.playControlLayout.setOnClickListener {
-            if (mBound) {
-                mService.soundPlay()
-            }
-            binding.playControlLayout.visibility = View.GONE
-        }
+        viewModel.isReadToPlaySound.observe(this, Observer {
+            if (it) {
+                Log.d("YoungTest", "===> to play background sound")
+                Looper.myLooper()?.let { looper ->
+                    Handler(looper).postDelayed({
+                        mService.backgroundSoundPlay()
+                    }, 200)
+                }
 
+            }
+        })
         binding.root.setOnClickListener {
-            if (mBound) {
-                mService.soundPlayShot()
+            if (viewModel.isReadToPlaySound.value == true) {
+                mService.shotSoundPlay()
             }
         }
         binding.jetPlane.setOnTouchListener { view, event ->
@@ -185,7 +191,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         unbindService(connection)
-        mBound = false
+        viewModel.updateSoundServiceStatus(false)
     }
 
     fun getScreenWidth(): Int {

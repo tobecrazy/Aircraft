@@ -13,10 +13,11 @@ import android.os.IBinder
 import com.young.aircraft.R
 
 class MusicService : Service() {
-    private val MAX_STREAMS = 4
+    private val MAX_STREAMS = 5
     private lateinit var soundPool: SoundPool
     private lateinit var soundMap: HashMap<Int, Int>
     private val mBinder = MusicBinder()
+
     @SuppressLint("ObsoleteSdkInt")
     override fun onCreate() {
         super.onCreate()
@@ -29,6 +30,7 @@ class MusicService : Service() {
             SoundPool(MAX_STREAMS, AudioManager.STREAM_MUSIC, 100)
         }
         soundMap = hashMapOf()
+        soundMap[0x000] = soundPool.load(this, R.raw.background1, 1)
         soundMap[0x001] = soundPool.load(this, R.raw.background, 1)
         soundMap[0x002] = soundPool.load(this, R.raw.fire, 1)
         soundMap[0x003] = soundPool.load(this, R.raw.be_hit, 1)
@@ -50,11 +52,11 @@ class MusicService : Service() {
         return mBinder
     }
 
-    fun soundPlay() {
-        playSound(0x001, 1.0f, 100)
+    fun backgroundSoundPlay() {
+        playSound(0x000, 1.0f, 100)
     }
 
-    fun soundPlayShot(){
+    fun shotSoundPlay() {
         playSound(0x002, 1.0f, 0)
     }
 
