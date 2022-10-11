@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.ActivityInfo
 import android.os.*
 import android.util.Log
 import android.view.*
@@ -16,7 +17,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.R
-import com.young.aircraft.databinding.ActivityMainBinding
+import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.viewmodel.MainActivityViewModel
 import kotlin.properties.Delegates
@@ -24,7 +25,6 @@ import kotlin.system.exitProcess
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var mService: MusicService
     private var exitTime: Long = 0
@@ -46,12 +46,13 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility", "SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        setContentView(binding.root)
+        val coreView = GameCoreView(this)
+        setContentView(coreView)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val controller = window.insetsController
             if (controller != null) {
@@ -79,62 +80,62 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
-        binding.root.setOnClickListener {
-            if (viewModel.isReadToPlaySound.value == true) {
-                mService.shotSoundPlay()
-            }
-        }
-        binding.jetPlane.setOnTouchListener { view, event ->
-            //get original x/y
-            val eventX = event.rawX.toInt()
-            val eventY = event.rawY.toInt()
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    //Gte right/bottom of parent
-                    maxRight = binding.container.right
-                    maxBottom = binding.container.bottom
-                    //record lastX/lastY
-                    lastX = eventX
-                    lastY = eventY
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    //calculate offset
-                    val dx: Int = eventX - lastX
-                    val dy: Int = eventY - lastY
-                    //using offset set imageView
-                    var left: Int = binding.jetPlane.left + dx
-                    var top: Int = binding.jetPlane.top + dy
-                    var right: Int = binding.jetPlane.right + dx
-                    var bottom: Int = binding.jetPlane.bottom + dy
-
-                    //set left  >=0
-                    if (left < 0) {
-                        right += -left
-                        left = 0
-                    }
-                    //set top
-                    if (top < 0) {
-                        bottom += -top
-                        top = 0
-                    }
-                    //set right <=maxRight
-                    if (right > maxRight) {
-                        left -= right - maxRight
-                        right = maxRight
-                    }
-                    //set bottom <=maxBottom
-                    if (bottom > maxBottom) {
-                        top -= bottom - maxBottom
-                        bottom = maxBottom
-                    }
-                    binding.jetPlane.layout(left, top, right, bottom)
-                    lastX = eventX
-                    lastY = eventY
-                }
-                else -> {}
-            }
-            true
-        }
+//        binding.root.setOnClickListener {
+//            if (viewModel.isReadToPlaySound.value == true) {
+//                mService.shotSoundPlay()
+//            }
+//        }
+//        binding.jetPlane.setOnTouchListener { view, event ->
+//            //get original x/y
+//            val eventX = event.rawX.toInt()
+//            val eventY = event.rawY.toInt()
+//            when (event.action) {
+//                MotionEvent.ACTION_DOWN -> {
+//                    //Gte right/bottom of parent
+//                    maxRight = binding.container.right
+//                    maxBottom = binding.container.bottom
+//                    //record lastX/lastY
+//                    lastX = eventX
+//                    lastY = eventY
+//                }
+//                MotionEvent.ACTION_MOVE -> {
+//                    //calculate offset
+//                    val dx: Int = eventX - lastX
+//                    val dy: Int = eventY - lastY
+//                    //using offset set imageView
+//                    var left: Int = binding.jetPlane.left + dx
+//                    var top: Int = binding.jetPlane.top + dy
+//                    var right: Int = binding.jetPlane.right + dx
+//                    var bottom: Int = binding.jetPlane.bottom + dy
+//
+//                    //set left  >=0
+//                    if (left < 0) {
+//                        right += -left
+//                        left = 0
+//                    }
+//                    //set top
+//                    if (top < 0) {
+//                        bottom += -top
+//                        top = 0
+//                    }
+//                    //set right <=maxRight
+//                    if (right > maxRight) {
+//                        left -= right - maxRight
+//                        right = maxRight
+//                    }
+//                    //set bottom <=maxBottom
+//                    if (bottom > maxBottom) {
+//                        top -= bottom - maxBottom
+//                        bottom = maxBottom
+//                    }
+//                    binding.jetPlane.layout(left, top, right, bottom)
+//                    lastX = eventX
+//                    lastY = eventY
+//                }
+//                else -> {}
+//            }
+//            true
+//        }
     }
 
     private fun addEnemy(number: Int) {
@@ -151,11 +152,9 @@ class MainActivity : AppCompatActivity() {
             params.width = 150
             params.height = 150
             enemy.layoutParams = params
-
             enemy.rotation = 180.0f
             enemy.scaleType = ImageView.ScaleType.FIT_CENTER
             enemy.setImageDrawable(AppCompatResources.getDrawable(this, enemy_back[i % 3]))
-            binding.container.addView(enemy)
         }
     }
 
@@ -199,24 +198,6 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         unbindService(connection)
         viewModel.updateSoundServiceStatus(false)
-    }
-
-    fun getScreenWidth(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            windowManager.currentWindowMetrics.bounds.width()
-        } else {
-            val metrics = resources.displayMetrics
-            metrics.widthPixels
-        }
-    }
-
-    fun getScreenHeight(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            windowManager.currentWindowMetrics.bounds.height()
-        } else {
-            val metrics = resources.displayMetrics
-            metrics.heightPixels
-        }
     }
 
 }

@@ -9,9 +9,9 @@ import android.os.Build
  **/
 object ScreenUtils {
     @Synchronized
-    fun getScreenWidth(activity: Activity, context: Context): Int {
+    fun getScreenWidth(context: Context): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            activity.windowManager.currentWindowMetrics.bounds.width()
+            (context as Activity).windowManager.currentWindowMetrics.bounds.width()
         } else {
             val metrics = context.resources.displayMetrics
             metrics.widthPixels
@@ -19,12 +19,17 @@ object ScreenUtils {
     }
 
     @Synchronized
-    fun getScreenHeight(activity: Activity, context: Context): Int {
+    fun getScreenHeight(context: Context): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            activity.windowManager.currentWindowMetrics.bounds.height()
+            (context as Activity).windowManager.currentWindowMetrics.bounds.height()
         } else {
             val metrics = context.resources.displayMetrics
             metrics.heightPixels
         }
+    }
+
+    @Synchronized
+    fun sp2px(context: Context, spValue: Float): Float {
+        return context.resources.displayMetrics.scaledDensity * spValue + 0.5f
     }
 }
