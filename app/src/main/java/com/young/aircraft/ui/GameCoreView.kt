@@ -2,13 +2,12 @@ package com.young.aircraft.ui
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.RectF
+import android.util.Log
+import android.view.KeyEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
-import com.young.aircraft.R
-import com.young.aircraft.utils.BitmapUtils
-import com.young.aircraft.utils.ScreenUtils
+import kotlin.math.abs
 
 
 /**
@@ -16,6 +15,10 @@ import com.young.aircraft.utils.ScreenUtils
  **/
 class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callback, Runnable {
     private lateinit var gameThread: Thread
+    lateinit var drawBackground: DrawBackground
+    lateinit var drawHeader: DrawHeader
+    lateinit var drawAircraft: Aircraft
+    lateinit var enemies: Enemies
     private var surfaceHolder: SurfaceHolder? = null
 
     init {
@@ -28,9 +31,17 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
+        initializeGameDrawer()
         isRunning = true
         gameThread = Thread(this)
         gameThread.start()
+    }
+
+    private fun initializeGameDrawer() {
+        drawBackground = DrawBackground(context, 2.0F)
+        drawAircraft = Aircraft(context, 1.0F)
+        enemies = Enemies(context, 1.0F)
+        drawHeader = DrawHeader(context)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -55,30 +66,22 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawBackground(canvas)
         drawHeader(canvas)
         drawAircraft(canvas)
+        drawEnemies(canvas)
+    }
+
+    private fun drawEnemies(canvas: Canvas) {
+        enemies.onDraw(canvas)
     }
 
     private fun drawAircraft(canvas: Canvas) {
-        val bitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane)
-        if (bitmap != null) {
-            bitmap.density = resources.displayMetrics.densityDpi
-            val rectF: RectF = RectF(
-                /* left = */ 0F,
-                /* top = */ 0F,
-                /* right = */ ScreenUtils.getScreenWidth(context).toFloat() / 10,
-                /* bottom = */ ScreenUtils.getScreenHeight(context).toFloat() / 10
-            )
-            bitmap.density = resources.displayMetrics.densityDpi
-            canvas.drawBitmap(bitmap, null, rectF, null)
-        }
+        drawAircraft.onDraw(canvas)
     }
 
     private fun drawBackground(canvas: Canvas) {
-        val drawBackground = DrawBackground(context)
         drawBackground.onDraw(canvas)
     }
 
     private fun drawHeader(canvas: Canvas) {
-        val drawHeader = DrawHeader(context)
         drawHeader.onDraw(canvas)
     }
 
@@ -114,7 +117,6 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             } finally {
                 try {
                     canvas?.let {
-                        println("===> unlockCanvasAndPost")
                         surfaceHolder?.unlockCanvasAndPost(it)
                     }
                 } catch (e: Exception) {
@@ -125,8 +127,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             waitTime = targetTime - timeMillis
 
             try {
-                println("waitTime ===> $waitTime")
-                Thread.sleep(waitTime)
+                Thread.sleep(abs(waitTime))
 //                Thread.yield()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -139,6 +140,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 totalTime = 0
             }
         }
+    }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        Log.d("YoungTest", "$event ---- $keyCode")
+        drawAircraft.updateGame()
+        return super.onKeyDown(keyCode, event)
     }
 }

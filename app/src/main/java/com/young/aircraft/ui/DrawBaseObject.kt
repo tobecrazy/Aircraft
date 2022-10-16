@@ -11,6 +11,7 @@ import android.graphics.Paint
 abstract class DrawBaseObject(context: Context) {
     protected var mPaint: Paint = Paint()
 
+
     init {
         mPaint.color = Color.WHITE
         mPaint.isAntiAlias = true

@@ -12,15 +12,17 @@ import com.young.aircraft.utils.ScreenUtils
  * Create by Young
  **/
 class DrawHeader(var context: Context) : DrawBaseObject(context) {
-    @SuppressLint("DrawAllocation")
+    @SuppressLint("DrawAllocation", "StringFormatInvalid")
     override fun onDraw(canvas: Canvas) {
         val mPaint = Paint()
         mPaint.isAntiAlias = true
         mPaint.color = Color.GREEN
         mPaint.style = Paint.Style.FILL_AND_STROKE;
         mPaint.textAlign = Paint.Align.LEFT
-        mPaint.textSize = ScreenUtils.sp2px(context, 14.0f)
-        canvas.drawText(context.getText(R.string.level) as String, 80F, 80F, mPaint)
+        mPaint.textSize = ScreenUtils.sp2px(context, 16.0f)
+        val floatX = ScreenUtils.dpToPx(context, 40.0F).toFloat()
+        val floatY = ScreenUtils.dpToPx(context, 35.0F).toFloat()
+        canvas.drawText(context.getString(R.string.level, "一") as String, floatX, floatY, mPaint)
     }
 
     override fun updateGame() {

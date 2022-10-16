@@ -26,4 +26,37 @@ object BitmapUtils {
         matrix.postScale(1F, -1F)
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
+
+    fun resizeBitmap(bitmap: Bitmap?, width: Int, height: Int): Bitmap? {
+        return bitmap?.let {
+            val oldWidth = it.width
+            val oldHeight = it.height
+            val scaleWight: Float = width.toFloat() / oldWidth
+            val scaleHeight: Float = height.toFloat() / oldHeight
+            val matrix = Matrix()
+            matrix.reset()
+            matrix.postScale(scaleWight, scaleHeight);
+            val res = Bitmap.createBitmap(bitmap, 0, 0, oldWidth, oldHeight, matrix, true);
+            res
+        }
+    }
+
+    @Synchronized
+    fun resizeBitmap(bitmap: Bitmap?, width: Int, height: Int, degrees: Float): Bitmap? {
+        return bitmap?.let {
+            val oldWidth = it.width
+            val oldHeight = it.height
+            val scaleWight: Float = width.toFloat() / oldWidth
+            val scaleHeight: Float = height.toFloat() / oldHeight
+            val matrix = Matrix()
+            matrix.reset()
+            //旋转角度
+            matrix.setRotate(degrees);
+            matrix.postScale(scaleWight, scaleHeight);
+            val res = Bitmap.createBitmap(bitmap, 0, 0, oldWidth, oldHeight, matrix, true);
+            res
+        }
+    }
+
+
 }
