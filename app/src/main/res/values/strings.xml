@@ -7,4 +7,22 @@
     <string name="start_history">历史成绩</string>
     <string name="game_settings">游戏设置</string>
     <string name="level">第%s关</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="settings_header">Game Settings</string>
+    <string name="sound_settings_header">Sound Settings</string>
+
+    <!-- Messages Preferences -->
+    <string name="about_us_title">About Us</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
 </resources>

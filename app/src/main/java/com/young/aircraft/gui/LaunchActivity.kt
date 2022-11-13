@@ -20,7 +20,8 @@ class LaunchActivity : AppCompatActivity() {
         }
 
         binding.gameSettings.setOnClickListener {
-            //TODO
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
         }
     }
 }
