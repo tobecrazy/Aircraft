@@ -38,6 +38,7 @@ captures/
 
 # IntelliJ
 *.iml
+.idea/*
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/gradle.xml
@@ -86,3 +87,6 @@ lint/tmp/
 .idea/misc.xml
 .idea/compiler.xml
 .idea/deploymentTargetDropDown.xml
+.DS_Store
+.idea/migrations.xml
+.idea/kotlinc.xml
