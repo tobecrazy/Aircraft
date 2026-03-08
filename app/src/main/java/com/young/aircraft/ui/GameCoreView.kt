@@ -40,7 +40,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     companion object {
         const val FPS: Int = 30
         const val MAX_LEVEL = 10
-        const val LEVEL_DURATION_MS = 60_000L
+        fun getLevelDurationMs(level: Int): Long = (300_000L - 20_000L * (level - 1))
         const val REQUIRED_KILLS = 100
     }
 
@@ -104,7 +104,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
         val enemyBullets = enemies.getEnemyBullets()
-        for ((bx, by) in enemyBullets) {
+        for ((bx, by, bulletRef) in enemyBullets) {
             val bulletBounds = enemies.getBulletBounds(bx, by)
             if (RectF.intersects(aircraftBounds, bulletBounds)) {
                 playerData.hit()
@@ -112,7 +112,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 Log.d("Game", "Player hit by enemy bullet! HP: ${playerData.health_points}")
                 // Remove the bullet that hit
                 for (enemy in enemies.activeEnemies) {
-                    enemy.bullets.remove(by)
+                    enemy.bullets.remove(bulletRef)
                 }
                 if (!playerData.isAlive()) {
                     musicService?.gameOverSoundPlay()
@@ -176,7 +176,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkLevelTimer() {
         val elapsed = System.currentTimeMillis() - levelStartTimeMs
-        if (elapsed < LEVEL_DURATION_MS) return
+        if (elapsed < getLevelDurationMs(level)) return
 
         if (enemiesDestroyedThisLevel >= REQUIRED_KILLS) {
             if (level >= MAX_LEVEL) {
