@@ -9,25 +9,25 @@
     <string name="level">第%s关</string>
     <string name="title_activity_settings">设置</string>
     <string name="time_remaining">时间: %d秒</string>
-    <string name="kills_count">击杀: %d/100</string>
+    <string name="kills_count">击杀: %1$d/%2$d</string>
     <string name="level_complete">第%d关通过！</string>
+    <string name="level_complete_message">你已通过第%d关，准备好迎接下一个挑战了吗？</string>
     <string name="level_failed">关卡失败！</string>
-    <string name="game_won">胜利！所有关卡已通关！</string>
+    <string name="game_won">恭喜你，已通过全部关卡！</string>
+    <string name="game_won_name_prompt">请输入你的名字：</string>
+    <string name="dialog_ok">确定</string>
     <string name="game_over">胜败乃兵家常事，壮士请重新来过。</string>
 
     <!-- Preference Titles -->
-    <string name="settings_header">游戏设置</string>
     <string name="sound_settings_header">声音设置</string>
-
-    <!-- Messages Preferences -->
     <string name="about_us_title">关于我们</string>
     <string name="privacy_policy_title">隐私政策</string>
-    <string name="signature_title">您的签名</string>
-    <string name="reply_title">默认回复操作</string>
 
-    <!-- Sync Preferences -->
-    <string name="sync_title">定期同步邮件</string>
-    <string name="attachment_title">下载收到的附件</string>
-    <string name="attachment_summary_on">自动下载收到邮件的附件</string>
-    <string name="attachment_summary_off">仅在手动请求时下载附件</string>
+    <!-- Sound Preferences -->
+    <string name="background_sound_title">背景音乐</string>
+    <string name="background_sound_summary_on">背景音乐已开启</string>
+    <string name="background_sound_summary_off">背景音乐已关闭</string>
+    <string name="combat_sound_title">战斗音效</string>
+    <string name="combat_sound_summary_on">战斗音效已开启</string>
+    <string name="combat_sound_summary_off">战斗音效已关闭</string>
 </resources>
