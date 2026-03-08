@@ -2,12 +2,32 @@
 
 Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions.
 
+![App Icon](app/src/main/res/mipmap-anydpi-v26/ic_launcher.png)
+
 ## Gameplay
 
 - **10 Levels**: Each level has a countdown timer and requires 100+ enemy kills to advance.
 - **Time Pressure**: Level 1 starts at 300 seconds; each subsequent level reduces the time by 20 seconds (down to 120 seconds at level 10).
 - **Scaling Difficulty**: Enemies get tougher each level with more health, more enemies per row, faster spawn rates, and tighter bullet spacing.
 - **Touch Controls**: Drag to move the player jet. Bullets fire automatically.
+
+## Features
+
+- 🎮 **Classic Arcade Shooter**: Intuitive touch-and-drag controls
+- ⏱️ **Time-Based Progression**: 10 challenging levels with decreasing time limits
+- 🎯 **Scaling Difficulty**: Progressive enemy stat increases
+- 🎵 **Audio Experience**: Looping background music + dynamic sound effects
+- ✈️ **Custom Game Engine**: 30 FPS rendering with smooth animations
+- 🎨 **Modern UI**: Material Design with adaptive icon
+
+## Screenshots
+
+### App Icon
+The app features a vibrant fighter jet launch icon with:
+- Deep space gradient background with radiant light effects
+- Detailed metallic fighter jet with afterburner flames
+- Dynamic speed lines and sparkle effects
+- Adaptive icon support for all Android versions
 
 ## Architecture
 
@@ -72,3 +92,7 @@ app/src/main/java/com/young/aircraft/
    ```
 2. Open in Android Studio.
 3. Sync Gradle and run on a device or emulator (API 30+).
+
+## License
+
+This project is open source and available for educational purposes.
