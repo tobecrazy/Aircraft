@@ -13,6 +13,7 @@
     <string name="level_complete">Level %d Complete!</string>
     <string name="level_failed">Level Failed!</string>
     <string name="game_won">Victory! All levels cleared!</string>
+    <string name="game_over">Victory and defeat are part of warfare; a valiant warrior may try again.</string>
 
     <!-- Preference Titles -->
     <string name="settings_header">Game Settings</string>

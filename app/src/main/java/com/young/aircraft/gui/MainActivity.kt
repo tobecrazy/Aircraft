@@ -53,7 +53,12 @@ class MainActivity : AppCompatActivity() {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         val coreView = GameCoreView(this)
         setContentView(coreView)
-        coreView.onGameOver = { finish() }
+        coreView.onGameOver = {
+            Toast.makeText(this, getString(R.string.game_over), Toast.LENGTH_LONG).show()
+            Looper.myLooper()?.let { looper ->
+                Handler(looper).postDelayed({ finish() }, 3000)
+            }
+        }
         coreView.onGameWon = {
             Toast.makeText(this, getString(R.string.game_won), Toast.LENGTH_LONG).show()
             Looper.myLooper()?.let { looper ->

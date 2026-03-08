@@ -145,16 +145,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     enemy.x + enemySize, enemy.y + enemySize
                 )
                 if (RectF.intersects(bulletBounds, enemyBounds)) {
-                    val destroyed = enemies.hitEnemy(enemy)
+                    enemies.hitEnemy(enemy)
                     drawAircraft.removeBullet(bullet)
-                    if (destroyed) {
-                        enemiesDestroyedThisLevel++
-                        musicService?.enemyHitSoundPlay()
-                        Log.d("Game", "Enemy destroyed! Kills: $enemiesDestroyedThisLevel")
-                    } else {
-                        musicService?.enemyHitSoundPlay()
-                        Log.d("Game", "Enemy hit! HP: ${enemy.health}")
-                    }
+                    enemiesDestroyedThisLevel++
+                    musicService?.enemyHitSoundPlay()
+                    Log.d("Game", "Enemy destroyed! Kills: $enemiesDestroyedThisLevel")
                     break
                 }
             }
