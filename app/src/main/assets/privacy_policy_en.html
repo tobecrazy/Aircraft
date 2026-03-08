@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<title>Aircraft Privacy Policy</title>
+<style>
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    padding: 0;
+    margin: 0;
+}
+
+/* Container */
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    background: #fff;
+    min-height: 100vh;
+}
+
+/* Header */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.header .effective-date {
+    font-size: 0.8125rem;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+}
+
+/* Language Switcher */
+.lang-switcher {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.lang-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.lang-btn:hover,
+.lang-btn.active {
+    background: rgba(255,255,255,0.3);
+    border-color: #fff;
+}
+
+/* Content */
+.content {
+    padding: 1rem;
+}
+
+/* Sections */
+.section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.section-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 0.875rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+}
+
+.section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 1.125rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin-right: 0.5rem;
+    border-radius: 2px;
+}
+
+/* Paragraphs and Lists */
+p, li {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: #444;
+    text-align: justify;
+}
+
+.intro-list {
+    list-style: none;
+    padding: 0;
+}
+
+.intro-list li {
+    position: relative;
+    padding-left: 1rem;
+    margin-bottom: 0.625rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.intro-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: bold;
+    font-size: 1.125rem;
+    line-height: 1.4;
+}
+
+/* Numbered Lists */
+.numbered-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0;
+}
+
+.numbered-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.numbered-list li::before {
+    content: counter(item) '.';
+    counter-increment: item;
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: 600;
+    min-width: 1.25rem;
+}
+
+.numbered-list {
+    counter-reset: item;
+}
+
+/* Highlight text */
+.highlight {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Links */
+a {
+    color: #667eea;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Contact Section */
+.contact-section {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.contact-item:last-child {
+    margin-bottom: 0;
+}
+
+.contact-label {
+    font-weight: 600;
+    color: #555;
+    min-width: 5rem;
+    flex-shrink: 0;
+}
+
+.contact-value {
+    color: #666;
+    word-break: break-all;
+}
+
+.contact-value a {
+    color: #667eea;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    color: #999;
+    font-size: 0.8125rem;
+    border-top: 1px solid #eee;
+    margin-top: 1rem;
+}
+
+/* Back to top button */
+.back-to-top {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 99;
+    border: none;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.back-to-top:active {
+    transform: scale(0.9);
+}
+
+/* Responsive adjustments */
+@media (max-width: 375px) {
+    html {
+        font-size: 14px;
+    }
+    
+    .header {
+        padding: 1rem 0.75rem;
+    }
+    
+    .header h1 {
+        font-size: 1.125rem;
+    }
+    
+    .content {
+        padding: 0.75rem;
+    }
+    
+    .section {
+        padding: 0.875rem;
+    }
+    
+    .lang-switcher {
+        position: static;
+        justify-content: center;
+        margin-top: 0.75rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 700px;
+        margin: 1rem auto;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .header {
+        padding: 2rem;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .content {
+        padding: 1.5rem;
+    }
+    
+    .section {
+        padding: 1.25rem;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1a1a2e;
+    }
+    
+    .container {
+        background: #16213e;
+    }
+    
+    .section {
+        background: #1a1a2e;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .section-title {
+        color: #8b9bf7;
+        border-bottom-color: #2a2a4a;
+    }
+    
+    .section-title::before {
+        background: linear-gradient(135deg, #8b9bf7 0%, #a78bfa 100%);
+    }
+    
+    p, li {
+        color: #c0c0c0;
+    }
+    
+    .highlight {
+        color: #e0e0e0;
+    }
+    
+    .contact-section {
+        background: linear-gradient(135deg, #1a1a2e 0%, #2a2a4a 100%);
+    }
+    
+    .contact-label {
+        color: #a0a0a0;
+    }
+    
+    .contact-value {
+        color: #b0b0b0;
+    }
+    
+    .footer {
+        border-top-color: #2a2a4a;
+        color: #666;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <header class="header">
+        <h1>Aircraft Privacy Policy</h1>
+        <div class="effective-date">Effective Date: December 2022</div>
+        <div class="lang-switcher">
+            <a href="privacy policy.html" class="lang-btn">中文</a>
+            <span class="lang-btn active">EN</span>
+        </div>
+    </header>
+
+    <main class="content">
+        <!-- Introduction -->
+        <section class="section">
+            <ul class="intro-list">
+                <li>This Agreement stipulates the rights and obligations between Aircraft game and users regarding the "Aircraft" game.</li>
+                <li>When you use our services, we may collect and use your relevant information.</li>
+                <li>We hope to explain to you through this "Privacy Policy" how we collect, use, store and share this information when you use our services, as well as the ways we provide you to access, update, control and protect such information.</li>
+                <li>This "Privacy Policy" is closely related to the services you use. We hope you read it carefully and make appropriate choices as you deem necessary according to the guidance of this "Privacy Policy".</li>
+                <li>For relevant technical terms involved in this "Privacy Policy", we try to express them in a concise manner and provide links for further explanation for your understanding.</li>
+                <li>Your use or continued use of our services means that you agree that we collect, use, store and share your relevant information in accordance with this "Privacy Policy". If you have any questions about this "Privacy Policy" or related matters, please contact us.</li>
+            </ul>
+        </section>
+
+        <!-- Information We May Collect -->
+        <section class="section">
+            <h2 class="section-title">Information We May Collect</h2>
+            <p>When we provide services, we may collect, store and use the following information related to you. If you do not provide relevant information, you may not be able to enjoy certain services we provide, or may not be able to achieve the intended effect of related services.</p>
+        </section>
+
+        <!-- Information You Provide -->
+        <section class="section">
+            <h2 class="section-title">Information You Provide</h2>
+            <ul class="intro-list">
+                <li>Relevant personal information you provide to us when using our services, such as phone number, email address or bank card number, etc.;</li>
+                <li>Shared information you provide to other parties through our services, and information you store when using our services.</li>
+            </ul>
+        </section>
+
+        <!-- Information Shared by Other Parties -->
+        <section class="section">
+            <h2 class="section-title">Information About You Shared by Other Parties</h2>
+            <ul class="intro-list">
+                <li>Shared information about you provided by other parties when using our services.</li>
+            </ul>
+        </section>
+
+        <!-- Information We Obtain About You -->
+        <section class="section">
+            <h2 class="section-title">Information We Obtain About You</h2>
+            <p>The following information may be collected when you use the services:</p>
+            <ol class="numbered-list">
+                <li><span class="highlight">Log Information</span>, referring to technical information that the system may automatically collect through cookies, web beacons or other means when you use our services, including:</li>
+                <li><span class="highlight">Device or Software Information</span>, such as configuration information provided by your mobile device, web browser or other programs used to access our services, your IP address and the version of the mobile device used and device identification code;</li>
+                <li>Information searched or browsed when using our services, such as web search terms you use, URL addresses of social media pages visited, and other information and content details you browse or request when using our services;</li>
+                <li>Information about mobile applications (APPs) and other software you have used, and information about your use of such mobile applications and software;</li>
+                <li><span class="highlight">Location Information</span>, referring to information about your location collected when you enable device location functions and use our related location-based services, including:
+                    <ul class="numbered-list" style="margin-top: 0.5rem;">
+                        <li>Your geographical location information collected through GPS or WiFi when you use our services through mobile devices with location functions;</li>
+                        <li>Real-time information about your geographical location provided by you or other users, such as location information included in your account information provided by you, or shared information uploaded by you or others showing your current or past geographical location;</li>
+                        <li>You can stop the collection of your geographical location information by turning off the location function.</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+
+        <!-- How We May Use Information -->
+        <section class="section">
+            <h2 class="section-title">How We May Use Information</h2>
+            <p>We may use the information collected during the process of providing services to you for the following purposes:</p>
+            <ol class="numbered-list">
+                <li>To provide services to you;</li>
+                <li>For identity verification, customer service, security prevention, fraud monitoring, archiving and backup purposes when providing services to you, to ensure the security of products and services we provide to you;</li>
+                <li>To help us design new services and improve our existing services;</li>
+                <li>To enable us to better understand how you access and use our services, thereby responding to your personalized needs, such as language settings, location settings, personalized help services and instructions, or responding to you and other users in other aspects;</li>
+                <li>To provide you with advertisements that are more relevant to you instead of generally delivered advertisements;</li>
+                <li>To evaluate the effectiveness of advertisements and other promotional and marketing activities in our services and improve them;</li>
+                <li>Software certification or management of software upgrades;</li>
+                <li>To enable you to participate in surveys related to our products and services.</li>
+                <li>In order to provide you with a better experience, improve our services or for other purposes you agree to, and in compliance with relevant laws and regulations, we may use information collected through one service for our other services in the form of aggregated information or personalization. For example, information collected when you use one of our services may be used in another service to provide you with specific content, or to show you information that is relevant to you rather than generally pushed. If we provide corresponding options in related services, you may also authorize us to use information provided and stored by that service for our other services.</li>
+                <li>We will make every effort to adopt appropriate technical means to ensure that you can access, update and correct your registration information or other personal information provided when using our services. When accessing, updating, correcting and deleting the aforementioned information, we may require you to verify your identity to ensure account security.</li>
+            </ol>
+        </section>
+
+        <!-- Information We May Share -->
+        <section class="section">
+            <h2 class="section-title">Information We May Share</h2>
+            <p>Except for the following circumstances, we will not share your personal information with any third party without your consent:</p>
+            <ol class="numbered-list">
+                <li>We may share your personal information with third-party service providers, contractors and agents (such as communication service providers who send emails or push notifications on our behalf, map service providers who provide location data for us) (they may not be located in your jurisdiction), for the following purposes:
+                    <ul class="numbered-list" style="margin-top: 0.5rem;">
+                        <li>To provide our services to you;</li>
+                        <li>To achieve the purposes described in the "How We May Use Information" section;</li>
+                        <li>To fulfill our obligations and exercise our rights under this "Privacy Policy";</li>
+                        <li>To understand, maintain and improve our services.</li>
+                    </ul>
+                </li>
+                <li>If we share your personal information with any of the above third parties, we will make every effort to ensure that such third parties comply with this "Privacy Policy" and other appropriate confidentiality and security measures we require them to observe when using your personal information.</li>
+                <li>With the continuous development of our business, we may undergo mergers, acquisitions, asset transfers or similar transactions, and your personal information may be transferred as part of such transactions. We will notify you before the transfer.</li>
+            </ol>
+            <p style="margin-top: 0.75rem;">We may also retain, preserve or disclose your personal information for the following needs:</p>
+            <ol class="numbered-list" style="margin-top: 0.5rem;">
+                <li>To comply with applicable laws and regulations;</li>
+                <li>To comply with court orders or other legal proceedings;</li>
+                <li>To comply with requirements of relevant government authorities;</li>
+                <li>For purposes reasonably necessary to comply with applicable laws and regulations, maintain social public interest, or protect the personal and property safety or legitimate rights and interests of our customers, us, other users.</li>
+            </ol>
+        </section>
+
+        <!-- Information Security -->
+        <section class="section">
+            <h2 class="section-title">Information Security</h2>
+            <ol class="numbered-list">
+                <li>We retain your personal information only for the period necessary for the purposes described in this "Privacy Policy" and within the time limits required by laws and regulations. We use various security technologies and procedures to prevent loss, improper use, unauthorized access or disclosure of information. For example, in certain services, we will use encryption technologies (such as SSL) to protect the personal information you provide. However, please understand that due to technical limitations and various malicious means that may exist, even if we make every effort to strengthen security measures, we cannot always guarantee one hundred percent security of information. You need to understand that the systems and communication networks you use to access our services may have problems due to factors beyond our control.</li>
+                <li><span class="highlight">Information You Share</span></li>
+                <li>Many of our services allow you to not only share your relevant information with your own social network, but also publicly share with all users who use the services. For example, information you upload or post in our services (including your publicly available personal information, lists you create), your responses to information uploaded or posted by other people, and location data and log information related to such information. Other users who use our services may also share information about you (including location data and log information). In particular, our social media services are designed to enable you to share information with users around the world, and you can make shared information transmitted in real-time and extensively. As long as you do not delete the shared information, relevant information will remain in the public domain; even if you delete shared information, relevant information may still be independently cached, copied or stored by other users or unaffiliated third parties not controlled by us, or saved in the public domain by other users or such third parties.</li>
+                <li>Therefore, please carefully consider the information content you upload, post and communicate through our services. In some cases, you can control the scope of users who have the right to browse your shared information through the privacy settings of certain of our services. If you request to delete your relevant information from our services, please operate through the methods provided in the special service terms.</li>
+            </ol>
+        </section>
+
+        <!-- Sensitive Personal Information You Share -->
+        <section class="section">
+            <h2 class="section-title">Sensitive Personal Information You Share</h2>
+            <ol class="numbered-list">
+                <li>Certain personal information may be considered sensitive personal information due to its particularity, such as your race, religion, personal health and medical information, etc. Compared with other personal information, sensitive personal information receives more stringent protection.</li>
+                <li>Please note that content and information you provide, upload or post when using our services (such as photos related to your social activities, etc.) may reveal your sensitive personal information. You need to carefully consider whether to disclose relevant sensitive personal information when using our services.</li>
+                <li>You agree to handle your sensitive personal information according to the purposes and methods described in this "Privacy Policy".</li>
+            </ol>
+        </section>
+
+        <!-- How We May Collect Information -->
+        <section class="section">
+            <h2 class="section-title">How We May Collect Information</h2>
+            <ol class="numbered-list">
+                <li>We or our third-party partners may collect and use your information through cookies and web beacons, and store such information as log information.</li>
+                <li>We use our own cookies and web beacons for the purpose of providing you with a more personalized user experience and services, and for the following purposes:
+                    <ul class="numbered-list" style="margin-top: 0.5rem;">
+                        <li>To remember your identity. For example: cookies and web beacons help us identify you as our registered user, or save information about your preferences or other information you provide to us;</li>
+                        <li>To analyze your use of our services. For example, we may use cookies and web beacons to understand what activities you engage in when using our services, or which web pages or services are most popular with you;</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Advertising Optimization -->
+        <section class="section">
+            <h2 class="section-title">Advertising Optimization</h2>
+            <ol class="numbered-list">
+                <li>Cookies and web beacons help us provide you with advertisements that are relevant to you rather than conducting general advertising.</li>
+                <li>While we use cookies and web beacons for the above purposes, we may provide non-personal identity information collected through cookies and web beacons to advertisers or other partners after statistical processing, for analyzing how users use our services and for advertising services.</li>
+                <li>There may be cookies and web beacons placed by advertisers or other cooperative partners on our products and services. These cookies and web beacons may collect non-personal identity information related to you, for analyzing how users use such services, sending advertisements you may be interested in, or for evaluating the effectiveness of advertising services. The collection and use of such information by these third-party cookies and web beacons is not governed by this "Privacy Policy", but by the privacy policies of the relevant users. We do not assume responsibility for third-party cookies or web beacons.</li>
+                <li>You can refuse or manage cookies or web beacons through browser settings. However, please note that if you disable cookies or web beacons, you may not be able to enjoy the best service experience, and certain services may not function properly. At the same time, you will still receive the same number of advertisements, but these advertisements will be less relevant to you.</li>
+            </ol>
+        </section>
+
+        <!-- Advertising Services -->
+        <section class="section">
+            <h2 class="section-title">Advertising Services</h2>
+            <p>We may use your relevant information to provide you with advertisements that are more relevant to you.</p>
+            <p style="margin-top: 0.75rem;">We may also use your information to send you marketing information through our services, email or other means, providing or promoting the following products and services of ours or third parties:</p>
+            <ol class="numbered-list" style="margin-top: 0.5rem;">
+                <li>Our services, products or services of our affiliated companies and partners, including instant messaging services, online media services, interactive entertainment services, social networking services, payment services, internet search services, location and map services, application software and services, data management software and services, online advertising services, internet finance, and other social media, entertainment, e-commerce, information and communication software or services (collectively "Internet Services");</li>
+                <li>Third-party internet service providers, and third-party products or services related to the following: food and catering, sports, music, movies, television, live performances and other arts and entertainment, books, magazines and other publications, clothing and accessories, jewelry, cosmetics, personal health and hygiene, electronics, collectibles, household utensils, appliances, home decoration and furnishings, pets, automobiles, hotels, transportation and travel, banking, insurance and other financial services, membership points and rewards programs, and other products or services we believe may be relevant to you.</li>
+            </ol>
+            <p style="margin-top: 0.75rem;">If you do not want us to use your personal information for the aforementioned advertising purposes, you can request us to stop using your personal information for the above purposes through relevant prompts provided in our advertisements, or through guidelines provided in specific services.</p>
+        </section>
+
+        <!-- Emails and Information We May Send You -->
+        <section class="section">
+            <h2 class="section-title">Emails and Information We May Send You</h2>
+            <p><span class="highlight">Emails and Information Push</span></p>
+            <ul class="intro-list" style="margin-top: 0.5rem;">
+                <li>When you use our services, we may use your information to send emails, news or push notifications to your device. If you do not wish to receive such information, you can choose to unsubscribe on the device according to our relevant prompts.</li>
+            </ul>
+            <p style="margin-top: 0.75rem;"><span class="highlight">Service-Related Announcements</span></p>
+            <ul class="intro-list" style="margin-top: 0.5rem;">
+                <li>We may send you service-related announcements when necessary (such as when we suspend a certain service due to system maintenance). You may not be able to cancel these announcements that are related to services and are not promotional in nature.</li>
+            </ul>
+        </section>
+
+        <!-- Applicable Exceptions to Privacy Policy -->
+        <section class="section">
+            <h2 class="section-title">Applicable Exceptions to Privacy Policy</h2>
+            <p>Our services may include or link to social media or other services (including websites) provided by third parties. For example:</p>
+            <ul class="intro-list" style="margin-top: 0.5rem;">
+                <li>You share certain content to our services using the "Share" button, or you log in to our services using third-party connection services. These functions may collect your relevant information (including your log information), and may place cookies on your computer device to properly perform the above functions;</li>
+                <li>We provide links to you through advertisements or other means of our services, enabling you to access third-party services or websites.</li>
+                <li>Such third-party social media or other services may be operated by relevant third parties or us. Your use of such third-party social media services or other services (including any personal information you provide to such third parties) shall be governed by the terms of service and privacy policy of such third parties (rather than the "General Terms of Service" or this "Privacy Policy"). You need to read their terms carefully. This "Privacy Policy" applies only to information we collect and does not apply to any services provided by third parties or third-party information use rules. We do not assume any responsibility for any third party's use of information provided by you.</li>
+            </ul>
+        </section>
+
+        <!-- Minors Using Our Services -->
+        <section class="section">
+            <h2 class="section-title">Minors Using Our Services</h2>
+            <p>We encourage parents or guardians to guide minors under the age of eighteen to use our services. We recommend that minors encourage their parents or guardians to read this "Privacy Policy", and we recommend that minors seek parental or guardian consent and guidance before submitting personal information.</p>
+        </section>
+
+        <!-- Scope of Application of Privacy Policy -->
+        <section class="section">
+            <h2 class="section-title">Scope of Application of Privacy Policy</h2>
+            <ol class="numbered-list">
+                <li>Except for certain specific services, all our services are governed by this "Privacy Policy". These specific services will be subject to specific privacy policies. Specific privacy policies for certain specific services will more specifically explain how we use your information in such services. The privacy policies of such specific services constitute part of this "Privacy Policy". If there is any inconsistency between the privacy policy of such specific services and this "Privacy Policy", the privacy policy of such specific services shall apply.</li>
+                <li>Please note that this "Privacy Policy" does not apply to the following situations:
+                    <ul class="numbered-list" style="margin-top: 0.5rem;">
+                        <li>Information collected by third-party services (including any third-party websites) accessed through our services;</li>
+                        <li>Information collected by other companies or organizations that conduct advertising services through our services.</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Changes -->
+        <section class="section">
+            <h2 class="section-title">Changes</h2>
+            <ul class="intro-list">
+                <li>We may revise the terms of this "Privacy Policy" from time to time, and such revisions constitute part of this "Privacy Policy". If such revisions result in a substantial reduction of your rights under this "Privacy Policy", we will notify you by prominently posting on the homepage or sending you an email or otherwise notifying you before the revisions take effect. In such cases, if you continue to use our services, it means that you agree to be bound by the revised "Privacy Policy".</li>
+            </ul>
+        </section>
+
+        <!-- Contact Information -->
+        <div class="contact-section">
+            <div class="contact-item">
+                <span class="contact-label">Publish Date:</span>
+                <span class="contact-value">December 18, 2022</span>
+            </div>
+            <div class="contact-item">
+                <span class="contact-label">Effective Date:</span>
+                <span class="contact-value">December 18, 2022</span>
+            </div>
+            <div class="contact-item">
+                <span class="contact-label">Email:</span>
+                <span class="contact-value"><a href="mailto:529079513@qq.com">529079513@qq.com</a></span>
+            </div>
+            <div class="contact-item">
+                <span class="contact-label">Author Page:</span>
+                <span class="contact-value"><a href="https://github.com/tobecrazy" target="_blank" rel="noopener noreferrer">https://github.com/tobecrazy</a></span>
+            </div>
+            <div class="contact-item">
+                <span class="contact-label">Permissions:</span>
+                <span class="contact-value">User IP, cookies information</span>
+            </div>
+            <div class="contact-item">
+                <span class="contact-label">Third-party SDK:</span>
+                <span class="contact-value">Not used</span>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>【End】</p>
+        </footer>
+    </main>
+
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</button>
+</div>
+
+<script>
+// Back to top functionality
+var backToTopBtn = document.getElementById('backToTop');
+
+window.addEventListener('scroll', function() {
+    if (window.pageYOffset > 300) {
+        backToTopBtn.classList.add('visible');
+    } else {
+        backToTopBtn.classList.remove('visible');
+    }
+});
+
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+</script>
+
+</body>
+</html>

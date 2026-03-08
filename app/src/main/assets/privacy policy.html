@@ -61,6 +61,33 @@ body {
     margin-top: 0.5rem;
 }
 
+/* Language Switcher */
+.lang-switcher {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.lang-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.lang-btn:hover,
+.lang-btn.active {
+    background: rgba(255,255,255,0.3);
+    border-color: #fff;
+}
+
 /* Content */
 .content {
     padding: 1rem;
@@ -271,6 +298,12 @@ a:hover {
     .section {
         padding: 0.875rem;
     }
+    
+    .lang-switcher {
+        position: static;
+        justify-content: center;
+        margin-top: 0.75rem;
+    }
 }
 
 @media (min-width: 768px) {
@@ -357,6 +390,10 @@ a:hover {
     <header class="header">
         <h1>Aircraft 隐私协议</h1>
         <div class="effective-date">生效时间：2022 年 12 月</div>
+        <div class="lang-switcher">
+            <span class="lang-btn active">中文</span>
+            <a href="privacy_policy_en.html" class="lang-btn">EN</a>
+        </div>
     </header>
 
     <main class="content">
