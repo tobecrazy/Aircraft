@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioManager
+import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Binder
 import android.os.Build
@@ -16,6 +17,7 @@ class MusicService : Service() {
     private val MAX_STREAMS = 5
     private lateinit var soundPool: SoundPool
     private lateinit var soundMap: HashMap<Int, Int>
+    private var bgMediaPlayer: MediaPlayer? = null
     private val mBinder = MusicBinder()
 
     @SuppressLint("ObsoleteSdkInt")
@@ -32,8 +34,6 @@ class MusicService : Service() {
             SoundPool(MAX_STREAMS, AudioManager.STREAM_MUSIC, 100)
         }
         soundMap = hashMapOf()
-        soundMap[0x000] = soundPool.load(this, R.raw.background1, 1)
-        soundMap[0x001] = soundPool.load(this, R.raw.background, 1)
         soundMap[0x002] = soundPool.load(this, R.raw.fire, 1)
         soundMap[0x003] = soundPool.load(this, R.raw.be_hit, 1)
         soundMap[0x004] = soundPool.load(this, R.raw.enemy_be_hit, 1)
@@ -56,11 +56,24 @@ class MusicService : Service() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
+        bgMediaPlayer?.release()
+        bgMediaPlayer = null
         soundPool.release()
         return super.onUnbind(intent)
     }
     fun backgroundSoundPlay() {
-        playSound(0x000, 1.0f, 100)
+        if (bgMediaPlayer == null) {
+            bgMediaPlayer = MediaPlayer.create(this, R.raw.background1).apply {
+                isLooping = true
+                start()
+            }
+        } else if (bgMediaPlayer?.isPlaying == false) {
+            bgMediaPlayer?.start()
+        }
+    }
+
+    fun backgroundSoundStop() {
+        bgMediaPlayer?.pause()
     }
 
     fun shotSoundPlay() {

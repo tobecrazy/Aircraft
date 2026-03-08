@@ -39,7 +39,7 @@ class DrawHeader(var context: Context, private val playerData: AircraftData, pri
 
         // Draw timer countdown (center-top)
         val elapsed = System.currentTimeMillis() - gameView.levelStartTimeMs
-        val remainingSec = ((GameCoreView.LEVEL_DURATION_MS - elapsed) / 1000).coerceAtLeast(0)
+        val remainingSec = ((GameCoreView.getLevelDurationMs(gameView.level) - elapsed) / 1000).coerceAtLeast(0)
         mPaint.color = if (remainingSec <= 10) Color.RED else Color.YELLOW
         mPaint.textAlign = Paint.Align.CENTER
         val centerX = ScreenUtils.getScreenWidth(context).toFloat() / 2

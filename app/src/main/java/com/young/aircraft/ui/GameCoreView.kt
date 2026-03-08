@@ -40,7 +40,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     companion object {
         const val FPS: Int = 30
         const val MAX_LEVEL = 10
-        const val LEVEL_DURATION_MS = 60_000L
+        fun getLevelDurationMs(level: Int): Long = (300_000L - 20_000L * (level - 1))
         const val REQUIRED_KILLS = 100
     }
 
@@ -176,7 +176,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkLevelTimer() {
         val elapsed = System.currentTimeMillis() - levelStartTimeMs
-        if (elapsed < LEVEL_DURATION_MS) return
+        if (elapsed < getLevelDurationMs(level)) return
 
         if (enemiesDestroyedThisLevel >= REQUIRED_KILLS) {
             if (level >= MAX_LEVEL) {
