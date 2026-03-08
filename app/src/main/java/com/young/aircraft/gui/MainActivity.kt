@@ -22,7 +22,9 @@ import com.young.aircraft.viewmodel.MainActivityViewModel
 import kotlin.properties.Delegates
 import kotlin.system.exitProcess
 
-
+/**
+ * @author Young
+ */
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var mService: MusicService

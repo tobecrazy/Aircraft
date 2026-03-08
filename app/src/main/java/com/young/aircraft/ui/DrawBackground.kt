@@ -46,6 +46,6 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
     }
 
     override fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF {
-        TODO("Not yet implemented")
+        return RectF()
     }
 }
