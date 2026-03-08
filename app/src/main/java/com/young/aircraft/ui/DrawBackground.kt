@@ -2,8 +2,9 @@ package com.young.aircraft.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.util.Log
+import android.graphics.RectF
 import com.young.aircraft.R
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.utils.ScreenUtils
@@ -29,14 +30,6 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
         val bitmap = BitmapUtils.resizeBitmap(originalBitmap, width, height)
         if (bitmap != null) {
             canvas.density = bitmap.density
-//            val rectF: RectF = RectF(
-//                /* left = */ 0F,
-//                /* top = */ 0F,
-//                /* right = */ ScreenUtils.getScreenWidth(context).toFloat(),
-//                /* bottom = */ ScreenUtils.getScreenHeight(context).toFloat()
-//            )
-//            bitmap.density = context.resources.displayMetrics.densityDpi
-//            canvas.drawBitmap(bitmap, null, rectF, mPaint)
             mTopY += 10F * speed
             mBottomY += 10F * speed
             if (mTopY > height || mBottomY > height) {
@@ -50,5 +43,9 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
 
     override fun updateGame() {
 
+    }
+
+    override fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF {
+        TODO("Not yet implemented")
     }
 }

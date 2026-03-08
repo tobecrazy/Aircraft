@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.RectF
 import android.util.Log
 import com.young.aircraft.R
 import com.young.aircraft.utils.BitmapUtils
@@ -112,5 +113,13 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
 
     override fun updateGame() {
 
+    }
+
+    override fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF {
+        val left = x
+        val top = y
+        val right = x + bitmap.width
+        val bottom = y + bitmap.height
+        return RectF(left, top, right, bottom)
     }
 }

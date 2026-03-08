@@ -2,6 +2,7 @@ package com.young.aircraft.ui
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.RectF
 import android.util.Log
 import android.view.KeyEvent
 import android.view.SurfaceHolder
@@ -48,6 +49,29 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     }
 
+    private fun checkCollision() {
+        // 获取飞机的边界
+        val aircraftBounds = drawAircraft.getBounds()
+
+        // 遍历所有敌人，检查是否与飞机碰撞
+        enemies.enemiesMap.forEach { (enemyX, enemyBitmap) ->
+            enemyBitmap?.let {
+                val enemyBounds = enemies.getEnemyBounds(enemyX, enemies.enemyY, it)
+                if (RectF.intersects(aircraftBounds, enemyBounds)) {
+                    Log.d("Collision", "Aircraft collided with an enemy!")
+                    handleCollision()
+                }
+            }
+        }
+
+    }
+
+    private fun handleCollision() {
+        isRunning = false
+        Log.d("Game", "Game Over!")
+        // 这里可以添加游戏结束或其他逻辑
+    }
+
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         var isRetry = true
         while (isRetry) {
@@ -67,6 +91,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawHeader(canvas)
         drawAircraft(canvas)
         drawEnemies(canvas)
+        checkCollision() // 添加碰撞检测
     }
 
     private fun drawEnemies(canvas: Canvas) {

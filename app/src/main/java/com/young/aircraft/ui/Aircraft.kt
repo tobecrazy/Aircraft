@@ -3,6 +3,8 @@ package com.young.aircraft.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Bitmap
+import android.graphics.RectF
 import com.young.aircraft.R
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.utils.ScreenUtils
@@ -56,5 +58,22 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
 
     override fun updateGame() {
 
+    }
+
+    override fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF {
+        val left = x
+        val top = y
+        val right = x + bitmap.width
+        val bottom = y + bitmap.height
+        return RectF(left, top, right, bottom)
+    }
+
+    fun getBounds(): RectF {
+        val left = ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
+        val top = ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
+        val jetBitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane)
+        val right = left + (jetBitmap?.width ?: 0)
+        val bottom = top + (jetBitmap?.height ?: 0)
+        return RectF(left, top, right, bottom)
     }
 }

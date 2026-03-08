@@ -1,9 +1,11 @@
 package com.young.aircraft.ui
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 
 /**
  * Create by Young
@@ -19,4 +21,5 @@ abstract class DrawBaseObject(context: Context) {
 
     abstract fun onDraw(canvas: Canvas)
     abstract fun updateGame()
+    abstract fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF
 }

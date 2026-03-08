@@ -2,9 +2,11 @@ package com.young.aircraft.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import com.young.aircraft.R
 import com.young.aircraft.utils.ScreenUtils
 
@@ -27,5 +29,9 @@ class DrawHeader(var context: Context) : DrawBaseObject(context) {
 
     override fun updateGame() {
 
+    }
+
+    override fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF {
+        TODO("Not yet implemented")
     }
 }
