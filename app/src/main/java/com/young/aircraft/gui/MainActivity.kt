@@ -1,6 +1,5 @@
 package com.young.aircraft.gui
 
-import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -46,25 +45,17 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    @SuppressLint("ClickableViewAccessibility", "SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         val coreView = GameCoreView(this)
         setContentView(coreView)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val controller = window.insetsController
-            if (controller != null) {
-                controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                controller.systemBarsBehavior =
-                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        } else {
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-            )
+        val controller = window.insetsController
+        if (controller != null) {
+            controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+            controller.systemBarsBehavior =
+                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         viewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
             .create(MainActivityViewModel::class.java)
@@ -80,62 +71,6 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
-//        binding.root.setOnClickListener {
-//            if (viewModel.isReadToPlaySound.value == true) {
-//                mService.shotSoundPlay()
-//            }
-//        }
-//        binding.jetPlane.setOnTouchListener { view, event ->
-//            //get original x/y
-//            val eventX = event.rawX.toInt()
-//            val eventY = event.rawY.toInt()
-//            when (event.action) {
-//                MotionEvent.ACTION_DOWN -> {
-//                    //Gte right/bottom of parent
-//                    maxRight = binding.container.right
-//                    maxBottom = binding.container.bottom
-//                    //record lastX/lastY
-//                    lastX = eventX
-//                    lastY = eventY
-//                }
-//                MotionEvent.ACTION_MOVE -> {
-//                    //calculate offset
-//                    val dx: Int = eventX - lastX
-//                    val dy: Int = eventY - lastY
-//                    //using offset set imageView
-//                    var left: Int = binding.jetPlane.left + dx
-//                    var top: Int = binding.jetPlane.top + dy
-//                    var right: Int = binding.jetPlane.right + dx
-//                    var bottom: Int = binding.jetPlane.bottom + dy
-//
-//                    //set left  >=0
-//                    if (left < 0) {
-//                        right += -left
-//                        left = 0
-//                    }
-//                    //set top
-//                    if (top < 0) {
-//                        bottom += -top
-//                        top = 0
-//                    }
-//                    //set right <=maxRight
-//                    if (right > maxRight) {
-//                        left -= right - maxRight
-//                        right = maxRight
-//                    }
-//                    //set bottom <=maxBottom
-//                    if (bottom > maxBottom) {
-//                        top -= bottom - maxBottom
-//                        bottom = maxBottom
-//                    }
-//                    binding.jetPlane.layout(left, top, right, bottom)
-//                    lastX = eventX
-//                    lastY = eventY
-//                }
-//                else -> {}
-//            }
-//            true
-//        }
     }
 
     private fun addEnemy(number: Int) {
