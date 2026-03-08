@@ -14,6 +14,8 @@ import com.young.aircraft.utils.ScreenUtils
  **/
 class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context) {
     var bulletTopY: Float = 0F
+    private var lastBulletX: Float = 0F
+    private val lastBulletYPositions = mutableListOf<Float>()
 
     init {
         bulletTopY =
@@ -24,7 +26,6 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
     override fun onDraw(canvas: Canvas) {
         val jetBitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane)
         val originBitmap = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
-        val originBitmap2 = BitmapUtils.readBitMap(context, R.drawable.bullet_down)
         val bulletBitmap = BitmapUtils.resizeBitmap(
             originBitmap,
             ScreenUtils.dpToPx(context, 25.0f),
@@ -41,20 +42,21 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
             jetBitmap.density = context.resources.displayMetrics.densityDpi
             canvas.drawBitmap(jetBitmap, left, top, mPaint)
             bulletTopY -= 20 * speed
+            lastBulletX = left
+            lastBulletYPositions.clear()
             for (i in 1..100) {
-                if (bulletTopY < ScreenUtils.getScreenHeight(context).toFloat()) {
-                    canvas.drawBitmap(
-                        bulletBitmap,
-                        left,
-                        bulletTopY + 500 * i - 100 * speed,
-                        mPaint
-                    )
+                val by = bulletTopY + 500 * i - 100 * speed
+                if (by >= 0 && by < ScreenUtils.getScreenHeight(context).toFloat()) {
+                    canvas.drawBitmap(bulletBitmap, left, by, mPaint)
+                    lastBulletYPositions.add(by)
                 }
             }
-
-
         }
     }
+
+    fun getBulletX(): Float = lastBulletX
+
+    fun getBulletYPositions(): List<Float> = lastBulletYPositions
 
     override fun updateGame() {
 

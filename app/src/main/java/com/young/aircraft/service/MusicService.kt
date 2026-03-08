@@ -67,6 +67,18 @@ class MusicService : Service() {
         playSound(0x002, 1.0f, 0)
     }
 
+    fun playerHitSoundPlay() {
+        playSound(0x003, 1.0f, 0)
+    }
+
+    fun enemyHitSoundPlay() {
+        playSound(0x004, 1.0f, 0)
+    }
+
+    fun gameOverSoundPlay() {
+        playSound(0x005, 1.0f, 0)
+    }
+
     inner class MusicBinder : Binder() {
         fun getService(): MusicService = this@MusicService
     }

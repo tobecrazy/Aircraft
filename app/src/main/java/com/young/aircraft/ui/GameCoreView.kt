@@ -8,6 +8,9 @@ import android.view.KeyEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
+import com.young.aircraft.data.Aircraft as AircraftData
+import com.young.aircraft.service.MusicService
+import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.abs
 
 
@@ -20,7 +23,13 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     lateinit var drawHeader: DrawHeader
     lateinit var drawAircraft: Aircraft
     lateinit var enemies: Enemies
+    lateinit var playerData: AircraftData
     private var surfaceHolder: SurfaceHolder? = null
+    private var collisionCooldown = false
+    var musicService: MusicService? = null
+    var level: Int = 1
+    private var lastEnemyY: Float = 0f
+    private var wavesCleared: Int = 0
 
     init {
         surfaceHolder = holder
@@ -42,7 +51,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawBackground = DrawBackground(context, 2.0F)
         drawAircraft = Aircraft(context, 1.0F)
         enemies = Enemies(context, 1.0F)
-        drawHeader = DrawHeader(context)
+        enemies.level = level
+        playerData = AircraftData(name = "Player", health_points = 100.0f)
+        drawHeader = DrawHeader(context, playerData, this)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -50,26 +61,98 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun checkCollision() {
-        // 获取飞机的边界
         val aircraftBounds = drawAircraft.getBounds()
 
-        // 遍历所有敌人，检查是否与飞机碰撞
+        // Check player aircraft colliding with enemies
         enemies.enemiesMap.forEach { (enemyX, enemyBitmap) ->
             enemyBitmap?.let {
                 val enemyBounds = enemies.getEnemyBounds(enemyX, enemies.enemyY, it)
                 if (RectF.intersects(aircraftBounds, enemyBounds)) {
-                    Log.d("Collision", "Aircraft collided with an enemy!")
-                    handleCollision()
+                    if (!collisionCooldown) {
+                        Log.d("Collision", "Aircraft collided with an enemy!")
+                        handleCollision()
+                    }
+                } else {
+                    collisionCooldown = false
                 }
             }
         }
 
+        // Check enemy bullets hitting the player
+        checkEnemyBulletsHitPlayer(aircraftBounds)
+
+        // Check player bullets hitting enemies
+        checkPlayerBulletsHitEnemies()
+    }
+
+    private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
+        val enemyBullets = enemies.getEnemyBullets()
+        for ((bx, by) in enemyBullets) {
+            val bulletBounds = enemies.getBulletBounds(bx, by)
+            if (RectF.intersects(aircraftBounds, bulletBounds)) {
+                playerData.hit()
+                musicService?.playerHitSoundPlay()
+                Log.d("Game", "Player hit by enemy bullet! HP: ${playerData.health_points}")
+                // Remove the bullet that hit
+                for (enemy in enemies.enemyStates) {
+                    enemy.bullets.remove(by)
+                }
+                if (!playerData.isAlive()) {
+                    musicService?.gameOverSoundPlay()
+                    isRunning = false
+                    Log.d("Game", "Game Over!")
+                }
+                break
+            }
+        }
+    }
+
+    private fun checkPlayerBulletsHitEnemies() {
+        val bulletX = drawAircraft.getBulletX()
+        val bulletYPositions = drawAircraft.getBulletYPositions()
+        val enemySize = ScreenUtils.dpToPx(context, 48.0f)
+
+        for (bulletY in bulletYPositions) {
+            if (bulletY < 0) continue
+            val bulletBounds = RectF(
+                bulletX, bulletY,
+                bulletX + ScreenUtils.dpToPx(context, 25.0f),
+                bulletY + ScreenUtils.dpToPx(context, 25.0f)
+            )
+
+            for (enemy in enemies.enemyStates) {
+                if (enemy.isDestroyed()) continue
+                val enemyBounds = RectF(
+                    enemy.x, enemies.enemyY,
+                    enemy.x + enemySize, enemies.enemyY + enemySize
+                )
+                if (RectF.intersects(bulletBounds, enemyBounds)) {
+                    val hitEnemy = enemies.hitEnemy(enemy.x)
+                    if (hitEnemy != null) {
+                        if (hitEnemy.isDestroyed()) {
+                            musicService?.enemyHitSoundPlay()
+                            Log.d("Game", "Enemy destroyed!")
+                        } else {
+                            musicService?.enemyHitSoundPlay()
+                            Log.d("Game", "Enemy hit! HP: ${hitEnemy.health}")
+                        }
+                    }
+                    break
+                }
+            }
+        }
     }
 
     private fun handleCollision() {
-        isRunning = false
-        Log.d("Game", "Game Over!")
-        // 这里可以添加游戏结束或其他逻辑
+        playerData.hit()
+        collisionCooldown = true
+        musicService?.playerHitSoundPlay()
+        Log.d("Game", "Player hit! HP: ${playerData.health_points}")
+        if (!playerData.isAlive()) {
+            musicService?.gameOverSoundPlay()
+            isRunning = false
+            Log.d("Game", "Game Over!")
+        }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
@@ -90,8 +173,22 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawBackground(canvas)
         drawHeader(canvas)
         drawAircraft(canvas)
+        checkLevelUp()
         drawEnemies(canvas)
-        checkCollision() // 添加碰撞检测
+        checkCollision()
+    }
+
+    private fun checkLevelUp() {
+        if (enemies.enemyY < lastEnemyY && lastEnemyY > 0) {
+            wavesCleared++
+            if (wavesCleared >= WAVES_PER_LEVEL) {
+                wavesCleared = 0
+                level++
+                enemies.level = level
+                Log.d("Game", "Level up! Now level $level")
+            }
+        }
+        lastEnemyY = enemies.enemyY
     }
 
     private fun drawEnemies(canvas: Canvas) {
@@ -113,6 +210,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     companion object {
         const val FPS: Int = 30
+        const val WAVES_PER_LEVEL = 3
     }
 
     private var avg_FPS: Double = 0.0

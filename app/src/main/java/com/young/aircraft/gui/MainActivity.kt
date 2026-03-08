@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.isReadToPlaySound.observe(this, Observer {
             if (it) {
                 Log.d("YoungTest", "===> to play background sound")
+                coreView.musicService = mService
                 Looper.myLooper()?.let { looper ->
                     Handler(looper).postDelayed({
                         mService.backgroundSoundPlay()

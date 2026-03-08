@@ -7,14 +7,18 @@ package com.young.aircraft.data
 data class Aircraft(
     val name: String,
     var health_points: Float = 100.0f,
-    var lethality: Float,
-    val icon: Int
+    var lethality: Float = 20.0f,
+    val icon: Int = 0
 ) {
     companion object {
-        fun isAlive(aircraft: Aircraft): Boolean {
-            return aircraft.health_points > 0
-        }
+        const val BULLET_DAMAGE = 20.0f
+    }
 
+    fun hit() {
+        health_points -= BULLET_DAMAGE
+    }
 
+    fun isAlive(): Boolean {
+        return health_points > 0
     }
 }
