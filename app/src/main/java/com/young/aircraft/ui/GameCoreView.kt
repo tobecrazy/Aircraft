@@ -1,10 +1,12 @@
 package com.young.aircraft.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.RectF
 import android.util.Log
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
@@ -26,6 +28,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     lateinit var playerData: AircraftData
     private var surfaceHolder: SurfaceHolder? = null
     private var collisionCooldown = false
+    private var gameInitialized = false
     var musicService: MusicService? = null
     var onGameOver: (() -> Unit)? = null
     var level: Int = 1
@@ -55,6 +58,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         enemies.level = level
         playerData = AircraftData(name = "Player", health_points = 100.0f)
         drawHeader = DrawHeader(context, playerData, this)
+        gameInitialized = true
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -266,6 +270,22 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 totalTime = 0
             }
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_MOVE -> {
+                if (gameInitialized) {
+                    val jetBitmap = com.young.aircraft.utils.BitmapUtils.readBitMap(context, com.young.aircraft.R.drawable.jet_plane)
+                    val halfW = (jetBitmap?.width ?: 0) / 2f
+                    val halfH = (jetBitmap?.height ?: 0) / 2f
+                    drawAircraft.jetX = event.x - halfW
+                    drawAircraft.jetY = event.y - halfH
+                }
+            }
+        }
+        return true
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

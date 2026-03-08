@@ -128,11 +128,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        Log.d("YoungTest", "===> $event")
-        return true
-    }
-
     override fun onStop() {
         super.onStop()
         unbindService(connection)

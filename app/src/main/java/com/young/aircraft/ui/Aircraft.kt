@@ -13,13 +13,15 @@ import com.young.aircraft.utils.ScreenUtils
  * Create by Young
  **/
 class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context) {
-    var bulletTopY: Float = 0F
-    private var lastBulletX: Float = 0F
-    private val lastBulletYPositions = mutableListOf<Float>()
+    private val bullets = mutableListOf<Float>()
+    private var bulletX: Float = 0F
+    private var fireCounter: Int = 0
+    var jetX: Float = ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
+    var jetY: Float = ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
 
-    init {
-        bulletTopY =
-            ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
+    companion object {
+        const val FIRE_INTERVAL = 5
+        const val BULLET_SPEED = 35f
     }
 
     @SuppressLint("DrawAllocation")
@@ -31,32 +33,37 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
             ScreenUtils.dpToPx(context, 25.0f),
             ScreenUtils.dpToPx(context, 25.0f)
         )
-        if (jetBitmap != null && null != bulletBitmap) {
+        if (jetBitmap != null && bulletBitmap != null) {
             jetBitmap.density = context.resources.displayMetrics.densityDpi
-            val left = ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(
-                context,
-                20.0f
-            )
-            val top =
-                ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
-            jetBitmap.density = context.resources.displayMetrics.densityDpi
-            canvas.drawBitmap(jetBitmap, left, top, mPaint)
-            bulletTopY -= 35 * speed
-            lastBulletX = left
-            lastBulletYPositions.clear()
-            for (i in 1..100) {
-                val by = bulletTopY + 500 * i - 175 * speed
-                if (by >= 0 && by < ScreenUtils.getScreenHeight(context).toFloat()) {
-                    canvas.drawBitmap(bulletBitmap, left, by, mPaint)
-                    lastBulletYPositions.add(by)
+            canvas.drawBitmap(jetBitmap, jetX, jetY, mPaint)
+
+            // Center bullet on jet
+            bulletX = jetX + jetBitmap.width / 2f - bulletBitmap.width / 2f
+
+            // Fire new bullet from jet position periodically
+            fireCounter++
+            if (fireCounter >= FIRE_INTERVAL) {
+                fireCounter = 0
+                bullets.add(jetY)
+            }
+
+            // Update and draw each bullet
+            var i = 0
+            while (i < bullets.size) {
+                bullets[i] -= BULLET_SPEED * speed
+                if (bullets[i] < 0) {
+                    bullets.removeAt(i)
+                } else {
+                    canvas.drawBitmap(bulletBitmap, bulletX, bullets[i], mPaint)
+                    i++
                 }
             }
         }
     }
 
-    fun getBulletX(): Float = lastBulletX
+    fun getBulletX(): Float = bulletX
 
-    fun getBulletYPositions(): List<Float> = lastBulletYPositions
+    fun getBulletYPositions(): List<Float> = bullets
 
     override fun updateGame() {
 
@@ -71,11 +78,9 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
     }
 
     fun getBounds(): RectF {
-        val left = ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
-        val top = ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
         val jetBitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane)
-        val right = left + (jetBitmap?.width ?: 0)
-        val bottom = top + (jetBitmap?.height ?: 0)
-        return RectF(left, top, right, bottom)
+        val right = jetX + (jetBitmap?.width ?: 0)
+        val bottom = jetY + (jetBitmap?.height ?: 0)
+        return RectF(jetX, jetY, right, bottom)
     }
 }
