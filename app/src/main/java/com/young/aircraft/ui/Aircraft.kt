@@ -32,7 +32,7 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        val jetBitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane)
+        val jetBitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane_1)
         val originBitmap = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
         val bulletBitmap = BitmapUtils.resizeBitmap(
             originBitmap,
