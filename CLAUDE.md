@@ -4,37 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions.
+Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions. The game has 10 time-based levels, each requiring 100+ enemy kills in 60 seconds to advance.
 
 ## Build Commands
 
 ```bash
-# Build debug APK
-./gradlew assembleDebug
-
-# Build release APK
-./gradlew assembleRelease
-
-# Run unit tests
-./gradlew test
-
-# Run a single unit test class
-./gradlew testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"
-
-# Run instrumented tests (requires device/emulator)
-./gradlew connectedAndroidTest
-
-# Clean build
-./gradlew clean
-
-# Lint check
-./gradlew lint
+./gradlew assembleDebug          # Build debug APK
+./gradlew assembleRelease        # Build release APK
+./gradlew test                   # Run unit tests
+./gradlew testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"  # Single test class
+./gradlew connectedAndroidTest   # Instrumented tests (requires device/emulator)
+./gradlew clean                  # Clean build
+./gradlew lint                   # Lint check
 ```
 
 ## Build Configuration
 
 - **Gradle:** 9.3.1, AGP 8.13.2, Kotlin 2.3.0
-- **SDK:** compileSdk 35, minSdk 30, targetSdk 35, buildTools 34.0.0
+- **SDK:** compileSdk 35, minSdk 30, targetSdk 35
 - **Java:** 17
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
@@ -46,12 +33,33 @@ Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin.
 The game runs on a custom `SurfaceView` (`GameCoreView`) with a dedicated rendering thread at 30 FPS. This is **not** a Compose or standard View-based UI — it draws directly to a `Canvas`.
 
 **Rendering hierarchy:**
-- `GameCoreView` (SurfaceView + Runnable) — owns the game loop, coordinates all drawing, and handles collision detection
-- `DrawBaseObject` — abstract base class for all drawable game objects
-  - `Aircraft` (ui/) — player jet with bullet management and touch-based movement
+- `GameCoreView` (SurfaceView + Runnable) — owns the game loop, coordinates all drawing, collision detection, and level progression
+- `DrawBaseObject` — abstract base class (`onDraw`, `updateGame`, `getEnemyBounds`) for all drawable game objects
+  - `Aircraft` (ui/) — player jet with auto-firing bullets (every 2 frames), touch-based movement
   - `DrawBackground` — seamless double-buffer scrolling background
-  - `DrawHeader` — HUD overlay showing level info
-  - `Enemies` — spawns and manages enemy sprites with random positioning
+  - `DrawHeader` — HUD overlay showing level, HP, timer countdown, kill count
+  - `Enemies` — timed row spawning with per-enemy Y tracking, 10 sprite types, red-tinted bullets
+
+### Level System (Time-Based)
+
+Defined in `GameCoreView` companion object. Each of the 10 levels lasts 60 seconds. Player must destroy 100+ enemies to advance. Enemy stats scale with level:
+- **Health:** 100 + 20 per level (in `Enemies.getEnemyHealth()`)
+- **Enemies per row:** 5 + level (in `Enemies.getEnemiesPerRow()`)
+- **Spawn interval:** 90 − 5*(level−1) frames (in `Enemies.getSpawnIntervalFrames()`)
+- **Bullet spacing:** 350 − 15*(level−1) dp, min 250dp (in `Enemies.getBulletSpacingDp()`)
+
+Level timer check runs every frame in `GameCoreView.checkLevelTimer()`.
+
+### Enemy System (Per-Enemy Y Tracking)
+
+Enemies use individual Y positions (`EnemyState.y`) — multiple rows coexist on screen simultaneously. Each `EnemyState` tracks its own position, health, destruction time, and bullet list (`MutableList<EnemyBullet>`). `EnemyBullet` stores both current Y and origin Y for 60% screen-height range limiting.
+
+### Collision Detection
+
+Three checks run every frame in `GameCoreView.checkCollision()`:
+1. Player aircraft vs enemy sprites (RectF intersection, with cooldown)
+2. Enemy bullets vs player (`getEnemyBullets()` returns `Triple<x, y, EnemyBullet>` for removal by reference)
+3. Player bullets vs enemies (iterates `activeEnemies`, increments kill counter on destroy)
 
 ### Activity Flow
 
@@ -59,19 +67,33 @@ The game runs on a custom `SurfaceView` (`GameCoreView`) with a dedicated render
 
 ### Audio
 
-`MusicService` is a bound Service using `SoundPool` for low-latency game audio (fire, hit, game over sounds). `MainActivity` binds to it and observes readiness via `MainActivityViewModel` LiveData.
+`MusicService` is a bound Service using `SoundPool` (max 5 streams) for low-latency game audio. Sound IDs are hex constants (0x000–0x005). `MainActivity` binds to it and observes readiness via `MainActivityViewModel` LiveData.
+
+### Threading Model
+
+- **Main thread:** Activity lifecycle, UI, service binding
+- **Game thread:** Dedicated thread in `GameCoreView` for the 30 FPS render loop (synchronized on SurfaceHolder)
+- **Service:** `MusicService` bound service with @Synchronized playback methods
+
+### Key Naming Collision
+
+There are two files named `Aircraft.kt`:
+- `data/Aircraft.kt` — data class with `name`, `health_points`, `lethality`, `icon`, and `isAlive()` check
+- `ui/Aircraft.kt` — rendering class extending `DrawBaseObject`, manages player sprite and bullet firing
+
+Code uses `import com.young.aircraft.data.Aircraft as AircraftData` to disambiguate.
 
 ### Utilities
 
 - `ScreenUtils` — thread-safe screen dimensions and unit conversion (dp/sp/px)
-- `BitmapUtils` — bitmap loading, resizing, rotation from resources
+- `BitmapUtils` — bitmap loading, resizing, rotation from resources. `resizeBitmap(bitmap, w, h, degrees)` overload handles rotation.
 
-### Threading Model
+### Bitmap Density
 
-- **Main thread:** Activity lifecycle, UI
-- **Game thread:** Dedicated thread in `GameCoreView` for the render loop
-- **Service:** `MusicService` bound service lifecycle
+Player bullets set `bitmap.density = screenDensity` for canvas density scaling. Enemy bullets must do the same to render at matching visual size. Both use 25dp bitmaps; enemy bullets use `bullet_up.png` rotated 180° with a red `ColorMatrixColorFilter`.
 
-### Key Data Model
+### Game Assets
 
-`Aircraft` (data/) — data class with `name`, `health_points`, `lethality`, `icon`. The companion object holds mutable game state and `isAlive()` check. Note: there are two files named `Aircraft.kt` — one in `data/` (data model) and one in `ui/` (rendering).
+- 10 enemy sprites: `enemy_1.png` through `enemy_10.png` (all loaded in `Enemies.init{}`)
+- 2 player sprites: `jet_plane.png`, `jet_plane_1.png`
+- 6 audio files in `res/raw/`: background music (×2), fire, be_hit, enemy_be_hit, game_over
