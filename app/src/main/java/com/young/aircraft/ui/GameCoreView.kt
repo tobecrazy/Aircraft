@@ -114,16 +114,16 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun checkPlayerBulletsHitEnemies() {
-        val bulletX = drawAircraft.getBulletX()
-        val bulletYPositions = drawAircraft.getBulletYPositions()
+        val bullets = drawAircraft.getBullets()
         val enemySize = ScreenUtils.dpToPx(context, 48.0f)
+        val bulletSize = ScreenUtils.dpToPx(context, 25.0f)
 
-        for (bulletY in bulletYPositions) {
-            if (bulletY < 0) continue
+        for (bullet in bullets) {
+            if (bullet.y < 0) continue
             val bulletBounds = RectF(
-                bulletX, bulletY,
-                bulletX + ScreenUtils.dpToPx(context, 25.0f),
-                bulletY + ScreenUtils.dpToPx(context, 25.0f)
+                bullet.x, bullet.y,
+                bullet.x + bulletSize,
+                bullet.y + bulletSize
             )
 
             for (enemy in enemies.enemyStates) {
@@ -134,6 +134,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 )
                 if (RectF.intersects(bulletBounds, enemyBounds)) {
                     val hitEnemy = enemies.hitEnemy(enemy.x)
+                    drawAircraft.removeBullet(bullet)
                     if (hitEnemy != null) {
                         if (hitEnemy.isDestroyed()) {
                             musicService?.enemyHitSoundPlay()
@@ -277,11 +278,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         when (event.action) {
             MotionEvent.ACTION_MOVE -> {
                 if (gameInitialized) {
-                    val jetBitmap = com.young.aircraft.utils.BitmapUtils.readBitMap(context, com.young.aircraft.R.drawable.jet_plane)
-                    val halfW = (jetBitmap?.width ?: 0) / 2f
-                    val halfH = (jetBitmap?.height ?: 0) / 2f
-                    drawAircraft.jetX = event.x - halfW
-                    drawAircraft.jetY = event.y - halfH
+                    val (renderedW, renderedH) = drawAircraft.getRenderedJetSize()
+                    drawAircraft.jetX = event.x - renderedW / 2f
+                    drawAircraft.jetY = event.y - renderedH / 2f
                 }
             }
         }
