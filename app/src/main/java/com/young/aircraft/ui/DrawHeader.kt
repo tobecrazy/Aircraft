@@ -37,7 +37,34 @@ class DrawHeader(var context: Context, private val playerData: AircraftData, pri
         }
         canvas.drawText(hpText, hpX, floatY, mPaint)
 
-        // Draw timer countdown (center-top)
+        // Draw HP bar below HP text
+        val barWidth = ScreenUtils.dpToPx(context, 80.0f).toFloat()
+        val barHeight = ScreenUtils.dpToPx(context, 8.0f).toFloat()
+        val barY = floatY + ScreenUtils.dpToPx(context, 6.0f).toFloat()
+        val barCorner = ScreenUtils.dpToPx(context, 3.0f).toFloat()
+        val hpFraction = (playerData.health_points / 100f).coerceIn(0f, 1f)
+
+        // Background
+        mPaint.color = Color.DKGRAY
+        mPaint.style = Paint.Style.FILL
+        mPaint.textAlign = Paint.Align.LEFT
+        canvas.drawRoundRect(RectF(hpX, barY, hpX + barWidth, barY + barHeight), barCorner, barCorner, mPaint)
+
+        // Colored fill
+        mPaint.color = when {
+            hpFraction > 0.5f -> Color.GREEN
+            hpFraction > 0.2f -> Color.YELLOW
+            else -> Color.RED
+        }
+        val fillWidth = barWidth * hpFraction
+        canvas.drawRoundRect(RectF(hpX, barY, hpX + fillWidth, barY + barHeight), barCorner, barCorner, mPaint)
+
+        // White stroke border
+        mPaint.color = Color.WHITE
+        mPaint.style = Paint.Style.STROKE
+        mPaint.strokeWidth = 1f
+        canvas.drawRoundRect(RectF(hpX, barY, hpX + barWidth, barY + barHeight), barCorner, barCorner, mPaint)
+        mPaint.style = Paint.Style.FILL_AND_STROKE
         val elapsed = System.currentTimeMillis() - gameView.levelStartTimeMs
         val remainingSec = ((GameCoreView.getLevelDurationMs(gameView.level) - elapsed) / 1000).coerceAtLeast(0)
         mPaint.color = if (remainingSec <= 10) Color.RED else Color.YELLOW

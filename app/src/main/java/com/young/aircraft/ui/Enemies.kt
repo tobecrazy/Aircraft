@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
@@ -21,6 +20,7 @@ import kotlin.random.Random
  **/
 class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) {
     val activeEnemies = mutableListOf<EnemyState>()
+    private val activeExplosions = mutableListOf<ExplosionEffect>()
     private var framesSinceLastSpawn: Int = 0
     private val bitmapList = mutableListOf<Bitmap?>()
     private var bulletBitmap: Bitmap? = null
@@ -36,6 +36,16 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
             0f,   0.2f, 0f,   0f, 0f,     // G
             0f,   0f,   0.2f, 0f, 0f,     // B
             0f,   0f,   0f,   1f, 0f      // A
+        )))
+    }
+
+    // Paint with white tint for hit flash effect
+    private val hitFlashPaint = Paint().apply {
+        colorFilter = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
+            0f, 0f, 0f, 0f, 255f,  // R
+            0f, 0f, 0f, 0f, 255f,  // G
+            0f, 0f, 0f, 0f, 255f,  // B
+            0f, 0f, 0f, 1f, 0f     // A
         )))
     }
 
@@ -231,20 +241,26 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     }
 
     private fun drawDestroyedEnemies(canvas: Canvas) {
-        val destroyPaint = Paint().apply {
-            color = Color.RED
-            alpha = 128
-            style = Paint.Style.FILL
-        }
+        // Draw hit flash: show enemy with white tint for first 100ms after destruction
         for (enemy in activeEnemies) {
             if (enemy.isDestroyed() && !enemy.isExpired()) {
-                val size = ScreenUtils.dpToPx(context, 48.0f).toFloat()
-                canvas.drawCircle(
-                    enemy.x + size / 2,
-                    enemy.y + size / 2,
-                    size / 2,
-                    destroyPaint
-                )
+                val elapsed = System.currentTimeMillis() - enemy.destroyedTime
+                if (elapsed <= 100L) {
+                    val bmpIndex = bitmapList.indexOf(enemy.bitmap)
+                    val cachedBmp = if (bmpIndex >= 0) cachedEnemyBitmaps[bmpIndex] else null
+                    cachedBmp?.let { canvas.drawBitmap(it, enemy.x, enemy.y, hitFlashPaint) }
+                }
+            }
+        }
+
+        // Draw and prune explosion effects
+        val iter = activeExplosions.iterator()
+        while (iter.hasNext()) {
+            val explosion = iter.next()
+            if (explosion.isFinished()) {
+                iter.remove()
+            } else {
+                explosion.draw(canvas)
             }
         }
     }
@@ -278,7 +294,20 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     fun hitEnemy(enemy: EnemyState): Boolean {
         enemy.health = -1f
         enemy.destroyedTime = System.currentTimeMillis()
+        // Spawn explosion at enemy center
+        val enemySizePx = ScreenUtils.dpToPx(context, 48.0f).toFloat()
+        activeExplosions.add(
+            ExplosionEffect(
+                centerX = enemy.x + enemySizePx / 2f,
+                centerY = enemy.y + enemySizePx / 2f,
+                size = enemySizePx
+            )
+        )
         return true
+    }
+
+    fun clearExplosions() {
+        activeExplosions.clear()
     }
 
     override fun updateGame() {
