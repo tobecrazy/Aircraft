@@ -4,6 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Bitmap
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import android.graphics.RectF
 import com.young.aircraft.R
 import com.young.aircraft.utils.BitmapUtils
@@ -21,6 +24,19 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
     var jetY: Float = ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
     private val maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.7f
 
+    // Hit flash state
+    var hitTimeMs: Long = 0L
+
+    // Paint with white tint for hit flash effect
+    private val hitFlashPaint = Paint().apply {
+        colorFilter = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
+            0f, 0f, 0f, 0f, 255f,  // R
+            0f, 0f, 0f, 0f, 255f,  // G
+            0f, 0f, 0f, 0f, 255f,  // B
+            0f, 0f, 0f, 1f, 0f     // A
+        )))
+    }
+
     // Cached rendered dimensions (updated each frame from onDraw)
     @Volatile var renderedJetW: Float = 0f
     @Volatile var renderedJetH: Float = 0f
@@ -28,11 +44,12 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
     companion object {
         const val FIRE_INTERVAL = 2
         const val BULLET_SPEED = 35f
+        const val HIT_FLASH_DURATION_MS = 200L
     }
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        val jetBitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane_1)
+        val jetBitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane)
         val originBitmap = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
         val bulletBitmap = BitmapUtils.resizeBitmap(
             originBitmap,
@@ -43,7 +60,9 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
             val screenDensity = context.resources.displayMetrics.densityDpi
             jetBitmap.density = screenDensity
             bulletBitmap.density = screenDensity
-            canvas.drawBitmap(jetBitmap, jetX, jetY, mPaint)
+            canvas.drawBitmap(jetBitmap, jetX, jetY,
+                if (System.currentTimeMillis() - hitTimeMs < HIT_FLASH_DURATION_MS) hitFlashPaint else mPaint
+            )
 
             // Compute actual rendered sizes accounting for canvas vs bitmap density scaling
             val scale = if (canvas.density > 0) canvas.density.toFloat() / screenDensity else 1f

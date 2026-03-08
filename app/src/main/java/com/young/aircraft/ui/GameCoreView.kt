@@ -3,7 +3,11 @@ package com.young.aircraft.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RadialGradient
 import android.graphics.RectF
+import android.graphics.Shader
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -14,6 +18,8 @@ import com.young.aircraft.data.Aircraft as AircraftData
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.abs
+import kotlin.math.sin
+import kotlin.random.Random
 
 
 /**
@@ -39,9 +45,30 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var gameWon = false
     private var isPaused = false
 
+    // Screen shake state
+    private var shakeStartTimeMs: Long = 0L
+    private val shakeRng = Random(System.nanoTime())
+
+    // Damage flash state
+    private var damageFlashStartMs: Long = 0L
+    private val damageFlashPaint = Paint().apply {
+        color = Color.RED
+        style = Paint.Style.FILL
+    }
+
+    // Low-health vignette
+    private val vignettePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    // Death explosion
+    private var playerDeathExplosion: ExplosionEffect? = null
+    private var isPlayerDying = false
+
     companion object {
         const val FPS: Int = 30
         const val MAX_LEVEL = 10
+        const val SHAKE_DURATION_MS = 300L
+        const val SHAKE_MAX_OFFSET_DP = 8f
+        const val FLASH_DURATION_MS = 300L
         fun getLevelDurationMs(level: Int): Long = (300_000L - 20_000L * (level - 1))
         fun getRequiredKills(level: Int): Int = 90 + level * 10
     }
@@ -111,6 +138,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             if (RectF.intersects(aircraftBounds, bulletBounds)) {
                 playerData.hit()
                 musicService?.playerHitSoundPlay()
+                triggerHitEffects()
                 Log.d("Game", "Player hit by enemy bullet! HP: ${playerData.health_points}")
                 // Remove the bullet that hit
                 for (enemy in enemies.activeEnemies) {
@@ -118,9 +146,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 }
                 if (!playerData.isAlive()) {
                     musicService?.gameOverSoundPlay()
-                    isRunning = false
+                    triggerDeathExplosion()
                     Log.d("Game", "Game Over!")
-                    post { onGameOver?.invoke() }
                 }
                 break
             }
@@ -163,12 +190,12 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         playerData.hit()
         collisionCooldown = true
         musicService?.playerHitSoundPlay()
+        triggerHitEffects()
         Log.d("Game", "Player hit! HP: ${playerData.health_points}")
         if (!playerData.isAlive()) {
             musicService?.gameOverSoundPlay()
-            isRunning = false
+            triggerDeathExplosion()
             Log.d("Game", "Game Over!")
-            post { onGameOver?.invoke() }
         }
     }
 
@@ -193,6 +220,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         level++
         enemies.level = level
         enemies.activeEnemies.clear()
+        enemies.clearExplosions()
         levelStartTimeMs = System.currentTimeMillis()
         enemiesDestroyedThisLevel = 0
         isPaused = false
@@ -225,14 +253,122 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun onUpdateGameDraw(canvas: Canvas?) {
         if (null == canvas) return
+
+        // Screen shake
+        val shaking = applyScreenShake(canvas)
+
         drawBackground(canvas)
         drawHeader(canvas)
-        drawAircraft(canvas)
-        if (!isPaused) {
+
+        // Skip drawing aircraft if dying (explosion replaces it)
+        if (!isPlayerDying) {
+            drawAircraft(canvas)
+        }
+
+        if (!isPaused && !isPlayerDying) {
             checkLevelTimer()
             drawEnemies(canvas)
             checkCollision()
         }
+
+        // Death explosion (drawn over everything except overlays)
+        drawDeathExplosion(canvas)
+
+        // Overlays
+        drawDamageFlash(canvas)
+        drawLowHealthVignette(canvas)
+
+        // Restore shake offset
+        if (shaking) {
+            canvas.restore()
+        }
+    }
+
+    private fun applyScreenShake(canvas: Canvas): Boolean {
+        val elapsed = System.currentTimeMillis() - shakeStartTimeMs
+        if (elapsed >= SHAKE_DURATION_MS) return false
+
+        val maxOffsetPx = ScreenUtils.dpToPx(context, SHAKE_MAX_OFFSET_DP).toFloat()
+        val decay = 1f - elapsed.toFloat() / SHAKE_DURATION_MS
+        val offsetX = (shakeRng.nextFloat() * 2f - 1f) * maxOffsetPx * decay
+        val offsetY = (shakeRng.nextFloat() * 2f - 1f) * maxOffsetPx * decay
+
+        canvas.save()
+        canvas.translate(offsetX, offsetY)
+        return true
+    }
+
+    private fun drawDamageFlash(canvas: Canvas) {
+        val elapsed = System.currentTimeMillis() - damageFlashStartMs
+        if (elapsed >= FLASH_DURATION_MS) return
+
+        val alpha = ((1f - elapsed.toFloat() / FLASH_DURATION_MS) * 80).toInt().coerceIn(0, 255)
+        damageFlashPaint.alpha = alpha
+        canvas.drawRect(
+            0f, 0f,
+            ScreenUtils.getScreenWidth(context).toFloat(),
+            ScreenUtils.getScreenHeight(context).toFloat(),
+            damageFlashPaint
+        )
+    }
+
+    private fun drawLowHealthVignette(canvas: Canvas) {
+        if (!gameInitialized) return
+        if (playerData.health_points > 20f || !playerData.isAlive()) return
+
+        val screenW = ScreenUtils.getScreenWidth(context).toFloat()
+        val screenH = ScreenUtils.getScreenHeight(context).toFloat()
+        val centerX = screenW / 2f
+        val centerY = screenH / 2f
+        val radius = maxOf(screenW, screenH) * 0.7f
+
+        // Pulsing alpha: sin wave between 30 and 80
+        val pulse = (sin(System.currentTimeMillis() / 300.0) * 0.5 + 0.5).toFloat()
+        val alpha = (30 + pulse * 50).toInt()
+
+        val gradient = RadialGradient(
+            centerX, centerY, radius,
+            intArrayOf(Color.TRANSPARENT, Color.TRANSPARENT, Color.argb(alpha, 255, 0, 0)),
+            floatArrayOf(0f, 0.5f, 1f),
+            Shader.TileMode.CLAMP
+        )
+        vignettePaint.shader = gradient
+        canvas.drawRect(0f, 0f, screenW, screenH, vignettePaint)
+        vignettePaint.shader = null
+    }
+
+    private fun drawDeathExplosion(canvas: Canvas) {
+        val explosion = playerDeathExplosion ?: return
+        if (explosion.isFinished()) {
+            playerDeathExplosion = null
+            isPlayerDying = false
+            isRunning = false
+            Log.d("Game", "Death explosion finished — Game Over!")
+            post { onGameOver?.invoke() }
+        } else {
+            explosion.draw(canvas)
+        }
+    }
+
+    private fun triggerHitEffects() {
+        val now = System.currentTimeMillis()
+        shakeStartTimeMs = now
+        damageFlashStartMs = now
+        drawAircraft.hitTimeMs = now
+    }
+
+    private fun triggerDeathExplosion() {
+        isPlayerDying = true
+        isPaused = true
+        val jetCenterX = drawAircraft.jetX + drawAircraft.renderedJetW / 2f
+        val jetCenterY = drawAircraft.jetY + drawAircraft.renderedJetH / 2f
+        val explosionSize = maxOf(drawAircraft.renderedJetW, drawAircraft.renderedJetH)
+        playerDeathExplosion = ExplosionEffect(
+            centerX = jetCenterX,
+            centerY = jetCenterY,
+            size = explosionSize,
+            scale = 2.5f
+        )
     }
 
     private fun drawEnemies(canvas: Canvas) {
