@@ -54,6 +54,12 @@ class MainActivity : AppCompatActivity() {
         val coreView = GameCoreView(this)
         setContentView(coreView)
         coreView.onGameOver = { finish() }
+        coreView.onGameWon = {
+            Toast.makeText(this, getString(R.string.game_won), Toast.LENGTH_LONG).show()
+            Looper.myLooper()?.let { looper ->
+                Handler(looper).postDelayed({ finish() }, 3000)
+            }
+        }
         val controller = window.insetsController
         if (controller != null) {
             controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())

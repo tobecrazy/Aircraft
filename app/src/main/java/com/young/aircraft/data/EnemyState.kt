@@ -2,10 +2,14 @@ package com.young.aircraft.data
 
 import android.graphics.Bitmap
 
+/**
+ * @author Young
+ */
 data class EnemyState(
     val x: Float,
+    var y: Float,
     val bitmap: Bitmap?,
-    var health: Float = 40.0f,
+    var health: Float,
     var destroyedTime: Long = 0L,
     val bullets: MutableList<Float> = mutableListOf()
 ) {

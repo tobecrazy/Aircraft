@@ -8,6 +8,11 @@
     <string name="game_settings">游戏设置</string>
     <string name="level">第%s关</string>
     <string name="title_activity_settings">设置</string>
+    <string name="time_remaining">时间: %d秒</string>
+    <string name="kills_count">击杀: %d/100</string>
+    <string name="level_complete">第%d关通过！</string>
+    <string name="level_failed">关卡失败！</string>
+    <string name="game_won">胜利！所有关卡已通关！</string>
 
     <!-- Preference Titles -->
     <string name="settings_header">游戏设置</string>

@@ -26,7 +26,7 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
     @Volatile var renderedJetH: Float = 0f
 
     companion object {
-        const val FIRE_INTERVAL = 5
+        const val FIRE_INTERVAL = 2
         const val BULLET_SPEED = 35f
     }
 

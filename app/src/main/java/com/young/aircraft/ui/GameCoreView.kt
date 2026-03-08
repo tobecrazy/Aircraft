@@ -31,9 +31,18 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var gameInitialized = false
     var musicService: MusicService? = null
     var onGameOver: (() -> Unit)? = null
+    var onGameWon: (() -> Unit)? = null
     var level: Int = 1
-    private var lastEnemyY: Float = 0f
-    private var wavesCleared: Int = 0
+    var levelStartTimeMs: Long = 0L
+    var enemiesDestroyedThisLevel: Int = 0
+    private var gameWon = false
+
+    companion object {
+        const val FPS: Int = 30
+        const val MAX_LEVEL = 10
+        const val LEVEL_DURATION_MS = 60_000L
+        const val REQUIRED_KILLS = 100
+    }
 
     init {
         surfaceHolder = holder
@@ -41,7 +50,6 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         focusable = View.FOCUSABLE
         isFocusableInTouchMode = true
         keepScreenOn = true
-
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
@@ -58,6 +66,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         enemies.level = level
         playerData = AircraftData(name = "Player", health_points = 100.0f)
         drawHeader = DrawHeader(context, playerData, this)
+        levelStartTimeMs = System.currentTimeMillis()
+        enemiesDestroyedThisLevel = 0
         gameInitialized = true
     }
 
@@ -67,11 +77,13 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkCollision() {
         val aircraftBounds = drawAircraft.getBounds()
+        val enemySize = ScreenUtils.dpToPx(context, 48.0f)
 
         // Check player aircraft colliding with enemies
-        enemies.enemiesMap.forEach { (enemyX, enemyBitmap) ->
-            enemyBitmap?.let {
-                val enemyBounds = enemies.getEnemyBounds(enemyX, enemies.enemyY, it)
+        for (enemy in enemies.activeEnemies) {
+            if (enemy.isDestroyed()) continue
+            enemy.bitmap?.let {
+                val enemyBounds = enemies.getEnemyBounds(enemy.x, enemy.y, it)
                 if (RectF.intersects(aircraftBounds, enemyBounds)) {
                     if (!collisionCooldown) {
                         Log.d("Collision", "Aircraft collided with an enemy!")
@@ -99,7 +111,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 musicService?.playerHitSoundPlay()
                 Log.d("Game", "Player hit by enemy bullet! HP: ${playerData.health_points}")
                 // Remove the bullet that hit
-                for (enemy in enemies.enemyStates) {
+                for (enemy in enemies.activeEnemies) {
                     enemy.bullets.remove(by)
                 }
                 if (!playerData.isAlive()) {
@@ -126,23 +138,22 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 bullet.y + bulletSize
             )
 
-            for (enemy in enemies.enemyStates) {
+            for (enemy in enemies.activeEnemies) {
                 if (enemy.isDestroyed()) continue
                 val enemyBounds = RectF(
-                    enemy.x, enemies.enemyY,
-                    enemy.x + enemySize, enemies.enemyY + enemySize
+                    enemy.x, enemy.y,
+                    enemy.x + enemySize, enemy.y + enemySize
                 )
                 if (RectF.intersects(bulletBounds, enemyBounds)) {
-                    val hitEnemy = enemies.hitEnemy(enemy.x)
+                    val destroyed = enemies.hitEnemy(enemy)
                     drawAircraft.removeBullet(bullet)
-                    if (hitEnemy != null) {
-                        if (hitEnemy.isDestroyed()) {
-                            musicService?.enemyHitSoundPlay()
-                            Log.d("Game", "Enemy destroyed!")
-                        } else {
-                            musicService?.enemyHitSoundPlay()
-                            Log.d("Game", "Enemy hit! HP: ${hitEnemy.health}")
-                        }
+                    if (destroyed) {
+                        enemiesDestroyedThisLevel++
+                        musicService?.enemyHitSoundPlay()
+                        Log.d("Game", "Enemy destroyed! Kills: $enemiesDestroyedThisLevel")
+                    } else {
+                        musicService?.enemyHitSoundPlay()
+                        Log.d("Game", "Enemy hit! HP: ${enemy.health}")
                     }
                     break
                 }
@@ -159,6 +170,35 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             musicService?.gameOverSoundPlay()
             isRunning = false
             Log.d("Game", "Game Over!")
+            post { onGameOver?.invoke() }
+        }
+    }
+
+    private fun checkLevelTimer() {
+        val elapsed = System.currentTimeMillis() - levelStartTimeMs
+        if (elapsed < LEVEL_DURATION_MS) return
+
+        if (enemiesDestroyedThisLevel >= REQUIRED_KILLS) {
+            if (level >= MAX_LEVEL) {
+                // Game won!
+                gameWon = true
+                isRunning = false
+                Log.d("Game", "Game Won! All levels cleared!")
+                post { onGameWon?.invoke() }
+            } else {
+                // Advance to next level
+                level++
+                enemies.level = level
+                enemies.activeEnemies.clear()
+                levelStartTimeMs = System.currentTimeMillis()
+                enemiesDestroyedThisLevel = 0
+                Log.d("Game", "Level up! Now level $level")
+            }
+        } else {
+            // Failed to meet kill requirement
+            musicService?.gameOverSoundPlay()
+            isRunning = false
+            Log.d("Game", "Level failed! Kills: $enemiesDestroyedThisLevel/$REQUIRED_KILLS")
             post { onGameOver?.invoke() }
         }
     }
@@ -181,22 +221,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawBackground(canvas)
         drawHeader(canvas)
         drawAircraft(canvas)
-        checkLevelUp()
+        checkLevelTimer()
         drawEnemies(canvas)
         checkCollision()
-    }
-
-    private fun checkLevelUp() {
-        if (enemies.enemyY < lastEnemyY && lastEnemyY > 0) {
-            wavesCleared++
-            if (wavesCleared >= WAVES_PER_LEVEL) {
-                wavesCleared = 0
-                level++
-                enemies.level = level
-                Log.d("Game", "Level up! Now level $level")
-            }
-        }
-        lastEnemyY = enemies.enemyY
     }
 
     private fun drawEnemies(canvas: Canvas) {
@@ -213,12 +240,6 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun drawHeader(canvas: Canvas) {
         drawHeader.onDraw(canvas)
-    }
-
-
-    companion object {
-        const val FPS: Int = 30
-        const val WAVES_PER_LEVEL = 3
     }
 
     private var avg_FPS: Double = 0.0

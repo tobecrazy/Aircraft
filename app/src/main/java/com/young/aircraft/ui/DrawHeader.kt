@@ -36,6 +36,20 @@ class DrawHeader(var context: Context, private val playerData: AircraftData, pri
             mPaint.color = Color.GREEN
         }
         canvas.drawText(hpText, hpX, floatY, mPaint)
+
+        // Draw timer countdown (center-top)
+        val elapsed = System.currentTimeMillis() - gameView.levelStartTimeMs
+        val remainingSec = ((GameCoreView.LEVEL_DURATION_MS - elapsed) / 1000).coerceAtLeast(0)
+        mPaint.color = if (remainingSec <= 10) Color.RED else Color.YELLOW
+        mPaint.textAlign = Paint.Align.CENTER
+        val centerX = ScreenUtils.getScreenWidth(context).toFloat() / 2
+        canvas.drawText(context.getString(R.string.time_remaining, remainingSec.toInt()), centerX, floatY, mPaint)
+
+        // Draw kill count (below level text)
+        val killsY = floatY + ScreenUtils.dpToPx(context, 22.0F)
+        mPaint.color = if (gameView.enemiesDestroyedThisLevel >= GameCoreView.REQUIRED_KILLS) Color.GREEN else Color.WHITE
+        mPaint.textAlign = Paint.Align.LEFT
+        canvas.drawText(context.getString(R.string.kills_count, gameView.enemiesDestroyedThisLevel), floatX, killsY, mPaint)
     }
 
     override fun updateGame() {

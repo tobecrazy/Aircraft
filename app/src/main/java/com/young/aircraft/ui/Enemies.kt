@@ -17,18 +17,22 @@ import kotlin.random.Random
  * Create by Young
  **/
 class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) {
-    var enemyY: Float = 0F
-    private var enemyX: Float = 0F
-    val bitmapList = mutableListOf<Bitmap?>()
-    val enemiesMap = mutableMapOf<Float, Bitmap?>()
-    val enemyStates = mutableListOf<EnemyState>()
+    val activeEnemies = mutableListOf<EnemyState>()
+    private var framesSinceLastSpawn: Int = 0
+    private val bitmapList = mutableListOf<Bitmap?>()
     private var bulletBitmap: Bitmap? = null
     var level: Int = 1
+
+    // Cached resized enemy bitmaps (avoid per-frame allocation)
+    private val cachedEnemyBitmaps = mutableListOf<Bitmap?>()
 
     companion object {
         const val BASE_ENEMY_MOVE_SPEED = 3f
         const val BASE_ENEMY_BULLET_SPEED = 6f
         const val LEVEL_SPEED_INCREMENT = 1.5f
+        const val BASE_ENEMY_HEALTH = 100f
+        const val HEALTH_PER_LEVEL = 20f
+        const val BASE_ENEMIES_PER_ROW = 5
     }
 
     fun getEnemyMoveSpeed(): Float = BASE_ENEMY_MOVE_SPEED + (level - 1) * LEVEL_SPEED_INCREMENT
@@ -38,9 +42,15 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         return moveSpeed + BASE_ENEMY_BULLET_SPEED + (level - 1) * LEVEL_SPEED_INCREMENT
     }
 
+    fun getEnemyHealth(): Float = BASE_ENEMY_HEALTH + (level - 1) * HEALTH_PER_LEVEL
+
+    fun getEnemiesPerRow(): Int = BASE_ENEMIES_PER_ROW + level
+
+    fun getSpawnIntervalFrames(): Int = 90 - (level - 1) * 5
+
+    private val enemyX: Float = ScreenUtils.getScreenWidth(context).toFloat()
+
     init {
-        enemyY = getRandomTop()
-        enemyX = ScreenUtils.getScreenWidth(context).toFloat()
         val originBitmap1 = BitmapUtils.readBitMap(context, R.drawable.enemy_1)
         val originBitmap2 = BitmapUtils.readBitMap(context, R.drawable.enemy_2)
         val originBitmap3 = BitmapUtils.readBitMap(context, R.drawable.enemy_3)
@@ -50,23 +60,29 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         bitmapList.add(originBitmap3)
         bitmapList.add(originBitmap4)
 
+        // Pre-cache resized enemy bitmaps
+        val enemySizePx = ScreenUtils.dpToPx(context, 48.0f)
+        for (bmp in bitmapList) {
+            cachedEnemyBitmaps.add(
+                BitmapUtils.resizeBitmap(bmp, enemySizePx, enemySizePx, 180.0f)
+            )
+        }
+
         val originBullet = BitmapUtils.readBitMap(context, R.drawable.bullet_down)
         bulletBitmap = BitmapUtils.resizeBitmap(
             originBullet,
             ScreenUtils.dpToPx(context, 25.0f),
             ScreenUtils.dpToPx(context, 25.0f)
         )
-
-        refreshData()
     }
 
-    private fun getRandomEnemyBitmap(): Bitmap? {
+    private fun getRandomEnemyBitmapIndex(): Int {
         val random = Random(System.nanoTime())
         var index: Int = random.nextInt() % 4
         while (index < 0) {
             index = random.nextInt() % 4
         }
-        return bitmapList[index]
+        return index
     }
 
     private fun getRandomLeft(): Float {
@@ -80,71 +96,87 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         return randomX
     }
 
-    private fun getRandomTop(): Float {
-        val height = ScreenUtils.getScreenWidth(context).toFloat()
-        val random = Random(System.nanoTime())
-        val topY = ScreenUtils.dpToPx(context, 50.0f)
-        val bottomY = height / 3 - ScreenUtils.dpToPx(context, 10.0f)
-        var randomY = height * random.nextFloat()
-        while (randomY <= topY || randomY >= bottomY) {
-            randomY = height * random.nextFloat()
+    private fun spawnRow() {
+        val count = getEnemiesPerRow()
+        val health = getEnemyHealth()
+        val startY = -ScreenUtils.dpToPx(context, 48.0f).toFloat()
+        for (i in 0 until count) {
+            val x = getRandomLeft()
+            val bmpIndex = getRandomEnemyBitmapIndex()
+            activeEnemies.add(
+                EnemyState(
+                    x = x,
+                    y = startY,
+                    bitmap = bitmapList[bmpIndex],
+                    health = health
+                )
+            )
         }
-        return randomY
     }
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        // Draw enemies using legacy map (for collision compat)
-        enemiesMap.forEach { data ->
-            data.value?.let { initializeEnemies(it, data.key, canvas) }
+        val screenHeight = ScreenUtils.getScreenHeight(context).toFloat()
+        val moveSpeed = getEnemyMoveSpeed()
+
+        // Spawn timer
+        framesSinceLastSpawn++
+        if (framesSinceLastSpawn >= getSpawnIntervalFrames()) {
+            framesSinceLastSpawn = 0
+            spawnRow()
         }
 
-        // Draw enemy bullets and destroyed enemies
+        // Move and draw alive enemies
+        val enemySizePx = ScreenUtils.dpToPx(context, 48.0f)
+        val iter = activeEnemies.iterator()
+        while (iter.hasNext()) {
+            val enemy = iter.next()
+            if (!enemy.isDestroyed()) {
+                enemy.y += moveSpeed * speed
+                // Remove if off-screen bottom
+                if (enemy.y > screenHeight) {
+                    iter.remove()
+                    continue
+                }
+                // Draw using cached bitmap
+                val bmpIndex = bitmapList.indexOf(enemy.bitmap)
+                val cachedBmp = if (bmpIndex >= 0) cachedEnemyBitmaps[bmpIndex] else null
+                cachedBmp?.let { canvas.drawBitmap(it, enemy.x, enemy.y, mPaint) }
+            } else if (enemy.isExpired()) {
+                iter.remove()
+                continue
+            }
+        }
+
         drawEnemyBullets(canvas)
         drawDestroyedEnemies(canvas)
-        removeExpiredEnemies()
-    }
-
-    private fun initializeEnemies(originBitmap: Bitmap, left: Float, canvas: Canvas) {
-        val enemyBitmap = BitmapUtils.resizeBitmap(
-            originBitmap,
-            ScreenUtils.dpToPx(context, 48.0f),
-            ScreenUtils.dpToPx(context, 48.0f),
-            180.0F
-        )
-        if (enemyBitmap != null) {
-            enemyY += getEnemyMoveSpeed() * speed
-            if (enemyY > ScreenUtils.getScreenHeight(context).toFloat()) {
-                enemyY = 0F
-                refreshData()
-            }
-            canvas.drawBitmap(enemyBitmap, left, enemyY, mPaint)
-        }
     }
 
     private fun drawEnemyBullets(canvas: Canvas) {
         val screenHeight = ScreenUtils.getScreenHeight(context).toFloat()
         val currentBulletSpeed = getEnemyBulletSpeed()
         bulletBitmap?.let { bmp ->
-            for (enemy in enemyStates) {
+            for (enemy in activeEnemies) {
                 if (enemy.isDestroyed()) continue
-                // Fire bullet periodically: add new bullet when list is empty or last bullet is far enough
                 val enemyCenterX = enemy.x + ScreenUtils.dpToPx(context, 24.0f)
-                if (enemy.bullets.isEmpty() || (enemy.bullets.last() - enemyY) > ScreenUtils.dpToPx(context, 150.0f)) {
-                    enemy.bullets.add(enemyY + ScreenUtils.dpToPx(context, 48.0f))
+                if (enemy.bullets.isEmpty() || (enemy.bullets.last() - enemy.y) > ScreenUtils.dpToPx(context, 150.0f)) {
+                    enemy.bullets.add(enemy.y + ScreenUtils.dpToPx(context, 48.0f))
                 }
-                // Update and draw each bullet
-                val iter = enemy.bullets.iterator()
-                while (iter.hasNext()) {
-                    val bulletY = iter.next()
+                val bulletIter = enemy.bullets.iterator()
+                val updatedBullets = mutableListOf<Float>()
+                while (bulletIter.hasNext()) {
+                    val bulletY = bulletIter.next()
                     val newY = bulletY + currentBulletSpeed * speed
                     if (newY > screenHeight) {
-                        iter.remove()
+                        bulletIter.remove()
                     } else {
-                        enemy.bullets[enemy.bullets.indexOf(bulletY)] = newY
+                        updatedBullets.add(newY)
                         canvas.drawBitmap(bmp, enemyCenterX - bmp.width / 2, newY, mPaint)
                     }
                 }
+                // Update bullet positions
+                enemy.bullets.clear()
+                enemy.bullets.addAll(updatedBullets)
             }
         }
     }
@@ -155,12 +187,12 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
             alpha = 128
             style = Paint.Style.FILL
         }
-        for (enemy in enemyStates) {
+        for (enemy in activeEnemies) {
             if (enemy.isDestroyed() && !enemy.isExpired()) {
                 val size = ScreenUtils.dpToPx(context, 48.0f).toFloat()
                 canvas.drawCircle(
                     enemy.x + size / 2,
-                    enemyY + size / 2,
+                    enemy.y + size / 2,
                     size / 2,
                     destroyPaint
                 )
@@ -168,14 +200,10 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         }
     }
 
-    private fun removeExpiredEnemies() {
-        enemyStates.removeAll { it.isExpired() }
-    }
-
     fun getEnemyBullets(): List<Pair<Float, Float>> {
         val result = mutableListOf<Pair<Float, Float>>()
         bulletBitmap?.let { bmp ->
-            for (enemy in enemyStates) {
+            for (enemy in activeEnemies) {
                 if (enemy.isDestroyed()) continue
                 val enemyCenterX = enemy.x + ScreenUtils.dpToPx(context, 24.0f)
                 for (bulletY in enemy.bullets) {
@@ -193,35 +221,13 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         return RectF()
     }
 
-    fun hitEnemy(enemyX: Float): EnemyState? {
-        for (enemy in enemyStates) {
-            if (!enemy.isDestroyed() && enemy.x == enemyX) {
-                enemy.health -= 20f
-                if (enemy.isDestroyed()) {
-                    enemy.destroyedTime = System.currentTimeMillis()
-                    // Remove from the legacy map so it stops rendering as alive
-                    enemiesMap.remove(enemyX)
-                }
-                return enemy
-            }
+    fun hitEnemy(enemy: EnemyState): Boolean {
+        enemy.health -= 20f
+        if (enemy.isDestroyed()) {
+            enemy.destroyedTime = System.currentTimeMillis()
+            return true
         }
-        return null
-    }
-
-    private fun refreshData() {
-        enemiesMap.clear()
-        enemyStates.clear()
-        val random = Random(System.nanoTime())
-        var numberOfEnemies: Int = random.nextInt() % 10
-        while (numberOfEnemies < 2 || numberOfEnemies > 8) {
-            numberOfEnemies = random.nextInt() % 10
-        }
-        for (i in 1..numberOfEnemies) {
-            val x = getRandomLeft()
-            val bmp = getRandomEnemyBitmap()
-            enemiesMap[x] = bmp
-            enemyStates.add(EnemyState(x = x, bitmap = bmp))
-        }
+        return false
     }
 
     override fun updateGame() {
