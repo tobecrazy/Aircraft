@@ -19,7 +19,7 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
     private var fireCounter: Int = 0
     var jetX: Float = ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
     var jetY: Float = ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
-    private val maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.8f
+    private val maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.7f
 
     // Cached rendered dimensions (updated each frame from onDraw)
     @Volatile var renderedJetW: Float = 0f
@@ -102,9 +102,6 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
     }
 
     fun getBounds(): RectF {
-        val (renderedW, renderedH) = getRenderedJetSize()
-        val right = jetX + renderedW
-        val bottom = jetY + renderedH
-        return RectF(jetX, jetY, right, bottom)
+        return RectF(jetX, jetY, jetX + renderedJetW, jetY + renderedJetH)
     }
 }
