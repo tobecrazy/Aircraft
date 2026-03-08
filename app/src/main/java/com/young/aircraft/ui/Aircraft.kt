@@ -41,11 +41,11 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
                 ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
             jetBitmap.density = context.resources.displayMetrics.densityDpi
             canvas.drawBitmap(jetBitmap, left, top, mPaint)
-            bulletTopY -= 20 * speed
+            bulletTopY -= 35 * speed
             lastBulletX = left
             lastBulletYPositions.clear()
             for (i in 1..100) {
-                val by = bulletTopY + 500 * i - 100 * speed
+                val by = bulletTopY + 500 * i - 175 * speed
                 if (by >= 0 && by < ScreenUtils.getScreenHeight(context).toFloat()) {
                     canvas.drawBitmap(bulletBitmap, left, by, mPaint)
                     lastBulletYPositions.add(by)

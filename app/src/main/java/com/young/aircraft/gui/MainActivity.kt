@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         val coreView = GameCoreView(this)
         setContentView(coreView)
+        coreView.onGameOver = { finish() }
         val controller = window.insetsController
         if (controller != null) {
             controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())

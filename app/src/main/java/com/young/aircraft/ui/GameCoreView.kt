@@ -27,6 +27,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var surfaceHolder: SurfaceHolder? = null
     private var collisionCooldown = false
     var musicService: MusicService? = null
+    var onGameOver: (() -> Unit)? = null
     var level: Int = 1
     private var lastEnemyY: Float = 0f
     private var wavesCleared: Int = 0
@@ -101,6 +102,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     musicService?.gameOverSoundPlay()
                     isRunning = false
                     Log.d("Game", "Game Over!")
+                    post { onGameOver?.invoke() }
                 }
                 break
             }
@@ -152,6 +154,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             musicService?.gameOverSoundPlay()
             isRunning = false
             Log.d("Game", "Game Over!")
+            post { onGameOver?.invoke() }
         }
     }
 
