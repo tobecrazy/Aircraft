@@ -14,7 +14,7 @@ import com.young.aircraft.utils.ScreenUtils
  * Create by Young
  **/
 class DrawHeader(var context: Context) : DrawBaseObject(context) {
-    @SuppressLint("DrawAllocation", "StringFormatInvalid")
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         val mPaint = Paint()
         mPaint.isAntiAlias = true
@@ -32,6 +32,6 @@ class DrawHeader(var context: Context) : DrawBaseObject(context) {
     }
 
     override fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF {
-        TODO("Not yet implemented")
+        return RectF()
     }
 }
