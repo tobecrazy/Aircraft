@@ -104,7 +104,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
         val enemyBullets = enemies.getEnemyBullets()
-        for ((bx, by) in enemyBullets) {
+        for ((bx, by, bulletRef) in enemyBullets) {
             val bulletBounds = enemies.getBulletBounds(bx, by)
             if (RectF.intersects(aircraftBounds, bulletBounds)) {
                 playerData.hit()
@@ -112,7 +112,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 Log.d("Game", "Player hit by enemy bullet! HP: ${playerData.health_points}")
                 // Remove the bullet that hit
                 for (enemy in enemies.activeEnemies) {
-                    enemy.bullets.remove(by)
+                    enemy.bullets.remove(bulletRef)
                 }
                 if (!playerData.isAlive()) {
                     musicService?.gameOverSoundPlay()
