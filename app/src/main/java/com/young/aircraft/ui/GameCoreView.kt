@@ -32,16 +32,18 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     var musicService: MusicService? = null
     var onGameOver: (() -> Unit)? = null
     var onGameWon: (() -> Unit)? = null
+    var onLevelComplete: ((Int) -> Unit)? = null
     var level: Int = 1
     var levelStartTimeMs: Long = 0L
     var enemiesDestroyedThisLevel: Int = 0
     private var gameWon = false
+    private var isPaused = false
 
     companion object {
         const val FPS: Int = 30
         const val MAX_LEVEL = 10
         fun getLevelDurationMs(level: Int): Long = (300_000L - 20_000L * (level - 1))
-        const val REQUIRED_KILLS = 100
+        fun getRequiredKills(level: Int): Int = 90 + level * 10
     }
 
     init {
@@ -145,16 +147,12 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     enemy.x + enemySize, enemy.y + enemySize
                 )
                 if (RectF.intersects(bulletBounds, enemyBounds)) {
-                    val destroyed = enemies.hitEnemy(enemy)
+                    enemies.hitEnemy(enemy)
                     drawAircraft.removeBullet(bullet)
-                    if (destroyed) {
-                        enemiesDestroyedThisLevel++
-                        musicService?.enemyHitSoundPlay()
-                        Log.d("Game", "Enemy destroyed! Kills: $enemiesDestroyedThisLevel")
-                    } else {
-                        musicService?.enemyHitSoundPlay()
-                        Log.d("Game", "Enemy hit! HP: ${enemy.health}")
-                    }
+                    enemiesDestroyedThisLevel++
+                    musicService?.enemyHitSoundPlay()
+                    Log.d("Game", "Enemy destroyed! Kills: $enemiesDestroyedThisLevel")
+                    checkKillTarget()
                     break
                 }
             }
@@ -174,33 +172,42 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
     }
 
+    private fun checkKillTarget() {
+        if (enemiesDestroyedThisLevel < getRequiredKills(level)) return
+
+        if (level >= MAX_LEVEL) {
+            // Game won — all levels cleared
+            gameWon = true
+            isPaused = true
+            Log.d("Game", "Game Won! All levels cleared!")
+            post { onGameWon?.invoke() }
+        } else {
+            // Level complete — pause and notify
+            isPaused = true
+            Log.d("Game", "Level $level complete! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}")
+            post { onLevelComplete?.invoke(level) }
+        }
+    }
+
+    fun advanceToNextLevel() {
+        level++
+        enemies.level = level
+        enemies.activeEnemies.clear()
+        levelStartTimeMs = System.currentTimeMillis()
+        enemiesDestroyedThisLevel = 0
+        isPaused = false
+        Log.d("Game", "Advanced to level $level")
+    }
+
     private fun checkLevelTimer() {
         val elapsed = System.currentTimeMillis() - levelStartTimeMs
         if (elapsed < getLevelDurationMs(level)) return
 
-        if (enemiesDestroyedThisLevel >= REQUIRED_KILLS) {
-            if (level >= MAX_LEVEL) {
-                // Game won!
-                gameWon = true
-                isRunning = false
-                Log.d("Game", "Game Won! All levels cleared!")
-                post { onGameWon?.invoke() }
-            } else {
-                // Advance to next level
-                level++
-                enemies.level = level
-                enemies.activeEnemies.clear()
-                levelStartTimeMs = System.currentTimeMillis()
-                enemiesDestroyedThisLevel = 0
-                Log.d("Game", "Level up! Now level $level")
-            }
-        } else {
-            // Failed to meet kill requirement
-            musicService?.gameOverSoundPlay()
-            isRunning = false
-            Log.d("Game", "Level failed! Kills: $enemiesDestroyedThisLevel/$REQUIRED_KILLS")
-            post { onGameOver?.invoke() }
-        }
+        // Time expired without meeting kill target → game over
+        musicService?.gameOverSoundPlay()
+        isRunning = false
+        Log.d("Game", "Level failed! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}")
+        post { onGameOver?.invoke() }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
@@ -221,9 +228,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawBackground(canvas)
         drawHeader(canvas)
         drawAircraft(canvas)
-        checkLevelTimer()
-        drawEnemies(canvas)
-        checkCollision()
+        if (!isPaused) {
+            checkLevelTimer()
+            drawEnemies(canvas)
+            checkCollision()
+        }
     }
 
     private fun drawEnemies(canvas: Canvas) {

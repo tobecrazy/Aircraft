@@ -9,24 +9,25 @@
     <string name="level">Level %s</string>
     <string name="title_activity_settings">Settings</string>
     <string name="time_remaining">Time: %ds</string>
-    <string name="kills_count">Kills: %d/100</string>
+    <string name="kills_count">Kills: %1$d/%2$d</string>
     <string name="level_complete">Level %d Complete!</string>
+    <string name="level_complete_message">You have cleared Level %d. Ready for the next challenge?</string>
     <string name="level_failed">Level Failed!</string>
-    <string name="game_won">Victory! All levels cleared!</string>
+    <string name="game_won">Congratulations, you have completed all levels!</string>
+    <string name="game_won_name_prompt">Please enter your name:</string>
+    <string name="dialog_ok">OK</string>
+    <string name="game_over">Victory and defeat are part of warfare; a valiant warrior may try again.</string>
 
     <!-- Preference Titles -->
-    <string name="settings_header">Game Settings</string>
     <string name="sound_settings_header">Sound Settings</string>
-
-    <!-- Messages Preferences -->
     <string name="about_us_title">About Us</string>
     <string name="privacy_policy_title">Privacy Policy</string>
-    <string name="signature_title">Your signature</string>
-    <string name="reply_title">Default reply action</string>
 
-    <!-- Sync Preferences -->
-    <string name="sync_title">Sync email periodically</string>
-    <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails</string>
-    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <!-- Sound Preferences -->
+    <string name="background_sound_title">Background Music</string>
+    <string name="background_sound_summary_on">Background music is on</string>
+    <string name="background_sound_summary_off">Background music is off</string>
+    <string name="combat_sound_title">Combat Sound Effects</string>
+    <string name="combat_sound_summary_on">Combat sound effects are on</string>
+    <string name="combat_sound_summary_off">Combat sound effects are off</string>
 </resources>

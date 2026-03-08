@@ -46,10 +46,11 @@ class DrawHeader(var context: Context, private val playerData: AircraftData, pri
         canvas.drawText(context.getString(R.string.time_remaining, remainingSec.toInt()), centerX, floatY, mPaint)
 
         // Draw kill count (below level text)
+        val requiredKills = GameCoreView.getRequiredKills(gameView.level)
         val killsY = floatY + ScreenUtils.dpToPx(context, 22.0F)
-        mPaint.color = if (gameView.enemiesDestroyedThisLevel >= GameCoreView.REQUIRED_KILLS) Color.GREEN else Color.WHITE
+        mPaint.color = if (gameView.enemiesDestroyedThisLevel >= requiredKills) Color.GREEN else Color.WHITE
         mPaint.textAlign = Paint.Align.LEFT
-        canvas.drawText(context.getString(R.string.kills_count, gameView.enemiesDestroyedThisLevel), floatX, killsY, mPaint)
+        canvas.drawText(context.getString(R.string.kills_count, gameView.enemiesDestroyedThisLevel, requiredKills), floatX, killsY, mPaint)
     }
 
     override fun updateGame() {

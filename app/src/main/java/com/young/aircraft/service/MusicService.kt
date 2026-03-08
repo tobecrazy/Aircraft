@@ -11,6 +11,7 @@ import android.media.SoundPool
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import androidx.preference.PreferenceManager
 import com.young.aircraft.R
 
 class MusicService : Service() {
@@ -62,6 +63,7 @@ class MusicService : Service() {
         return super.onUnbind(intent)
     }
     fun backgroundSoundPlay() {
+        if (!isBackgroundSoundEnabled()) return
         if (bgMediaPlayer == null) {
             bgMediaPlayer = MediaPlayer.create(this, R.raw.background1).apply {
                 isLooping = true
@@ -77,19 +79,33 @@ class MusicService : Service() {
     }
 
     fun shotSoundPlay() {
+        if (!isCombatSoundEnabled()) return
         playSound(0x002, 1.0f, 0)
     }
 
     fun playerHitSoundPlay() {
+        if (!isCombatSoundEnabled()) return
         playSound(0x003, 1.0f, 0)
     }
 
     fun enemyHitSoundPlay() {
+        if (!isCombatSoundEnabled()) return
         playSound(0x004, 1.0f, 0)
     }
 
     fun gameOverSoundPlay() {
+        if (!isCombatSoundEnabled()) return
         playSound(0x005, 1.0f, 0)
+    }
+
+    private fun isBackgroundSoundEnabled(): Boolean {
+        return PreferenceManager.getDefaultSharedPreferences(this)
+            .getBoolean("background_sound", true)
+    }
+
+    private fun isCombatSoundEnabled(): Boolean {
+        return PreferenceManager.getDefaultSharedPreferences(this)
+            .getBoolean("combat_sound", true)
     }
 
     inner class MusicBinder : Binder() {

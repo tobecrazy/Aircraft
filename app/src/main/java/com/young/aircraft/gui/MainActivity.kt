@@ -8,9 +8,11 @@ import android.content.pm.ActivityInfo
 import android.os.*
 import android.util.Log
 import android.view.*
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.Observer
@@ -20,7 +22,7 @@ import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.viewmodel.MainActivityViewModel
 import kotlin.properties.Delegates
-import kotlin.system.exitProcess
+
 
 /**
  * @author Young
@@ -53,12 +55,38 @@ class MainActivity : AppCompatActivity() {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         val coreView = GameCoreView(this)
         setContentView(coreView)
-        coreView.onGameOver = { finish() }
-        coreView.onGameWon = {
-            Toast.makeText(this, getString(R.string.game_won), Toast.LENGTH_LONG).show()
+        coreView.onGameOver = {
+            Toast.makeText(this, getString(R.string.game_over), Toast.LENGTH_LONG).show()
             Looper.myLooper()?.let { looper ->
                 Handler(looper).postDelayed({ finish() }, 3000)
             }
+        }
+        coreView.onLevelComplete = { completedLevel ->
+            AlertDialog.Builder(this)
+                .setTitle(getString(R.string.level_complete, completedLevel))
+                .setMessage(getString(R.string.level_complete_message, completedLevel))
+                .setCancelable(false)
+                .setPositiveButton(getString(R.string.dialog_ok)) { dialog, _ ->
+                    dialog.dismiss()
+                    coreView.advanceToNextLevel()
+                }
+                .show()
+        }
+        coreView.onGameWon = {
+            val nameInput = EditText(this).apply {
+                hint = getString(R.string.game_won_name_prompt)
+            }
+            AlertDialog.Builder(this)
+                .setTitle(getString(R.string.game_won))
+                .setView(nameInput)
+                .setCancelable(false)
+                .setPositiveButton(getString(R.string.dialog_ok)) { dialog, _ ->
+                    val playerName = nameInput.text.toString()
+                    Log.d("Game", "Player name: $playerName")
+                    dialog.dismiss()
+                    finish()
+                }
+                .show()
         }
         val controller = window.insetsController
         if (controller != null) {
@@ -122,7 +150,6 @@ class MainActivity : AppCompatActivity() {
             exitTime = System.currentTimeMillis();
         } else {
             finish();
-            exitProcess(0);
         }
     }
 

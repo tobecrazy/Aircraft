@@ -47,8 +47,6 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         const val BASE_ENEMY_MOVE_SPEED = 3f
         const val BASE_ENEMY_BULLET_SPEED = 6f
         const val LEVEL_SPEED_INCREMENT = 1.5f
-        const val BASE_ENEMY_HEALTH = 100f
-        const val HEALTH_PER_LEVEL = 20f
         const val BASE_ENEMIES_PER_ROW = 5
         // Base bullet spacing (high = slow fire rate), decreases with level
         const val BASE_BULLET_SPACING_DP = 350f
@@ -62,8 +60,6 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         val moveSpeed = getEnemyMoveSpeed()
         return moveSpeed + BASE_ENEMY_BULLET_SPEED + (level - 1) * LEVEL_SPEED_INCREMENT
     }
-
-    fun getEnemyHealth(): Float = BASE_ENEMY_HEALTH + (level - 1) * HEALTH_PER_LEVEL
 
     fun getEnemiesPerRow(): Int = BASE_ENEMIES_PER_ROW + level
 
@@ -131,7 +127,6 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
 
     private fun spawnRow() {
         val count = getEnemiesPerRow()
-        val health = getEnemyHealth()
         val enemySizeDp = 48.0f
         val enemySizePx = ScreenUtils.dpToPx(context, enemySizeDp).toFloat()
         // Randomize each enemy's starting Y within a spread range above screen
@@ -148,7 +143,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
                     x = x,
                     y = baseY - randomYOffset,
                     bitmap = bitmapList[bmpIndex],
-                    health = health
+                    health = 1f
                 )
             )
         }
@@ -281,12 +276,9 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     }
 
     fun hitEnemy(enemy: EnemyState): Boolean {
-        enemy.health -= 20f
-        if (enemy.isDestroyed()) {
-            enemy.destroyedTime = System.currentTimeMillis()
-            return true
-        }
-        return false
+        enemy.health = -1f
+        enemy.destroyedTime = System.currentTimeMillis()
+        return true
     }
 
     override fun updateGame() {
