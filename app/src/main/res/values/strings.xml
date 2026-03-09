@@ -17,6 +17,13 @@
     <string name="game_won_name_prompt">Please enter your name:</string>
     <string name="dialog_ok">OK</string>
     <string name="game_over">Victory and defeat are part of warfare; a valiant warrior may try again.</string>
+    <string name="history_title">Game History</string>
+    <string name="history_no_records">No records yet</string>
+    <string name="history_col_player">PLAYER</string>
+    <string name="history_col_level">LEVEL</string>
+    <string name="history_col_score">SCORE</string>
+    <string name="history_header">Player ID | Level | Score\n─────────────────────</string>
+    <string name="history_close">Close</string>
 
     <!-- Preference Titles -->
     <string name="sound_settings_header">Sound Settings</string>

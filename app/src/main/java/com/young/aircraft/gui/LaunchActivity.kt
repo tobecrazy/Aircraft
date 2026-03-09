@@ -9,21 +9,19 @@ import com.young.aircraft.databinding.ActivityLaunchBinding
 @SuppressLint("CustomSplashScreen")
 class LaunchActivity : AppCompatActivity() {
     lateinit var binding: ActivityLaunchBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLaunchBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.startGame.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, MainActivity::class.java))
         }
         binding.gameHistory.setOnClickListener {
-            //TODO
+            startActivity(Intent(this, HistoryActivity::class.java))
         }
-
         binding.gameSettings.setOnClickListener {
-            val intent = Intent(this, SettingsActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 }
