@@ -24,6 +24,10 @@
     <string name="history_col_score">SCORE</string>
     <string name="history_header">Player ID | Level | Score\n─────────────────────</string>
     <string name="history_close">Close</string>
+    <string name="history_delete">Delete</string>
+    <string name="history_delete_title">Delete Record</string>
+    <string name="history_delete_message">Are you sure you want to delete this record?</string>
+    <string name="history_cancel">Cancel</string>
 
     <!-- Preference Titles -->
     <string name="sound_settings_header">Sound Settings</string>

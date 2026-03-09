@@ -8,7 +8,8 @@ import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.ItemHistoryBinding
 
 class HistoryAdapter(
-    private val items: List<PlayerGameData>
+    private val items: MutableList<PlayerGameData>,
+    private val onDelete: (PlayerGameData, Int) -> Unit
 ) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
@@ -31,6 +32,15 @@ class HistoryAdapter(
         holder.binding.textPlayerId.text = item.playerId.take(8) + "\u2026"
         holder.binding.textLevel.text = "Lv.${item.level}"
         holder.binding.textScore.text = item.score.toString()
+        holder.binding.btnDelete.setOnClickListener {
+            onDelete(item, holder.bindingAdapterPosition)
+        }
+    }
+
+    fun removeAt(position: Int) {
+        items.removeAt(position)
+        notifyItemRemoved(position)
+        notifyItemRangeChanged(position, items.size - position)
     }
 
     override fun getItemCount(): Int = items.size

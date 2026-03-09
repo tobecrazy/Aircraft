@@ -154,6 +154,7 @@ class MainActivity : AppCompatActivity() {
     private fun saveGameData(coreView: GameCoreView) {
         val score = coreView.totalKills.toLong() * 100
         lifecycleScope.launch {
+            db.playerGameDataDao().deleteByPlayerId(playerId)
             db.playerGameDataDao().insert(
                 PlayerGameData(
                     playerId = playerId,

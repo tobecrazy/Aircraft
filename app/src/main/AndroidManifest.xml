@@ -19,7 +19,7 @@
             android:name=".gui.HistoryActivity"
             android:exported="false"
             android:label="@string/history_title"
-            android:theme="@style/Theme.Aircraft" />
+            android:theme="@style/Theme.Aircraft.History" />
         <activity
             android:name=".gui.PrivacyPolicyActivity"
             android:exported="false">

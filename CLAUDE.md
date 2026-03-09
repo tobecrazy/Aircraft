@@ -20,25 +20,27 @@ Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin.
 
 ## Build Configuration
 
-- **Gradle:** 9.3.1, AGP 8.13.2, Kotlin 2.3.0
-- **SDK:** compileSdk 35, minSdk 30, targetSdk 35
+- **Gradle:** 9.3.1, AGP 9.1.0 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.1.20-1.0.32
+- **SDK:** compileSdk 36, minSdk 30, targetSdk 35
 - **Java:** 17
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
+- `android.disallowKotlinSourceSets=false` in gradle.properties (required for KSP compatibility with AGP's built-in Kotlin)
 
 ## Architecture
 
 ### Game Engine (SurfaceView-based)
 
-The game runs on a custom `SurfaceView` (`GameCoreView`) with a dedicated rendering thread at 30 FPS. This is **not** a Compose or standard View-based UI -- it draws directly to a `Canvas`.
+The game runs on a custom `SurfaceView` (`GameCoreView`) with a dedicated rendering thread at 30 FPS. This is **not** a Compose or standard View-based UI — it draws directly to a `Canvas`.
 
 **Rendering hierarchy:**
-- `GameCoreView` (SurfaceView + Runnable) -- owns the game loop, coordinates all drawing, collision detection, and level progression
-- `DrawBaseObject` -- abstract base class (`onDraw`, `updateGame`, `getEnemyBounds`) for all drawable game objects
-  - `Aircraft` (ui/) -- player jet with auto-firing bullets (every 2 frames), touch-based movement
-  - `DrawBackground` -- seamless double-buffer scrolling background
-  - `DrawHeader` -- HUD overlay showing level, HP, timer countdown, kill count
-  - `Enemies` -- timed row spawning with per-enemy Y tracking, 10 sprite types, red-tinted bullets
+- `GameCoreView` (SurfaceView + Runnable) — owns the game loop, coordinates all drawing, collision detection, and level progression
+- `DrawBaseObject` — abstract base class (`onDraw`, `updateGame`, `getEnemyBounds`) for all drawable game objects
+  - `Aircraft` (ui/) — player jet with auto-firing bullets (every 2 frames), touch-based movement
+  - `DrawBackground` — seamless double-buffer scrolling background
+  - `DrawHeader` — HUD overlay showing level, HP, timer countdown, kill count
+  - `Enemies` — timed row spawning with per-enemy Y tracking, 10 sprite types, red-tinted bullets
+  - `ExplosionEffect` — particle-based death animation (flash, fireball, debris, smoke phases)
 
 ### Level System (Time-Based)
 
@@ -54,22 +56,34 @@ Enemy stats scale with level:
 
 Enemies have 1 HP and are destroyed in a single hit. Player has 100 HP and loses 20 per hit (`Aircraft.BULLET_DAMAGE`).
 
-Level timer check runs every frame in `GameCoreView.checkLevelTimer()`.
+### Scoring & Persistence (Room Database)
+
+- **Score:** 100 points per kill, cumulative across all levels in a session. Reset when switching users.
+- **Player ID:** Device's `Settings.Secure.ANDROID_ID`
+- **Database:** Room (`AppDatabase`, version 2026) with `fallbackToDestructiveMigration()`. Table: `player_game_data` (playerId, level, score, timestamp).
+- **DAO:** `PlayerGameDataDao` — insert, query by player, query all sorted by score DESC, get total score, delete by player.
+- Game data is saved on both game over and game won via `lifecycleScope` in `MainActivity`.
 
 ### Enemy System (Per-Enemy Y Tracking)
 
-Enemies use individual Y positions (`EnemyState.y`) -- multiple rows coexist on screen simultaneously. Each `EnemyState` tracks its own position, health, destruction time, and bullet list (`MutableList<EnemyBullet>`). `EnemyBullet` stores both current Y and origin Y for 60% screen-height range limiting.
+Enemies use individual Y positions (`EnemyState.y`) — multiple rows coexist on screen simultaneously. Each `EnemyState` tracks its own position, health, destruction time, and bullet list (`MutableList<EnemyBullet>`). `EnemyBullet` stores both current Y and origin Y for 60% screen-height range limiting.
 
 ### Collision Detection
 
 Three checks run every frame in `GameCoreView.checkCollision()`:
 1. Player aircraft vs enemy sprites (RectF intersection, with cooldown)
 2. Enemy bullets vs player (`getEnemyBullets()` returns `Triple<x, y, EnemyBullet>` for removal by reference)
-3. Player bullets vs enemies (iterates `activeEnemies`, increments kill counter on destroy)
+3. Player bullets vs enemies (iterates `activeEnemies`, increments kill counters — both `enemiesDestroyedThisLevel` and `totalKills` — on destroy)
 
 ### Activity Flow
 
-`LaunchActivity` -> `MainActivity` (hosts `GameCoreView`) -> optional `SettingsActivity` / `PrivacyPolicyActivity`
+```
+LaunchActivity (entry point, Theme.AppCompat.NoActionBar)
+  ├─→ MainActivity (TransparentTheme) → GameCoreView (full-screen immersive game)
+  ├─→ HistoryActivity (Theme.Aircraft) → HistoryFragment → RecyclerView
+  └─→ SettingsActivity → SettingsFragment
+       └─→ PrivacyPolicyActivity (WebView)
+```
 
 ### Audio
 
@@ -77,22 +91,23 @@ Three checks run every frame in `GameCoreView.checkCollision()`:
 
 ### Threading Model
 
-- **Main thread:** Activity lifecycle, UI, service binding
+- **Main thread:** Activity lifecycle, UI, service binding, database access via `lifecycleScope`
 - **Game thread:** Dedicated thread in `GameCoreView` for the 30 FPS render loop (synchronized on SurfaceHolder)
 - **Service:** `MusicService` bound service with @Synchronized playback methods
 
 ### Key Naming Collision
 
 There are two files named `Aircraft.kt`:
-- `data/Aircraft.kt` -- data class with `name`, `health_points`, `lethality`, `icon`, and `isAlive()` check
-- `ui/Aircraft.kt` -- rendering class extending `DrawBaseObject`, manages player sprite and bullet firing
+- `data/Aircraft.kt` — data class with `name`, `health_points`, `lethality`, `icon`, and `isAlive()` check
+- `ui/Aircraft.kt` — rendering class extending `DrawBaseObject`, manages player sprite and bullet firing
 
 Code uses `import com.young.aircraft.data.Aircraft as AircraftData` to disambiguate.
 
-### Utilities
+### Themes
 
-- `ScreenUtils` -- thread-safe screen dimensions and unit conversion (dp/sp/px), all methods @Synchronized
-- `BitmapUtils` -- bitmap loading (ARGB_8888), resizing, rotation from resources. `resizeBitmap(bitmap, w, h, degrees)` overload handles rotation.
+- `TransparentTheme` (app default) — translucent window background, used by game activities
+- `Theme.Aircraft` — Material DayNight.DarkActionBar, solid background, used by HistoryActivity
+- Activities that need a solid background **must** explicitly set `android:theme="@style/Theme.Aircraft"` in the manifest
 
 ### Bitmap Density
 

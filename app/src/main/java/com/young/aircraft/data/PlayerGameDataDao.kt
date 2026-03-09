@@ -1,6 +1,7 @@
 package com.young.aircraft.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 
@@ -8,6 +9,9 @@ import androidx.room.Query
 interface PlayerGameDataDao {
     @Insert
     suspend fun insert(data: PlayerGameData)
+
+    @Delete
+    suspend fun delete(data: PlayerGameData)
 
     @Query("SELECT * FROM player_game_data WHERE player_id = :playerId ORDER BY timestamp DESC")
     suspend fun getByPlayerId(playerId: String): List<PlayerGameData>
