@@ -17,6 +17,17 @@
     <string name="game_won_name_prompt">请输入你的名字：</string>
     <string name="dialog_ok">确定</string>
     <string name="game_over">胜败乃兵家常事，壮士请重新来过。</string>
+    <string name="history_title">游戏历史</string>
+    <string name="history_no_records">暂无记录</string>
+    <string name="history_col_player">玩家</string>
+    <string name="history_col_level">关卡</string>
+    <string name="history_col_score">分数</string>
+    <string name="history_header">玩家ID | 关卡 | 分数\n─────────────────────</string>
+    <string name="history_close">关闭</string>
+    <string name="history_delete">删除</string>
+    <string name="history_delete_title">删除记录</string>
+    <string name="history_delete_message">确定要删除这条记录吗？</string>
+    <string name="history_cancel">取消</string>
 
     <!-- Preference Titles -->
     <string name="sound_settings_header">声音设置</string>

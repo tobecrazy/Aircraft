@@ -42,6 +42,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     var level: Int = 1
     var levelStartTimeMs: Long = 0L
     var enemiesDestroyedThisLevel: Int = 0
+    var totalKills: Int = 0
     private var gameWon = false
     private var isPaused = false
 
@@ -177,6 +178,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     enemies.hitEnemy(enemy)
                     drawAircraft.removeBullet(bullet)
                     enemiesDestroyedThisLevel++
+                    totalKills++
                     musicService?.enemyHitSoundPlay()
                     Log.d("Game", "Enemy destroyed! Kills: $enemiesDestroyedThisLevel")
                     checkKillTarget()

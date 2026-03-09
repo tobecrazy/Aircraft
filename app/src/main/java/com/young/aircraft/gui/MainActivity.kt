@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ActivityInfo
 import android.os.*
+import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.widget.EditText
@@ -17,10 +18,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
+import com.young.aircraft.data.AppDatabase
+import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.viewmodel.MainActivityViewModel
+import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
 
@@ -35,6 +40,8 @@ class MainActivity : AppCompatActivity() {
     private var lastY = 0
     private var maxRight by Delegates.notNull<Int>()
     private var maxBottom by Delegates.notNull<Int>()
+    private lateinit var playerId: String
+    private val db by lazy { AppDatabase.getInstance(this) }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
@@ -53,9 +60,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         requestWindowFeature(Window.FEATURE_NO_TITLE)
+        playerId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         val coreView = GameCoreView(this)
         setContentView(coreView)
         coreView.onGameOver = {
+            saveGameData(coreView)
             Toast.makeText(this, getString(R.string.game_over), Toast.LENGTH_LONG).show()
             Looper.myLooper()?.let { looper ->
                 Handler(looper).postDelayed({ finish() }, 3000)
@@ -83,6 +92,7 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton(getString(R.string.dialog_ok)) { dialog, _ ->
                     val playerName = nameInput.text.toString()
                     Log.d("Game", "Player name: $playerName")
+                    saveGameData(coreView)
                     dialog.dismiss()
                     finish()
                 }
@@ -139,6 +149,21 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    private fun saveGameData(coreView: GameCoreView) {
+        val score = coreView.totalKills.toLong() * 100
+        lifecycleScope.launch {
+            db.playerGameDataDao().deleteByPlayerId(playerId)
+            db.playerGameDataDao().insert(
+                PlayerGameData(
+                    playerId = playerId,
+                    level = coreView.level,
+                    score = score
+                )
+            )
+            Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score")
+        }
     }
 
     private fun exitApp() {
