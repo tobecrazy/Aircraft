@@ -1,0 +1,336 @@
+package com.young.aircraft.ui
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
+import android.graphics.RectF
+import com.young.aircraft.R
+import com.young.aircraft.data.BossBomb
+import com.young.aircraft.data.BossState
+import com.young.aircraft.utils.BitmapUtils
+import com.young.aircraft.utils.ScreenUtils
+import kotlin.random.Random
+
+class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context) {
+    var activeBoss: BossState? = null
+    private val deathExplosions = mutableListOf<ExplosionEffect>()
+    private val bombExplosions = mutableListOf<ExplosionEffect>()
+    var level: Int = 1
+
+    private val bossBitmaps = mutableListOf<Bitmap?>()
+    private val missileBitmaps = mutableListOf<Bitmap?>()
+
+    val bossSizePx: Int = ScreenUtils.dpToPx(context, 128.0f)
+    val missileSizePx: Int = ScreenUtils.dpToPx(context, 40.0f)
+    private val screenDensity: Int = context.resources.displayMetrics.densityDpi
+    private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
+    private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+
+    // Movement AI
+    private var moveDirectionX: Float = 1f
+    private var directionChangeCounter: Int = 0
+    private var directionChangeInterval: Int = 90
+    private val rng = Random(System.nanoTime())
+
+    // Bomb firing
+    private var bombCounter: Int = 0
+
+    // Paint with white tint for hit flash effect
+    private val hitFlashPaint = Paint().apply {
+        colorFilter = ColorMatrixColorFilter(
+            ColorMatrix(
+                floatArrayOf(
+                    0f, 0f, 0f, 0f, 255f,
+                    0f, 0f, 0f, 0f, 255f,
+                    0f, 0f, 0f, 0f, 255f,
+                    0f, 0f, 0f, 1f, 0f
+                )
+            )
+        )
+    }
+
+    companion object {
+        const val BASE_HP = 1000f
+        const val DAMAGE_PER_HIT = 10f
+        const val SPEED_MULTIPLIER = 1.5f
+        const val BOMB_SPEED = 8f
+        const val BOMB_FIRE_INTERVAL = 75
+        const val HIT_FLASH_MS = 150L
+        const val TARGET_ZONE_TOP = 0.08f
+        const val TARGET_ZONE_BOTTOM = 0.30f
+    }
+
+    init {
+        val bossResIds = intArrayOf(
+            R.drawable.boss_1, R.drawable.boss_2, R.drawable.boss_3,
+            R.drawable.boss_4, R.drawable.boss_5
+        )
+        for (resId in bossResIds) {
+            val bmp = BitmapUtils.resizeBitmap(
+                BitmapUtils.readBitMap(context, resId),
+                bossSizePx, bossSizePx
+            )
+            bmp?.density = screenDensity
+            bossBitmaps.add(bmp)
+        }
+
+        val missileResIds = intArrayOf(
+            R.drawable.missile_1, R.drawable.missile_2, R.drawable.missile_3
+        )
+        for (resId in missileResIds) {
+            val bmp = BitmapUtils.resizeBitmap(
+                BitmapUtils.readBitMap(context, resId),
+                missileSizePx, missileSizePx
+            )
+            bmp?.density = screenDensity
+            missileBitmaps.add(bmp)
+        }
+    }
+
+    fun getBossHp(level: Int): Float = BASE_HP + 100f * (level - 1)
+
+    fun spawnBoss(level: Int) {
+        this.level = level
+        val hp = getBossHp(level)
+        val bmpIndex = rng.nextInt(bossBitmaps.size)
+        activeBoss = BossState(
+            x = screenWidth / 2f - bossSizePx / 2f,
+            y = -bossSizePx.toFloat(),
+            hitPoints = hp,
+            maxHitPoints = hp,
+            bitmapIndex = bmpIndex
+        )
+        directionChangeCounter = 0
+        moveDirectionX = if (rng.nextBoolean()) 1f else -1f
+        directionChangeInterval = 60 + rng.nextInt(60)
+        bombCounter = 0
+    }
+
+    fun isBossActive(): Boolean {
+        val boss = activeBoss ?: return false
+        return !boss.isDestroyed()
+    }
+
+    fun isBossDefeated(): Boolean {
+        val boss = activeBoss ?: return false
+        return boss.isDestroyed()
+    }
+
+    fun isBossExplosionFinished(): Boolean {
+        val boss = activeBoss ?: return false
+        return boss.isDestroyed() && boss.isExpired()
+    }
+
+    fun hitBoss(): Boolean {
+        val boss = activeBoss ?: return false
+        if (boss.isDestroyed()) return false
+        boss.hitPoints -= DAMAGE_PER_HIT
+        boss.lastHitTime = System.currentTimeMillis()
+        if (boss.isDestroyed()) {
+            boss.destroyedTime = System.currentTimeMillis()
+            triggerBossExplosion(boss)
+            return true
+        }
+        return false
+    }
+
+    fun getBossBounds(): RectF? {
+        val boss = activeBoss ?: return null
+        if (boss.isDestroyed()) return null
+        return RectF(boss.x, boss.y, boss.x + bossSizePx, boss.y + bossSizePx)
+    }
+
+    fun getBombBounds(bomb: BossBomb): RectF {
+        return RectF(bomb.x, bomb.y, bomb.x + missileSizePx, bomb.y + missileSizePx)
+    }
+
+    fun removeBomb(bomb: BossBomb) {
+        activeBoss?.bombs?.remove(bomb)
+    }
+
+    fun triggerBombExplosion(centerX: Float, centerY: Float) {
+        val blastSize = minOf(screenWidth, screenHeight) * 0.20f
+        bombExplosions.add(
+            ExplosionEffect(
+                centerX = centerX,
+                centerY = centerY,
+                size = blastSize,
+                scale = 1.5f
+            )
+        )
+    }
+
+    private fun getMovementSpeed(): Float {
+        val enemyBaseSpeed = 3f + (level - 1) * 1.5f
+        return enemyBaseSpeed * SPEED_MULTIPLIER
+    }
+
+    @SuppressLint("DrawAllocation")
+    override fun onDraw(canvas: Canvas) {
+        val boss = activeBoss
+        if (boss != null) {
+            if (!boss.isDestroyed()) {
+                updateBossMovement(boss)
+                updateBombs(boss, canvas)
+                drawBoss(canvas, boss)
+                drawBombs(canvas, boss)
+            } else {
+                // Boss destroyed - draw remaining bombs drifting
+                drawBombs(canvas, boss)
+            }
+        }
+        drawDeathExplosions(canvas)
+        drawBombExplosions(canvas)
+    }
+
+    private fun updateBossMovement(boss: BossState) {
+        val moveSpeed = getMovementSpeed() * speed
+        val margin = ScreenUtils.dpToPx(context, 40.0f).toFloat()
+        val targetMinY = screenHeight * TARGET_ZONE_TOP
+        val targetMaxY = screenHeight * TARGET_ZONE_BOTTOM
+
+        // Vertical: advance into target zone, retreat if too far down
+        when {
+            boss.y < targetMinY -> {
+                // Above zone - advance down
+                boss.y += moveSpeed
+            }
+            boss.y > targetMaxY -> {
+                // Below zone - retreat up
+                boss.y -= moveSpeed * 0.7f
+            }
+            else -> {
+                // In zone - small vertical drift
+                val drift = (rng.nextFloat() - 0.5f) * moveSpeed * 0.3f
+                boss.y += drift
+                boss.y = boss.y.coerceIn(targetMinY, targetMaxY)
+            }
+        }
+
+        // Horizontal: periodic direction changes
+        directionChangeCounter++
+        if (directionChangeCounter >= directionChangeInterval) {
+            directionChangeCounter = 0
+            moveDirectionX = -moveDirectionX
+            directionChangeInterval = 60 + rng.nextInt(60)
+        }
+
+        boss.x += moveSpeed * moveDirectionX * 0.8f
+
+        // Bounce off screen edges
+        if (boss.x < margin) {
+            boss.x = margin
+            moveDirectionX = 1f
+        }
+        if (boss.x + bossSizePx > screenWidth - margin) {
+            boss.x = screenWidth - margin - bossSizePx
+            moveDirectionX = -1f
+        }
+    }
+
+    private fun updateBombs(boss: BossState, canvas: Canvas) {
+        if (boss.isDestroyed()) return
+
+        // Only fire when boss is in the target zone (visible on screen)
+        if (boss.y >= screenHeight * TARGET_ZONE_TOP) {
+            bombCounter++
+            if (bombCounter >= BOMB_FIRE_INTERVAL) {
+                bombCounter = 0
+                fireBomb(boss)
+            }
+        }
+    }
+
+    private fun fireBomb(boss: BossState) {
+        val bmpIndex = rng.nextInt(missileBitmaps.size)
+        val bombX = boss.x + bossSizePx / 2f - missileSizePx / 2f
+        val bombY = boss.y + bossSizePx
+        boss.bombs.add(BossBomb(x = bombX, y = bombY, bitmapIndex = bmpIndex))
+    }
+
+    private fun drawBoss(canvas: Canvas, boss: BossState) {
+        val bmp = bossBitmaps.getOrNull(boss.bitmapIndex) ?: return
+        val now = System.currentTimeMillis()
+        val paint = if (now - boss.lastHitTime < HIT_FLASH_MS) hitFlashPaint else mPaint
+        canvas.drawBitmap(bmp, boss.x, boss.y, paint)
+    }
+
+    private fun drawBombs(canvas: Canvas, boss: BossState) {
+        val iter = boss.bombs.iterator()
+        while (iter.hasNext()) {
+            val bomb = iter.next()
+            bomb.y += BOMB_SPEED * speed
+            // Remove if off-screen bottom
+            if (bomb.y > screenHeight) {
+                iter.remove()
+                continue
+            }
+            val bmp = missileBitmaps.getOrNull(bomb.bitmapIndex)
+            bmp?.let { canvas.drawBitmap(it, bomb.x, bomb.y, mPaint) }
+        }
+    }
+
+    private fun triggerBossExplosion(boss: BossState) {
+        val centerX = boss.x + bossSizePx / 2f
+        val centerY = boss.y + bossSizePx / 2f
+        val size = bossSizePx.toFloat()
+
+        // Main massive explosion
+        deathExplosions.add(ExplosionEffect(centerX, centerY, size * 2f, scale = 3f))
+        // Secondary staggered explosions around the boss
+        deathExplosions.add(
+            ExplosionEffect(centerX - size * 0.4f, centerY - size * 0.3f, size, scale = 2f)
+        )
+        deathExplosions.add(
+            ExplosionEffect(centerX + size * 0.4f, centerY + size * 0.2f, size, scale = 2f)
+        )
+        deathExplosions.add(
+            ExplosionEffect(centerX - size * 0.2f, centerY + size * 0.4f, size * 0.8f, scale = 1.5f)
+        )
+        deathExplosions.add(
+            ExplosionEffect(centerX + size * 0.3f, centerY - size * 0.4f, size * 0.8f, scale = 1.5f)
+        )
+    }
+
+    private fun drawDeathExplosions(canvas: Canvas) {
+        val iter = deathExplosions.iterator()
+        while (iter.hasNext()) {
+            val explosion = iter.next()
+            if (explosion.isFinished()) {
+                iter.remove()
+            } else {
+                explosion.draw(canvas)
+            }
+        }
+    }
+
+    private fun drawBombExplosions(canvas: Canvas) {
+        val iter = bombExplosions.iterator()
+        while (iter.hasNext()) {
+            val explosion = iter.next()
+            if (explosion.isFinished()) {
+                iter.remove()
+            } else {
+                explosion.draw(canvas)
+            }
+        }
+    }
+
+    fun clearAll() {
+        activeBoss = null
+        deathExplosions.clear()
+        bombExplosions.clear()
+        bombCounter = 0
+        directionChangeCounter = 0
+    }
+
+    override fun updateGame() {}
+
+    override fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF {
+        return RectF(x, y, x + bitmap.width, y + bitmap.height)
+    }
+}
