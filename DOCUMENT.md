@@ -470,3 +470,37 @@ The top of the screen shows:
 - Sorted from **highest score to lowest**
 - Only the **most recent record** per player is kept
 - Tap the **delete button** on any record to remove it
+
+---
+
+## 12. Class Diagram
+
+The full class diagram for the project is available as an SVG file:
+
+**[View Class Diagram →](class_diagram.svg)**
+
+The diagram covers all classes across the project's packages:
+
+- **data/** — Data models (`Aircraft`, `EnemyState`, `EnemyBullet`, `PlayerGameData`), Room database (`AppDatabase`), and DAO interface (`PlayerGameDataDao`)
+- **ui/** — Game engine layer with abstract `DrawBaseObject` base class and its four subclasses (`Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`), plus `ExplosionEffect` for particle animations, `Bullet` data class, and the central `GameCoreView` (SurfaceView) that orchestrates the 30 FPS game loop
+- **gui/** — Presentation layer activities (`LaunchActivity`, `MainActivity`, `HistoryActivity`, `SettingsActivity`, `PrivacyPolicyActivity`), fragments (`HistoryFragment`), and adapter (`HistoryAdapter`)
+- **service/** — `MusicService` bound service with inner `MusicBinder`
+- **viewmodel/** — `MainActivityViewModel` bridging service readiness to the UI via LiveData
+- **utils/** — Singleton utility objects (`ScreenUtils`, `BitmapUtils`)
+- **common/** — `AircraftApplication` entry point
+
+### Key Relationships
+
+| Relationship | Description |
+|---|---|
+| `GameCoreView` → `DrawBaseObject` subclasses | Composition — owns one instance each of `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies` |
+| `Aircraft` (ui) → `Bullet` | Composition — manages a mutable list of player bullets |
+| `Enemies` → `EnemyState` | Aggregation — manages active enemies on screen |
+| `EnemyState` → `EnemyBullet` | Composition — each enemy owns its bullet list |
+| `Enemies` → `ExplosionEffect` | Composition — manages active explosion animations |
+| `GameCoreView` → `MusicService` | Association — optional reference for audio playback |
+| `MainActivity` → `GameCoreView` | Composition — sets as content view |
+| `MainActivity` → `MusicService` | Bind — via `ServiceConnection` |
+| `MainActivity` → `AppDatabase` | Association — lazy-initialized for Room persistence |
+| `AppDatabase` → `PlayerGameDataDao` | Abstract factory — provides DAO instance |
+| `DrawHeader` → `Aircraft` (data) | Association — reads player HP for HUD rendering |
