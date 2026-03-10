@@ -19,6 +19,7 @@ import com.young.aircraft.R
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 import com.young.aircraft.data.Aircraft as AircraftData
@@ -33,6 +34,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     lateinit var drawHeader: DrawHeader
     lateinit var drawAircraft: Aircraft
     lateinit var enemies: Enemies
+    lateinit var redEnvelopes: RedEnvelopes
     lateinit var playerData: AircraftData
     private var surfaceHolder: SurfaceHolder? = null
     private var collisionCooldown = false
@@ -102,6 +104,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawAircraft = Aircraft(context, 1.0F, jetPlaneResId)
         enemies = Enemies(context, 1.0F)
         enemies.level = level
+        redEnvelopes = RedEnvelopes(context, 1.0F)
+        redEnvelopes.level = level
         playerData = AircraftData(name = "Player", health_points = 100.0f)
         drawHeader = DrawHeader(context, playerData, this)
         levelStartTimeMs = System.currentTimeMillis()
@@ -138,6 +142,12 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
         // Check player bullets hitting enemies
         checkPlayerBulletsHitEnemies()
+
+        // Check player bullets hitting red envelopes
+        checkPlayerBulletsHitRedEnvelopes()
+
+        // Check rockets hitting enemies
+        checkRocketsHitEnemies()
     }
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
@@ -196,6 +206,89 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
     }
 
+    private fun checkPlayerBulletsHitRedEnvelopes() {
+        val bullets = drawAircraft.getBullets()
+        val bulletSize = ScreenUtils.dpToPx(context, 25.0f)
+
+        for (bullet in bullets) {
+            if (bullet.y < 0) continue
+            val bulletBounds = RectF(
+                bullet.x, bullet.y,
+                bullet.x + bulletSize,
+                bullet.y + bulletSize
+            )
+
+            for (envelope in redEnvelopes.activeEnvelopes) {
+                if (envelope.isDetonated()) continue
+                val envBounds = redEnvelopes.getEnvelopeBounds(envelope)
+                if (RectF.intersects(bulletBounds, envBounds)) {
+                    drawAircraft.removeBullet(bullet)
+                    val detonated = redEnvelopes.hitEnvelope(envelope)
+                    if (detonated) {
+                        redEnvelopes.launchRocket(
+                            drawAircraft.jetX,
+                            drawAircraft.jetY,
+                            drawAircraft.renderedJetW
+                        )
+                    }
+                    break
+                }
+            }
+        }
+    }
+
+    private fun checkRocketsHitEnemies() {
+        val enemySize = ScreenUtils.dpToPx(context, 48.0f)
+        val blastSide = min(
+            ScreenUtils.getScreenWidth(context).toFloat(),
+            ScreenUtils.getScreenHeight(context).toFloat()
+        ) * 0.20f
+
+        for (rocket in redEnvelopes.activeRockets) {
+            if (!rocket.active) continue
+            val rocketBounds = redEnvelopes.getRocketBounds(rocket)
+
+            for (enemy in enemies.activeEnemies) {
+                if (enemy.isDestroyed()) continue
+                val enemyBounds = RectF(
+                    enemy.x, enemy.y,
+                    enemy.x + enemySize, enemy.y + enemySize
+                )
+                if (RectF.intersects(rocketBounds, enemyBounds)) {
+                    // First hit: deactivate rocket, AoE blast
+                    rocket.active = false
+                    val impactX = enemy.x + enemySize / 2f
+                    val impactY = enemy.y + enemySize / 2f
+                    redEnvelopes.triggerRocketExplosion(impactX, impactY)
+
+                    // Blast area centered on impact
+                    val halfBlast = blastSide / 2f
+                    val blastRect = RectF(
+                        impactX - halfBlast, impactY - halfBlast,
+                        impactX + halfBlast, impactY + halfBlast
+                    )
+
+                    // Destroy all enemies in blast radius
+                    for (target in enemies.activeEnemies) {
+                        if (target.isDestroyed()) continue
+                        val targetBounds = RectF(
+                            target.x, target.y,
+                            target.x + enemySize, target.y + enemySize
+                        )
+                        if (RectF.intersects(blastRect, targetBounds)) {
+                            enemies.hitEnemy(target)
+                            enemiesDestroyedThisLevel++
+                            totalKills++
+                            musicService?.enemyHitSoundPlay()
+                        }
+                    }
+                    checkKillTarget()
+                    break
+                }
+            }
+        }
+    }
+
     private fun handleCollision() {
         playerData.hit()
         collisionCooldown = true
@@ -234,6 +327,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         enemies.level = level
         enemies.activeEnemies.clear()
         enemies.clearExplosions()
+        redEnvelopes.level = level
+        redEnvelopes.clearAll()
         drawBackground.randomizeBackground()
         levelStartTimeMs = System.currentTimeMillis()
         enemiesDestroyedThisLevel = 0
@@ -282,6 +377,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         if (!isPaused && !isPlayerDying) {
             checkLevelTimer()
             drawEnemies(canvas)
+            drawRedEnvelopes(canvas)
             checkCollision()
         }
 
@@ -388,6 +484,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun drawEnemies(canvas: Canvas) {
         enemies.onDraw(canvas)
+    }
+
+    private fun drawRedEnvelopes(canvas: Canvas) {
+        redEnvelopes.onDraw(canvas)
     }
 
     private fun drawAircraft(canvas: Canvas) {
