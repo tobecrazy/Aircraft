@@ -50,7 +50,7 @@ class Aircraft(var context: Context, var speed: Float, private val jetPlaneResId
     var renderedJetH: Float = 0f
 
     companion object {
-        const val FIRE_INTERVAL = 2
+        const val FIRE_INTERVAL = 4
         const val BULLET_SPEED = 35f
         const val HIT_FLASH_DURATION_MS = 200L
     }

@@ -8,7 +8,9 @@ import android.graphics.Paint
 import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
+import android.os.Build
 import android.os.VibrationEffect
+import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import android.view.KeyEvent
@@ -19,6 +21,7 @@ import com.young.aircraft.R
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 import com.young.aircraft.data.Aircraft as AircraftData
@@ -33,6 +36,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     lateinit var drawHeader: DrawHeader
     lateinit var drawAircraft: Aircraft
     lateinit var enemies: Enemies
+    lateinit var redEnvelopes: RedEnvelopes
+    lateinit var bossEnemy: BossEnemy
     lateinit var playerData: AircraftData
     private var surfaceHolder: SurfaceHolder? = null
     private var collisionCooldown = false
@@ -48,6 +53,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     var totalKills: Int = 0
     private var gameWon = false
     private var isPaused = false
+    private var bossDefeatedThisLevel = false
 
     // Screen shake state
     private var shakeStartTimeMs: Long = 0L
@@ -69,8 +75,12 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     // Vibrator
     private val vibrator =
-        (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
-            .defaultVibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
+                .defaultVibrator
+        } else {
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
 
     companion object {
         const val FPS: Int = 30
@@ -102,6 +112,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawAircraft = Aircraft(context, 1.0F, jetPlaneResId)
         enemies = Enemies(context, 1.0F)
         enemies.level = level
+        redEnvelopes = RedEnvelopes(context, 1.0F)
+        redEnvelopes.level = level
+        bossEnemy = BossEnemy(context, 1.0F)
+        bossEnemy.level = level
         playerData = AircraftData(name = "Player", health_points = 100.0f)
         drawHeader = DrawHeader(context, playerData, this)
         levelStartTimeMs = System.currentTimeMillis()
@@ -138,6 +152,18 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
         // Check player bullets hitting enemies
         checkPlayerBulletsHitEnemies()
+
+        // Check player bullets hitting red envelopes
+        checkPlayerBulletsHitRedEnvelopes()
+
+        // Check rockets hitting enemies
+        checkRocketsHitEnemies()
+
+        // Boss collision checks
+        checkPlayerVsBoss(aircraftBounds)
+        checkBossBombsHitPlayer(aircraftBounds)
+        checkPlayerBulletsHitBoss()
+        checkRocketsHitBoss()
     }
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
@@ -196,6 +222,89 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
     }
 
+    private fun checkPlayerBulletsHitRedEnvelopes() {
+        val bullets = drawAircraft.getBullets()
+        val bulletSize = ScreenUtils.dpToPx(context, 25.0f)
+
+        for (bullet in bullets) {
+            if (bullet.y < 0) continue
+            val bulletBounds = RectF(
+                bullet.x, bullet.y,
+                bullet.x + bulletSize,
+                bullet.y + bulletSize
+            )
+
+            for (envelope in redEnvelopes.activeEnvelopes) {
+                if (envelope.isDetonated()) continue
+                val envBounds = redEnvelopes.getEnvelopeBounds(envelope)
+                if (RectF.intersects(bulletBounds, envBounds)) {
+                    drawAircraft.removeBullet(bullet)
+                    val detonated = redEnvelopes.hitEnvelope(envelope)
+                    if (detonated) {
+                        redEnvelopes.launchRocket(
+                            drawAircraft.jetX,
+                            drawAircraft.jetY,
+                            drawAircraft.renderedJetW
+                        )
+                    }
+                    break
+                }
+            }
+        }
+    }
+
+    private fun checkRocketsHitEnemies() {
+        val enemySize = ScreenUtils.dpToPx(context, 48.0f)
+        val blastSide = min(
+            ScreenUtils.getScreenWidth(context).toFloat(),
+            ScreenUtils.getScreenHeight(context).toFloat()
+        ) * 0.20f
+
+        for (rocket in redEnvelopes.activeRockets) {
+            if (!rocket.active) continue
+            val rocketBounds = redEnvelopes.getRocketBounds(rocket)
+
+            for (enemy in enemies.activeEnemies) {
+                if (enemy.isDestroyed()) continue
+                val enemyBounds = RectF(
+                    enemy.x, enemy.y,
+                    enemy.x + enemySize, enemy.y + enemySize
+                )
+                if (RectF.intersects(rocketBounds, enemyBounds)) {
+                    // First hit: deactivate rocket, AoE blast
+                    rocket.active = false
+                    val impactX = enemy.x + enemySize / 2f
+                    val impactY = enemy.y + enemySize / 2f
+                    redEnvelopes.triggerRocketExplosion(impactX, impactY)
+
+                    // Blast area centered on impact
+                    val halfBlast = blastSide / 2f
+                    val blastRect = RectF(
+                        impactX - halfBlast, impactY - halfBlast,
+                        impactX + halfBlast, impactY + halfBlast
+                    )
+
+                    // Destroy all enemies in blast radius
+                    for (target in enemies.activeEnemies) {
+                        if (target.isDestroyed()) continue
+                        val targetBounds = RectF(
+                            target.x, target.y,
+                            target.x + enemySize, target.y + enemySize
+                        )
+                        if (RectF.intersects(blastRect, targetBounds)) {
+                            enemies.hitEnemy(target)
+                            enemiesDestroyedThisLevel++
+                            totalKills++
+                            musicService?.enemyHitSoundPlay()
+                        }
+                    }
+                    checkKillTarget()
+                    break
+                }
+            }
+        }
+    }
+
     private fun handleCollision() {
         playerData.hit()
         collisionCooldown = true
@@ -212,20 +321,118 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private fun checkKillTarget() {
         if (enemiesDestroyedThisLevel < getRequiredKills(level)) return
 
+        // Kill target reached — spawn boss if not already active or defeated
+        if (!bossEnemy.isBossActive() && !bossEnemy.isBossDefeated() && !bossDefeatedThisLevel) {
+            bossEnemy.spawnBoss(level)
+            enemies.spawnPaused = true
+            Log.d("Game", "Boss spawned at level $level!")
+        }
+    }
+
+    private fun checkBossDefeated() {
+        if (bossDefeatedThisLevel) return
+        if (!bossEnemy.isBossExplosionFinished()) return
+
+        bossDefeatedThisLevel = true
+        Log.d("Game", "Boss defeated at level $level!")
+
         if (level >= MAX_LEVEL) {
-            // Game won — all levels cleared
             gameWon = true
             isPaused = true
             Log.d("Game", "Game Won! All levels cleared!")
             post { onGameWon?.invoke() }
         } else {
-            // Level complete — pause and notify
             isPaused = true
-            Log.d(
-                "Game",
-                "Level $level complete! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}"
-            )
+            Log.d("Game", "Level $level complete!")
             post { onLevelComplete?.invoke(level) }
+        }
+    }
+
+    private fun checkPlayerVsBoss(aircraftBounds: RectF) {
+        val bossBounds = bossEnemy.getBossBounds() ?: return
+        if (RectF.intersects(aircraftBounds, bossBounds)) {
+            // Instant death on boss collision
+            playerData.health_points = 0f
+            musicService?.gameOverSoundPlay()
+            triggerDeathExplosion()
+            Log.d("Game", "Player collided with Boss — instant death!")
+        }
+    }
+
+    private fun checkBossBombsHitPlayer(aircraftBounds: RectF) {
+        val boss = bossEnemy.activeBoss ?: return
+        val proximityPx = ScreenUtils.dpToPx(context, 5.0f).toFloat()
+        val expandedBounds = RectF(
+            aircraftBounds.left - proximityPx,
+            aircraftBounds.top - proximityPx,
+            aircraftBounds.right + proximityPx,
+            aircraftBounds.bottom + proximityPx
+        )
+
+        val bombIter = boss.bombs.iterator()
+        while (bombIter.hasNext()) {
+            val bomb = bombIter.next()
+            val bombCenterX = bomb.x + bossEnemy.missileSizePx / 2f
+            val bombCenterY = bomb.y + bossEnemy.missileSizePx / 2f
+            if (expandedBounds.contains(bombCenterX, bombCenterY)) {
+                bombIter.remove()
+                bossEnemy.triggerBombExplosion(bombCenterX, bombCenterY)
+                playerData.hit()
+                musicService?.playerHitSoundPlay()
+                triggerHitEffects()
+                Log.d("Game", "Player hit by boss bomb! HP: ${playerData.health_points}")
+                if (!playerData.isAlive()) {
+                    musicService?.gameOverSoundPlay()
+                    triggerDeathExplosion()
+                    Log.d("Game", "Game Over!")
+                }
+                break
+            }
+        }
+    }
+
+    private fun checkPlayerBulletsHitBoss() {
+        if (!bossEnemy.isBossActive()) return
+        val bullets = drawAircraft.getBullets()
+        val bulletSize = ScreenUtils.dpToPx(context, 25.0f)
+        val bossBounds = bossEnemy.getBossBounds() ?: return
+
+        for (bullet in bullets) {
+            if (bullet.y < 0) continue
+            val bulletBounds = RectF(
+                bullet.x, bullet.y,
+                bullet.x + bulletSize,
+                bullet.y + bulletSize
+            )
+            if (RectF.intersects(bulletBounds, bossBounds)) {
+                drawAircraft.removeBullet(bullet)
+                val killed = bossEnemy.hitBoss()
+                musicService?.enemyHitSoundPlay()
+                if (killed) {
+                    Log.d("Game", "Boss killed!")
+                }
+                break
+            }
+        }
+    }
+
+    private fun checkRocketsHitBoss() {
+        if (!bossEnemy.isBossActive()) return
+        val bossBounds = bossEnemy.getBossBounds() ?: return
+
+        for (rocket in redEnvelopes.activeRockets) {
+            if (!rocket.active) continue
+            val rocketBounds = redEnvelopes.getRocketBounds(rocket)
+            if (RectF.intersects(rocketBounds, bossBounds)) {
+                rocket.active = false
+                val impactX = bossBounds.centerX()
+                val impactY = bossBounds.centerY()
+                redEnvelopes.triggerRocketExplosion(impactX, impactY)
+                bossEnemy.hitBoss()
+                musicService?.enemyHitSoundPlay()
+                Log.d("Game", "Rocket hit boss!")
+                break
+            }
         }
     }
 
@@ -234,6 +441,12 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         enemies.level = level
         enemies.activeEnemies.clear()
         enemies.clearExplosions()
+        enemies.spawnPaused = false
+        redEnvelopes.level = level
+        redEnvelopes.clearAll()
+        bossEnemy.level = level
+        bossEnemy.clearAll()
+        bossDefeatedThisLevel = false
         drawBackground.randomizeBackground()
         levelStartTimeMs = System.currentTimeMillis()
         enemiesDestroyedThisLevel = 0
@@ -244,6 +457,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private fun checkLevelTimer() {
         val elapsed = System.currentTimeMillis() - levelStartTimeMs
         if (elapsed < getLevelDurationMs(level)) return
+
+        // Don't time out if boss is active or defeated (boss fight in progress)
+        if (bossEnemy.isBossActive() || bossEnemy.isBossDefeated()) return
 
         // Time expired without meeting kill target → game over
         musicService?.gameOverSoundPlay()
@@ -282,7 +498,13 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         if (!isPaused && !isPlayerDying) {
             checkLevelTimer()
             drawEnemies(canvas)
+            drawRedEnvelopes(canvas)
+            drawBossEnemy(canvas)
             checkCollision()
+            checkBossDefeated()
+        } else {
+            // Still draw boss explosions when paused (boss death animation)
+            drawBossEnemy(canvas)
         }
 
         // Death explosion (drawn over everything except overlays)
@@ -388,6 +610,14 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun drawEnemies(canvas: Canvas) {
         enemies.onDraw(canvas)
+    }
+
+    private fun drawRedEnvelopes(canvas: Canvas) {
+        redEnvelopes.onDraw(canvas)
+    }
+
+    private fun drawBossEnemy(canvas: Canvas) {
+        bossEnemy.onDraw(canvas)
     }
 
     private fun drawAircraft(canvas: Canvas) {

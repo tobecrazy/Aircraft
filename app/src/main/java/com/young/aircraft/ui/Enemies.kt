@@ -25,6 +25,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     private val bitmapList = mutableListOf<Bitmap?>()
     private var bulletBitmap: Bitmap? = null
     var level: Int = 1
+    var spawnPaused: Boolean = false
 
     // Cached resized enemy bitmaps (avoid per-frame allocation)
     private val cachedEnemyBitmaps = mutableListOf<Bitmap?>()
@@ -176,7 +177,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
 
         // Spawn timer
         framesSinceLastSpawn++
-        if (framesSinceLastSpawn >= getSpawnIntervalFrames()) {
+        if (!spawnPaused && framesSinceLastSpawn >= getSpawnIntervalFrames()) {
             framesSinceLastSpawn = 0
             spawnRow()
         }
