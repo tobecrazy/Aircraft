@@ -24,8 +24,8 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     private val bossBitmaps = mutableListOf<Bitmap?>()
     private val missileBitmaps = mutableListOf<Bitmap?>()
 
-    val bossSizePx: Int = ScreenUtils.dpToPx(context, 128.0f)
-    val missileSizePx: Int = ScreenUtils.dpToPx(context, 40.0f)
+    val bossSizePx: Int = ScreenUtils.dpToPx(context, 350.0f)
+    val missileSizePx: Int = ScreenUtils.dpToPx(context, 60.0f)
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
     private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
     private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
@@ -58,7 +58,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         const val DAMAGE_PER_HIT = 10f
         const val SPEED_MULTIPLIER = 1.5f
         const val BOMB_SPEED = 8f
-        const val BOMB_FIRE_INTERVAL = 75
+        const val BASE_BOMB_FIRE_INTERVAL = 50
         const val HIT_FLASH_MS = 150L
         const val TARGET_ZONE_TOP = 0.08f
         const val TARGET_ZONE_BOTTOM = 0.30f
@@ -92,6 +92,10 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     }
 
     fun getBossHp(level: Int): Float = BASE_HP + 100f * (level - 1)
+
+    private fun getBombFireInterval(): Int {
+        return (BASE_BOMB_FIRE_INTERVAL / (1f + 0.2f * (level - 1))).toInt().coerceAtLeast(10)
+    }
 
     fun spawnBoss(level: Int) {
         this.level = level
@@ -238,7 +242,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         // Only fire when boss is in the target zone (visible on screen)
         if (boss.y >= screenHeight * TARGET_ZONE_TOP) {
             bombCounter++
-            if (bombCounter >= BOMB_FIRE_INTERVAL) {
+            if (bombCounter >= getBombFireInterval()) {
                 bombCounter = 0
                 fireBomb(boss)
             }
