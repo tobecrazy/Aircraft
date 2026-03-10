@@ -62,9 +62,10 @@ Enemies have 1 HP and are destroyed in a single hit. Player has 100 HP and loses
 
 - **Score:** 100 points per kill, cumulative across all levels in a session. Reset when switching users.
 - **Player ID:** Device's `Settings.Secure.ANDROID_ID`
-- **Database:** Room (`AppDatabase`, version 2026) with `fallbackToDestructiveMigration()`. Table: `player_game_data` (playerId, level, score, timestamp).
+- **Database:** Room (`AppDatabase`, version 2027) with `fallbackToDestructiveMigration(true)`. Table: `player_game_data` (playerId, level, score, jetPlaneRes, timestamp).
 - **DAO:** `PlayerGameDataDao` — insert, query by player, query all sorted by score DESC, get total score, delete by player.
-- Game data is saved on both game over and game won via `lifecycleScope` in `MainActivity`.
+- Game data is saved via a `suspend` function `saveGameData()` called from `lifecycleScope` in `MainActivity`. **Important:** `finish()` must be called inside the coroutine *after* the DB write completes, never alongside — otherwise `lifecycleScope` cancels the write.
+- On game over, an `AlertDialog` asks the user to save or discard progress. On save, the level and jet plane selection are persisted so the player can continue later.
 
 ### Enemy System (Per-Enemy Y Tracking)
 
