@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 class LaunchActivity : AppCompatActivity() {
     lateinit var binding: ActivityLaunchBinding
     private val db by lazy { DatabaseProvider.getDatabase(this) }
-    private val jetPlanes = intArrayOf(R.drawable.jet_plane, R.drawable.jet_plane_1)
+    private val jetPlanes = intArrayOf(R.drawable.jet_plane_2, R.drawable.jet_plane_1)
     private var selectedJetIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +45,7 @@ class LaunchActivity : AppCompatActivity() {
             val savedData = db.playerGameDataDao().getByPlayerId(playerId)
             if (savedData.isNotEmpty() && savedData[0].level > 1) {
                 val savedLevel = savedData[0].level
-                val savedJetRes = savedData[0].jetPlaneRes.takeIf { it != 0 } ?: R.drawable.jet_plane
+                val savedJetRes = savedData[0].jetPlaneRes.takeIf { it != 0 } ?: R.drawable.jet_plane_2
                 runOnUiThread {
                     AlertDialog.Builder(this@LaunchActivity)
                         .setTitle(getString(R.string.continue_game_title))

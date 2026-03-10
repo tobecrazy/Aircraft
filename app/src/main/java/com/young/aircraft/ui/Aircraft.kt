@@ -17,7 +17,7 @@ data class Bullet(var x: Float, var y: Float, val originY: Float)
 /**
  * Create by Young
  **/
-class Aircraft(var context: Context, var speed: Float, private val jetPlaneResId: Int = R.drawable.jet_plane) : DrawBaseObject(context) {
+class Aircraft(var context: Context, var speed: Float, private val jetPlaneResId: Int = R.drawable.jet_plane_2) : DrawBaseObject(context) {
     private val bullets = mutableListOf<Bullet>()
     private var fireCounter: Int = 0
     var jetX: Float =

@@ -16,7 +16,7 @@
             android:layout_height="60dp"
             android:contentDescription="@null"
             android:scaleType="fitCenter"
-            android:src="@drawable/jet_plane"
+            android:src="@drawable/jet_plane_2"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"

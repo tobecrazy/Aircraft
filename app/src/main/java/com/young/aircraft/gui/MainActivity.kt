@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
         playerId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         val coreView = GameCoreView(this)
         val startLevel = intent.getIntExtra("start_level", 1)
-        val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane)
+        val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane_2)
         coreView.level = startLevel
         coreView.jetPlaneResId = jetPlaneRes
         setContentView(coreView)
