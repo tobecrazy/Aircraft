@@ -62,9 +62,10 @@ Enemies have 1 HP and are destroyed in a single hit. Player has 100 HP and loses
 
 - **Score:** 100 points per kill, cumulative across all levels in a session. Reset when switching users.
 - **Player ID:** Device's `Settings.Secure.ANDROID_ID`
-- **Database:** Room (`AppDatabase`, version 2026) with `fallbackToDestructiveMigration()`. Table: `player_game_data` (playerId, level, score, timestamp).
+- **Database:** Room (`AppDatabase`, version 2027) with `fallbackToDestructiveMigration(true)`. Table: `player_game_data` (playerId, level, score, jetPlaneRes, timestamp).
 - **DAO:** `PlayerGameDataDao` — insert, query by player, query all sorted by score DESC, get total score, delete by player.
-- Game data is saved on both game over and game won via `lifecycleScope` in `MainActivity`.
+- Game data is saved via a `suspend` function `saveGameData()` called from `lifecycleScope` in `MainActivity`. **Important:** `finish()` must be called inside the coroutine *after* the DB write completes, never alongside — otherwise `lifecycleScope` cancels the write.
+- On game over, an `AlertDialog` asks the user to save or discard progress. On save, the level and jet plane selection are persisted so the player can continue later.
 
 ### Enemy System (Per-Enemy Y Tracking)
 
@@ -81,11 +82,21 @@ Three checks run every frame in `GameCoreView.checkCollision()`:
 
 ```
 LaunchActivity (entry point, Theme.AppCompat.NoActionBar)
+  ├─→ [Start Game] → checks DB for saved progress
+  │     ├─→ saved data exists (level > 1) → dialog: Continue (saved level + jet) / New Game
+  │     └─→ no saved data → starts at level 1
   ├─→ MainActivity (TransparentTheme) → GameCoreView (full-screen immersive game)
+  │     Intent extras: "start_level" (Int, default 1), "jet_plane_res" (Int, default jet_plane)
   ├─→ HistoryActivity (Theme.Aircraft) → HistoryFragment → RecyclerView
   └─→ SettingsActivity → SettingsFragment
        └─→ PrivacyPolicyActivity (WebView)
 ```
+
+### Jet Plane Selection
+
+Players choose their jet on `LaunchActivity` by tapping the plane image (toggles between `jet_plane` and `jet_plane_1`). The selected resource ID flows:
+- `LaunchActivity` → intent extra `"jet_plane_res"` → `MainActivity` → `GameCoreView.jetPlaneResId` → `Aircraft(context, speed, jetPlaneResId)`
+- Saved to DB in `PlayerGameData.jetPlaneRes` so continuing a game restores the same jet.
 
 ### Audio
 
@@ -118,6 +129,6 @@ Player bullets set `bitmap.density = screenDensity` for canvas density scaling. 
 ### Game Assets
 
 - 10 enemy sprites: `enemy_1.png` through `enemy_10.png` (all loaded in `Enemies.init{}`)
-- 2 player sprites: `jet_plane.png`, `jet_plane_1.png`
+- 2 player sprites: `jet_plane.png`, `jet_plane_1.png` (selectable on launch screen, persisted in DB)
 - 6 audio files in `res/raw/`: background music (x2), fire, be_hit, enemy_be_hit, game_over
 - Localization: English (default) and Chinese (`values-zh/strings.xml`)

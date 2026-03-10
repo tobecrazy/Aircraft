@@ -15,7 +15,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.view.View
+import com.young.aircraft.R
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.abs
@@ -42,6 +42,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     var onGameWon: (() -> Unit)? = null
     var onLevelComplete: ((Int) -> Unit)? = null
     var level: Int = 1
+    var jetPlaneResId: Int = R.drawable.jet_plane_2
     var levelStartTimeMs: Long = 0L
     var enemiesDestroyedThisLevel: Int = 0
     var totalKills: Int = 0
@@ -98,7 +99,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun initializeGameDrawer() {
         drawBackground = DrawBackground(context, 2.0F)
-        drawAircraft = Aircraft(context, 1.0F)
+        drawAircraft = Aircraft(context, 1.0F, jetPlaneResId)
         enemies = Enemies(context, 1.0F)
         enemies.level = level
         playerData = AircraftData(name = "Player", health_points = 100.0f)

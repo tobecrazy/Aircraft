@@ -17,7 +17,7 @@ data class Bullet(var x: Float, var y: Float, val originY: Float)
 /**
  * Create by Young
  **/
-class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context) {
+class Aircraft(var context: Context, var speed: Float, private val jetPlaneResId: Int = R.drawable.jet_plane_2) : DrawBaseObject(context) {
     private val bullets = mutableListOf<Bullet>()
     private var fireCounter: Int = 0
     var jetX: Float =
@@ -57,7 +57,7 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        val jetBitmap = BitmapUtils.readBitMap(context, R.drawable.jet_plane)
+        val jetBitmap = BitmapUtils.readBitMap(context, jetPlaneResId)
         val originBitmap = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
         val bulletBitmap = BitmapUtils.resizeBitmap(
             originBitmap,

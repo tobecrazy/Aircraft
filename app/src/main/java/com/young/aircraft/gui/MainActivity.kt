@@ -1,7 +1,6 @@
 package com.young.aircraft.gui
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ActivityInfo
@@ -12,17 +11,13 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
-import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -33,7 +28,6 @@ import com.young.aircraft.service.MusicService
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.viewmodel.MainActivityViewModel
 import kotlinx.coroutines.launch
-import kotlin.properties.Delegates
 
 
 /**
@@ -43,10 +37,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var mService: MusicService
     private var exitTime: Long = 0
-    private var lastX = 0
-    private var lastY = 0
-    private var maxRight by Delegates.notNull<Int>()
-    private var maxBottom by Delegates.notNull<Int>()
     private lateinit var playerId: String
     private val db by lazy { DatabaseProvider.getDatabase(this) }
 
@@ -69,13 +59,31 @@ class MainActivity : AppCompatActivity() {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         playerId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         val coreView = GameCoreView(this)
+        val startLevel = intent.getIntExtra("start_level", 1)
+        val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane_2)
+        coreView.level = startLevel
+        coreView.jetPlaneResId = jetPlaneRes
         setContentView(coreView)
         coreView.onGameOver = {
-            saveGameData(coreView)
-            Toast.makeText(this, getString(R.string.game_over), Toast.LENGTH_LONG).show()
-            Looper.myLooper()?.let { looper ->
-                Handler(looper).postDelayed({ finish() }, 3000)
-            }
+            AlertDialog.Builder(this)
+                .setTitle(getString(R.string.game_over_title))
+                .setMessage(getString(R.string.game_over_message, coreView.level, coreView.totalKills.toLong() * 100))
+                .setCancelable(false)
+                .setPositiveButton(getString(R.string.game_over_save)) { dialog, _ ->
+                    dialog.dismiss()
+                    lifecycleScope.launch {
+                        saveGameData(coreView)
+                        finish()
+                    }
+                }
+                .setNegativeButton(getString(R.string.game_over_discard)) { dialog, _ ->
+                    dialog.dismiss()
+                    lifecycleScope.launch {
+                        db.playerGameDataDao().deleteByPlayerId(playerId)
+                        finish()
+                    }
+                }
+                .show()
         }
         coreView.onLevelComplete = { completedLevel ->
             AlertDialog.Builder(this)
@@ -99,9 +107,11 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton(getString(R.string.dialog_ok)) { dialog, _ ->
                     val playerName = nameInput.text.toString()
                     Log.d("Game", "Player name: $playerName")
-                    saveGameData(coreView)
                     dialog.dismiss()
-                    finish()
+                    lifecycleScope.launch {
+                        saveGameData(coreView)
+                        finish()
+                    }
                 }
                 .show()
         }
@@ -128,26 +138,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun addEnemy(number: Int) {
-        val enemy_back = mutableListOf<Int>()
-        enemy_back.add(R.drawable.enemy_1)
-        enemy_back.add(R.drawable.enemy_2)
-        enemy_back.add(R.drawable.enemy_3)
-        for (i in 1..number) {
-            val enemy = ImageView(this)
-            val params = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            params.width = 150
-            params.height = 150
-            enemy.layoutParams = params
-            enemy.rotation = 180.0f
-            enemy.scaleType = ImageView.ScaleType.FIT_CENTER
-            enemy.setImageDrawable(AppCompatResources.getDrawable(this, enemy_back[i % 3]))
-        }
-    }
-
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_BACK -> {
@@ -158,19 +148,18 @@ class MainActivity : AppCompatActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
-    private fun saveGameData(coreView: GameCoreView) {
+    private suspend fun saveGameData(coreView: GameCoreView) {
         val score = coreView.totalKills.toLong() * 100
-        lifecycleScope.launch {
-            db.playerGameDataDao().deleteByPlayerId(playerId)
-            db.playerGameDataDao().insert(
-                PlayerGameData(
-                    playerId = playerId,
-                    level = coreView.level,
-                    score = score
-                )
+        db.playerGameDataDao().deleteByPlayerId(playerId)
+        db.playerGameDataDao().insert(
+            PlayerGameData(
+                playerId = playerId,
+                level = coreView.level,
+                score = score,
+                jetPlaneRes = coreView.jetPlaneResId
             )
-            Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score")
-        }
+        )
+        Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score")
     }
 
     private fun exitApp() {

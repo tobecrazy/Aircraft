@@ -97,7 +97,8 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
             R.drawable.enemy_1, R.drawable.enemy_2, R.drawable.enemy_3,
             R.drawable.enemy_4, R.drawable.enemy_5, R.drawable.enemy_6,
             R.drawable.enemy_7, R.drawable.enemy_8, R.drawable.enemy_9,
-            R.drawable.enemy_10
+            R.drawable.enemy_10, R.drawable.enemy_11, R.drawable.enemy_12,
+            R.drawable.enemy_13, R.drawable.enemy_14, R.drawable.enemy_15
         )
         for (resId in enemyResIds) {
             bitmapList.add(BitmapUtils.readBitMap(context, resId))
