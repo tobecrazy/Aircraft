@@ -8,18 +8,20 @@ import android.graphics.Paint
 import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
+import android.os.VibrationEffect
+import android.os.VibratorManager
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
-import com.young.aircraft.data.Aircraft as AircraftData
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.abs
 import kotlin.math.sin
 import kotlin.random.Random
+import com.young.aircraft.data.Aircraft as AircraftData
 
 
 /**
@@ -64,6 +66,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var playerDeathExplosion: ExplosionEffect? = null
     private var isPlayerDying = false
 
+    // Vibrator
+    private val vibrator =
+        (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
+            .defaultVibrator
+
     companion object {
         const val FPS: Int = 30
         const val MAX_LEVEL = 10
@@ -77,7 +84,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     init {
         surfaceHolder = holder
         surfaceHolder?.addCallback(this)
-        focusable = View.FOCUSABLE
+        focusable = FOCUSABLE
         isFocusableInTouchMode = true
         keepScreenOn = true
     }
@@ -107,7 +114,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkCollision() {
         val aircraftBounds = drawAircraft.getBounds()
-        val enemySize = ScreenUtils.dpToPx(context, 48.0f)
+        ScreenUtils.dpToPx(context, 48.0f)
 
         // Check player aircraft colliding with enemies
         for (enemy in enemies.activeEnemies) {
@@ -213,7 +220,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         } else {
             // Level complete — pause and notify
             isPaused = true
-            Log.d("Game", "Level $level complete! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}")
+            Log.d(
+                "Game",
+                "Level $level complete! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}"
+            )
             post { onLevelComplete?.invoke(level) }
         }
     }
@@ -223,6 +233,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         enemies.level = level
         enemies.activeEnemies.clear()
         enemies.clearExplosions()
+        drawBackground.randomizeBackground()
         levelStartTimeMs = System.currentTimeMillis()
         enemiesDestroyedThisLevel = 0
         isPaused = false
@@ -357,6 +368,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         shakeStartTimeMs = now
         damageFlashStartMs = now
         drawAircraft.hitTimeMs = now
+        vibrator.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
     private fun triggerDeathExplosion() {

@@ -5,10 +5,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.ActivityInfo
-import android.os.*
+import android.os.Bundle
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
-import android.view.*
+import android.view.KeyEvent
+import android.view.ViewGroup
+import android.view.Window
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -20,10 +27,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
-import com.young.aircraft.data.AppDatabase
 import com.young.aircraft.data.PlayerGameData
-import com.young.aircraft.ui.GameCoreView
+import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.service.MusicService
+import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.viewmodel.MainActivityViewModel
 import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
@@ -41,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     private var maxRight by Delegates.notNull<Int>()
     private var maxBottom by Delegates.notNull<Int>()
     private lateinit var playerId: String
-    private val db by lazy { AppDatabase.getInstance(this) }
+    private val db by lazy { DatabaseProvider.getDatabase(this) }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
@@ -171,17 +178,17 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(
                 this, getString(R.string.exit_warning_msg),
                 Toast.LENGTH_SHORT
-            ).show();
-            exitTime = System.currentTimeMillis();
+            ).show()
+            exitTime = System.currentTimeMillis()
         } else {
-            finish();
+            finish()
         }
     }
 
     override fun onStart() {
         super.onStart()
         Intent(this, MusicService::class.java).also { intent ->
-            bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            bindService(intent, connection, BIND_AUTO_CREATE)
         }
     }
 

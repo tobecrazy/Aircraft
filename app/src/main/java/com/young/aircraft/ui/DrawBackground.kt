@@ -14,31 +14,47 @@ import com.young.aircraft.utils.ScreenUtils
  **/
 class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(context) {
 
+    companion object {
+        val BACKGROUNDS = intArrayOf(R.drawable.background, R.drawable.background_1)
+    }
+
     //background Top/Bottom
     var mTopY: Float = 0F
     var mBottomY: Float = 0F
+    private var backgroundResId: Int = BACKGROUNDS.random()
+    private var cachedBitmap: Bitmap? = null
 
     init {
         mTopY = -ScreenUtils.getScreenHeight(context).toFloat()
+        loadBitmap()
+    }
+
+    private fun loadBitmap() {
+        val originalBitmap = BitmapUtils.readBitMap(context, backgroundResId)
+        val width = ScreenUtils.getScreenWidth(context)
+        val height = ScreenUtils.getScreenHeight(context)
+        cachedBitmap = BitmapUtils.resizeBitmap(originalBitmap, width, height)
+    }
+
+    fun randomizeBackground() {
+        backgroundResId = BACKGROUNDS.random()
+        cachedBitmap = null
+        loadBitmap()
     }
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        val originalBitmap = BitmapUtils.readBitMap(context, R.drawable.background)
-        val width = ScreenUtils.getScreenWidth(context)
+        val bitmap = cachedBitmap ?: return
+        canvas.density = bitmap.density
+        mTopY += 10F * speed
+        mBottomY += 10F * speed
         val height = ScreenUtils.getScreenHeight(context)
-        val bitmap = BitmapUtils.resizeBitmap(originalBitmap, width, height)
-        if (bitmap != null) {
-            canvas.density = bitmap.density
-            mTopY += 10F * speed
-            mBottomY += 10F * speed
-            if (mTopY > height || mBottomY > height) {
-                mTopY = 0F
-                mBottomY = -ScreenUtils.getScreenHeight(context).toFloat()
-            }
-            canvas.drawBitmap(bitmap, 0F, mTopY, mPaint);
-            canvas.drawBitmap(bitmap, 0F, mBottomY, mPaint);
+        if (mTopY > height || mBottomY > height) {
+            mTopY = 0F
+            mBottomY = -ScreenUtils.getScreenHeight(context).toFloat()
         }
+        canvas.drawBitmap(bitmap, 0F, mTopY, mPaint)
+        canvas.drawBitmap(bitmap, 0F, mBottomY, mPaint)
     }
 
     override fun updateGame() {

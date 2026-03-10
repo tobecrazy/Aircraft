@@ -2,7 +2,6 @@ package com.young.aircraft.service
 
 import android.annotation.SuppressLint
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioManager
@@ -13,7 +12,10 @@ import android.os.Build
 import android.os.IBinder
 import androidx.preference.PreferenceManager
 import com.young.aircraft.R
-
+/**
+ * Create by Young
+ * 2026/3/10
+ **/
 class MusicService : Service() {
     private val MAX_STREAMS = 5
     private lateinit var soundPool: SoundPool
@@ -43,7 +45,7 @@ class MusicService : Service() {
 
     @Synchronized
     fun playSound(sound: Int, fSpeed: Float, loop: Int = 0) {
-        val audioManager: AudioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val audioManager: AudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         val streamVolumeCurrent: Float =
             audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()
         val streamVolumeMax: Float =
@@ -62,6 +64,7 @@ class MusicService : Service() {
         soundPool.release()
         return super.onUnbind(intent)
     }
+
     fun backgroundSoundPlay() {
         if (!isBackgroundSoundEnabled()) return
         if (bgMediaPlayer == null) {

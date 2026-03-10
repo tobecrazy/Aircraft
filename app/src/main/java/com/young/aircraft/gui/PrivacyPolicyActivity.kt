@@ -27,7 +27,7 @@ class PrivacyPolicyActivity : AppCompatActivity() {
         webView.settings.loadWithOverviewMode = true
         webView.webViewClient = WebViewClient()
         webView.apply {
-            loadUrl("file:///android_asset/privacy policy.html")
+            loadUrl("file:///android_asset/privacy_policy.html")
 
         }
     }

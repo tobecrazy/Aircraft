@@ -31,22 +31,30 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
 
     // Paint with red tint for enemy bullets
     private val bulletPaint = Paint().apply {
-        colorFilter = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
-            1.5f, 0.5f, 0.5f, 0f, 30f,   // R
-            0f,   0.2f, 0f,   0f, 0f,     // G
-            0f,   0f,   0.2f, 0f, 0f,     // B
-            0f,   0f,   0f,   1f, 0f      // A
-        )))
+        colorFilter = ColorMatrixColorFilter(
+            ColorMatrix(
+                floatArrayOf(
+                    1.5f, 0.5f, 0.5f, 0f, 30f,   // R
+                    0f, 0.2f, 0f, 0f, 0f,     // G
+                    0f, 0f, 0.2f, 0f, 0f,     // B
+                    0f, 0f, 0f, 1f, 0f      // A
+                )
+            )
+        )
     }
 
     // Paint with white tint for hit flash effect
     private val hitFlashPaint = Paint().apply {
-        colorFilter = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
-            0f, 0f, 0f, 0f, 255f,  // R
-            0f, 0f, 0f, 0f, 255f,  // G
-            0f, 0f, 0f, 0f, 255f,  // B
-            0f, 0f, 0f, 1f, 0f     // A
-        )))
+        colorFilter = ColorMatrixColorFilter(
+            ColorMatrix(
+                floatArrayOf(
+                    0f, 0f, 0f, 0f, 255f,  // R
+                    0f, 0f, 0f, 0f, 255f,  // G
+                    0f, 0f, 0f, 0f, 255f,  // B
+                    0f, 0f, 0f, 1f, 0f     // A
+                )
+            )
+        )
     }
 
     // Bullet range: 60% of screen height
@@ -58,6 +66,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         const val BASE_ENEMY_BULLET_SPEED = 6f
         const val LEVEL_SPEED_INCREMENT = 1.5f
         const val BASE_ENEMIES_PER_ROW = 5
+
         // Base bullet spacing (high = slow fire rate), decreases with level
         const val BASE_BULLET_SPACING_DP = 350f
         const val MIN_BULLET_SPACING_DP = 250f
