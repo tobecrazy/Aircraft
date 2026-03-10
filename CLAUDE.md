@@ -82,11 +82,21 @@ Three checks run every frame in `GameCoreView.checkCollision()`:
 
 ```
 LaunchActivity (entry point, Theme.AppCompat.NoActionBar)
+  ├─→ [Start Game] → checks DB for saved progress
+  │     ├─→ saved data exists (level > 1) → dialog: Continue (saved level + jet) / New Game
+  │     └─→ no saved data → starts at level 1
   ├─→ MainActivity (TransparentTheme) → GameCoreView (full-screen immersive game)
+  │     Intent extras: "start_level" (Int, default 1), "jet_plane_res" (Int, default jet_plane)
   ├─→ HistoryActivity (Theme.Aircraft) → HistoryFragment → RecyclerView
   └─→ SettingsActivity → SettingsFragment
        └─→ PrivacyPolicyActivity (WebView)
 ```
+
+### Jet Plane Selection
+
+Players choose their jet on `LaunchActivity` by tapping the plane image (toggles between `jet_plane` and `jet_plane_1`). The selected resource ID flows:
+- `LaunchActivity` → intent extra `"jet_plane_res"` → `MainActivity` → `GameCoreView.jetPlaneResId` → `Aircraft(context, speed, jetPlaneResId)`
+- Saved to DB in `PlayerGameData.jetPlaneRes` so continuing a game restores the same jet.
 
 ### Audio
 
@@ -119,6 +129,6 @@ Player bullets set `bitmap.density = screenDensity` for canvas density scaling. 
 ### Game Assets
 
 - 10 enemy sprites: `enemy_1.png` through `enemy_10.png` (all loaded in `Enemies.init{}`)
-- 2 player sprites: `jet_plane.png`, `jet_plane_1.png`
+- 2 player sprites: `jet_plane.png`, `jet_plane_1.png` (selectable on launch screen, persisted in DB)
 - 6 audio files in `res/raw/`: background music (x2), fire, be_hit, enemy_be_hit, game_over
 - Localization: English (default) and Chinese (`values-zh/strings.xml`)
