@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 class LaunchActivity : AppCompatActivity() {
     lateinit var binding: ActivityLaunchBinding
     private val db by lazy { DatabaseProvider.getDatabase(this) }
-    private val jetPlanes = intArrayOf(R.drawable.jet_plane_2, R.drawable.jet_plane_1)
+    private val jetPlanes = intArrayOf(R.drawable.jet_plane_2, R.drawable.jet_plane_3, R.drawable.jet_plane_4, R.drawable.jet_plane_1)
     private var selectedJetIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
