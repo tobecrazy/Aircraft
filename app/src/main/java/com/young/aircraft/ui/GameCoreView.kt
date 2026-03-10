@@ -8,6 +8,8 @@ import android.graphics.Paint
 import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
+import android.os.VibrationEffect
+import android.os.VibratorManager
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -63,6 +65,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     // Death explosion
     private var playerDeathExplosion: ExplosionEffect? = null
     private var isPlayerDying = false
+
+    // Vibrator
+    private val vibrator = (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
+        .defaultVibrator
 
     companion object {
         const val FPS: Int = 30
@@ -223,6 +229,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         enemies.level = level
         enemies.activeEnemies.clear()
         enemies.clearExplosions()
+        drawBackground.randomizeBackground()
         levelStartTimeMs = System.currentTimeMillis()
         enemiesDestroyedThisLevel = 0
         isPaused = false
@@ -357,6 +364,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         shakeStartTimeMs = now
         damageFlashStartMs = now
         drawAircraft.hitTimeMs = now
+        vibrator.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
     private fun triggerDeathExplosion() {
