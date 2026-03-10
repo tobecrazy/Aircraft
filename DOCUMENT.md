@@ -1,4 +1,4 @@
-# Aircraft - Project Document
+# Aircraft - Developer Document
 
 ## 1. Technology Stack
 
@@ -7,7 +7,7 @@
 | Category          | Technology                  |
 |-------------------|-----------------------------|
 | Platform          | Android                     |
-| Language          | Kotlin (bundled with AGP)   |
+| Language          | Kotlin 2.1.20 (bundled with AGP) |
 | Min SDK           | 30 (Android 11)             |
 | Target SDK        | 35 (Android 15)             |
 | Compile SDK       | 36                          |
@@ -41,13 +41,13 @@
 |---------------------|---------|----------------------|
 | JUnit               | 4.x     | Unit testing         |
 | AndroidX Test JUnit | 1.3.0   | Android test runner  |
-| Espresso             | 3.7.0   | UI instrumented tests|
+| Espresso            | 3.7.0   | UI instrumented tests|
 
 ### Build Features
 
-- **View Binding** - Type-safe view references
-- **Data Binding** - Declarative layout binding
-- **BuildConfig** - Generated build constants
+- **View Binding** — Type-safe view references
+- **Data Binding** — Declarative layout binding
+- **BuildConfig** — Generated build constants
 
 ### Game Engine
 
@@ -55,70 +55,94 @@ The game does **not** use any third-party game framework. It is built entirely o
 
 ---
 
-## 2. Project Structure
+## 2. Quick Start
+
+### Prerequisites
+
+- Android Studio Meerkat (2024.3.1) or later
+- Android device or emulator running API 30+
+
+### Setup
+
+```bash
+git clone <repository-url>
+cd Aircraft
+```
+
+Open in Android Studio, sync Gradle, and run on a device/emulator.
+
+### Build Commands
+
+```bash
+./gradlew assembleDebug          # Build debug APK
+./gradlew assembleRelease        # Build release APK
+./gradlew test                   # Run all unit tests
+./gradlew testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"  # Single test
+./gradlew connectedAndroidTest   # Instrumented tests (requires device/emulator)
+./gradlew clean                  # Clean build
+./gradlew lint                   # Lint check
+```
+
+---
+
+## 3. Key Gotchas
+
+**AGP 9.1 bundles Kotlin.** Do NOT add `org.jetbrains.kotlin.android` as a plugin — it will cause `Cannot add extension with name 'kotlin'` at build time. Only KSP is declared as a separate plugin.
+
+**Two files named `Aircraft.kt` exist.** `data/Aircraft.kt` is the player stats data class; `ui/Aircraft.kt` is the rendering class. Code disambiguates with:
+```kotlin
+import com.young.aircraft.data.Aircraft as AircraftData
+```
+
+**KSP + built-in Kotlin requires a compat flag.** `gradle.properties` must include `android.disallowKotlinSourceSets=false` or KSP source sets will fail to register.
+
+**Room database uses destructive migration.** `AppDatabase` uses `fallbackToDestructiveMigration()`, so schema changes wipe existing data. Version is currently `2026` (chosen as the project year — simply increment when changing the schema).
+
+**Bullet density must be set.** Both player and enemy bullet bitmaps must have `bitmap.density = screenDensity` or they render at wrong sizes. Both use 25dp bitmaps.
+
+---
+
+## 4. Project Structure
 
 ```
-Aircraft/
-├── build.gradle                          # Root: AGP classpath + KSP plugin
-├── settings.gradle                       # Module includes + repository config
-├── gradle.properties                     # JVM args, AndroidX, KSP compat flags
+app/src/main/java/com/young/aircraft/
+├── common/
+│   └── AircraftApplication.kt          # Application entry point
 │
-└── app/
-    ├── build.gradle                      # App: plugins, SDK, dependencies
-    │
-    └── src/main/
-        ├── AndroidManifest.xml
-        │
-        ├── java/com/young/aircraft/
-        │   │
-        │   ├── common/
-        │   │   └── AircraftApplication.kt          # Application entry point
-        │   │
-        │   ├── data/                                # ── Data Layer ──
-        │   │   ├── AppDatabase.kt                   # Room database singleton (v2026)
-        │   │   ├── PlayerGameData.kt                # Entity: player_game_data table
-        │   │   ├── PlayerGameDataDao.kt             # DAO: CRUD for game records
-        │   │   ├── Aircraft.kt                      # Data model: player HP & stats
-        │   │   └── EnemyState.kt                    # Data model: enemy state & bullets
-        │   │
-        │   ├── gui/                                 # ── Presentation Layer ──
-        │   │   ├── LaunchActivity.kt                # Home screen (Start / History / Settings)
-        │   │   ├── MainActivity.kt                  # Game host, binds MusicService
-        │   │   ├── HistoryActivity.kt               # History screen container
-        │   │   ├── HistoryFragment.kt               # Game history list (RecyclerView)
-        │   │   ├── HistoryAdapter.kt                # RecyclerView adapter for records
-        │   │   ├── SettingsActivity.kt              # Sound & privacy preferences
-        │   │   └── PrivacyPolicyActivity.kt         # Privacy policy (WebView)
-        │   │
-        │   ├── ui/                                  # ── Game Engine Layer ──
-        │   │   ├── GameCoreView.kt                  # SurfaceView: game loop & orchestration
-        │   │   ├── DrawBaseObject.kt                # Abstract base for drawable objects
-        │   │   ├── Aircraft.kt                      # Player jet: rendering & bullet firing
-        │   │   ├── Enemies.kt                       # Enemy spawning, movement & bullets
-        │   │   ├── DrawBackground.kt                # Scrolling parallax background
-        │   │   ├── DrawHeader.kt                    # HUD: level, HP bar, timer, kills
-        │   │   └── ExplosionEffect.kt               # Particle-based death explosion
-        │   │
-        │   ├── service/                             # ── Service Layer ──
-        │   │   └── MusicService.kt                  # Bound service: BGM + SFX playback
-        │   │
-        │   ├── viewmodel/                           # ── ViewModel Layer ──
-        │   │   └── MainActivityViewModel.kt         # LiveData for service readiness
-        │   │
-        │   └── utils/                               # ── Utilities ──
-        │       ├── ScreenUtils.kt                   # Screen dimensions, dp/sp/px conversion
-        │       └── BitmapUtils.kt                   # Bitmap loading, resizing, rotation
-        │
-        ├── res/
-        │   ├── layout/                              # XML layouts (activities, fragments, items)
-        │   ├── drawable/                            # Sprites, backgrounds, vector icons
-        │   ├── raw/                                 # Audio: background music + sound effects
-        │   ├── values/                              # Strings, colors, themes (English)
-        │   ├── values-zh/                           # Strings (Chinese)
-        │   └── xml/                                 # Preference definitions
-        │
-        └── assets/
-            └── privacy policy.html                  # Privacy policy content
+├── data/                                # ── Data Layer ──
+│   ├── AppDatabase.kt                   # Room database singleton (v2026)
+│   ├── PlayerGameData.kt               # Entity: player_game_data table
+│   ├── PlayerGameDataDao.kt            # DAO: CRUD for game records
+│   ├── Aircraft.kt                      # Data model: player HP & stats
+│   └── EnemyState.kt                   # Data model: enemy state & bullets
+│
+├── gui/                                 # ── Presentation Layer ──
+│   ├── LaunchActivity.kt               # Home screen (Start / History / Settings)
+│   ├── MainActivity.kt                 # Game host, binds MusicService
+│   ├── HistoryActivity.kt              # History screen container
+│   ├── HistoryFragment.kt              # Game history list (RecyclerView)
+│   ├── HistoryAdapter.kt               # RecyclerView adapter for records
+│   ├── SettingsActivity.kt             # Sound & privacy preferences
+│   └── PrivacyPolicyActivity.kt        # Privacy policy (WebView)
+│
+├── ui/                                  # ── Game Engine Layer ──
+│   ├── GameCoreView.kt                 # SurfaceView: game loop & orchestration
+│   ├── DrawBaseObject.kt               # Abstract base for drawable objects
+│   ├── Aircraft.kt                      # Player jet: rendering & bullet firing
+│   ├── Enemies.kt                       # Enemy spawning, movement & bullets
+│   ├── DrawBackground.kt               # Seamless scrolling background
+│   ├── DrawHeader.kt                   # HUD: level, HP bar, timer, kills
+│   └── ExplosionEffect.kt              # Particle-based death explosion
+│
+├── service/                             # ── Service Layer ──
+│   └── MusicService.kt                 # Bound service: BGM + SFX playback
+│
+├── viewmodel/                           # ── ViewModel Layer ──
+│   └── MainViewModel.kt                # LiveData for service readiness
+│
+└── utils/                               # ── Utilities ──
+    ├── ScreenUtils.kt                   # Screen dimensions, dp/sp/px conversion
+    └── BitmapUtils.kt                   # Bitmap loading, resizing, rotation
 ```
 
 ### Architecture Diagram
@@ -164,7 +188,7 @@ Aircraft/
 │  ┌─────────┐ ┌────────┐ ┌──────────┐       │
 │  │Aircraft │ │Enemies │ │DrawHeader│       │
 │  │(player) │ │(spawn, │ │  (HUD)   │       │
-│  │ + bullets│ │ move,  │ └──────────┘       │
+│  │+ bullets│ │ move,  │ └──────────┘       │
 │  └─────────┘ │ shoot) │ ┌──────────────┐   │
 │              └────────┘ │DrawBackground│   │
 │  ┌───────────────────┐  │ (scrolling)  │   │
@@ -181,7 +205,138 @@ Aircraft/
 └─────────────────────────────────┘
 ```
 
-### Threading Model
+---
+
+## 5. Game Loop Walkthrough
+
+The entire game runs inside `GameCoreView.run()` on a dedicated thread at 30 FPS. The loop uses `surfaceHolder.lockCanvas()` / `unlockCanvasAndPost()` and sleeps for the remaining frame time (`Thread.sleep(targetTime - elapsed)`) to maintain the target frame rate. Each frame calls `onUpdateGameDraw(canvas)`, which executes this pipeline:
+
+```
+1. applyScreenShake(canvas)         ← if player was recently hit, offset the canvas
+2. drawBackground(canvas)           ← seamless scrolling background
+3. drawHeader(canvas)               ← HUD: level, HP bar, timer, kill count
+4. drawAircraft(canvas)             ← player jet + auto-fired bullets (skipped if dying)
+5. if (!isPaused && !isPlayerDying):
+   a. checkLevelTimer()             ← game over if time expired
+   b. drawEnemies(canvas)           ← spawn rows, move enemies, fire enemy bullets
+   c. checkCollision()              ← 3-way collision detection (see below)
+6. drawDeathExplosion(canvas)       ← particle explosion if player is dying
+7. drawDamageFlash(canvas)          ← red flash overlay on hit (fades over 300ms)
+8. drawLowHealthVignette(canvas)    ← pulsing red border when HP ≤ 20
+9. canvas.restore()                 ← undo shake offset
+```
+
+**Key state flags that control the loop:**
+- `isPaused` — set `true` on level complete or player death; skips enemy updates and collision
+- `isPlayerDying` — set `true` during death explosion; skips aircraft drawing and game logic
+- `gameWon` — set `true` when level 10 is cleared
+
+**Callbacks to the Activity (run on main thread via `post {}`):**
+- `onGameOver` — time expired or HP reached 0
+- `onLevelComplete(level)` — kill target met, level < 10
+- `onGameWon` — kill target met on level 10
+
+---
+
+## 6. Collision Detection
+
+Three checks run every frame inside `checkCollision()`:
+
+### 1. Player vs Enemies (body collision)
+
+```
+for each activeEnemy (not destroyed):
+    if RectF.intersects(aircraftBounds, enemyBounds) AND !collisionCooldown:
+        → playerData.hit() (−20 HP)
+        → triggerHitEffects() (shake + flash)
+        → collisionCooldown = true (resets when enemy no longer overlaps aircraft)
+```
+
+### 2. Enemy Bullets vs Player
+
+```
+for each enemy bullet (via getEnemyBullets() → Triple<x, y, EnemyBullet>):
+    if RectF.intersects(aircraftBounds, bulletBounds):
+        → playerData.hit() (−20 HP)
+        → remove bullet by reference from enemy's bullet list
+        → break (one bullet per frame)
+```
+
+### 3. Player Bullets vs Enemies
+
+```
+for each player bullet:
+    for each activeEnemy (not destroyed):
+        if RectF.intersects(bulletBounds, enemyBounds):
+            → enemies.hitEnemy(enemy) (set health to -1, record destroyedTime)
+            → drawAircraft.removeBullet(bullet)
+            → enemiesDestroyedThisLevel++, totalKills++
+            → checkKillTarget() (may trigger level complete or game won)
+            → break
+```
+
+All bounds are `RectF` rectangles. Enemy sprites are 48dp, bullets are 25dp (converted via `ScreenUtils.dpToPx()`).
+
+---
+
+## 7. Level System
+
+All formulas are in `GameCoreView.companion` and `Enemies.companion`:
+
+```kotlin
+// GameCoreView
+fun getLevelDurationMs(level: Int): Long = 300_000L - 20_000L * (level - 1)   // 300s → 120s
+fun getRequiredKills(level: Int): Int = 90 + level * 10                        // 100 → 190
+
+// Enemies
+fun getEnemiesPerRow(): Int = BASE_ENEMIES_PER_ROW + level                     // 6 → 15
+fun getSpawnIntervalFrames(): Int = 90 - (level - 1) * 5                       // 90 → 45 frames
+fun getEnemyMoveSpeed(): Float = BASE_ENEMY_MOVE_SPEED + (level - 1) * 1.5f   // 3 → 16.5
+fun getBulletSpacingDp(): Float = max(BASE_BULLET_SPACING_DP - (level - 1) * 15f, 250f)  // 350 → 250
+```
+
+Constants: `BASE_ENEMY_MOVE_SPEED = 3f`, `BASE_ENEMIES_PER_ROW = 5`, `BASE_BULLET_SPACING_DP = 350f`, `MIN_BULLET_SPACING_DP = 250f`, `SPACING_DECREASE_PER_LEVEL = 15f`.
+
+Enemies have 1 HP. Player has 100 HP, loses 20 per hit (`BULLET_DAMAGE = 20f`). Score = `totalKills * 100`.
+
+---
+
+## 8. Database
+
+### Schema
+
+Table `player_game_data` (Room entity `PlayerGameData`):
+
+| Column      | Type   | Notes                            |
+|-------------|--------|----------------------------------|
+| id          | Long   | Auto-generated primary key       |
+| player_id   | String | Device `ANDROID_ID`              |
+| level       | Int    | Level reached when game ended    |
+| score       | Long   | `totalKills * 100`               |
+| timestamp   | Long   | `System.currentTimeMillis()`     |
+
+### Behavior
+
+- **One record per player:** `saveGameData()` in `MainActivity` calls `deleteByPlayerId()` before `insert()`, so new records overwrite old ones.
+- **Player ID:** Retrieved via `Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)`.
+- **Saved on:** Both game over (HP = 0 or time expired) and game won (all 10 levels cleared).
+
+### DAO Methods
+
+| Method                | Query                                          |
+|-----------------------|------------------------------------------------|
+| `insert(data)`        | Insert a new record                            |
+| `delete(data)`        | Delete a specific record by entity              |
+| `getByPlayerId(id)`   | All records for a player, newest first          |
+| `getAllByScoreDesc()`  | All records sorted by score (leaderboard)       |
+| `getTotalScore(id)`   | Sum of all scores for a player                  |
+| `deleteByPlayerId(id)`| Delete all records for a player                 |
+
+> **Note:** Because `saveGameData()` always calls `deleteByPlayerId()` before `insert()`, most of these methods only ever operate on a single row per player. The multi-row capabilities (`getByPlayerId`, `getTotalScore`) exist for potential future use but are effectively single-record today.
+
+---
+
+## 9. Threading
 
 ```
 Main Thread                  Game Thread                  Service
@@ -189,21 +344,64 @@ Main Thread                  Game Thread                  Service
 Activity lifecycle           SurfaceView render loop      MusicService
 UI dialogs                   Canvas drawing (30 FPS)      @Synchronized
 Service binding              Collision detection            playback
-lifecycleScope (DB)          Level timer checks
+lifecycleScope (Room DB)     Level timer checks
 ```
+
+### Rules
+
+- **Never touch game objects from the main thread.** `GameCoreView` properties like `level`, `enemies`, `drawAircraft` are read/written on the game thread. The main thread communicates via callbacks (`onGameOver`, `onLevelComplete`, `onGameWon`) which use `post {}` to dispatch to the main thread.
+- **`advanceToNextLevel()` is called from the main thread** (from the dialog button click), but it only sets simple flags and clears lists — this is the one intentional cross-thread write.
+- **Room DAO methods are `suspend` functions.** Always call them from a coroutine scope (`lifecycleScope`), never from the game thread.
+- **`MusicService` playback methods are `@Synchronized`.** Safe to call from the game thread (collision handlers) or the main thread.
+- **`SurfaceHolder` is synchronized** in the game loop: `synchronized(surfaceHolder) { onUpdateGameDraw(canvas) }`.
+- **`ScreenUtils` methods are `@Synchronized`.** Safe from any thread.
 
 ---
 
-## 3. How to Play
+## 10. Common Tasks
 
-### Getting Started
+### Add a New Enemy Type
 
-1. Launch the app — the **home screen** shows three buttons:
-   - **Start Game** — begin a new game session
-   - **History** — view past game records sorted by score
-   - **Game Settings** — toggle background music and combat sound effects
+1. Add the sprite PNG to `res/drawable/` (e.g., `enemy_11.png`). The sprite should face **upward** in the file — it will be rotated 180° at load time. Any size works; it is resized to 48dp x 48dp.
+2. In `Enemies.kt` `init {}` block, add the resource ID to the `enemyResIds` array:
+   ```kotlin
+   val enemyResIds = intArrayOf(
+       R.drawable.enemy_1, ..., R.drawable.enemy_10,
+       R.drawable.enemy_11  // ← add here
+   )
+   ```
+   The existing loop loads each ID into `bitmapList`, then pre-caches a resized+rotated copy in `cachedEnemyBitmaps`. Enemies randomly pick from the list when spawning rows, so the new sprite appears automatically.
+3. To add special behavior (e.g., more HP), modify `EnemyState` (add an HP field) and the hit detection logic in `GameCoreView.checkPlayerBulletsHitEnemies()`.
 
-2. Tap **Start Game** to enter the battlefield.
+### Add a New Sound Effect
+
+1. Place the `.mp3` file in `res/raw/` (e.g., `power_up.mp3`)
+2. In `MusicService.kt`, add a new hex constant and load it in `initSoundPool()`:
+   ```kotlin
+   private val powerUpId = 0x006
+   soundMap[powerUpId] = soundPool.load(this, R.raw.power_up, 1)
+   ```
+3. Add a public play method:
+   ```kotlin
+   @Synchronized
+   fun powerUpSoundPlay() {
+       if (!isCombatSoundEnabled()) return
+       soundMap[powerUpId]?.let { soundPool.play(it, 1f, 1f, 0, 0, 1f) }
+   }
+   ```
+4. Call it from `GameCoreView` via `musicService?.powerUpSoundPlay()`.
+
+### Add a New Language
+
+1. Create `res/values-<code>/strings.xml` (e.g., `values-ja/strings.xml` for Japanese)
+2. Copy all string entries from `res/values/strings.xml` and translate them
+3. Android auto-selects the correct file based on device locale. No code changes needed.
+
+Currently supported: English (default `values/`) and Chinese (`values-zh/`).
+
+---
+
+## 11. How to Play
 
 ### Controls
 
@@ -263,7 +461,7 @@ The top of the screen shows:
 - **Level Failed**: Timer runs out before reaching the kill target → **Game Over**
 - **Player Destroyed**: HP drops to 0 → death explosion → **Game Over**
 - **Level Complete**: Reach the kill target before time runs out → proceed to next level
-- **Victory**: Clear all 10 levels → you can enter your name for the record
+- **Victory**: Clear all 10 levels → a name prompt appears (name is logged but not yet saved to the database)
 
 ### Game History
 
@@ -271,4 +469,4 @@ The top of the screen shows:
 - Records show **Player ID**, **Level reached**, and **Score**
 - Sorted from **highest score to lowest**
 - Only the **most recent record** per player is kept
-- Swipe or tap the **delete button** on any record to remove it
+- Tap the **delete button** on any record to remove it
