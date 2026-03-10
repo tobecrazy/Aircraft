@@ -2,7 +2,6 @@ package com.young.aircraft.utils
 
 import android.app.Activity
 import android.content.Context
-import android.os.Build
 
 /**
  * Create by Young

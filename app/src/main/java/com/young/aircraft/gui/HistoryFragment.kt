@@ -10,9 +10,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.young.aircraft.R
-import com.young.aircraft.data.AppDatabase
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.FragmentHistoryBinding
+import com.young.aircraft.providers.DatabaseProvider
 import kotlinx.coroutines.launch
 
 class HistoryFragment : Fragment() {
@@ -43,7 +43,7 @@ class HistoryFragment : Fragment() {
 
     private fun loadHistory() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val records = AppDatabase.getInstance(requireContext())
+            val records = DatabaseProvider.getDatabase(requireContext())
                 .playerGameDataDao()
                 .getAllByScoreDesc()
 
@@ -73,7 +73,7 @@ class HistoryFragment : Fragment() {
 
     private fun deleteRecord(item: PlayerGameData, position: Int) {
         viewLifecycleOwner.lifecycleScope.launch {
-            AppDatabase.getInstance(requireContext())
+            DatabaseProvider.getDatabase(requireContext())
                 .playerGameDataDao()
                 .delete(item)
             adapter?.removeAt(position)

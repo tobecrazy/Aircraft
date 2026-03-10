@@ -2,8 +2,8 @@ package com.young.aircraft.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Canvas
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
@@ -20,8 +20,10 @@ data class Bullet(var x: Float, var y: Float, val originY: Float)
 class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context) {
     private val bullets = mutableListOf<Bullet>()
     private var fireCounter: Int = 0
-    var jetX: Float = ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
-    var jetY: Float = ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
+    var jetX: Float =
+        ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
+    var jetY: Float =
+        ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
     private val maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.7f
 
     // Hit flash state
@@ -29,17 +31,23 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
 
     // Paint with white tint for hit flash effect
     private val hitFlashPaint = Paint().apply {
-        colorFilter = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
-            0f, 0f, 0f, 0f, 255f,  // R
-            0f, 0f, 0f, 0f, 255f,  // G
-            0f, 0f, 0f, 0f, 255f,  // B
-            0f, 0f, 0f, 1f, 0f     // A
-        )))
+        colorFilter = ColorMatrixColorFilter(
+            ColorMatrix(
+                floatArrayOf(
+                    0f, 0f, 0f, 0f, 255f,  // R
+                    0f, 0f, 0f, 0f, 255f,  // G
+                    0f, 0f, 0f, 0f, 255f,  // B
+                    0f, 0f, 0f, 1f, 0f     // A
+                )
+            )
+        )
     }
 
     // Cached rendered dimensions (updated each frame from onDraw)
-    @Volatile var renderedJetW: Float = 0f
-    @Volatile var renderedJetH: Float = 0f
+    @Volatile
+    var renderedJetW: Float = 0f
+    @Volatile
+    var renderedJetH: Float = 0f
 
     companion object {
         const val FIRE_INTERVAL = 2
@@ -60,7 +68,8 @@ class Aircraft(var context: Context, var speed: Float) : DrawBaseObject(context)
             val screenDensity = context.resources.displayMetrics.densityDpi
             jetBitmap.density = screenDensity
             bulletBitmap.density = screenDensity
-            canvas.drawBitmap(jetBitmap, jetX, jetY,
+            canvas.drawBitmap(
+                jetBitmap, jetX, jetY,
                 if (System.currentTimeMillis() - hitTimeMs < HIT_FLASH_DURATION_MS) hitFlashPaint else mPaint
             )
 

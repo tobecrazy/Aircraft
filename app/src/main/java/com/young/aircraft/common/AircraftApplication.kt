@@ -5,5 +5,4 @@ import android.app.Application
 /**
  * Create by Young
  **/
-class AircraftApplication : Application() {
-}
+class AircraftApplication : Application()

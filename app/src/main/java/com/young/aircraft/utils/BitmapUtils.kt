@@ -16,12 +16,12 @@ object BitmapUtils {
         options.inScaled = false
         options.inPreferredConfig = Bitmap.Config.ARGB_8888
         val bitmap = BitmapFactory.decodeResource(context.resources, resId, options)
-            .copy(Bitmap.Config.ARGB_8888, true);
+            .copy(Bitmap.Config.ARGB_8888, true)
         return bitmap
     }
 
 
-    fun getScaleMap(bitmap: Bitmap): Bitmap? {
+    fun getScaleMap(bitmap: Bitmap): Bitmap {
         val matrix = Matrix()
         matrix.postScale(1F, -1F)
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
@@ -35,8 +35,8 @@ object BitmapUtils {
             val scaleHeight: Float = height.toFloat() / oldHeight
             val matrix = Matrix()
             matrix.reset()
-            matrix.postScale(scaleWight, scaleHeight);
-            val res = Bitmap.createBitmap(bitmap, 0, 0, oldWidth, oldHeight, matrix, true);
+            matrix.postScale(scaleWight, scaleHeight)
+            val res = Bitmap.createBitmap(bitmap, 0, 0, oldWidth, oldHeight, matrix, true)
             res
         }
     }
@@ -50,10 +50,9 @@ object BitmapUtils {
             val scaleHeight: Float = height.toFloat() / oldHeight
             val matrix = Matrix()
             matrix.reset()
-            //旋转角度
-            matrix.setRotate(degrees);
-            matrix.postScale(scaleWight, scaleHeight);
-            val res = Bitmap.createBitmap(bitmap, 0, 0, oldWidth, oldHeight, matrix, true);
+            matrix.setRotate(degrees)
+            matrix.postScale(scaleWight, scaleHeight)
+            val res = Bitmap.createBitmap(bitmap, 0, 0, oldWidth, oldHeight, matrix, true)
             res
         }
     }

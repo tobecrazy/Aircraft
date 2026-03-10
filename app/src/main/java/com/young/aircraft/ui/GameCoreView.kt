@@ -16,12 +16,12 @@ import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
-import com.young.aircraft.data.Aircraft as AircraftData
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.abs
 import kotlin.math.sin
 import kotlin.random.Random
+import com.young.aircraft.data.Aircraft as AircraftData
 
 
 /**
@@ -67,8 +67,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var isPlayerDying = false
 
     // Vibrator
-    private val vibrator = (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
-        .defaultVibrator
+    private val vibrator =
+        (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
+            .defaultVibrator
 
     companion object {
         const val FPS: Int = 30
@@ -83,7 +84,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     init {
         surfaceHolder = holder
         surfaceHolder?.addCallback(this)
-        focusable = View.FOCUSABLE
+        focusable = FOCUSABLE
         isFocusableInTouchMode = true
         keepScreenOn = true
     }
@@ -113,7 +114,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkCollision() {
         val aircraftBounds = drawAircraft.getBounds()
-        val enemySize = ScreenUtils.dpToPx(context, 48.0f)
+        ScreenUtils.dpToPx(context, 48.0f)
 
         // Check player aircraft colliding with enemies
         for (enemy in enemies.activeEnemies) {
@@ -219,7 +220,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         } else {
             // Level complete — pause and notify
             isPaused = true
-            Log.d("Game", "Level $level complete! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}")
+            Log.d(
+                "Game",
+                "Level $level complete! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}"
+            )
             post { onLevelComplete?.invoke(level) }
         }
     }

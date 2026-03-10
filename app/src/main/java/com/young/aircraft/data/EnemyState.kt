@@ -2,11 +2,12 @@ package com.young.aircraft.data
 
 import android.graphics.Bitmap
 
-data class EnemyBullet(var y: Float, val originY: Float)
-
 /**
  * @author Young
  */
+
+data class EnemyBullet(var y: Float, val originY: Float)
+
 data class EnemyState(
     val x: Float,
     var y: Float,
