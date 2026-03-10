@@ -60,7 +60,9 @@ class MainActivity : AppCompatActivity() {
         playerId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         val coreView = GameCoreView(this)
         val startLevel = intent.getIntExtra("start_level", 1)
+        val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane)
         coreView.level = startLevel
+        coreView.jetPlaneResId = jetPlaneRes
         setContentView(coreView)
         coreView.onGameOver = {
             AlertDialog.Builder(this)
@@ -153,7 +155,8 @@ class MainActivity : AppCompatActivity() {
             PlayerGameData(
                 playerId = playerId,
                 level = coreView.level,
-                score = score
+                score = score,
+                jetPlaneRes = coreView.jetPlaneResId
             )
         )
         Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score")

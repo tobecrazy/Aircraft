@@ -18,7 +18,7 @@ object DatabaseProvider {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "aircraft_game.db"
-            ).fallbackToDestructiveMigration(false).build()
+            ).fallbackToDestructiveMigration(true).build()
 
             INSTANCE = instance
             instance

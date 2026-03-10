@@ -14,6 +14,8 @@ data class PlayerGameData(
     val level: Int,
     @ColumnInfo(name = "score")
     val score: Long,
+    @ColumnInfo(name = "jet_plane_res")
+    val jetPlaneRes: Int = 0,
     @ColumnInfo(name = "timestamp")
     val timestamp: Long = System.currentTimeMillis()
 )
