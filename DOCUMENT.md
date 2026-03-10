@@ -475,9 +475,9 @@ The top of the screen shows:
 
 ## 12. Class Diagram
 
-The full class diagram for the project is available as an SVG file:
+The full class diagram for the project is available as an SVG file ([view raw](class_diagram.svg)):
 
-**[View Class Diagram →](class_diagram.svg)**
+![Class Diagram](class_diagram.svg)
 
 The diagram covers all classes across the project's packages:
 
