@@ -17,6 +17,14 @@
     <string name="game_won_name_prompt">Please enter your name:</string>
     <string name="dialog_ok">OK</string>
     <string name="game_over">Victory and defeat are part of warfare; a valiant warrior may try again.</string>
+    <string name="game_over_title">Game Over</string>
+    <string name="game_over_message">You reached Level %1$d with a score of %2$d. Would you like to save your progress so you can continue from this level next time?</string>
+    <string name="game_over_save">Save Progress</string>
+    <string name="game_over_discard">Don\'t Save</string>
+    <string name="continue_game_title">Continue Game</string>
+    <string name="continue_game_message">You have a saved game at Level %d. Would you like to continue or start a new game?</string>
+    <string name="continue_game_continue">Continue</string>
+    <string name="continue_game_new">New Game</string>
     <string name="history_title">Game History</string>
     <string name="history_no_records">No records yet</string>
     <string name="history_col_player">PLAYER</string>

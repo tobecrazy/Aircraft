@@ -17,6 +17,14 @@
     <string name="game_won_name_prompt">请输入你的名字：</string>
     <string name="dialog_ok">确定</string>
     <string name="game_over">胜败乃兵家常事，壮士请重新来过。</string>
+    <string name="game_over_title">游戏结束</string>
+    <string name="game_over_message">你到达了第%1$d关，得分%2$d。是否保存进度以便下次从此关继续？</string>
+    <string name="game_over_save">保存进度</string>
+    <string name="game_over_discard">不保存</string>
+    <string name="continue_game_title">继续游戏</string>
+    <string name="continue_game_message">你有第%d关的存档。是否继续还是开始新游戏？</string>
+    <string name="continue_game_continue">继续</string>
+    <string name="continue_game_new">新游戏</string>
     <string name="history_title">游戏历史</string>
     <string name="history_no_records">暂无记录</string>
     <string name="history_col_player">玩家</string>
