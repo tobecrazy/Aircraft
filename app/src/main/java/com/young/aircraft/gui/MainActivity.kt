@@ -14,7 +14,9 @@ import android.view.KeyEvent
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
-import android.widget.EditText
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -65,55 +67,59 @@ class MainActivity : AppCompatActivity() {
         coreView.jetPlaneResId = jetPlaneRes
         setContentView(coreView)
         coreView.onGameOver = {
-            AlertDialog.Builder(this)
-                .setTitle(getString(R.string.game_over_title))
-                .setMessage(getString(R.string.game_over_message, coreView.level, coreView.totalKills.toLong() * 100))
-                .setCancelable(false)
-                .setPositiveButton(getString(R.string.game_over_save)) { dialog, _ ->
-                    dialog.dismiss()
+            showGameDialog(
+                title = getString(R.string.game_over_title),
+                message = getString(R.string.game_over_message, coreView.level, coreView.totalKills.toLong() * 100),
+                titleColor = 0xFFFF4444.toInt(),
+                positiveText = getString(R.string.game_over_save),
+                negativeText = getString(R.string.game_over_discard),
+                stat1Label = getString(R.string.stat_kills),
+                stat1Value = coreView.totalKills.toString(),
+                stat2Label = getString(R.string.stat_score),
+                stat2Value = (coreView.totalKills.toLong() * 100).toString(),
+                onPositive = {
                     lifecycleScope.launch {
                         saveGameData(coreView)
                         finish()
                     }
-                }
-                .setNegativeButton(getString(R.string.game_over_discard)) { dialog, _ ->
-                    dialog.dismiss()
+                },
+                onNegative = {
                     lifecycleScope.launch {
                         db.playerGameDataDao().deleteByPlayerId(playerId)
                         finish()
                     }
                 }
-                .show()
+            )
         }
         coreView.onLevelComplete = { completedLevel ->
-            AlertDialog.Builder(this)
-                .setTitle(getString(R.string.level_complete, completedLevel))
-                .setMessage(getString(R.string.level_complete_message, completedLevel))
-                .setCancelable(false)
-                .setPositiveButton(getString(R.string.dialog_ok)) { dialog, _ ->
-                    dialog.dismiss()
-                    coreView.advanceToNextLevel()
-                }
-                .show()
+            showGameDialog(
+                title = getString(R.string.level_complete, completedLevel),
+                message = getString(R.string.level_complete_message, completedLevel),
+                positiveText = getString(R.string.next_level),
+                stat1Label = getString(R.string.stat_kills),
+                stat1Value = coreView.enemiesDestroyedThisLevel.toString(),
+                stat2Label = getString(R.string.stat_score),
+                stat2Value = (coreView.totalKills.toLong() * 100).toString(),
+                onPositive = { coreView.advanceToNextLevel() }
+            )
         }
         coreView.onGameWon = {
-            val nameInput = EditText(this).apply {
-                hint = getString(R.string.game_won_name_prompt)
-            }
-            AlertDialog.Builder(this)
-                .setTitle(getString(R.string.game_won))
-                .setView(nameInput)
-                .setCancelable(false)
-                .setPositiveButton(getString(R.string.dialog_ok)) { dialog, _ ->
-                    val playerName = nameInput.text.toString()
-                    Log.d("Game", "Player name: $playerName")
-                    dialog.dismiss()
+            showGameDialog(
+                title = getString(R.string.game_won),
+                message = null,
+                titleColor = 0xFFFFD700.toInt(),
+                positiveText = getString(R.string.dialog_ok),
+                stat1Label = getString(R.string.stat_kills),
+                stat1Value = coreView.totalKills.toString(),
+                stat2Label = getString(R.string.stat_score),
+                stat2Value = (coreView.totalKills.toLong() * 100).toString(),
+                onPositive = {
                     lifecycleScope.launch {
                         saveGameData(coreView)
                         finish()
                     }
                 }
-                .show()
+            )
         }
         val controller = window.insetsController
         if (controller != null) {
@@ -146,6 +152,64 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    private fun showGameDialog(
+        title: String,
+        message: String?,
+        titleColor: Int = 0xFF00FF88.toInt(),
+        positiveText: String,
+        negativeText: String? = null,
+        stat1Label: String? = null,
+        stat1Value: String? = null,
+        stat2Label: String? = null,
+        stat2Value: String? = null,
+        onPositive: () -> Unit,
+        onNegative: (() -> Unit)? = null
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_game, null)
+        dialogView.findViewById<TextView>(R.id.dialog_title).apply {
+            text = title
+            setTextColor(titleColor)
+        }
+        dialogView.findViewById<TextView>(R.id.dialog_message).apply {
+            if (message != null) {
+                text = message
+                visibility = View.VISIBLE
+            } else {
+                visibility = View.GONE
+            }
+        }
+        if (stat1Label != null && stat2Label != null) {
+            dialogView.findViewById<LinearLayout>(R.id.dialog_stats_container).visibility = View.VISIBLE
+            dialogView.findViewById<TextView>(R.id.stat_label_1).text = stat1Label
+            dialogView.findViewById<TextView>(R.id.stat_value_1).text = stat1Value
+            dialogView.findViewById<TextView>(R.id.stat_label_2).text = stat2Label
+            dialogView.findViewById<TextView>(R.id.stat_value_2).text = stat2Value
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialogView.findViewById<TextView>(R.id.dialog_positive_btn).apply {
+            text = positiveText
+            setOnClickListener {
+                dialog.dismiss()
+                onPositive()
+            }
+        }
+        if (negativeText != null && onNegative != null) {
+            dialogView.findViewById<TextView>(R.id.dialog_negative_btn).apply {
+                text = negativeText
+                visibility = View.VISIBLE
+                setOnClickListener {
+                    dialog.dismiss()
+                    onNegative()
+                }
+            }
+        }
+        dialog.show()
     }
 
     private suspend fun saveGameData(coreView: GameCoreView) {

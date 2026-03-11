@@ -39,6 +39,9 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     // Bomb firing
     private var bombCounter: Int = 0
 
+    // Player tracking
+    var playerCenterX: Float = screenWidth / 2f
+
     // Paint with white tint for hit flash effect
     private val hitFlashPaint = Paint().apply {
         colorFilter = ColorMatrixColorFilter(
@@ -224,13 +227,9 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
             }
         }
 
-        // Horizontal: periodic direction changes
-        directionChangeCounter++
-        if (directionChangeCounter >= directionChangeInterval) {
-            directionChangeCounter = 0
-            moveDirectionX = -moveDirectionX
-            directionChangeInterval = 60 + rng.nextInt(60)
-        }
+        // Horizontal: track player position
+        val bossCenterX = boss.x + bossSizePx / 2f
+        moveDirectionX = if (playerCenterX < bossCenterX) -1f else 1f
 
         boss.x += moveSpeed * moveDirectionX * 0.8f
 

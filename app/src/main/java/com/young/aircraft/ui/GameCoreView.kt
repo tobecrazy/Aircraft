@@ -656,6 +656,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun drawBossEnemy(canvas: Canvas) {
+        bossEnemy.playerCenterX = drawAircraft.jetX + drawAircraft.renderedJetW / 2f
         bossEnemy.onDraw(canvas)
     }
 

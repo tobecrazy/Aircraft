@@ -12,6 +12,9 @@
     <string name="kills_count">Kills: %1$d/%2$d</string>
     <string name="level_complete">Level %d Complete!</string>
     <string name="level_complete_message">You have cleared Level %d. Ready for the next challenge?</string>
+    <string name="stat_kills">KILLS</string>
+    <string name="stat_score">SCORE</string>
+    <string name="next_level">NEXT LEVEL</string>
     <string name="level_failed">Level Failed!</string>
     <string name="game_won">Congratulations, you have completed all levels!</string>
     <string name="game_won_name_prompt">Please enter your name:</string>
