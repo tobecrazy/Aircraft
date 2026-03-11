@@ -261,7 +261,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     private fun fireBomb(boss: BossState) {
         val bmpIndex = rng.nextInt(missileBitmaps.size)
         val bombX = boss.x + bossSizePx / 2f - missileSizePx / 2f
-        val bombY = boss.y + bossSizePx * (1f - COLLISION_INSET_Y)
+        val bombY = boss.y + bossSizePx.toFloat()
         boss.bombs.add(BossBomb(x = bombX, y = bombY, bitmapIndex = bmpIndex))
     }
 
