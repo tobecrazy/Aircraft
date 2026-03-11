@@ -23,7 +23,7 @@ class MedicalKits(var context: Context, var speed: Float) : DrawBaseObject(conte
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
 
     private val kitBitmaps = arrayOfNulls<Bitmap>(2)
-    private val kitSizePx: Int = ScreenUtils.dpToPx(context, 80.0f)
+    private val kitSizePx: Int = ScreenUtils.dpToPx(context, 120.0f)
 
     private val blinkPaint = Paint()
 

@@ -116,6 +116,54 @@ class DrawHeader(
                 requiredKills
             ), floatX, killsY, mPaint
         )
+
+        // Draw boss health bar below kills (only while boss is alive)
+        val boss = gameView.bossEnemy.activeBoss
+        if (boss != null && !boss.isDestroyed()) {
+            val bossBarY = killsY + ScreenUtils.dpToPx(context, 10.0f).toFloat()
+            val bossBarWidth = ScreenUtils.dpToPx(context, 120.0f).toFloat()
+            val bossBarHeight = ScreenUtils.dpToPx(context, 10.0f).toFloat()
+            val bossBarCorner = ScreenUtils.dpToPx(context, 3.0f).toFloat()
+            val bossFraction = (boss.hitPoints / boss.maxHitPoints).coerceIn(0f, 1f)
+
+            // Label
+            mPaint.color = Color.RED
+            mPaint.textSize = ScreenUtils.sp2px(context, 13.0f)
+            mPaint.textAlign = Paint.Align.LEFT
+            canvas.drawText("BOSS", floatX, bossBarY + bossBarHeight, mPaint)
+
+            val barLeft = floatX + ScreenUtils.dpToPx(context, 42.0f).toFloat()
+
+            // Background
+            mPaint.color = Color.DKGRAY
+            mPaint.style = Paint.Style.FILL
+            canvas.drawRoundRect(
+                RectF(barLeft, bossBarY, barLeft + bossBarWidth, bossBarY + bossBarHeight),
+                bossBarCorner, bossBarCorner, mPaint
+            )
+
+            // Colored fill
+            mPaint.color = when {
+                bossFraction > 0.5f -> Color.RED
+                bossFraction > 0.2f -> Color.YELLOW
+                else -> Color.GREEN
+            }
+            val bossFillWidth = bossBarWidth * bossFraction
+            canvas.drawRoundRect(
+                RectF(barLeft, bossBarY, barLeft + bossFillWidth, bossBarY + bossBarHeight),
+                bossBarCorner, bossBarCorner, mPaint
+            )
+
+            // White stroke border
+            mPaint.color = Color.WHITE
+            mPaint.style = Paint.Style.STROKE
+            mPaint.strokeWidth = 1f
+            canvas.drawRoundRect(
+                RectF(barLeft, bossBarY, barLeft + bossBarWidth, bossBarY + bossBarHeight),
+                bossBarCorner, bossBarCorner, mPaint
+            )
+            mPaint.style = Paint.Style.FILL_AND_STROKE
+        }
     }
 
     override fun updateGame() {
