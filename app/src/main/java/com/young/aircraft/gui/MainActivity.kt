@@ -100,7 +100,12 @@ class MainActivity : AppCompatActivity() {
                 stat1Value = coreView.enemiesDestroyedThisLevel.toString(),
                 stat2Label = getString(R.string.stat_score),
                 stat2Value = (coreView.totalKills.toLong() * 100).toString(),
-                onPositive = { coreView.advanceToNextLevel() }
+                onPositive = {
+                    lifecycleScope.launch {
+                        saveGameData(coreView)
+                        coreView.advanceToNextLevel()
+                    }
+                }
             )
         }
         coreView.onGameWon = {
