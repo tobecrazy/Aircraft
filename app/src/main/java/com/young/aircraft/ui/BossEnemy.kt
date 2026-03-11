@@ -58,7 +58,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         const val DAMAGE_PER_HIT = 10f
         const val SPEED_MULTIPLIER = 1.5f
         const val BOMB_SPEED = 8f
-        const val BASE_BOMB_FIRE_INTERVAL = 50
+        const val BASE_BOMB_FIRE_INTERVAL = 80
         const val HIT_FLASH_MS = 150L
         const val TARGET_ZONE_TOP = 0.08f
         const val TARGET_ZONE_BOTTOM = 0.30f
@@ -96,7 +96,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     fun getBossHp(level: Int): Float = BASE_HP + 100f * (level - 1)
 
     private fun getBombFireInterval(): Int {
-        return (BASE_BOMB_FIRE_INTERVAL / (1f + 0.2f * (level - 1))).toInt().coerceAtLeast(10)
+        return (BASE_BOMB_FIRE_INTERVAL / (1f + 0.3f * (level - 1))).toInt().coerceAtLeast(15)
     }
 
     fun spawnBoss(level: Int) {
@@ -260,12 +260,8 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
 
     private fun fireBomb(boss: BossState) {
         val bmpIndex = rng.nextInt(missileBitmaps.size)
-        val insetX = bossSizePx * COLLISION_INSET_X
-        val insetY = bossSizePx * COLLISION_INSET_Y
-        val visibleCenterX = boss.x + insetX + (bossSizePx - 2 * insetX) / 2f
-        val visibleBottomY = boss.y + bossSizePx - insetY
-        val bombX = visibleCenterX - missileSizePx / 2f
-        val bombY = visibleBottomY
+        val bombX = boss.x + bossSizePx / 2f - missileSizePx / 2f
+        val bombY = boss.y + bossSizePx * (1f - COLLISION_INSET_Y)
         boss.bombs.add(BossBomb(x = bombX, y = bombY, bitmapIndex = bmpIndex))
     }
 
