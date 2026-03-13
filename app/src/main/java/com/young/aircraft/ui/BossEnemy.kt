@@ -24,7 +24,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     private val bossBitmaps = mutableListOf<Bitmap?>()
     private val missileBitmaps = mutableListOf<Bitmap?>()
 
-    val bossSizePx: Int = ScreenUtils.dpToPx(context, 350.0f)
+    val bossSizePx: Int = ScreenUtils.dpToPx(context, 200.0f)
     val missileSizePx: Int = ScreenUtils.dpToPx(context, 60.0f)
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
     private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
@@ -38,6 +38,9 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
 
     // Bomb firing
     private var bombCounter: Int = 0
+
+    // Player tracking
+    var playerCenterX: Float = screenWidth / 2f
 
     // Paint with white tint for hit flash effect
     private val hitFlashPaint = Paint().apply {
@@ -58,10 +61,12 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         const val DAMAGE_PER_HIT = 10f
         const val SPEED_MULTIPLIER = 1.5f
         const val BOMB_SPEED = 8f
-        const val BASE_BOMB_FIRE_INTERVAL = 50
+        const val BASE_BOMB_FIRE_INTERVAL = 80
         const val HIT_FLASH_MS = 150L
         const val TARGET_ZONE_TOP = 0.08f
         const val TARGET_ZONE_BOTTOM = 0.30f
+        const val COLLISION_INSET_X = 0.25f  // 25% inset on each side horizontally
+        const val COLLISION_INSET_Y = 0.20f  // 20% inset on each side vertically
     }
 
     init {
@@ -94,7 +99,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     fun getBossHp(level: Int): Float = BASE_HP + 100f * (level - 1)
 
     private fun getBombFireInterval(): Int {
-        return (BASE_BOMB_FIRE_INTERVAL / (1f + 0.2f * (level - 1))).toInt().coerceAtLeast(10)
+        return (BASE_BOMB_FIRE_INTERVAL / (1f + 0.3f * (level - 1))).toInt().coerceAtLeast(15)
     }
 
     fun spawnBoss(level: Int) {
@@ -145,7 +150,14 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     fun getBossBounds(): RectF? {
         val boss = activeBoss ?: return null
         if (boss.isDestroyed()) return null
-        return RectF(boss.x, boss.y, boss.x + bossSizePx, boss.y + bossSizePx)
+        val insetX = bossSizePx * COLLISION_INSET_X
+        val insetY = bossSizePx * COLLISION_INSET_Y
+        return RectF(
+            boss.x + insetX,
+            boss.y + insetY,
+            boss.x + bossSizePx - insetX,
+            boss.y + bossSizePx - insetY
+        )
     }
 
     fun getBombBounds(bomb: BossBomb): RectF {
@@ -215,13 +227,9 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
             }
         }
 
-        // Horizontal: periodic direction changes
-        directionChangeCounter++
-        if (directionChangeCounter >= directionChangeInterval) {
-            directionChangeCounter = 0
-            moveDirectionX = -moveDirectionX
-            directionChangeInterval = 60 + rng.nextInt(60)
-        }
+        // Horizontal: track player position
+        val bossCenterX = boss.x + bossSizePx / 2f
+        moveDirectionX = if (playerCenterX < bossCenterX) -1f else 1f
 
         boss.x += moveSpeed * moveDirectionX * 0.8f
 
@@ -252,7 +260,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     private fun fireBomb(boss: BossState) {
         val bmpIndex = rng.nextInt(missileBitmaps.size)
         val bombX = boss.x + bossSizePx / 2f - missileSizePx / 2f
-        val bombY = boss.y + bossSizePx
+        val bombY = boss.y + bossSizePx.toFloat()
         boss.bombs.add(BossBomb(x = bombX, y = bombY, bitmapIndex = bmpIndex))
     }
 

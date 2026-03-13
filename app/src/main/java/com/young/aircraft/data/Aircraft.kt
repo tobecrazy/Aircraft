@@ -12,7 +12,14 @@ data class Aircraft(
 ) {
     companion object {
         const val BULLET_DAMAGE = 20.0f
+        const val MAX_HP = 100.0f
     }
+
+    fun restoreHealth() {
+        health_points = MAX_HP
+    }
+
+    fun isFullHealth(): Boolean = health_points >= MAX_HP
 
     fun hit() {
         health_points -= BULLET_DAMAGE

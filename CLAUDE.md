@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions. The game has 10 time-based levels with decreasing time limits and scaling difficulty.
+Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions. The game has 10 time-based levels with decreasing time limits, scaling difficulty, and a boss fight at the end of each level.
 
 For detailed project documentation (tech stack, project structure, game loop walkthrough, collision detection, level system formulas, database schema, threading rules, common tasks, and how to play), see **[DOCUMENT.md](DOCUMENT.md)**.
 
@@ -38,17 +38,20 @@ The game runs on a custom `SurfaceView` (`GameCoreView`) with a dedicated render
 **Rendering hierarchy:**
 - `GameCoreView` (SurfaceView + Runnable) — owns the game loop, coordinates all drawing, collision detection, and level progression
 - `DrawBaseObject` — abstract base class (`onDraw`, `updateGame`, `getEnemyBounds`) for all drawable game objects
-  - `Aircraft` (ui/) — player jet with auto-firing bullets (every 2 frames), touch-based movement
+  - `Aircraft` (ui/) — player jet with auto-firing bullets (every 4 frames), touch-based movement
   - `DrawBackground` — seamless double-buffer scrolling background
   - `DrawHeader` — HUD overlay showing level, HP, timer countdown, kill count
-  - `Enemies` — timed row spawning with per-enemy Y tracking, 10 sprite types, red-tinted bullets
+  - `Enemies` — timed row spawning with per-enemy Y tracking, 15 sprite types, red-tinted bullets
+  - `RedEnvelopes` — collectible power-up: spawns drifting gift boxes, launches rockets on detonation
+  - `BossEnemy` — end-of-level boss with AI movement, bomb attacks, and dramatic multi-explosion death
   - `ExplosionEffect` — particle-based death animation (flash, fireball, debris, smoke phases)
 
-### Level System (Time-Based)
+### Level System (Time-Based + Boss)
 
 Defined in `GameCoreView` companion object. Level duration **decreases** with progression; required kills **increase**:
 - **Duration:** 300s - 20s*(level-1) (300s at level 1, down to 120s at level 10)
 - **Required kills:** 90 + level*10 (100 at level 1, up to 190 at level 10)
+- **Boss:** After the kill target is met, a Boss spawns. The level only completes when the Boss is defeated. The timer is paused during the boss fight.
 
 Enemy stats scale with level:
 - **Enemies per row:** 5 + level (in `Enemies.getEnemiesPerRow()`)
@@ -56,7 +59,42 @@ Enemy stats scale with level:
 - **Bullet spacing:** 350 - 15*(level-1) dp, min 250dp (in `Enemies.getBulletSpacingDp()`)
 - **Move speed:** 3 + 1.5*(level-1) (in `Enemies.getEnemyMoveSpeed()`)
 
-Enemies have 1 HP and are destroyed in a single hit. Player has 100 HP and loses 20 per hit (`Aircraft.BULLET_DAMAGE`).
+Enemies have 1 HP and are destroyed in a single hit. Player has 100 HP and loses 20 per hit.
+
+### Boss System
+
+`BossEnemy` (ui/) manages the end-of-level boss. State is tracked in `BossState` (data/).
+
+- **Spawning:** When the kill target is reached, `checkKillTarget()` calls `bossEnemy.spawnBoss(level)` and pauses enemy spawning (`enemies.spawnPaused = true`).
+- **HP:** 1000 + 100*(level-1). Each player bullet hit deals 10 damage. Level 1 = 100 hits, level 10 = 190 hits.
+- **Movement AI:** Targets the upper 8–30% of screen height. Advances from off-screen into the target zone, retreats if pushed too low, drifts laterally with periodic direction changes. Speed = 1.5× enemy speed for the current level.
+- **Bombs:** Fires `BossBomb` projectiles straight down. Fire interval scales by level: `50 / (1 + 0.2*(level-1))` frames (faster at higher levels). Bombs detonate when their center comes within 5dp of the player aircraft, creating a 20% screen-size explosion and dealing 20 HP damage.
+- **Collision:** Boss body contact with the player = instant death (HP set to 0, death explosion).
+- **Death:** When HP reaches 0, 5 staggered `ExplosionEffect` instances play (scale up to 3×). The boss is considered expired 3.5s after destruction, after which the level completes.
+- **Sprites:** 5 boss sprites (`boss_1`–`boss_5`, 350dp), 3 missile sprites (`missile_1`–`missile_3`, 60dp), randomly selected on spawn.
+
+### Red Envelope Power-Up System
+
+`RedEnvelopes` (ui/) manages collectible power-ups. State in `RedEnvelopeState` and `RocketState` (data/).
+
+- **Spawning:** 1 envelope every 300 frames (~10s), max 2 on screen. Random X, drifts downward at 2 dp/frame.
+- **Hit mechanic:** 3 HP. Player bullets decrement HP and are consumed. Sprites cycle: `red_box_1` (3 HP) → `red_box_3` (2–1 HP) → `red_box_2` (0 HP flash). White hit flash for 100ms.
+- **Rocket:** On detonation (0 HP), a rocket launches from the player's aircraft center, flying upward at 20 dp/frame.
+- **AoE explosion:** When a rocket hits an enemy (or the boss), it deactivates and creates a blast area of 20% of `min(screenW, screenH)` as a square. All enemies with bounds intersecting the blast are destroyed. Kill counters increment for each.
+- **Level reset:** `redEnvelopes.clearAll()` on `advanceToNextLevel()`.
+
+### Collision Detection
+
+Nine checks run every frame in `GameCoreView.checkCollision()`:
+1. Player aircraft vs enemy sprites (RectF intersection, with cooldown)
+2. Enemy bullets vs player (`getEnemyBullets()` returns `Triple<x, y, EnemyBullet>` for removal by reference)
+3. Player bullets vs enemies (iterates `activeEnemies`, increments kill counters — both `enemiesDestroyedThisLevel` and `totalKills` — on destroy)
+4. Player bullets vs red envelopes (remaining bullets checked, consumed on hit, rocket launched on detonation)
+5. Rockets vs enemies (AoE blast on first enemy impact)
+6. Player aircraft vs boss body (instant player death)
+7. Boss bombs vs player (proximity detonation within 5dp, 20% screen blast, 20 HP damage)
+8. Player bullets vs boss (10 damage per hit)
+9. Rockets vs boss (10 damage per hit via `bossEnemy.hitBoss()`)
 
 ### Scoring & Persistence (Room Database)
 
@@ -69,14 +107,7 @@ Enemies have 1 HP and are destroyed in a single hit. Player has 100 HP and loses
 
 ### Enemy System (Per-Enemy Y Tracking)
 
-Enemies use individual Y positions (`EnemyState.y`) — multiple rows coexist on screen simultaneously. Each `EnemyState` tracks its own position, health, destruction time, and bullet list (`MutableList<EnemyBullet>`). `EnemyBullet` stores both current Y and origin Y for 60% screen-height range limiting.
-
-### Collision Detection
-
-Three checks run every frame in `GameCoreView.checkCollision()`:
-1. Player aircraft vs enemy sprites (RectF intersection, with cooldown)
-2. Enemy bullets vs player (`getEnemyBullets()` returns `Triple<x, y, EnemyBullet>` for removal by reference)
-3. Player bullets vs enemies (iterates `activeEnemies`, increments kill counters — both `enemiesDestroyedThisLevel` and `totalKills` — on destroy)
+Enemies use individual Y positions (`EnemyState.y`) — multiple rows coexist on screen simultaneously. Each `EnemyState` tracks its own position, health, destruction time, and bullet list (`MutableList<EnemyBullet>`). `EnemyBullet` stores both current Y and origin Y for 60% screen-height range limiting. Enemy spawning can be paused via `Enemies.spawnPaused` (set `true` during boss fights).
 
 ### Activity Flow
 
@@ -124,11 +155,15 @@ Code uses `import com.young.aircraft.data.Aircraft as AircraftData` to disambigu
 
 ### Bitmap Density
 
-Player bullets set `bitmap.density = screenDensity` for canvas density scaling. Enemy bullets must do the same to render at matching visual size. Both use 25dp bitmaps; enemy bullets use `bullet_up.png` rotated 180 degrees with a red `ColorMatrixColorFilter`.
+All game object bitmaps must have `bitmap.density = screenDensity` set for correct canvas density scaling. This applies to player bullets, enemy bullets, red envelope sprites, rocket sprites, boss sprites, and missile sprites. Forgetting this causes incorrect rendering sizes.
 
 ### Game Assets
 
-- 10 enemy sprites: `enemy_1.png` through `enemy_10.png` (all loaded in `Enemies.init{}`)
+- 15 enemy sprites: `enemy_1.png` through `enemy_15.png` (all loaded in `Enemies.init{}`)
 - 2 player sprites: `jet_plane.png`, `jet_plane_1.png` (selectable on launch screen, persisted in DB)
+- 5 boss sprites: `boss_1.png` through `boss_5.png` (randomly selected on boss spawn)
+- 3 missile sprites: `missile_1.png` through `missile_3.png` (boss bombs, randomly selected)
+- 3 red envelope sprites: `red_box_1.png` (closed), `red_box_3.png` (ribbon/hit), `red_box_2.png` (open/detonated)
+- 1 rocket sprite: `rocket.png` (launched from player on envelope detonation)
 - 6 audio files in `res/raw/`: background music (x2), fire, be_hit, enemy_be_hit, game_over
 - Localization: English (default) and Chinese (`values-zh/strings.xml`)

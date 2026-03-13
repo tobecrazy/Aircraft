@@ -17,6 +17,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import androidx.preference.PreferenceManager
 import com.young.aircraft.R
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
@@ -38,6 +39,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     lateinit var enemies: Enemies
     lateinit var redEnvelopes: RedEnvelopes
     lateinit var bossEnemy: BossEnemy
+    lateinit var medicalKits: MedicalKits
     lateinit var playerData: AircraftData
     private var surfaceHolder: SurfaceHolder? = null
     private var collisionCooldown = false
@@ -108,14 +110,18 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun initializeGameDrawer() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val fireRateMultiplier = prefs.getString("difficulty", "1.0")?.toFloatOrNull() ?: 1.0f
         drawBackground = DrawBackground(context, 2.0F)
-        drawAircraft = Aircraft(context, 1.0F, jetPlaneResId)
+        drawAircraft = Aircraft(context, 1.0F, jetPlaneResId, fireRateMultiplier)
         enemies = Enemies(context, 1.0F)
         enemies.level = level
         redEnvelopes = RedEnvelopes(context, 1.0F)
         redEnvelopes.level = level
         bossEnemy = BossEnemy(context, 1.0F)
         bossEnemy.level = level
+        medicalKits = MedicalKits(context, 1.0F)
+        medicalKits.level = level
         playerData = AircraftData(name = "Player", health_points = 100.0f)
         drawHeader = DrawHeader(context, playerData, this)
         levelStartTimeMs = System.currentTimeMillis()
@@ -164,6 +170,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         checkBossBombsHitPlayer(aircraftBounds)
         checkPlayerBulletsHitBoss()
         checkRocketsHitBoss()
+
+        // Medical kit pickup
+        checkMedicalKitPickup(aircraftBounds)
     }
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
@@ -436,6 +445,32 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
     }
 
+    private fun checkMedicalKitPickup(aircraftBounds: RectF) {
+        for (kit in medicalKits.activeKits) {
+            if (kit.collected) continue
+            val kitBounds = medicalKits.getKitBounds(kit)
+
+            // Player gets priority
+            if (!playerData.isFullHealth() && RectF.intersects(aircraftBounds, kitBounds)) {
+                kit.collected = true
+                playerData.restoreHealth()
+                Log.d("Game", "Player picked up medical kit! HP restored to max.")
+                continue
+            }
+
+            // Boss check
+            val boss = bossEnemy.activeBoss ?: continue
+            if (boss.isDestroyed()) continue
+            if (boss.hitPoints >= boss.maxHitPoints) continue
+            val bossBounds = bossEnemy.getBossBounds() ?: continue
+            if (RectF.intersects(bossBounds, kitBounds)) {
+                kit.collected = true
+                boss.hitPoints = boss.maxHitPoints
+                Log.d("Game", "Boss picked up medical kit! Boss HP restored to max.")
+            }
+        }
+    }
+
     fun advanceToNextLevel() {
         level++
         enemies.level = level
@@ -446,6 +481,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         redEnvelopes.clearAll()
         bossEnemy.level = level
         bossEnemy.clearAll()
+        medicalKits.level = level
+        medicalKits.clearAll()
         bossDefeatedThisLevel = false
         drawBackground.randomizeBackground()
         levelStartTimeMs = System.currentTimeMillis()
@@ -499,6 +536,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             checkLevelTimer()
             drawEnemies(canvas)
             drawRedEnvelopes(canvas)
+            drawMedicalKits(canvas)
             drawBossEnemy(canvas)
             checkCollision()
             checkBossDefeated()
@@ -616,7 +654,12 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         redEnvelopes.onDraw(canvas)
     }
 
+    private fun drawMedicalKits(canvas: Canvas) {
+        medicalKits.onDraw(canvas)
+    }
+
     private fun drawBossEnemy(canvas: Canvas) {
+        bossEnemy.playerCenterX = drawAircraft.jetX + drawAircraft.renderedJetW / 2f
         bossEnemy.onDraw(canvas)
     }
 
