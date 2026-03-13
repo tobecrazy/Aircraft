@@ -27,6 +27,7 @@
     <string name="continue_game_continue">Continue</string>
     <string name="continue_game_new">New Game</string>
     <string name="history_title">Game History</string>
+    <string name="leaderboard_title">LEADERBOARD</string>
     <string name="history_no_records">No records yet</string>
     <string name="history_col_player">PLAYER</string>
     <string name="history_col_level">LEVEL</string>

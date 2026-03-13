@@ -27,6 +27,7 @@
     <string name="continue_game_continue">继续</string>
     <string name="continue_game_new">新游戏</string>
     <string name="history_title">游戏历史</string>
+    <string name="leaderboard_title">排行榜</string>
     <string name="history_no_records">暂无记录</string>
     <string name="history_col_player">玩家</string>
     <string name="history_col_level">关卡</string>
