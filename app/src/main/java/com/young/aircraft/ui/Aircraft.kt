@@ -17,9 +17,14 @@ data class Bullet(var x: Float, var y: Float, val originY: Float)
 /**
  * Create by Young
  **/
-class Aircraft(var context: Context, var speed: Float, private val jetPlaneResId: Int = R.drawable.jet_plane_2) : DrawBaseObject(context) {
+class Aircraft(
+    var context: Context,
+    var speed: Float,
+    private val jetPlaneResId: Int = R.drawable.jet_plane_2,
+    private val fireRateMultiplier: Float = 1.0f
+) : DrawBaseObject(context) {
     private val bullets = mutableListOf<Bullet>()
-    private var fireCounter: Int = 0
+    private var fireAccumulator: Float = 0f
     var jetX: Float =
         ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
     var jetY: Float =
@@ -85,9 +90,9 @@ class Aircraft(var context: Context, var speed: Float, private val jetPlaneResId
             renderedJetH = jetRenderedH
 
             // Fire new bullet directly above the center of the aircraft
-            fireCounter++
-            if (fireCounter >= FIRE_INTERVAL) {
-                fireCounter = 0
+            fireAccumulator += fireRateMultiplier
+            if (fireAccumulator >= FIRE_INTERVAL) {
+                fireAccumulator -= FIRE_INTERVAL
                 val bx = jetX + jetRenderedW / 2f - bulletRenderedW / 2f
                 val by = jetY - bulletRenderedH
                 bullets.add(Bullet(x = bx, y = by, originY = by))

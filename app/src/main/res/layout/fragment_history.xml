@@ -55,10 +55,20 @@
             android:textStyle="bold" />
 
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="72dp"
             android:layout_height="wrap_content"
             android:gravity="end"
             android:text="@string/history_col_score"
+            android:textColor="#8890A4"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:gravity="center"
+            android:text="@string/history_col_difficulty"
             android:textColor="#8890A4"
             android:textSize="13sp"
             android:textStyle="bold" />

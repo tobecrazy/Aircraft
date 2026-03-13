@@ -17,6 +17,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import androidx.preference.PreferenceManager
 import com.young.aircraft.R
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
@@ -109,8 +110,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun initializeGameDrawer() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val fireRateMultiplier = prefs.getString("difficulty", "1.0")?.toFloatOrNull() ?: 1.0f
         drawBackground = DrawBackground(context, 2.0F)
-        drawAircraft = Aircraft(context, 1.0F, jetPlaneResId)
+        drawAircraft = Aircraft(context, 1.0F, jetPlaneResId, fireRateMultiplier)
         enemies = Enemies(context, 1.0F)
         enemies.level = level
         redEnvelopes = RedEnvelopes(context, 1.0F)

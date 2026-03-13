@@ -43,6 +43,15 @@
         android:textSize="14sp"
         android:textStyle="bold" />
 
+    <TextView
+        android:id="@+id/text_difficulty"
+        android:layout_width="56dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:gravity="center"
+        android:textColor="#B39DDB"
+        android:textSize="12sp" />
+
     <ImageButton
         android:id="@+id/btn_delete"
         android:layout_width="36dp"

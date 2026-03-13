@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import com.young.aircraft.R
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.providers.DatabaseProvider
@@ -219,16 +220,19 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun saveGameData(coreView: GameCoreView) {
         val score = coreView.totalKills.toLong() * 100
+        val difficulty = PreferenceManager.getDefaultSharedPreferences(this)
+            .getString("difficulty", "1.0") ?: "1.0"
         db.playerGameDataDao().deleteByPlayerId(playerId)
         db.playerGameDataDao().insert(
             PlayerGameData(
                 playerId = playerId,
                 level = coreView.level,
                 score = score,
-                jetPlaneRes = coreView.jetPlaneResId
+                jetPlaneRes = coreView.jetPlaneResId,
+                difficulty = difficulty
             )
         )
-        Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score")
+        Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score, difficulty=$difficulty")
     }
 
     private fun exitApp() {

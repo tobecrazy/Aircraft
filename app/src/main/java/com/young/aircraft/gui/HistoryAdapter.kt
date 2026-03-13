@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.young.aircraft.R
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.ItemHistoryBinding
 
@@ -32,6 +33,12 @@ class HistoryAdapter(
         holder.binding.textPlayerId.text = item.playerId.take(8) + "\u2026"
         holder.binding.textLevel.text = "Lv.${item.level}"
         holder.binding.textScore.text = item.score.toString()
+        val ctx = holder.binding.root.context
+        holder.binding.textDifficulty.text = when (item.difficulty) {
+            "1.2" -> ctx.getString(R.string.difficulty_easy)
+            "0.8" -> ctx.getString(R.string.difficulty_hard)
+            else -> ctx.getString(R.string.difficulty_normal)
+        }
         holder.binding.btnDelete.setOnClickListener {
             onDelete(item, holder.bindingAdapterPosition)
         }
