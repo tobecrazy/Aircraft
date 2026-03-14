@@ -83,16 +83,53 @@
     <text x="150" y="117" font-size="10" fill="#444">Application</text>
   </g>
 
-  <!-- ===== COMMON / APPLICATION ===== -->
+  <!-- ===== COMMON LAYER ===== -->
   <g transform="translate(30, 55)" filter="url(#shadow)">
-    <rect width="200" height="60" rx="6" fill="url(#grad-app)" stroke="#66bb6a" stroke-width="1.2"/>
-    <rect width="200" height="22" rx="6" fill="#66bb6a"/>
-    <rect y="16" width="200" height="6" fill="#66bb6a"/>
-    <text x="100" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">AircraftApplication</text>
-    <text x="100" y="36" text-anchor="middle" font-size="10" fill="#555">common/</text>
-    <line x1="5" y1="44" x2="195" y2="44" stroke="#aaa" stroke-width="0.5"/>
-    <text x="10" y="55" font-size="10" fill="#333">extends Application</text>
+    <rect width="210" height="90" rx="6" fill="url(#grad-app)" stroke="#66bb6a" stroke-width="1.2"/>
+    <rect width="210" height="22" rx="6" fill="#66bb6a"/>
+    <rect y="16" width="210" height="6" fill="#66bb6a"/>
+    <text x="105" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">AircraftApplication</text>
+    <text x="105" y="36" text-anchor="middle" font-size="10" fill="#555">common/ — extends Application</text>
+    <line x1="5" y1="44" x2="205" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ onCreate()</text>
+    <line x1="5" y1="64" x2="205" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="77" font-size="10" fill="#333">+ onLowMemory()</text>
+    <text x="10" y="88" font-size="9" fill="#888">→ GameStateManager.emit(LOW_MEMORY)</text>
   </g>
+
+  <!-- GameStateManager -->
+  <g transform="translate(260, 55)" filter="url(#shadow)">
+    <rect width="230" height="90" rx="6" fill="url(#grad-app)" stroke="#66bb6a" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#66bb6a"/>
+    <rect y="16" width="230" height="6" fill="#66bb6a"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» GameStateManager</text>
+    <text x="10" y="38" font-size="10" fill="#555">common/GameStateManager.kt</text>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- _gameState: MutableSharedFlow&lt;GameState&gt;</text>
+    <text x="10" y="70" font-size="10" fill="#333">+ gameState: SharedFlow&lt;GameState&gt;</text>
+    <line x1="5" y1="76" x2="225" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="88" font-size="10" fill="#333">+ emit(state: GameState)</text>
+  </g>
+
+  <!-- GameState enum -->
+  <g transform="translate(510, 55)" filter="url(#shadow)">
+    <rect width="190" height="90" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="190" height="6" fill="#ff9800"/>
+    <text x="95" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«enum» GameState</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/GameState.kt</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">PLAYING, PAUSED</text>
+    <text x="10" y="70" font-size="10" fill="#333">GAME_OVER, LEVEL_COMPLETE</text>
+    <text x="10" y="83" font-size="10" fill="#333">GAME_WON, LOW_MEMORY</text>
+  </g>
+
+  <!-- AircraftApplication -> GameStateManager -->
+  <line x1="240" y1="100" x2="260" y2="100" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="243" y="95" font-size="9" fill="#888">emits</text>
+
+  <!-- GameStateManager -> GameState composition -->
+  <line x1="490" y1="100" x2="510" y2="100" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- ===== DATA LAYER ===== -->
   <!-- Aircraft (data) -->
@@ -364,7 +401,7 @@
     <line x1="5" y1="180" x2="335" y2="180" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="193" font-size="10" fill="#333">+ run() — 30 FPS game loop</text>
     <text x="10" y="206" font-size="10" fill="#333">+ surfaceCreated / Changed / Destroyed</text>
-    <text x="10" y="219" font-size="10" fill="#333">+ advanceToNextLevel()</text>
+    <text x="10" y="219" font-size="10" fill="#333">+ advanceToNextLevel() / pauseGame()</text>
     <text x="10" y="232" font-size="10" fill="#333">+ onTouchEvent(event): Boolean</text>
     <text x="10" y="245" font-size="10" fill="#333">- checkCollision()</text>
     <text x="10" y="258" font-size="10" fill="#333">- checkLevelTimer() / checkKillTarget()</text>
@@ -458,7 +495,7 @@
 
   <!-- MainActivity -->
   <g transform="translate(290, 1500)" filter="url(#shadow)">
-    <rect width="280" height="175" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.5"/>
+    <rect width="280" height="190" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.5"/>
     <rect width="280" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="280" height="6" fill="#9c27b0"/>
     <text x="140" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MainActivity</text>
@@ -466,19 +503,20 @@
     <line x1="5" y1="44" x2="275" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- viewModel: MainActivityViewModel</text>
     <text x="10" y="70" font-size="10" fill="#333">- mService: MusicService</text>
-    <text x="10" y="83" font-size="10" fill="#333">- playerId: String</text>
-    <text x="10" y="96" font-size="10" fill="#333">- db: AppDatabase (lazy)</text>
-    <text x="10" y="109" font-size="10" fill="#333">- connection: ServiceConnection</text>
-    <line x1="5" y1="115" x2="275" y2="115" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="128" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
-    <text x="10" y="141" font-size="10" fill="#333">- saveGameData(coreView)</text>
-    <text x="10" y="154" font-size="10" fill="#333">+ onStart() / onStop()</text>
-    <text x="10" y="170" font-size="9" fill="#888">Binds MusicService, creates GameCoreView</text>
+    <text x="10" y="83" font-size="10" fill="#333">- coreView: GameCoreView</text>
+    <text x="10" y="96" font-size="10" fill="#333">- playerId: String</text>
+    <text x="10" y="109" font-size="10" fill="#333">- db: AppDatabase (lazy)</text>
+    <text x="10" y="122" font-size="10" fill="#333">- connection: ServiceConnection</text>
+    <line x1="5" y1="128" x2="275" y2="128" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="141" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="154" font-size="10" fill="#333">- saveGameData(coreView)</text>
+    <text x="10" y="167" font-size="10" fill="#333">+ onStart() / onStop()</text>
+    <text x="10" y="183" font-size="9" fill="#888">Binds MusicService, collects GameStateManager</text>
   </g>
 
   <!-- MainActivity -> GameCoreView composition -->
   <line x1="430" y1="1500" x2="470" y2="1430" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="460" y="1470" font-size="9" fill="#888">contentView</text>
+  <text x="460" y="1470" font-size="9" fill="#888">coreView</text>
 
   <!-- MainActivity -> MusicService association -->
   <line x1="570" y1="1570" x2="860" y2="1290" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
@@ -487,6 +525,10 @@
   <!-- MainActivity -> AppDatabase association -->
   <line x1="540" y1="1500" x2="660" y2="445" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="615" y="990" font-size="9" fill="#888">db</text>
+
+  <!-- MainActivity -> GameStateManager association (collects SharedFlow) -->
+  <line x1="340" y1="1500" x2="375" y2="145" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="345" y="820" font-size="9" fill="#888">collects gameState</text>
 
   <!-- HistoryActivity -->
   <g transform="translate(600, 1500)" filter="url(#shadow)">
@@ -632,4 +674,7 @@
 
   <rect x="850" y="1480" width="510" height="110" rx="10" fill="none" stroke="#689f38" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="865" y="1495" font-size="11" font-weight="bold" fill="#689f38" opacity="0.8">utils/</text>
+
+  <rect x="20" y="40" width="480" height="115" rx="10" fill="none" stroke="#66bb6a" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="35" y="55" font-size="11" font-weight="bold" fill="#66bb6a" opacity="0.8">common/</text>
 </svg>
