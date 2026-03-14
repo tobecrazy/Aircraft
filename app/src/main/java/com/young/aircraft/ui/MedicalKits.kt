@@ -35,12 +35,12 @@ class MedicalKits(var context: Context, var speed: Float) : DrawBaseObject(conte
 
     init {
         kitBitmaps[0] = BitmapUtils.resizeBitmap(
-            BitmapUtils.readBitMap(context, R.drawable.medical_kit_1),
+            BitmapUtils.readBitMap(context, R.drawable.red_heart_1),
             kitSizePx, kitSizePx
         )?.also { it.density = screenDensity }
 
         kitBitmaps[1] = BitmapUtils.resizeBitmap(
-            BitmapUtils.readBitMap(context, R.drawable.medical_kit_2),
+            BitmapUtils.readBitMap(context, R.drawable.red_heart_2),
             kitSizePx, kitSizePx
         )?.also { it.density = screenDensity }
     }

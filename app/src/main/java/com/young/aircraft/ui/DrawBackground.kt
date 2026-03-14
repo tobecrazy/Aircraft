@@ -15,7 +15,7 @@ import com.young.aircraft.utils.ScreenUtils
 class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(context) {
 
     companion object {
-        val BACKGROUNDS = intArrayOf(R.drawable.background, R.drawable.background_1)
+        val BACKGROUNDS = intArrayOf(R.drawable.background, R.drawable.background_1 , R.drawable.background_2)
     }
 
     //background Top/Bottom

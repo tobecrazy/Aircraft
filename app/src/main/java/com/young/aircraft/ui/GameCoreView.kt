@@ -381,8 +381,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         val bombIter = boss.bombs.iterator()
         while (bombIter.hasNext()) {
             val bomb = bombIter.next()
-            val bombCenterX = bomb.x + bossEnemy.missileSizePx / 2f
-            val bombCenterY = bomb.y + bossEnemy.missileSizePx / 2f
+            val bombCenterX = bomb.x + bossEnemy.renderedMissileSize / 2f
+            val bombCenterY = bomb.y + bossEnemy.renderedMissileSize / 2f
             if (expandedBounds.contains(bombCenterX, bombCenterY)) {
                 bombIter.remove()
                 bossEnemy.triggerBombExplosion(bombCenterX, bombCenterY)
@@ -525,7 +525,6 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         val shaking = applyScreenShake(canvas)
 
         drawBackground(canvas)
-        drawHeader(canvas)
 
         // Skip drawing aircraft if dying (explosion replaces it)
         if (!isPlayerDying) {
@@ -551,6 +550,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         // Overlays
         drawDamageFlash(canvas)
         drawLowHealthVignette(canvas)
+
+        // HUD drawn last so it is never obscured by game objects or overlays
+        drawHeader(canvas)
 
         // Restore shake offset
         if (shaking) {
