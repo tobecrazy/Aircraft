@@ -1,0 +1,501 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1080" viewBox="0 0 1400 1080" font-family="'Segoe UI', system-ui, -apple-system, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fc"/>
+      <stop offset="100%" style="stop-color:#eef1f7"/>
+    </linearGradient>
+    <linearGradient id="g-pres" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f3e8ff"/>
+      <stop offset="100%" style="stop-color:#e9d5ff"/>
+    </linearGradient>
+    <linearGradient id="g-engine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e0f2fe"/>
+      <stop offset="100%" style="stop-color:#bae6fd"/>
+    </linearGradient>
+    <linearGradient id="g-data" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff7ed"/>
+      <stop offset="100%" style="stop-color:#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="g-svc" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fce7f3"/>
+      <stop offset="100%" style="stop-color:#fbcfe8"/>
+    </linearGradient>
+    <linearGradient id="g-vm" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e0f7fa"/>
+      <stop offset="100%" style="stop-color:#b2ebf2"/>
+    </linearGradient>
+    <linearGradient id="g-util" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ecfdf5"/>
+      <stop offset="100%" style="stop-color:#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="g-core" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af"/>
+      <stop offset="100%" style="stop-color:#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="g-title" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#334155"/>
+    </linearGradient>
+    <filter id="shadow" x="-2%" y="-2%" width="106%" height="112%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.10"/>
+    </filter>
+    <filter id="shadow-sm" x="-2%" y="-2%" width="106%" height="112%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#64748b" stroke-width="1.5"/>
+    </marker>
+    <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+    </marker>
+    <marker id="arr-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#8b5cf6" stroke-width="1.5"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="1080" fill="url(#bg)" rx="0"/>
+
+  <!-- ==================== TITLE ==================== -->
+  <rect x="20" y="12" width="1360" height="46" rx="8" fill="url(#g-title)" filter="url(#shadow)"/>
+  <text x="700" y="42" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="700" letter-spacing="1">AIRCRAFT — Project Architecture</text>
+  <text x="1360" y="42" text-anchor="end" fill="#94a3b8" font-size="11">Android 2D Vertical Shooter · Kotlin · SurfaceView Engine</text>
+
+  <!-- ==================== PRESENTATION LAYER ==================== -->
+  <rect x="20" y="72" width="1360" height="150" rx="10" fill="url(#g-pres)" stroke="#c084fc" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="36" y="92" fill="#7c3aed" font-size="13" font-weight="700">PRESENTATION LAYER</text>
+  <text x="220" y="92" fill="#a78bfa" font-size="10">gui/</text>
+
+  <!-- LaunchActivity -->
+  <rect x="40" y="104" width="180" height="100" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="40" y="104" width="180" height="22" rx="8" fill="#8b5cf6"/>
+  <rect x="40" y="118" width="180" height="8" fill="#8b5cf6"/>
+  <text x="130" y="120" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">LaunchActivity</text>
+  <text x="130" y="142" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">ENTRY POINT</text>
+  <text x="130" y="157" text-anchor="middle" fill="#7c3aed" font-size="9">Start / History / Settings</text>
+  <text x="130" y="172" text-anchor="middle" fill="#7c3aed" font-size="9">Jet Plane Selection</text>
+  <text x="130" y="187" text-anchor="middle" fill="#7c3aed" font-size="9">Saved Progress Check</text>
+
+  <!-- MainActivity -->
+  <rect x="280" y="104" width="180" height="100" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="280" y="104" width="180" height="22" rx="8" fill="#7c3aed"/>
+  <rect x="280" y="118" width="180" height="8" fill="#7c3aed"/>
+  <text x="370" y="120" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">MainActivity</text>
+  <text x="370" y="142" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">GAME HOST</text>
+  <text x="370" y="157" text-anchor="middle" fill="#7c3aed" font-size="9">Hosts GameCoreView</text>
+  <text x="370" y="172" text-anchor="middle" fill="#7c3aed" font-size="9">Binds MusicService</text>
+  <text x="370" y="187" text-anchor="middle" fill="#7c3aed" font-size="9">Saves to Room DB</text>
+
+  <!-- HistoryActivity -->
+  <rect x="520" y="104" width="180" height="100" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="520" y="104" width="180" height="22" rx="8" fill="#9333ea"/>
+  <rect x="520" y="118" width="180" height="8" fill="#9333ea"/>
+  <text x="610" y="120" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">HistoryActivity</text>
+  <text x="610" y="142" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">LEADERBOARD</text>
+  <text x="610" y="157" text-anchor="middle" fill="#7c3aed" font-size="9">HistoryFragment</text>
+  <text x="610" y="172" text-anchor="middle" fill="#7c3aed" font-size="9">HistoryAdapter</text>
+  <text x="610" y="187" text-anchor="middle" fill="#7c3aed" font-size="9">RecyclerView list</text>
+
+  <!-- SettingsActivity -->
+  <rect x="760" y="104" width="180" height="100" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="760" y="104" width="180" height="22" rx="8" fill="#9333ea"/>
+  <rect x="760" y="118" width="180" height="8" fill="#9333ea"/>
+  <text x="850" y="120" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">SettingsActivity</text>
+  <text x="850" y="142" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">PREFERENCES</text>
+  <text x="850" y="157" text-anchor="middle" fill="#7c3aed" font-size="9">SettingsFragment</text>
+  <text x="850" y="172" text-anchor="middle" fill="#7c3aed" font-size="9">Sound toggles</text>
+  <text x="850" y="187" text-anchor="middle" fill="#7c3aed" font-size="9">SharedPreferences</text>
+
+  <!-- PrivacyPolicyActivity -->
+  <rect x="1000" y="104" width="180" height="100" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="1000" y="104" width="180" height="22" rx="8" fill="#a855f7"/>
+  <rect x="1000" y="118" width="180" height="8" fill="#a855f7"/>
+  <text x="1090" y="120" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">PrivacyPolicyActivity</text>
+  <text x="1090" y="147" text-anchor="middle" fill="#7c3aed" font-size="9">WebView</text>
+  <text x="1090" y="162" text-anchor="middle" fill="#7c3aed" font-size="9">Privacy policy page</text>
+
+  <!-- Activity navigation arrows -->
+  <line x1="220" y1="140" x2="278" y2="140" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+  <line x1="220" y1="155" x2="250" y2="155" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="250" y1="155" x2="250" y2="190" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="250" y1="190" x2="250" y2="155" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <line x1="220" y1="170" x2="240" y2="170" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="240" y1="170" x2="240" y2="204" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3"/>
+  <path d="M240,204 L520,204 L520,202" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" fill="none" marker-end="url(#arr-purple)"/>
+
+  <path d="M220,182 L235,182 L235,210 L760,210 L760,202" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" fill="none" marker-end="url(#arr-purple)"/>
+
+  <line x1="940" y1="154" x2="998" y2="154" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-purple)"/>
+
+  <!-- ==================== GAME ENGINE LAYER ==================== -->
+  <rect x="20" y="236" width="1360" height="430" rx="10" fill="url(#g-engine)" stroke="#38bdf8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="36" y="256" fill="#0369a1" font-size="13" font-weight="700">GAME ENGINE LAYER</text>
+  <text x="220" y="256" fill="#7dd3fc" font-size="10">ui/ — Custom SurfaceView + Canvas (no framework)</text>
+
+  <!-- GameCoreView - Central -->
+  <rect x="40" y="270" width="320" height="130" rx="10" fill="url(#g-core)" filter="url(#shadow)"/>
+  <text x="200" y="296" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="700">GameCoreView</text>
+  <text x="200" y="314" text-anchor="middle" fill="#bfdbfe" font-size="10">SurfaceView + Runnable</text>
+  <line x1="60" y1="322" x2="340" y2="322" stroke="#60a5fa" stroke-width="0.5" opacity="0.5"/>
+  <text x="200" y="338" text-anchor="middle" fill="#dbeafe" font-size="9">30 FPS Render Loop</text>
+  <text x="200" y="352" text-anchor="middle" fill="#dbeafe" font-size="9">Collision Detection (9 checks/frame)</text>
+  <text x="200" y="366" text-anchor="middle" fill="#dbeafe" font-size="9">Level Progression &amp; Boss Spawning</text>
+  <text x="200" y="380" text-anchor="middle" fill="#dbeafe" font-size="9">Touch Input Handling</text>
+  <text x="200" y="394" text-anchor="middle" fill="#dbeafe" font-size="9">Screen Shake &amp; Damage Flash</text>
+
+  <!-- DrawBaseObject -->
+  <rect x="400" y="270" width="200" height="56" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="6,3" filter="url(#shadow-sm)"/>
+  <text x="500" y="293" text-anchor="middle" fill="#0369a1" font-size="11" font-weight="600" font-style="italic">DrawBaseObject</text>
+  <text x="500" y="308" text-anchor="middle" fill="#0ea5e9" font-size="9">abstract: onDraw, updateGame</text>
+
+  <!-- extends arrows from DrawBaseObject to game objects -->
+  <!-- Aircraft -->
+  <rect x="400" y="346" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="400" y="346" width="160" height="19" rx="7" fill="#0ea5e9"/>
+  <rect x="400" y="358" width="160" height="7" fill="#0ea5e9"/>
+  <text x="480" y="360" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Aircraft</text>
+  <text x="480" y="381" text-anchor="middle" fill="#0369a1" font-size="8.5">Player jet sprite</text>
+  <text x="480" y="393" text-anchor="middle" fill="#0369a1" font-size="8.5">Auto-fire bullets (4 frames)</text>
+  <text x="480" y="405" text-anchor="middle" fill="#0369a1" font-size="8.5">4 selectable jet planes</text>
+
+  <!-- Enemies -->
+  <rect x="580" y="346" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="580" y="346" width="160" height="19" rx="7" fill="#0ea5e9"/>
+  <rect x="580" y="358" width="160" height="7" fill="#0ea5e9"/>
+  <text x="660" y="360" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Enemies</text>
+  <text x="660" y="381" text-anchor="middle" fill="#0369a1" font-size="8.5">15 sprite types</text>
+  <text x="660" y="393" text-anchor="middle" fill="#0369a1" font-size="8.5">Row spawning + Y tracking</text>
+  <text x="660" y="405" text-anchor="middle" fill="#0369a1" font-size="8.5">Red-tinted bullets</text>
+
+  <!-- DrawBackground -->
+  <rect x="760" y="346" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="760" y="346" width="160" height="19" rx="7" fill="#0ea5e9"/>
+  <rect x="760" y="358" width="160" height="7" fill="#0ea5e9"/>
+  <text x="840" y="360" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">DrawBackground</text>
+  <text x="840" y="381" text-anchor="middle" fill="#0369a1" font-size="8.5">Seamless double-buffer</text>
+  <text x="840" y="393" text-anchor="middle" fill="#0369a1" font-size="8.5">Scrolling parallax</text>
+
+  <!-- DrawHeader -->
+  <rect x="940" y="346" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="940" y="346" width="160" height="19" rx="7" fill="#0ea5e9"/>
+  <rect x="940" y="358" width="160" height="7" fill="#0ea5e9"/>
+  <text x="1020" y="360" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">DrawHeader</text>
+  <text x="1020" y="381" text-anchor="middle" fill="#0369a1" font-size="8.5">HUD overlay</text>
+  <text x="1020" y="393" text-anchor="middle" fill="#0369a1" font-size="8.5">Level / HP / Timer / Kills</text>
+
+  <!-- Extends lines from DrawBaseObject -->
+  <line x1="500" y1="326" x2="500" y2="335" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="420" y1="335" x2="1020" y2="335" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="480" y1="335" x2="480" y2="346" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="660" y1="335" x2="660" y2="346" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="840" y1="335" x2="840" y2="346" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="1020" y1="335" x2="1020" y2="346" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="508" y="332" fill="#0284c7" font-size="8" font-style="italic">extends</text>
+
+  <!-- BossEnemy -->
+  <rect x="400" y="432" width="160" height="68" rx="7" fill="#ffffff" stroke="#f59e0b" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="400" y="432" width="160" height="19" rx="7" fill="#f59e0b"/>
+  <rect x="400" y="444" width="160" height="7" fill="#f59e0b"/>
+  <text x="480" y="446" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">BossEnemy</text>
+  <text x="480" y="466" text-anchor="middle" fill="#92400e" font-size="8.5">End-of-level boss</text>
+  <text x="480" y="478" text-anchor="middle" fill="#92400e" font-size="8.5">AI movement + bombs</text>
+  <text x="480" y="490" text-anchor="middle" fill="#92400e" font-size="8.5">5 boss sprites</text>
+
+  <!-- RedEnvelopes -->
+  <rect x="580" y="432" width="160" height="68" rx="7" fill="#ffffff" stroke="#ef4444" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="580" y="432" width="160" height="19" rx="7" fill="#ef4444"/>
+  <rect x="580" y="444" width="160" height="7" fill="#ef4444"/>
+  <text x="660" y="446" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">RedEnvelopes</text>
+  <text x="660" y="466" text-anchor="middle" fill="#991b1b" font-size="8.5">Collectible power-up</text>
+  <text x="660" y="478" text-anchor="middle" fill="#991b1b" font-size="8.5">3 HP → rocket launch</text>
+  <text x="660" y="490" text-anchor="middle" fill="#991b1b" font-size="8.5">AoE blast on impact</text>
+
+  <!-- MedicalKits -->
+  <rect x="760" y="432" width="160" height="68" rx="7" fill="#ffffff" stroke="#22c55e" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="760" y="432" width="160" height="19" rx="7" fill="#22c55e"/>
+  <rect x="760" y="444" width="160" height="7" fill="#22c55e"/>
+  <text x="840" y="446" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">MedicalKits</text>
+  <text x="840" y="466" text-anchor="middle" fill="#166534" font-size="8.5">Health pickup</text>
+  <text x="840" y="478" text-anchor="middle" fill="#166534" font-size="8.5">Restores player HP</text>
+  <text x="840" y="490" text-anchor="middle" fill="#166534" font-size="8.5">Drifting spawn</text>
+
+  <!-- ExplosionEffect -->
+  <rect x="940" y="432" width="160" height="68" rx="7" fill="#ffffff" stroke="#f97316" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="940" y="432" width="160" height="19" rx="7" fill="#f97316"/>
+  <rect x="940" y="444" width="160" height="7" fill="#f97316"/>
+  <text x="1020" y="446" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">ExplosionEffect</text>
+  <text x="1020" y="466" text-anchor="middle" fill="#9a3412" font-size="8.5">Particle animation</text>
+  <text x="1020" y="478" text-anchor="middle" fill="#9a3412" font-size="8.5">Flash → Fireball → Debris</text>
+  <text x="1020" y="490" text-anchor="middle" fill="#9a3412" font-size="8.5">→ Smoke phases</text>
+
+  <!-- Composition arrows from GameCoreView -->
+  <line x1="360" y1="310" x2="398" y2="297" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <line x1="360" y1="360" x2="398" y2="375" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <line x1="360" y1="390" x2="398" y2="460" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <text x="376" y="284" fill="#3b82f6" font-size="8">owns</text>
+
+  <!-- Game Loop Pipeline -->
+  <rect x="40" y="518" width="1320" height="56" rx="8" fill="#ffffff" stroke="#38bdf8" stroke-width="1" filter="url(#shadow-sm)" opacity="0.95"/>
+  <text x="56" y="536" fill="#0369a1" font-size="10" font-weight="700">GAME LOOP (30 FPS)</text>
+
+  <!-- Pipeline steps -->
+  <rect x="56" y="544" width="80" height="22" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="0.8"/>
+  <text x="96" y="559" text-anchor="middle" fill="#0369a1" font-size="8" font-weight="600">Shake</text>
+
+  <text x="144" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="156" y="544" width="100" height="22" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="0.8"/>
+  <text x="206" y="559" text-anchor="middle" fill="#0369a1" font-size="8" font-weight="600">Background</text>
+
+  <text x="264" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="276" y="544" width="80" height="22" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="0.8"/>
+  <text x="316" y="559" text-anchor="middle" fill="#0369a1" font-size="8" font-weight="600">HUD</text>
+
+  <text x="364" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="376" y="544" width="80" height="22" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="0.8"/>
+  <text x="416" y="559" text-anchor="middle" fill="#0369a1" font-size="8" font-weight="600">Aircraft</text>
+
+  <text x="464" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="476" y="544" width="80" height="22" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="0.8"/>
+  <text x="516" y="559" text-anchor="middle" fill="#0369a1" font-size="8" font-weight="600">Enemies</text>
+
+  <text x="564" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="576" y="544" width="80" height="22" rx="4" fill="#fef3c7" stroke="#fbbf24" stroke-width="0.8"/>
+  <text x="616" y="559" text-anchor="middle" fill="#92400e" font-size="8" font-weight="600">Boss</text>
+
+  <text x="664" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="676" y="544" width="100" height="22" rx="4" fill="#fee2e2" stroke="#fca5a5" stroke-width="0.8"/>
+  <text x="726" y="559" text-anchor="middle" fill="#991b1b" font-size="8" font-weight="600">Power-ups</text>
+
+  <text x="784" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="796" y="544" width="110" height="22" rx="4" fill="#fce7f3" stroke="#f9a8d4" stroke-width="0.8"/>
+  <text x="851" y="559" text-anchor="middle" fill="#9d174d" font-size="8" font-weight="600">Collision (×9)</text>
+
+  <text x="914" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="926" y="544" width="100" height="22" rx="4" fill="#fef3c7" stroke="#fbbf24" stroke-width="0.8"/>
+  <text x="976" y="559" text-anchor="middle" fill="#92400e" font-size="8" font-weight="600">Explosions</text>
+
+  <text x="1034" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="1046" y="544" width="100" height="22" rx="4" fill="#fee2e2" stroke="#fca5a5" stroke-width="0.8"/>
+  <text x="1096" y="559" text-anchor="middle" fill="#991b1b" font-size="8" font-weight="600">Dmg Flash</text>
+
+  <text x="1154" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="1166" y="544" width="100" height="22" rx="4" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="0.8"/>
+  <text x="1216" y="559" text-anchor="middle" fill="#166534" font-size="8" font-weight="600">Vignette</text>
+
+  <text x="1274" y="558" fill="#94a3b8" font-size="10">→</text>
+
+  <rect x="1286" y="544" width="60" height="22" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="0.8"/>
+  <text x="1316" y="559" text-anchor="middle" fill="#0369a1" font-size="8" font-weight="600">Restore</text>
+
+  <!-- Level system info box -->
+  <rect x="1140" y="270" width="220" height="130" rx="8" fill="#ffffff" stroke="#38bdf8" stroke-width="1" filter="url(#shadow-sm)" opacity="0.95"/>
+  <rect x="1140" y="270" width="220" height="22" rx="8" fill="#0284c7"/>
+  <rect x="1140" y="284" width="220" height="8" fill="#0284c7"/>
+  <text x="1250" y="286" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Level System (10 levels)</text>
+  <text x="1156" y="310" fill="#0369a1" font-size="8.5">Duration: 300s → 120s</text>
+  <text x="1156" y="324" fill="#0369a1" font-size="8.5">Kills req: 100 → 190</text>
+  <text x="1156" y="338" fill="#0369a1" font-size="8.5">Enemies/row: 6 → 15</text>
+  <text x="1156" y="352" fill="#0369a1" font-size="8.5">Speed scales: 3 → 16.5</text>
+  <text x="1156" y="366" fill="#0369a1" font-size="8.5">Boss HP: 1000 → 1900</text>
+  <text x="1156" y="380" fill="#0369a1" font-size="8.5">Score: 100 pts/kill</text>
+  <text x="1156" y="394" fill="#0369a1" font-size="8.5">Player HP: 100 (−20/hit)</text>
+
+  <!-- Collision detection info -->
+  <rect x="1140" y="416" width="220" height="90" rx="8" fill="#ffffff" stroke="#f472b6" stroke-width="1" filter="url(#shadow-sm)" opacity="0.95"/>
+  <rect x="1140" y="416" width="220" height="22" rx="8" fill="#ec4899"/>
+  <rect x="1140" y="430" width="220" height="8" fill="#ec4899"/>
+  <text x="1250" y="432" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Collision Checks (×9)</text>
+  <text x="1156" y="454" fill="#9d174d" font-size="8">1. Player vs Enemies  6. Player vs Boss</text>
+  <text x="1156" y="466" fill="#9d174d" font-size="8">2. Enemy bullets      7. Boss bombs</text>
+  <text x="1156" y="478" fill="#9d174d" font-size="8">3. Player bullets     8. Bullets vs Boss</text>
+  <text x="1156" y="490" fill="#9d174d" font-size="8">4. Bullets vs RedEnv  9. Rockets vs Boss</text>
+  <text x="1156" y="502" fill="#9d174d" font-size="8">5. Rockets vs Enemies</text>
+
+  <!-- ==================== SUPPORTING LAYERS ==================== -->
+
+  <!-- Data Layer -->
+  <rect x="20" y="682" width="460" height="170" rx="10" fill="url(#g-data)" stroke="#fb923c" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="36" y="702" fill="#c2410c" font-size="13" font-weight="700">DATA LAYER</text>
+  <text x="155" y="702" fill="#fdba74" font-size="10">data/ + providers/</text>
+
+  <!-- AppDatabase -->
+  <rect x="36" y="714" width="200" height="56" rx="7" fill="#ffffff" stroke="#fb923c" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="36" y="714" width="200" height="19" rx="7" fill="#f97316"/>
+  <rect x="36" y="726" width="200" height="7" fill="#f97316"/>
+  <text x="136" y="728" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">AppDatabase (Room)</text>
+  <text x="136" y="749" text-anchor="middle" fill="#c2410c" font-size="8.5">v2027 · SQLite ORM</text>
+  <text x="136" y="762" text-anchor="middle" fill="#c2410c" font-size="8.5">Destructive migration</text>
+
+  <!-- PlayerGameDataDao -->
+  <rect x="256" y="714" width="206" height="56" rx="7" fill="#ffffff" stroke="#fb923c" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="256" y="714" width="206" height="19" rx="7" fill="#ea580c"/>
+  <rect x="256" y="726" width="206" height="7" fill="#ea580c"/>
+  <text x="359" y="728" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">PlayerGameDataDao</text>
+  <text x="359" y="749" text-anchor="middle" fill="#c2410c" font-size="8.5">insert / delete / query</text>
+  <text x="359" y="762" text-anchor="middle" fill="#c2410c" font-size="8.5">Leaderboard by score DESC</text>
+
+  <!-- Data models row -->
+  <rect x="36" y="782" width="100" height="38" rx="6" fill="#ffffff" stroke="#fdba74" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="86" y="802" text-anchor="middle" fill="#c2410c" font-size="9" font-weight="600">Aircraft</text>
+  <text x="86" y="814" text-anchor="middle" fill="#ea580c" font-size="7.5">HP, stats</text>
+
+  <rect x="148" y="782" width="100" height="38" rx="6" fill="#ffffff" stroke="#fdba74" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="198" y="802" text-anchor="middle" fill="#c2410c" font-size="9" font-weight="600">EnemyState</text>
+  <text x="198" y="814" text-anchor="middle" fill="#ea580c" font-size="7.5">pos, bullets</text>
+
+  <rect x="260" y="782" width="100" height="38" rx="6" fill="#ffffff" stroke="#fdba74" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="310" y="802" text-anchor="middle" fill="#c2410c" font-size="9" font-weight="600">BossState</text>
+  <text x="310" y="814" text-anchor="middle" fill="#ea580c" font-size="7.5">HP, phase</text>
+
+  <rect x="372" y="782" width="90" height="38" rx="6" fill="#ffffff" stroke="#fdba74" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="417" y="802" text-anchor="middle" fill="#c2410c" font-size="9" font-weight="600">Rocket</text>
+  <text x="417" y="814" text-anchor="middle" fill="#ea580c" font-size="7.5">RedEnv state</text>
+
+  <!-- Arrow from AppDatabase to DAO -->
+  <line x1="236" y1="742" x2="254" y2="742" stroke="#ea580c" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <!-- Service Layer -->
+  <rect x="500" y="682" width="340" height="170" rx="10" fill="url(#g-svc)" stroke="#f9a8d4" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="516" y="702" fill="#be185d" font-size="13" font-weight="700">SERVICE LAYER</text>
+  <text x="650" y="702" fill="#f9a8d4" font-size="10">service/</text>
+
+  <rect x="516" y="714" width="306" height="56" rx="7" fill="#ffffff" stroke="#f9a8d4" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="516" y="714" width="306" height="19" rx="7" fill="#ec4899"/>
+  <rect x="516" y="726" width="306" height="7" fill="#ec4899"/>
+  <text x="669" y="728" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">MusicService (Bound)</text>
+  <text x="669" y="749" text-anchor="middle" fill="#be185d" font-size="8.5">MediaPlayer — looping BGM (2 tracks)</text>
+  <text x="669" y="762" text-anchor="middle" fill="#be185d" font-size="8.5">SoundPool — 5 streams (fire, hit, explode, game_over)</text>
+
+  <rect x="516" y="784" width="145" height="38" rx="6" fill="#ffffff" stroke="#f9a8d4" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="588" y="804" text-anchor="middle" fill="#be185d" font-size="9" font-weight="600">SharedPreferences</text>
+  <text x="588" y="816" text-anchor="middle" fill="#db2777" font-size="7.5">Sound toggles</text>
+
+  <rect x="673" y="784" width="149" height="38" rx="6" fill="#ffffff" stroke="#f9a8d4" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="747" y="804" text-anchor="middle" fill="#be185d" font-size="9" font-weight="600">@Synchronized</text>
+  <text x="747" y="816" text-anchor="middle" fill="#db2777" font-size="7.5">Thread-safe playback</text>
+
+  <!-- ViewModel Layer -->
+  <rect x="860" y="682" width="260" height="80" rx="10" fill="url(#g-vm)" stroke="#22d3ee" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="876" y="702" fill="#0e7490" font-size="13" font-weight="700">VIEWMODEL</text>
+  <text x="976" y="702" fill="#67e8f9" font-size="10">viewmodel/</text>
+
+  <rect x="876" y="714" width="226" height="34" rx="7" fill="#ffffff" stroke="#22d3ee" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <text x="989" y="736" text-anchor="middle" fill="#0e7490" font-size="9.5" font-weight="600">MainActivityViewModel</text>
+
+  <!-- Utils Layer -->
+  <rect x="860" y="778" width="260" height="74" rx="10" fill="url(#g-util)" stroke="#86efac" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="876" y="798" fill="#166534" font-size="13" font-weight="700">UTILITIES</text>
+  <text x="970" y="798" fill="#86efac" font-size="10">utils/ + common/</text>
+
+  <text x="876" y="818" fill="#166534" font-size="9">ScreenUtils · BitmapUtils</text>
+  <text x="876" y="833" fill="#166534" font-size="9">DatabaseProvider · AircraftApplication</text>
+
+  <!-- ==================== THREADING DIAGRAM ==================== -->
+  <rect x="20" y="868" width="1360" height="78" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="36" y="888" fill="#334155" font-size="13" font-weight="700">THREADING MODEL</text>
+
+  <!-- Main Thread -->
+  <rect x="40" y="896" width="360" height="38" rx="6" fill="#f3e8ff" stroke="#c084fc" stroke-width="1"/>
+  <text x="220" y="912" text-anchor="middle" fill="#7c3aed" font-size="10" font-weight="600">Main Thread</text>
+  <text x="220" y="926" text-anchor="middle" fill="#a78bfa" font-size="8">Activity lifecycle · UI dialogs · Service binding · Room DB (lifecycleScope)</text>
+
+  <!-- Game Thread -->
+  <rect x="420" y="896" width="460" height="38" rx="6" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1"/>
+  <text x="650" y="912" text-anchor="middle" fill="#0369a1" font-size="10" font-weight="600">Game Thread (Dedicated)</text>
+  <text x="650" y="926" text-anchor="middle" fill="#0ea5e9" font-size="8">SurfaceView render loop · Canvas drawing · Collision · Level timer · 30 FPS synchronized</text>
+
+  <!-- Service Thread -->
+  <rect x="900" y="896" width="280" height="38" rx="6" fill="#fce7f3" stroke="#f9a8d4" stroke-width="1"/>
+  <text x="1040" y="912" text-anchor="middle" fill="#be185d" font-size="10" font-weight="600">Service Thread</text>
+  <text x="1040" y="926" text-anchor="middle" fill="#db2777" font-size="8">MusicService · @Synchronized playback · MediaPlayer + SoundPool</text>
+
+  <!-- Vertical flow arrows between layers -->
+  <!-- Presentation → Game Engine -->
+  <line x1="370" y1="204" x2="370" y2="234" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="378" y="222" fill="#64748b" font-size="8">hosts</text>
+
+  <!-- Presentation → Data Layer -->
+  <path d="M610,204 L610,215 L250,215 L250,680" stroke="#64748b" stroke-width="1" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
+
+  <!-- Game Engine → Service -->
+  <path d="M200,590 L200,620 L669,620 L669,680" stroke="#64748b" stroke-width="1" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
+  <text x="420" y="616" fill="#64748b" font-size="8">audio playback</text>
+
+  <!-- Presentation → ViewModel -->
+  <path d="M460,204 L460,215 L460,630 L989,630 L989,680" stroke="#64748b" stroke-width="1" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
+
+  <!-- ==================== GAME ASSETS ==================== -->
+  <rect x="20" y="960" width="1360" height="56" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="36" y="980" fill="#334155" font-size="13" font-weight="700">GAME ASSETS</text>
+
+  <rect x="40" y="990" width="130" height="18" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="0.6"/>
+  <text x="105" y="1003" text-anchor="middle" fill="#0369a1" font-size="8.5" font-weight="600">15 enemy sprites</text>
+
+  <rect x="180" y="990" width="110" height="18" rx="4" fill="#fef3c7" stroke="#fbbf24" stroke-width="0.6"/>
+  <text x="235" y="1003" text-anchor="middle" fill="#92400e" font-size="8.5" font-weight="600">5 boss sprites</text>
+
+  <rect x="300" y="990" width="120" height="18" rx="4" fill="#fce7f3" stroke="#f9a8d4" stroke-width="0.6"/>
+  <text x="360" y="1003" text-anchor="middle" fill="#be185d" font-size="8.5" font-weight="600">3 missile sprites</text>
+
+  <rect x="430" y="990" width="100" height="18" rx="4" fill="#f3e8ff" stroke="#c084fc" stroke-width="0.6"/>
+  <text x="480" y="1003" text-anchor="middle" fill="#7c3aed" font-size="8.5" font-weight="600">4 jet planes</text>
+
+  <rect x="540" y="990" width="130" height="18" rx="4" fill="#fee2e2" stroke="#fca5a5" stroke-width="0.6"/>
+  <text x="605" y="1003" text-anchor="middle" fill="#991b1b" font-size="8.5" font-weight="600">3 red box sprites</text>
+
+  <rect x="680" y="990" width="100" height="18" rx="4" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="0.6"/>
+  <text x="730" y="1003" text-anchor="middle" fill="#166534" font-size="8.5" font-weight="600">1 rocket sprite</text>
+
+  <rect x="790" y="990" width="100" height="18" rx="4" fill="#fff7ed" stroke="#fdba74" stroke-width="0.6"/>
+  <text x="840" y="1003" text-anchor="middle" fill="#c2410c" font-size="8.5" font-weight="600">6 audio files</text>
+
+  <rect x="900" y="990" width="100" height="18" rx="4" fill="#f0f9ff" stroke="#93c5fd" stroke-width="0.6"/>
+  <text x="950" y="1003" text-anchor="middle" fill="#1e40af" font-size="8.5" font-weight="600">3 backgrounds</text>
+
+  <rect x="1010" y="990" width="110" height="18" rx="4" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="0.6"/>
+  <text x="1065" y="1003" text-anchor="middle" fill="#5b21b6" font-size="8.5" font-weight="600">EN + ZH locale</text>
+
+  <!-- ==================== LEGEND ==================== -->
+  <rect x="20" y="1028" width="1360" height="40" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+  <text x="40" y="1052" fill="#475569" font-size="10" font-weight="600">LEGEND:</text>
+
+  <line x1="100" y1="1048" x2="130" y2="1048" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="138" y="1052" fill="#64748b" font-size="9">Direct dependency</text>
+
+  <line x1="256" y1="1048" x2="286" y2="1048" stroke="#64748b" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <text x="294" y="1052" fill="#64748b" font-size="9">Indirect / async</text>
+
+  <line x1="402" y1="1048" x2="432" y2="1048" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="440" y="1052" fill="#64748b" font-size="9">Inheritance</text>
+
+  <rect x="520" y="1040" width="14" height="14" rx="3" fill="url(#g-pres)" stroke="#c084fc" stroke-width="0.8"/>
+  <text x="542" y="1052" fill="#64748b" font-size="9">Presentation</text>
+
+  <rect x="616" y="1040" width="14" height="14" rx="3" fill="url(#g-engine)" stroke="#38bdf8" stroke-width="0.8"/>
+  <text x="638" y="1052" fill="#64748b" font-size="9">Game Engine</text>
+
+  <rect x="720" y="1040" width="14" height="14" rx="3" fill="url(#g-data)" stroke="#fb923c" stroke-width="0.8"/>
+  <text x="742" y="1052" fill="#64748b" font-size="9">Data</text>
+
+  <rect x="782" y="1040" width="14" height="14" rx="3" fill="url(#g-svc)" stroke="#f9a8d4" stroke-width="0.8"/>
+  <text x="804" y="1052" fill="#64748b" font-size="9">Service</text>
+
+  <rect x="856" y="1040" width="14" height="14" rx="3" fill="url(#g-vm)" stroke="#22d3ee" stroke-width="0.8"/>
+  <text x="878" y="1052" fill="#64748b" font-size="9">ViewModel</text>
+
+  <rect x="946" y="1040" width="14" height="14" rx="3" fill="url(#g-util)" stroke="#86efac" stroke-width="0.8"/>
+  <text x="968" y="1052" fill="#64748b" font-size="9">Utilities</text>
+
+  <text x="1350" y="1052" text-anchor="end" fill="#94a3b8" font-size="8.5">Kotlin · Android SDK 36 · Gradle 9.3.1</text>
+</svg>

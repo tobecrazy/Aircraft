@@ -113,12 +113,12 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
             )
         }
 
-        // Use the player's bullet_up bitmap, rotated 180° so it points down, at same 25dp size
+        // Use the player's bullet_up bitmap, rotated 180° so it points down, at same 40dp size
         val originBullet = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
         bulletBitmap = BitmapUtils.resizeBitmap(
             originBullet,
-            ScreenUtils.dpToPx(context, 25.0f),
-            ScreenUtils.dpToPx(context, 25.0f),
+            ScreenUtils.dpToPx(context, 40.0f),
+            ScreenUtils.dpToPx(context, 40.0f),
             180.0f
         )
         // Match player bullet density so canvas renders both at the same visual size
