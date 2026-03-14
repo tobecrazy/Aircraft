@@ -201,7 +201,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private fun checkPlayerBulletsHitEnemies() {
         val bullets = drawAircraft.getBullets()
         val enemySize = ScreenUtils.dpToPx(context, 48.0f)
-        val bulletSize = ScreenUtils.dpToPx(context, 25.0f)
+        val bulletSize = ScreenUtils.dpToPx(context, 40.0f)
 
         for (bullet in bullets) {
             if (bullet.y < 0) continue
@@ -233,7 +233,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkPlayerBulletsHitRedEnvelopes() {
         val bullets = drawAircraft.getBullets()
-        val bulletSize = ScreenUtils.dpToPx(context, 25.0f)
+        val bulletSize = ScreenUtils.dpToPx(context, 40.0f)
 
         for (bullet in bullets) {
             if (bullet.y < 0) continue
@@ -403,7 +403,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private fun checkPlayerBulletsHitBoss() {
         if (!bossEnemy.isBossActive()) return
         val bullets = drawAircraft.getBullets()
-        val bulletSize = ScreenUtils.dpToPx(context, 25.0f)
+        val bulletSize = ScreenUtils.dpToPx(context, 40.0f)
         val bossBounds = bossEnemy.getBossBounds() ?: return
 
         for (bullet in bullets) {

@@ -66,8 +66,8 @@ class Aircraft(
         val originBitmap = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
         val bulletBitmap = BitmapUtils.resizeBitmap(
             originBitmap,
-            ScreenUtils.dpToPx(context, 25.0f),
-            ScreenUtils.dpToPx(context, 25.0f)
+            ScreenUtils.dpToPx(context, 40.0f),
+            ScreenUtils.dpToPx(context, 40.0f)
         )
         if (jetBitmap != null && bulletBitmap != null) {
             val screenDensity = context.resources.displayMetrics.densityDpi
