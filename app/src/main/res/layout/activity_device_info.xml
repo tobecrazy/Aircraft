@@ -2,15 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1B1F2B"
+    android:background="#0F1118"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <!-- Header bar matching History page style -->
+    <!-- ─── Header ─── -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#252A3A"
+        android:layout_height="52dp"
+        android:background="#161A26"
         android:gravity="center_vertical">
 
         <ImageButton
@@ -28,15 +28,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:letterSpacing="0.15"
+            android:letterSpacing="0.25"
             android:text="@string/title_activity_device_info"
             android:textColor="#00FF88"
-            android:textSize="20sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:typeface="monospace" />
     </RelativeLayout>
 
-    <!-- Neon divider -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
@@ -47,430 +46,527 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp">
+        android:overScrollMode="never"
+        android:paddingBottom="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="12dp">
+            android:paddingHorizontal="14dp">
 
-            <!-- Device Model -->
+            <!-- ════════════════════════════════════════════════
+                 DEVICE IDENTITY BANNER
+                 ════════════════════════════════════════════════ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/device_info_card_bg"
                 android:orientation="vertical"
-                android:padding="14dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_device_model"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace" />
+                android:paddingHorizontal="18dp"
+                android:paddingVertical="16dp">
 
                 <TextView
                     android:id="@+id/tv_device_model"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="14sp"
-                    android:typeface="monospace" />
-            </LinearLayout>
-
-            <!-- Android Version -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_android_version"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:typeface="monospace" />
 
-                <TextView
-                    android:id="@+id/tv_android_version"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="14sp"
-                    android:typeface="monospace" />
-            </LinearLayout>
-
-            <!-- CPU -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_cpu"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace" />
-
-                <TextView
-                    android:id="@+id/tv_cpu"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="14sp"
-                    android:typeface="monospace" />
-
-                <!-- Overall CPU usage -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="6dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_android_version"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/device_info_gauge_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="3dp"
+                        android:textColor="#00FF88"
+                        android:textSize="11sp"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_app_version"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/device_info_gauge_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="3dp"
+                        android:textColor="#88FFFFFF"
+                        android:textSize="11sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ════════════════════════════════════════════════
+                 SECTION: RESOURCE USAGE
+                 ════════════════════════════════════════════════ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="14dp"
+                    android:background="#00FF88" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:letterSpacing="0.2"
+                    android:text="@string/device_info_section_resources"
+                    android:textColor="#66FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace" />
+            </LinearLayout>
+
+            <!-- ── CPU Card ── -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/device_info_card_bg"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="14dp">
+
+                <!-- CPU header row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:letterSpacing="0.1"
-                        android:text="@string/device_info_cpu_usage"
-                        android:textColor="#88FFFFFF"
-                        android:textSize="11sp"
+                        android:layout_weight="1"
+                        android:letterSpacing="0.15"
+                        android:text="@string/device_info_cpu"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         android:typeface="monospace" />
 
                     <TextView
                         android:id="@+id/tv_cpu_usage_pct"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
                         android:textColor="#00FF88"
-                        android:textSize="13sp"
+                        android:textSize="20sp"
                         android:textStyle="bold"
                         android:typeface="monospace" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_cpu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="#55FFFFFF"
+                    android:textSize="11sp"
+                    android:typeface="monospace" />
 
                 <ProgressBar
                     android:id="@+id/pb_cpu_usage"
                     style="@android:style/Widget.ProgressBar.Horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="8dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="10dp"
                     android:max="100"
                     android:progressDrawable="@drawable/cpu_progress_bar" />
 
-                <!-- Per-core bars -->
+                <!-- Per-core rows -->
                 <LinearLayout
                     android:id="@+id/ll_cpu_cores"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:orientation="vertical" />
-
             </LinearLayout>
 
-            <!-- Memory -->
+            <!-- ── Memory & Disk gauges side-by-side ── -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
+                android:layout_marginTop="8dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
+                <!-- Memory gauge -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/device_info_card_bg"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="14dp">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:letterSpacing="0.1"
+                        android:letterSpacing="0.15"
                         android:text="@string/device_info_memory"
                         android:textColor="#88FFFFFF"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textStyle="bold"
                         android:typeface="monospace" />
+
+                    <!-- Circular gauge placeholder: large percent -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <ProgressBar
+                            android:id="@+id/pb_memory"
+                            style="@android:style/Widget.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_gravity="bottom"
+                            android:max="100"
+                            android:progressDrawable="@drawable/cpu_progress_bar" />
+                    </FrameLayout>
 
                     <TextView
                         android:id="@+id/tv_memory_pct"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:textColor="#00FF88"
-                        android:textSize="13sp"
+                        android:textSize="26sp"
                         android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_memory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center"
+                        android:textColor="#55FFFFFF"
+                        android:textSize="10sp"
                         android:typeface="monospace" />
                 </LinearLayout>
 
-                <ProgressBar
-                    android:id="@+id/pb_memory"
-                    style="@android:style/Widget.ProgressBar.Horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="8dp"
-                    android:layout_marginTop="8dp"
-                    android:max="100"
-                    android:progressDrawable="@drawable/cpu_progress_bar" />
-
-                <TextView
-                    android:id="@+id/tv_memory"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="13sp"
-                    android:typeface="monospace" />
-            </LinearLayout>
-
-            <!-- Disk -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
-
+                <!-- Disk gauge -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/device_info_card_bg"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="14dp">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:letterSpacing="0.1"
+                        android:letterSpacing="0.15"
                         android:text="@string/device_info_disk"
                         android:textColor="#88FFFFFF"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textStyle="bold"
                         android:typeface="monospace" />
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <ProgressBar
+                            android:id="@+id/pb_disk"
+                            style="@android:style/Widget.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_gravity="bottom"
+                            android:max="100"
+                            android:progressDrawable="@drawable/cpu_progress_bar" />
+                    </FrameLayout>
 
                     <TextView
                         android:id="@+id/tv_disk_pct"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:textColor="#00FF88"
-                        android:textSize="13sp"
+                        android:textSize="26sp"
                         android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_disk"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center"
+                        android:textColor="#55FFFFFF"
+                        android:textSize="10sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ── Battery & Network side-by-side ── -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <!-- Battery -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/device_info_card_bg"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.1"
+                        android:text="@string/device_info_battery"
+                        android:textColor="#88FFFFFF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_battery"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_battery_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="#55FFFFFF"
+                        android:textSize="11sp"
                         android:typeface="monospace" />
                 </LinearLayout>
 
-                <ProgressBar
-                    android:id="@+id/pb_disk"
-                    style="@android:style/Widget.ProgressBar.Horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="8dp"
-                    android:layout_marginTop="8dp"
-                    android:max="100"
-                    android:progressDrawable="@drawable/cpu_progress_bar" />
-
-                <TextView
-                    android:id="@+id/tv_disk"
-                    android:layout_width="match_parent"
+                <!-- Network -->
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="13sp"
-                    android:typeface="monospace" />
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/device_info_card_bg"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.1"
+                        android:text="@string/device_info_network"
+                        android:textColor="#88FFFFFF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_network"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_network_detail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="#55FFFFFF"
+                        android:textSize="11sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
             </LinearLayout>
 
-            <!-- Network -->
+            <!-- ════════════════════════════════════════════════
+                 SECTION: SYSTEM INFO
+                 ════════════════════════════════════════════════ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
+                android:layout_marginTop="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="14dp"
+                    android:background="#00FF88" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_network"
-                    android:textColor="#88FFFFFF"
+                    android:layout_marginStart="8dp"
+                    android:letterSpacing="0.2"
+                    android:text="@string/device_info_section_system"
+                    android:textColor="#66FFFFFF"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:typeface="monospace" />
-
-                <TextView
-                    android:id="@+id/tv_network"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="14sp"
                     android:typeface="monospace" />
             </LinearLayout>
 
-            <!-- Boot Time -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/device_info_card_bg"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_boot_time"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace" />
-
-                <TextView
-                    android:id="@+id/tv_boot_time"
+                <!-- Screen Resolution -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="14sp"
-                    android:typeface="monospace" />
-            </LinearLayout>
+                    android:orientation="horizontal"
+                    android:paddingVertical="11dp">
 
-            <!-- Current Time -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/device_info_screen_resolution"
+                        android:textColor="#88FFFFFF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_current_time"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace" />
+                    <TextView
+                        android:id="@+id/tv_screen_resolution"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#CDD2E0"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_current_time"
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#10FFFFFF" />
+
+                <!-- Boot Time -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#FFFF00"
-                    android:textSize="14sp"
-                    android:typeface="monospace" />
-            </LinearLayout>
+                    android:orientation="horizontal"
+                    android:paddingVertical="11dp">
 
-            <!-- Screen Resolution -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/device_info_boot_time"
+                        android:textColor="#88FFFFFF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_screen_resolution"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace" />
+                    <TextView
+                        android:id="@+id/tv_boot_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#CDD2E0"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_screen_resolution"
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#10FFFFFF" />
+
+                <!-- Current Time -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="14sp"
-                    android:typeface="monospace" />
-            </LinearLayout>
+                    android:orientation="horizontal"
+                    android:paddingVertical="11dp">
 
-            <!-- App Version -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/device_info_current_time"
+                        android:textColor="#88FFFFFF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_app_version"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace" />
+                    <TextView
+                        android:id="@+id/tv_current_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#00FF88"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_app_version"
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#10FFFFFF" />
+
+                <!-- Uptime -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#CDD2E0"
-                    android:textSize="14sp"
-                    android:typeface="monospace" />
-            </LinearLayout>
+                    android:orientation="horizontal"
+                    android:paddingVertical="11dp">
 
-            <!-- Uptime -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:background="@drawable/device_info_item_bg"
-                android:orientation="vertical"
-                android:padding="14dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/device_info_uptime"
+                        android:textColor="#88FFFFFF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.1"
-                    android:text="@string/device_info_uptime"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace" />
+                    <TextView
+                        android:id="@+id/tv_uptime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#00FF88"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_uptime"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#FFFF00"
-                    android:textSize="14sp"
-                    android:typeface="monospace" />
             </LinearLayout>
 
         </LinearLayout>

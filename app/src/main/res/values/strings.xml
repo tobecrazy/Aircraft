@@ -72,11 +72,11 @@
     <string name="other_settings_header">Other Settings</string>
     <string name="device_info_title">Device Information</string>
     <string name="device_info_summary">CPU, memory, disk, network and more</string>
-    <string name="title_activity_device_info">Device Information</string>
+    <string name="title_activity_device_info">SYSTEM MONITOR</string>
     <string name="device_info_cpu">CPU</string>
     <string name="device_info_cpu_usage">CPU Usage</string>
-    <string name="device_info_memory">Memory</string>
-    <string name="device_info_disk">Disk</string>
+    <string name="device_info_memory">MEMORY</string>
+    <string name="device_info_disk">DISK</string>
     <string name="device_info_network">Network</string>
     <string name="device_info_boot_time">Boot Time</string>
     <string name="device_info_current_time">Current Time</string>
@@ -85,4 +85,7 @@
     <string name="device_info_device_model">Device Model</string>
     <string name="device_info_screen_resolution">Screen Resolution</string>
     <string name="device_info_uptime">Uptime</string>
+    <string name="device_info_section_resources">RESOURCE USAGE</string>
+    <string name="device_info_section_system">SYSTEM INFO</string>
+    <string name="device_info_battery">Battery</string>
 </resources>

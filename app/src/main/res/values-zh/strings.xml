@@ -72,7 +72,7 @@
     <string name="other_settings_header">其他设置</string>
     <string name="device_info_title">设备信息</string>
     <string name="device_info_summary">CPU、内存、磁盘、网络等信息</string>
-    <string name="title_activity_device_info">设备信息</string>
+    <string name="title_activity_device_info">系统监控</string>
     <string name="device_info_cpu">CPU</string>
     <string name="device_info_cpu_usage">CPU 使用率</string>
     <string name="device_info_memory">内存</string>
@@ -85,4 +85,7 @@
     <string name="device_info_device_model">设备型号</string>
     <string name="device_info_screen_resolution">屏幕分辨率</string>
     <string name="device_info_uptime">运行时长</string>
+    <string name="device_info_section_resources">资源使用</string>
+    <string name="device_info_section_system">系统信息</string>
+    <string name="device_info_battery">电池</string>
 </resources>
