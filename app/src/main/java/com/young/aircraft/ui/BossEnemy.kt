@@ -24,11 +24,17 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     private val bossBitmaps = mutableListOf<Bitmap?>()
     private val missileBitmaps = mutableListOf<Bitmap?>()
 
-    val bossSizePx: Int = ScreenUtils.dpToPx(context, 200.0f)
-    val missileSizePx: Int = ScreenUtils.dpToPx(context, 60.0f)
+    val bossSizePx: Int = ScreenUtils.dpToPx(context, 350.0f)
+    val missileSizePx: Int = ScreenUtils.dpToPx(context, 90.0f)
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
     private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
     private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+
+    // Density-scaled rendered sizes (updated each frame in onDraw)
+    var renderedBossSize: Float = bossSizePx.toFloat()
+        private set
+    var renderedMissileSize: Float = missileSizePx.toFloat()
+        private set
 
     // Movement AI
     private var moveDirectionX: Float = 1f
@@ -107,8 +113,8 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         val hp = getBossHp(level)
         val bmpIndex = rng.nextInt(bossBitmaps.size)
         activeBoss = BossState(
-            x = screenWidth / 2f - bossSizePx / 2f,
-            y = -bossSizePx.toFloat(),
+            x = screenWidth / 2f - renderedBossSize / 2f,
+            y = -renderedBossSize,
             hitPoints = hp,
             maxHitPoints = hp,
             bitmapIndex = bmpIndex
@@ -150,18 +156,18 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     fun getBossBounds(): RectF? {
         val boss = activeBoss ?: return null
         if (boss.isDestroyed()) return null
-        val insetX = bossSizePx * COLLISION_INSET_X
-        val insetY = bossSizePx * COLLISION_INSET_Y
+        val insetX = renderedBossSize * COLLISION_INSET_X
+        val insetY = renderedBossSize * COLLISION_INSET_Y
         return RectF(
             boss.x + insetX,
             boss.y + insetY,
-            boss.x + bossSizePx - insetX,
-            boss.y + bossSizePx - insetY
+            boss.x + renderedBossSize - insetX,
+            boss.y + renderedBossSize - insetY
         )
     }
 
     fun getBombBounds(bomb: BossBomb): RectF {
-        return RectF(bomb.x, bomb.y, bomb.x + missileSizePx, bomb.y + missileSizePx)
+        return RectF(bomb.x, bomb.y, bomb.x + renderedMissileSize, bomb.y + renderedMissileSize)
     }
 
     fun removeBomb(bomb: BossBomb) {
@@ -187,11 +193,16 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
+        // Compute density scale matching Aircraft.kt / Enemies.kt pattern
+        val scale = if (canvas.density > 0) canvas.density.toFloat() / screenDensity else 1f
+        renderedBossSize = bossSizePx * scale
+        renderedMissileSize = missileSizePx * scale
+
         val boss = activeBoss
         if (boss != null) {
             if (!boss.isDestroyed()) {
                 updateBossMovement(boss)
-                updateBombs(boss, canvas)
+                updateBombs(boss)
                 drawBoss(canvas, boss)
                 drawBombs(canvas, boss)
             } else {
@@ -227,24 +238,24 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
             }
         }
 
-        // Horizontal: track player position
-        val bossCenterX = boss.x + bossSizePx / 2f
+        // Horizontal: track player position using rendered size
+        val bossCenterX = boss.x + renderedBossSize / 2f
         moveDirectionX = if (playerCenterX < bossCenterX) -1f else 1f
 
         boss.x += moveSpeed * moveDirectionX * 0.8f
 
-        // Bounce off screen edges
+        // Bounce off screen edges using rendered size
         if (boss.x < margin) {
             boss.x = margin
             moveDirectionX = 1f
         }
-        if (boss.x + bossSizePx > screenWidth - margin) {
-            boss.x = screenWidth - margin - bossSizePx
+        if (boss.x + renderedBossSize > screenWidth - margin) {
+            boss.x = screenWidth - margin - renderedBossSize
             moveDirectionX = -1f
         }
     }
 
-    private fun updateBombs(boss: BossState, canvas: Canvas) {
+    private fun updateBombs(boss: BossState) {
         if (boss.isDestroyed()) return
 
         // Only fire when boss is in the target zone (visible on screen)
@@ -259,8 +270,9 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
 
     private fun fireBomb(boss: BossState) {
         val bmpIndex = rng.nextInt(missileBitmaps.size)
-        val bombX = boss.x + bossSizePx / 2f - missileSizePx / 2f
-        val bombY = boss.y + bossSizePx.toFloat()
+        // Launch from the bottom-center of the rendered boss sprite
+        val bombX = boss.x + renderedBossSize / 2f - renderedMissileSize / 2f
+        val bombY = boss.y + renderedBossSize
         boss.bombs.add(BossBomb(x = bombX, y = bombY, bitmapIndex = bmpIndex))
     }
 
@@ -287,9 +299,9 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     }
 
     private fun triggerBossExplosion(boss: BossState) {
-        val centerX = boss.x + bossSizePx / 2f
-        val centerY = boss.y + bossSizePx / 2f
-        val size = bossSizePx.toFloat()
+        val centerX = boss.x + renderedBossSize / 2f
+        val centerY = boss.y + renderedBossSize / 2f
+        val size = renderedBossSize
 
         // Main massive explosion
         deathExplosions.add(ExplosionEffect(centerX, centerY, size * 2f, scale = 3f))

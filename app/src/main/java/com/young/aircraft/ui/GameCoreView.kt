@@ -381,8 +381,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         val bombIter = boss.bombs.iterator()
         while (bombIter.hasNext()) {
             val bomb = bombIter.next()
-            val bombCenterX = bomb.x + bossEnemy.missileSizePx / 2f
-            val bombCenterY = bomb.y + bossEnemy.missileSizePx / 2f
+            val bombCenterX = bomb.x + bossEnemy.renderedMissileSize / 2f
+            val bombCenterY = bomb.y + bossEnemy.renderedMissileSize / 2f
             if (expandedBounds.contains(bombCenterX, bombCenterY)) {
                 bombIter.remove()
                 bossEnemy.triggerBombExplosion(bombCenterX, bombCenterY)
