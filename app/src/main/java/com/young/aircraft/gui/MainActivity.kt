@@ -25,6 +25,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.young.aircraft.R
+import com.young.aircraft.common.GameStateManager
+import com.young.aircraft.data.GameState
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.service.MusicService
@@ -39,6 +41,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var mService: MusicService
+    private lateinit var coreView: GameCoreView
     private var exitTime: Long = 0
     private lateinit var playerId: String
     private val db by lazy { DatabaseProvider.getDatabase(this) }
@@ -61,7 +64,7 @@ class MainActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         playerId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-        val coreView = GameCoreView(this)
+        coreView = GameCoreView(this)
         val startLevel = intent.getIntExtra("start_level", 1)
         val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane_2)
         coreView.level = startLevel
@@ -148,6 +151,18 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
+
+        lifecycleScope.launch {
+            GameStateManager.gameState.collect { state ->
+                when (state) {
+                    GameState.LOW_MEMORY -> {
+                        coreView.pauseGame()
+                        Log.d("MainActivity", "Game paused due to low memory")
+                    }
+                    else -> {}
+                }
+            }
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

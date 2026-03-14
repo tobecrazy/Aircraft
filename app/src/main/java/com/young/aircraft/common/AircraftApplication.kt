@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import com.young.aircraft.data.GameState
 
 /**
  * Create by Young
@@ -32,6 +33,7 @@ class AircraftApplication : Application() {
 
     override fun onLowMemory() {
         super.onLowMemory()
+        GameStateManager.emit(GameState.LOW_MEMORY)
     }
 
 
