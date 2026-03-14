@@ -19,13 +19,14 @@ import android.os.StatFs
 import android.os.SystemClock
 import android.util.TypedValue
 import android.view.Gravity
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
+import com.young.aircraft.databinding.ActivityDeviceInfoBinding
 import java.io.BufferedReader
 import java.io.FileReader
 import java.text.SimpleDateFormat
@@ -34,6 +35,8 @@ import java.util.Locale
 
 class DeviceInfoActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityDeviceInfoBinding
+
     private val handler = Handler(Looper.getMainLooper())
     private val refreshRunnable = object : Runnable {
         override fun run() {
@@ -41,22 +44,6 @@ class DeviceInfoActivity : AppCompatActivity() {
             handler.postDelayed(this, 1000L)
         }
     }
-
-    private lateinit var tvMemory: TextView
-    private lateinit var tvMemoryPct: TextView
-    private lateinit var pbMemory: ProgressBar
-    private lateinit var tvDisk: TextView
-    private lateinit var tvDiskPct: TextView
-    private lateinit var pbDisk: ProgressBar
-    private lateinit var tvNetwork: TextView
-    private lateinit var tvNetworkDetail: TextView
-    private lateinit var tvBattery: TextView
-    private lateinit var tvBatteryStatus: TextView
-    private lateinit var tvCurrentTime: TextView
-    private lateinit var tvUptime: TextView
-    private lateinit var tvCpuUsagePct: TextView
-    private lateinit var pbCpuUsage: ProgressBar
-    private lateinit var llCpuCores: LinearLayout
 
     private var coreRows: List<CoreRow>? = null
 
@@ -78,28 +65,14 @@ class DeviceInfoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_device_info)
+        binding = ActivityDeviceInfoBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        findViewById<ImageButton>(R.id.btn_back).setOnClickListener { finish() }
+        binding.btnBack.setOnClickListener { finish() }
 
-        tvMemory = findViewById(R.id.tv_memory)
-        tvMemoryPct = findViewById(R.id.tv_memory_pct)
-        pbMemory = findViewById(R.id.pb_memory)
-        pbMemory.progressDrawable = resources.getDrawable(R.drawable.cpu_progress_bar, null).mutate()
-        tvDisk = findViewById(R.id.tv_disk)
-        tvDiskPct = findViewById(R.id.tv_disk_pct)
-        pbDisk = findViewById(R.id.pb_disk)
-        pbDisk.progressDrawable = resources.getDrawable(R.drawable.cpu_progress_bar, null).mutate()
-        tvNetwork = findViewById(R.id.tv_network)
-        tvNetworkDetail = findViewById(R.id.tv_network_detail)
-        tvBattery = findViewById(R.id.tv_battery)
-        tvBatteryStatus = findViewById(R.id.tv_battery_status)
-        tvCurrentTime = findViewById(R.id.tv_current_time)
-        tvUptime = findViewById(R.id.tv_uptime)
-        tvCpuUsagePct = findViewById(R.id.tv_cpu_usage_pct)
-        pbCpuUsage = findViewById(R.id.pb_cpu_usage)
-        pbCpuUsage.progressDrawable = resources.getDrawable(R.drawable.cpu_progress_bar, null).mutate()
-        llCpuCores = findViewById(R.id.ll_cpu_cores)
+        ResourcesCompat.getDrawable(resources, R.drawable.cpu_progress_bar, null)?.mutate()?.let { binding.pbMemory.progressDrawable = it }
+        ResourcesCompat.getDrawable(resources, R.drawable.cpu_progress_bar, null)?.mutate()?.let { binding.pbDisk.progressDrawable = it }
+        ResourcesCompat.getDrawable(resources, R.drawable.cpu_progress_bar, null)?.mutate()?.let { binding.pbCpuUsage.progressDrawable = it }
 
         populateStaticInfo()
         initCpuSnapshot()
@@ -121,23 +94,23 @@ class DeviceInfoActivity : AppCompatActivity() {
     // ── Static info ────────────────────────────────────────────────────
 
     private fun populateStaticInfo() {
-        findViewById<TextView>(R.id.tv_device_model).text =
-            "${Build.MANUFACTURER.uppercase(Locale.getDefault())} ${Build.MODEL}"
+        binding.tvDeviceModel.text =
+            getString(R.string.device_info_fmt_device_model, Build.MANUFACTURER.uppercase(Locale.getDefault()), Build.MODEL)
 
-        findViewById<TextView>(R.id.tv_android_version).text =
+        binding.tvAndroidVersion.text =
             getString(R.string.device_info_fmt_android, Build.VERSION.RELEASE, Build.VERSION.SDK_INT)
 
-        findViewById<TextView>(R.id.tv_cpu).text = getCpuInfo()
+        binding.tvCpu.text = getCpuInfo()
 
         val bootTimeMillis = System.currentTimeMillis() - SystemClock.elapsedRealtime()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        findViewById<TextView>(R.id.tv_boot_time).text = dateFormat.format(Date(bootTimeMillis))
+        binding.tvBootTime.text = dateFormat.format(Date(bootTimeMillis))
 
         val dm = resources.displayMetrics
-        findViewById<TextView>(R.id.tv_screen_resolution).text =
+        binding.tvScreenResolution.text =
             getString(R.string.device_info_fmt_resolution, dm.widthPixels, dm.heightPixels, dm.densityDpi)
 
-        findViewById<TextView>(R.id.tv_app_version).text =
+        binding.tvAppVersion.text =
             getString(R.string.device_info_fmt_version, BuildConfig.VERSION_NAME)
     }
 
@@ -149,8 +122,8 @@ class DeviceInfoActivity : AppCompatActivity() {
         refreshNetworkInfo()
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        tvCurrentTime.text = dateFormat.format(Date())
-        tvUptime.text = getUptime()
+        binding.tvCurrentTime.text = dateFormat.format(Date())
+        binding.tvUptime.text = getUptime()
 
         refreshCpuUsage()
     }
@@ -158,15 +131,15 @@ class DeviceInfoActivity : AppCompatActivity() {
     // ── Battery ────────────────────────────────────────────────────────
 
     private fun updateBatteryUI() {
-        tvBattery.text = "$batteryPct%"
-        tvBattery.setTextColor(
+        binding.tvBattery.text = getString(R.string.device_info_fmt_pct, batteryPct)
+        binding.tvBattery.setTextColor(
             when {
                 batteryPct <= 15 -> 0xFFFF4444.toInt()
                 batteryPct <= 30 -> 0xFFFFFF00.toInt()
                 else -> 0xFFFFFFFF.toInt()
             }
         )
-        tvBatteryStatus.text = if (batteryCharging)
+        binding.tvBatteryStatus.text = if (batteryCharging)
             getString(R.string.device_info_battery_charging)
         else
             getString(R.string.device_info_battery_discharging)
@@ -275,9 +248,9 @@ class DeviceInfoActivity : AppCompatActivity() {
 
         if (prevTotal != null) {
             val pct = calcUsagePercent(prevTotal, snap.total)
-            tvCpuUsagePct.text = "$pct%"
-            pbCpuUsage.progress = pct
-            updateProgressBarColor(pbCpuUsage, pct)
+            binding.tvCpuUsagePct.text = getString(R.string.device_info_fmt_pct, pct)
+            binding.pbCpuUsage.progress = pct
+            updateProgressBarColor(binding.pbCpuUsage, pct)
         }
 
         if (prevCores != null) {
@@ -285,7 +258,7 @@ class DeviceInfoActivity : AppCompatActivity() {
             for (i in rows.indices) {
                 if (i < snap.perCore.size && i < prevCores.size) {
                     val pct = calcUsagePercent(prevCores[i], snap.perCore[i])
-                    rows[i].pctText.text = String.format(Locale.getDefault(), "%3d%%", pct)
+                    rows[i].pctText.text = getString(R.string.device_info_fmt_core_pct, pct)
                     rows[i].bar.progress = pct
                     updateProgressBarColor(rows[i].bar, pct)
                 }
@@ -314,23 +287,26 @@ class DeviceInfoActivity : AppCompatActivity() {
 
             if (i < rows.size) {
                 if (pct >= 0) {
-                    val freqMhz = if (curFreq != null) " ${curFreq / 1000}MHz" else ""
-                    rows[i].pctText.text = String.format(Locale.getDefault(), "%3d%%%s", pct, freqMhz)
+                    rows[i].pctText.text = if (curFreq != null) {
+                        getString(R.string.device_info_fmt_core_pct_freq, pct, (curFreq / 1000).toInt())
+                    } else {
+                        getString(R.string.device_info_fmt_core_pct, pct)
+                    }
                     rows[i].bar.progress = pct
                     updateProgressBarColor(rows[i].bar, pct)
                     totalPct += pct
                     activeCount++
                 } else {
-                    rows[i].pctText.text = " ${getString(R.string.device_info_cpu_core_off)}"
+                    rows[i].pctText.text = getString(R.string.device_info_cpu_core_off)
                     rows[i].bar.progress = 0
                     updateProgressBarColor(rows[i].bar, 0)
                 }
             }
         }
         val overallPct = if (activeCount > 0) totalPct / activeCount else 0
-        tvCpuUsagePct.text = "$overallPct%"
-        pbCpuUsage.progress = overallPct
-        updateProgressBarColor(pbCpuUsage, overallPct)
+        binding.tvCpuUsagePct.text = getString(R.string.device_info_fmt_pct, overallPct)
+        binding.pbCpuUsage.progress = overallPct
+        updateProgressBarColor(binding.pbCpuUsage, overallPct)
     }
 
     private fun updateProgressBarColor(bar: ProgressBar, pct: Int) {
@@ -345,7 +321,7 @@ class DeviceInfoActivity : AppCompatActivity() {
     private data class CoreRow(val label: TextView, val bar: ProgressBar, val pctText: TextView)
 
     private fun buildCoreRows(count: Int) {
-        llCpuCores.removeAllViews()
+        binding.llCpuCores.removeAllViews()
         val rows = mutableListOf<CoreRow>()
         val dp = resources.displayMetrics
         val barH = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4f, dp).toInt()
@@ -379,7 +355,7 @@ class DeviceInfoActivity : AppCompatActivity() {
                     marginEnd = pad
                 }
                 max = 100
-                progressDrawable = resources.getDrawable(R.drawable.cpu_progress_bar, null).mutate()
+                ResourcesCompat.getDrawable(resources, R.drawable.cpu_progress_bar, null)?.mutate()?.let { progressDrawable = it }
             }
 
             val pctText = TextView(this).apply {
@@ -387,7 +363,7 @@ class DeviceInfoActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                text = "  0%"
+                text = getString(R.string.device_info_fmt_core_init)
                 setTextColor(0xFF00FF88.toInt())
                 textSize = 9f
                 typeface = Typeface.MONOSPACE
@@ -396,7 +372,7 @@ class DeviceInfoActivity : AppCompatActivity() {
             row.addView(label)
             row.addView(bar)
             row.addView(pctText)
-            llCpuCores.addView(row)
+            binding.llCpuCores.addView(row)
             rows.add(CoreRow(label, bar, pctText))
         }
         coreRows = rows
@@ -413,11 +389,11 @@ class DeviceInfoActivity : AppCompatActivity() {
         val usedGB = totalGB - availGB
         val pct = if (mi.totalMem > 0) ((mi.totalMem - mi.availMem) * 100 / mi.totalMem).toInt().coerceIn(0, 100) else 0
 
-        tvMemoryPct.text = "$pct%"
-        tvMemoryPct.setTextColor(pctColor(pct))
-        pbMemory.progress = pct
-        updateProgressBarColor(pbMemory, pct)
-        tvMemory.text = String.format(Locale.getDefault(), getString(R.string.device_info_fmt_storage), usedGB, totalGB)
+        binding.tvMemoryPct.text = getString(R.string.device_info_fmt_pct, pct)
+        binding.tvMemoryPct.setTextColor(pctColor(pct))
+        binding.pbMemory.progress = pct
+        updateProgressBarColor(binding.pbMemory, pct)
+        binding.tvMemory.text = String.format(Locale.getDefault(), getString(R.string.device_info_fmt_storage), usedGB, totalGB)
     }
 
     // ── Disk ───────────────────────────────────────────────────────────
@@ -431,11 +407,11 @@ class DeviceInfoActivity : AppCompatActivity() {
         val usedGB = usedBytes / (1024.0 * 1024.0 * 1024.0)
         val pct = if (totalBytes > 0) (usedBytes * 100 / totalBytes).toInt().coerceIn(0, 100) else 0
 
-        tvDiskPct.text = "$pct%"
-        tvDiskPct.setTextColor(pctColor(pct))
-        pbDisk.progress = pct
-        updateProgressBarColor(pbDisk, pct)
-        tvDisk.text = String.format(Locale.getDefault(), getString(R.string.device_info_fmt_storage), usedGB, totalGB)
+        binding.tvDiskPct.text = getString(R.string.device_info_fmt_pct, pct)
+        binding.tvDiskPct.setTextColor(pctColor(pct))
+        binding.pbDisk.progress = pct
+        updateProgressBarColor(binding.pbDisk, pct)
+        binding.tvDisk.text = String.format(Locale.getDefault(), getString(R.string.device_info_fmt_storage), usedGB, totalGB)
     }
 
     private fun pctColor(pct: Int): Int = when {
@@ -451,48 +427,48 @@ class DeviceInfoActivity : AppCompatActivity() {
         val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = cm.activeNetwork
         if (network == null) {
-            tvNetwork.text = getString(R.string.device_info_net_offline)
-            tvNetwork.setTextColor(0xFFFF4444.toInt())
-            tvNetworkDetail.text = getString(R.string.device_info_net_no_connection)
+            binding.tvNetwork.text = getString(R.string.device_info_net_offline)
+            binding.tvNetwork.setTextColor(0xFFFF4444.toInt())
+            binding.tvNetworkDetail.text = getString(R.string.device_info_net_no_connection)
             return
         }
         val caps = cm.getNetworkCapabilities(network)
         if (caps == null) {
-            tvNetwork.text = getString(R.string.device_info_net_offline)
-            tvNetwork.setTextColor(0xFFFF4444.toInt())
-            tvNetworkDetail.text = getString(R.string.device_info_net_no_connection)
+            binding.tvNetwork.text = getString(R.string.device_info_net_offline)
+            binding.tvNetwork.setTextColor(0xFFFF4444.toInt())
+            binding.tvNetworkDetail.text = getString(R.string.device_info_net_no_connection)
             return
         }
 
-        tvNetwork.setTextColor(0xFFFFFFFF.toInt())
+        binding.tvNetwork.setTextColor(0xFFFFFFFF.toInt())
         when {
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
-                tvNetwork.text = getString(R.string.device_info_net_wifi)
+                binding.tvNetwork.text = getString(R.string.device_info_net_wifi)
                 val wm = applicationContext.getSystemService(WIFI_SERVICE) as? WifiManager
                 val info = wm?.connectionInfo
                 val ssid = info?.ssid?.removeSurrounding("\"") ?: ""
                 val linkSpeed = info?.linkSpeed ?: 0
-                tvNetworkDetail.text = if (ssid.isNotEmpty() && ssid != "<unknown ssid>") {
+                binding.tvNetworkDetail.text = if (ssid.isNotEmpty() && ssid != "<unknown ssid>") {
                     getString(R.string.device_info_net_wifi_detail, ssid, linkSpeed)
                 } else {
                     getString(R.string.device_info_net_connected_speed, linkSpeed)
                 }
             }
             caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
-                tvNetwork.text = getString(R.string.device_info_net_cellular)
+                binding.tvNetwork.text = getString(R.string.device_info_net_cellular)
                 val downstream = caps.linkDownstreamBandwidthKbps
-                tvNetworkDetail.text = if (downstream > 0)
+                binding.tvNetworkDetail.text = if (downstream > 0)
                     getString(R.string.device_info_net_cellular_speed, downstream / 1000)
                 else
                     getString(R.string.device_info_net_mobile_data)
             }
             caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
-                tvNetwork.text = getString(R.string.device_info_net_ethernet)
-                tvNetworkDetail.text = getString(R.string.device_info_net_wired)
+                binding.tvNetwork.text = getString(R.string.device_info_net_ethernet)
+                binding.tvNetworkDetail.text = getString(R.string.device_info_net_wired)
             }
             else -> {
-                tvNetwork.text = getString(R.string.device_info_net_online)
-                tvNetworkDetail.text = getString(R.string.device_info_net_connected)
+                binding.tvNetwork.text = getString(R.string.device_info_net_online)
+                binding.tvNetworkDetail.text = getString(R.string.device_info_net_connected)
             }
         }
     }

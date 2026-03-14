@@ -112,4 +112,9 @@
     <string name="device_info_net_mobile_data">移动数据</string>
     <string name="device_info_net_wired">有线连接</string>
     <string name="device_info_cpu_core_off">OFF</string>
+    <string name="device_info_fmt_device_model">%1$s %2$s</string>
+    <string name="device_info_fmt_pct">%d%%</string>
+    <string name="device_info_fmt_core_pct">%1$3d%%</string>
+    <string name="device_info_fmt_core_pct_freq">%1$3d%% %2$dMHz</string>
+    <string name="device_info_fmt_core_init">  0%%</string>
 </resources>
