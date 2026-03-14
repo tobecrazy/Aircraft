@@ -88,4 +88,28 @@
     <string name="device_info_section_resources">RESOURCE USAGE</string>
     <string name="device_info_section_system">SYSTEM INFO</string>
     <string name="device_info_battery">Battery</string>
+
+    <!-- Device info format strings -->
+    <string name="device_info_fmt_android">Android %1$s (API %2$d)</string>
+    <string name="device_info_fmt_version">v%s</string>
+    <string name="device_info_fmt_resolution">%1$d x %2$d @ %3$ddpi</string>
+    <string name="device_info_fmt_cpu_detail">%1$s | %2$d cores | %3$s</string>
+    <string name="device_info_fmt_storage">%.1fG / %.1fG</string>
+    <string name="device_info_fmt_uptime_days">%1$dd %2$02dh %3$02dm %4$02ds</string>
+    <string name="device_info_fmt_uptime">%1$02dh %2$02dm %3$02ds</string>
+    <string name="device_info_battery_charging">Charging</string>
+    <string name="device_info_battery_discharging">Discharging</string>
+    <string name="device_info_net_offline">Offline</string>
+    <string name="device_info_net_no_connection">No connection</string>
+    <string name="device_info_net_wifi">Wi-Fi</string>
+    <string name="device_info_net_cellular">Cellular</string>
+    <string name="device_info_net_ethernet">Ethernet</string>
+    <string name="device_info_net_online">Online</string>
+    <string name="device_info_net_connected">Connected</string>
+    <string name="device_info_net_wifi_detail">%1$s %2$dMbps</string>
+    <string name="device_info_net_connected_speed">Connected %dMbps</string>
+    <string name="device_info_net_cellular_speed">~%dMbps</string>
+    <string name="device_info_net_mobile_data">Mobile data</string>
+    <string name="device_info_net_wired">Wired connection</string>
+    <string name="device_info_cpu_core_off">OFF</string>
 </resources>

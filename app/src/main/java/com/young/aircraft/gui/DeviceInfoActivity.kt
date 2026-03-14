@@ -125,7 +125,7 @@ class DeviceInfoActivity : AppCompatActivity() {
             "${Build.MANUFACTURER.uppercase(Locale.getDefault())} ${Build.MODEL}"
 
         findViewById<TextView>(R.id.tv_android_version).text =
-            "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"
+            getString(R.string.device_info_fmt_android, Build.VERSION.RELEASE, Build.VERSION.SDK_INT)
 
         findViewById<TextView>(R.id.tv_cpu).text = getCpuInfo()
 
@@ -135,10 +135,10 @@ class DeviceInfoActivity : AppCompatActivity() {
 
         val dm = resources.displayMetrics
         findViewById<TextView>(R.id.tv_screen_resolution).text =
-            "${dm.widthPixels} x ${dm.heightPixels} @ ${dm.densityDpi}dpi"
+            getString(R.string.device_info_fmt_resolution, dm.widthPixels, dm.heightPixels, dm.densityDpi)
 
         findViewById<TextView>(R.id.tv_app_version).text =
-            "v${BuildConfig.VERSION_NAME}"
+            getString(R.string.device_info_fmt_version, BuildConfig.VERSION_NAME)
     }
 
     // ── Dynamic info ───────────────────────────────────────────────────
@@ -166,7 +166,10 @@ class DeviceInfoActivity : AppCompatActivity() {
                 else -> 0xFFFFFFFF.toInt()
             }
         )
-        tvBatteryStatus.text = if (batteryCharging) "Charging" else "Discharging"
+        tvBatteryStatus.text = if (batteryCharging)
+            getString(R.string.device_info_battery_charging)
+        else
+            getString(R.string.device_info_battery_discharging)
     }
 
     // ── CPU info (static) ──────────────────────────────────────────────
@@ -179,9 +182,9 @@ class DeviceInfoActivity : AppCompatActivity() {
                     ?.substringAfter(":")?.trim()
             }
             val abi = Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown"
-            "${hardware ?: Build.HARDWARE} | $cpuCores cores | $abi"
+            getString(R.string.device_info_fmt_cpu_detail, hardware ?: Build.HARDWARE, cpuCores, abi)
         } catch (_: Exception) {
-            "${Build.HARDWARE} | ${Runtime.getRuntime().availableProcessors()} cores"
+            getString(R.string.device_info_fmt_cpu_detail, Build.HARDWARE, Runtime.getRuntime().availableProcessors(), "")
         }
     }
 
@@ -318,7 +321,7 @@ class DeviceInfoActivity : AppCompatActivity() {
                     totalPct += pct
                     activeCount++
                 } else {
-                    rows[i].pctText.text = " OFF"
+                    rows[i].pctText.text = " ${getString(R.string.device_info_cpu_core_off)}"
                     rows[i].bar.progress = 0
                     updateProgressBarColor(rows[i].bar, 0)
                 }
@@ -414,7 +417,7 @@ class DeviceInfoActivity : AppCompatActivity() {
         tvMemoryPct.setTextColor(pctColor(pct))
         pbMemory.progress = pct
         updateProgressBarColor(pbMemory, pct)
-        tvMemory.text = String.format(Locale.getDefault(), "%.1fG / %.1fG", usedGB, totalGB)
+        tvMemory.text = String.format(Locale.getDefault(), getString(R.string.device_info_fmt_storage), usedGB, totalGB)
     }
 
     // ── Disk ───────────────────────────────────────────────────────────
@@ -432,7 +435,7 @@ class DeviceInfoActivity : AppCompatActivity() {
         tvDiskPct.setTextColor(pctColor(pct))
         pbDisk.progress = pct
         updateProgressBarColor(pbDisk, pct)
-        tvDisk.text = String.format(Locale.getDefault(), "%.1fG / %.1fG", usedGB, totalGB)
+        tvDisk.text = String.format(Locale.getDefault(), getString(R.string.device_info_fmt_storage), usedGB, totalGB)
     }
 
     private fun pctColor(pct: Int): Int = when {
@@ -448,45 +451,48 @@ class DeviceInfoActivity : AppCompatActivity() {
         val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = cm.activeNetwork
         if (network == null) {
-            tvNetwork.text = "Offline"
+            tvNetwork.text = getString(R.string.device_info_net_offline)
             tvNetwork.setTextColor(0xFFFF4444.toInt())
-            tvNetworkDetail.text = "No connection"
+            tvNetworkDetail.text = getString(R.string.device_info_net_no_connection)
             return
         }
         val caps = cm.getNetworkCapabilities(network)
         if (caps == null) {
-            tvNetwork.text = "Offline"
+            tvNetwork.text = getString(R.string.device_info_net_offline)
             tvNetwork.setTextColor(0xFFFF4444.toInt())
-            tvNetworkDetail.text = "No connection"
+            tvNetworkDetail.text = getString(R.string.device_info_net_no_connection)
             return
         }
 
         tvNetwork.setTextColor(0xFFFFFFFF.toInt())
         when {
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
-                tvNetwork.text = "Wi-Fi"
+                tvNetwork.text = getString(R.string.device_info_net_wifi)
                 val wm = applicationContext.getSystemService(WIFI_SERVICE) as? WifiManager
                 val info = wm?.connectionInfo
                 val ssid = info?.ssid?.removeSurrounding("\"") ?: ""
                 val linkSpeed = info?.linkSpeed ?: 0
                 tvNetworkDetail.text = if (ssid.isNotEmpty() && ssid != "<unknown ssid>") {
-                    "$ssid ${linkSpeed}Mbps"
+                    getString(R.string.device_info_net_wifi_detail, ssid, linkSpeed)
                 } else {
-                    "Connected ${linkSpeed}Mbps"
+                    getString(R.string.device_info_net_connected_speed, linkSpeed)
                 }
             }
             caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
-                tvNetwork.text = "Cellular"
+                tvNetwork.text = getString(R.string.device_info_net_cellular)
                 val downstream = caps.linkDownstreamBandwidthKbps
-                tvNetworkDetail.text = if (downstream > 0) "~${downstream / 1000}Mbps" else "Mobile data"
+                tvNetworkDetail.text = if (downstream > 0)
+                    getString(R.string.device_info_net_cellular_speed, downstream / 1000)
+                else
+                    getString(R.string.device_info_net_mobile_data)
             }
             caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
-                tvNetwork.text = "Ethernet"
-                tvNetworkDetail.text = "Wired connection"
+                tvNetwork.text = getString(R.string.device_info_net_ethernet)
+                tvNetworkDetail.text = getString(R.string.device_info_net_wired)
             }
             else -> {
-                tvNetwork.text = "Online"
-                tvNetworkDetail.text = "Connected"
+                tvNetwork.text = getString(R.string.device_info_net_online)
+                tvNetworkDetail.text = getString(R.string.device_info_net_connected)
             }
         }
     }
@@ -500,9 +506,9 @@ class DeviceInfoActivity : AppCompatActivity() {
         val hours = (uptimeMs / (1000 * 60 * 60)) % 24
         val days = uptimeMs / (1000 * 60 * 60 * 24)
         return if (days > 0) {
-            String.format(Locale.getDefault(), "%dd %02dh %02dm %02ds", days, hours, minutes, seconds)
+            getString(R.string.device_info_fmt_uptime_days, days, hours, minutes, seconds)
         } else {
-            String.format(Locale.getDefault(), "%02dh %02dm %02ds", hours, minutes, seconds)
+            getString(R.string.device_info_fmt_uptime, hours, minutes, seconds)
         }
     }
 }

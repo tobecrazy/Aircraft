@@ -2,6 +2,7 @@ package com.young.aircraft.utils
 
 import android.app.Activity
 import android.content.Context
+import android.util.TypedValue
 
 /**
  * Create by Young
@@ -19,7 +20,7 @@ object ScreenUtils {
 
     @Synchronized
     fun sp2px(context: Context, spValue: Float): Float {
-        return context.resources.displayMetrics.scaledDensity * spValue + 0.5f
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, spValue, context.resources.displayMetrics)
     }
 
 

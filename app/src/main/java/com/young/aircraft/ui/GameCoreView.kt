@@ -82,6 +82,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
                 .defaultVibrator
         } else {
+            @Suppress("DEPRECATION")
             context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
 
