@@ -67,4 +67,22 @@
     <string name="combat_sound_title">Combat Sound Effects</string>
     <string name="combat_sound_summary_on">Combat sound effects are on</string>
     <string name="combat_sound_summary_off">Combat sound effects are off</string>
+
+    <!-- Other Settings -->
+    <string name="other_settings_header">Other Settings</string>
+    <string name="device_info_title">Device Information</string>
+    <string name="device_info_summary">CPU, memory, disk, network and more</string>
+    <string name="title_activity_device_info">Device Information</string>
+    <string name="device_info_cpu">CPU</string>
+    <string name="device_info_cpu_usage">CPU Usage</string>
+    <string name="device_info_memory">Memory</string>
+    <string name="device_info_disk">Disk</string>
+    <string name="device_info_network">Network</string>
+    <string name="device_info_boot_time">Boot Time</string>
+    <string name="device_info_current_time">Current Time</string>
+    <string name="device_info_app_version">App Version</string>
+    <string name="device_info_android_version">Android Version</string>
+    <string name="device_info_device_model">Device Model</string>
+    <string name="device_info_screen_resolution">Screen Resolution</string>
+    <string name="device_info_uptime">Uptime</string>
 </resources>
