@@ -1,78 +1,123 @@
 # Aircraft
 
-Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions.
+A 2D vertical-scrolling shooter game for Android, written in Kotlin. Control a jet plane, fire bullets, destroy waves of enemies, collect power-ups, and defeat bosses across 10 increasingly difficult levels.
 
-![App Icon](app/src/main/res/mipmap-anydpi-v26/ic_launcher.png)
+## Project Architecture
+
+![Project Architecture](project_diagram.svg)
+
+> For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md).
 
 ## Gameplay
 
-- **10 Levels**: Each level has a countdown timer and requires 100+ enemy kills to advance.
-- **Time Pressure**: Level 1 starts at 300 seconds; each subsequent level reduces the time by 20 seconds (down to 120 seconds at level 10).
-- **Scaling Difficulty**: Enemies get tougher each level with more health, more enemies per row, faster spawn rates, and tighter bullet spacing.
-- **Touch Controls**: Drag to move the player jet. Bullets fire automatically.
+- **10 Levels** with time-based progression: 300s down to 120s per level
+- **Boss Fights**: Each level ends with a boss that has AI movement, bomb attacks, and scaling HP (1000–1900)
+- **Power-Ups**: Red envelopes (3 hits to open → rocket launch → AoE blast) and medical kits (HP restore)
+- **Touch Controls**: Drag to move, bullets fire automatically every 4 frames
+- **Scaling Difficulty**: More enemies, faster spawns, tighter bullet spacing each level
+- **Scoring**: 100 pts/kill, cumulative across all levels in a session
 
 ## Features
 
-- 🎮 **Classic Arcade Shooter**: Intuitive touch-and-drag controls
-- ⏱️ **Time-Based Progression**: 10 challenging levels with decreasing time limits
-- 🎯 **Scaling Difficulty**: Progressive enemy stat increases
-- 🎵 **Audio Experience**: Looping background music + dynamic sound effects
-- ✈️ **Custom Game Engine**: 30 FPS rendering with smooth animations
-- 🎨 **Modern UI**: Material Design with adaptive icon
-
-## Screenshots
-
-### App Icon
-The app features a vibrant fighter jet launch icon with:
-- Deep space gradient background with radiant light effects
-- Detailed metallic fighter jet with afterburner flames
-- Dynamic speed lines and sparkle effects
-- Adaptive icon support for all Android versions
-
-## Architecture
-
-- **Game Engine**: Custom `SurfaceView` (`GameCoreView`) with a dedicated rendering thread at 30 FPS, drawing directly to `Canvas`.
-- **Audio**: Background music via `MediaPlayer` (looping), sound effects via `SoundPool` (fire, hit, game over).
-- **Level System**: Time-based progression with per-level enemy stat scaling.
-- **Collision Detection**: Per-frame checks for player vs enemies, enemy bullets vs player, and player bullets vs enemies.
+- Custom SurfaceView game engine at 30 FPS — no third-party game framework
+- 9-way per-frame collision detection system
+- Particle-based explosion effects (flash, fireball, debris, smoke phases)
+- Screen shake, damage flash, and low-health vignette effects
+- Background music (MediaPlayer) + sound effects (SoundPool, 5 streams)
+- Room database persistence with leaderboard
+- 4 selectable jet planes, 15 enemy types, 5 boss sprites
+- Localization: English and Chinese
 
 ## Project Structure
 
 ```
 app/src/main/java/com/young/aircraft/
 ├── common/
-│   └── AircraftApplication.kt       # Application class
-├── data/
-│   ├── Aircraft.kt                  # Player data model (health, lethality)
-│   └── EnemyState.kt                # Enemy state (position, health, bullets)
-├── gui/
-│   ├── LaunchActivity.kt            # Splash / launch screen
-│   ├── MainActivity.kt              # Hosts GameCoreView, binds MusicService
-│   ├── SettingsActivity.kt          # Game settings
-│   └── PrivacyPolicyActivity.kt     # Privacy policy screen
-├── service/
-│   └── MusicService.kt              # Bound service: MediaPlayer (BGM) + SoundPool (SFX)
-├── ui/
-│   ├── DrawBaseObject.kt            # Abstract base class for all drawable objects
-│   ├── GameCoreView.kt              # SurfaceView game loop, collision, level logic
-│   ├── Aircraft.kt                  # Player jet rendering and bullet firing
-│   ├── Enemies.kt                   # Enemy spawning, movement, and bullet system
-│   ├── DrawBackground.kt            # Scrolling background
-│   └── DrawHeader.kt                # HUD overlay (level, HP, timer, kills)
-├── utils/
-│   ├── ScreenUtils.kt               # Screen dimensions, dp/sp/px conversion
-│   └── BitmapUtils.kt               # Bitmap loading, resizing, rotation
-└── viewmodel/
-    └── MainViewModel.kt             # LiveData for service readiness
+│   └── AircraftApplication.kt          # Application entry point
+│
+├── data/                                # ── Data Layer ──
+│   ├── AppDatabase.kt                   # Room database singleton (v2027)
+│   ├── PlayerGameData.kt               # Entity: player_game_data table
+│   ├── PlayerGameDataDao.kt            # DAO: CRUD for game records
+│   ├── Aircraft.kt                      # Data model: player HP & stats
+│   ├── EnemyState.kt                   # Data model: enemy position & bullets
+│   ├── BossState.kt                    # Data model: boss HP, phase, movement
+│   ├── RedEnvelopeState.kt             # Data model: red envelope state
+│   ├── RocketState.kt                  # Data model: rocket projectile state
+│   └── MedicalKitState.kt             # Data model: medical kit state
+│
+├── gui/                                 # ── Presentation Layer ──
+│   ├── LaunchActivity.kt               # Home screen (Start / History / Settings)
+│   ├── MainActivity.kt                 # Game host, binds MusicService, saves to DB
+│   ├── HistoryActivity.kt              # Leaderboard screen container
+│   ├── HistoryFragment.kt              # Game history list (RecyclerView)
+│   ├── HistoryAdapter.kt               # RecyclerView adapter for records
+│   ├── SettingsActivity.kt             # Sound & privacy preferences
+│   └── PrivacyPolicyActivity.kt        # Privacy policy (WebView)
+│
+├── ui/                                  # ── Game Engine Layer ──
+│   ├── GameCoreView.kt                 # SurfaceView: game loop, collision, levels
+│   ├── DrawBaseObject.kt               # Abstract base for drawable objects
+│   ├── Aircraft.kt                      # Player jet: rendering & bullet firing
+│   ├── Enemies.kt                       # Enemy spawning, movement & bullets
+│   ├── BossEnemy.kt                    # Boss AI, bombs, death sequence
+│   ├── RedEnvelopes.kt                 # Red envelope power-up & rocket system
+│   ├── MedicalKits.kt                  # Health pickup collectibles
+│   ├── DrawBackground.kt               # Seamless scrolling background
+│   ├── DrawHeader.kt                   # HUD: level, HP bar, timer, kills
+│   └── ExplosionEffect.kt             # Particle-based death explosion
+│
+├── providers/                           # ── Providers ──
+│   └── DatabaseProvider.kt             # Database instance provider
+│
+├── service/                             # ── Service Layer ──
+│   └── MusicService.kt                 # Bound service: BGM + SFX playback
+│
+├── viewmodel/                           # ── ViewModel Layer ──
+│   └── MainViewModel.kt                # LiveData for service readiness
+│
+└── utils/                               # ── Utilities ──
+    ├── ScreenUtils.kt                   # Screen dimensions, dp/sp/px conversion
+    └── BitmapUtils.kt                   # Bitmap loading, resizing, rotation
 ```
+
+## Game Assets
+
+| Category | Count | Details |
+|----------|-------|---------|
+| Enemy sprites | 15 | `enemy_1.png` – `enemy_15.png` |
+| Boss sprites | 5 | `boss_1.png` – `boss_5.png` |
+| Missile sprites | 3 | `missile_1.png` – `missile_3.png` |
+| Jet planes | 4 | `jet_plane_1.png` – `jet_plane_4.png` (selectable) |
+| Red envelopes | 3 | `red_box_1.png`, `red_box_2.png`, `red_box_3.png` |
+| Rocket | 1 | `rocket.png` |
+| Backgrounds | 3 | `background.jpg`, `background_1.jpg`, `background_2.jpg` |
+| Audio | 6 | 2 BGM tracks + fire, hit, enemy_hit, game_over SFX |
+| Localization | 2 | English (default) + Chinese (`values-zh/`) |
+
+## Level Progression
+
+| Level | Time Limit | Required Kills | Enemies/Row | Boss HP |
+|-------|-----------|----------------|-------------|---------|
+| 1 | 300s | 100 | 6 | 1,000 |
+| 2 | 280s | 110 | 7 | 1,100 |
+| 3 | 260s | 120 | 8 | 1,200 |
+| 4 | 240s | 130 | 9 | 1,300 |
+| 5 | 220s | 140 | 10 | 1,400 |
+| 6 | 200s | 150 | 11 | 1,500 |
+| 7 | 180s | 160 | 12 | 1,600 |
+| 8 | 160s | 170 | 13 | 1,700 |
+| 9 | 140s | 180 | 14 | 1,800 |
+| 10 | 120s | 190 | 15 | 1,900 |
 
 ## Requirements
 
-- **Android Studio**: Meerkat | 2024.3.1 Patch 1 or later
-- **Android SDK**: Compile SDK 35
-- **Minimum SDK**: 30
+- **Android Studio**: Meerkat (2024.3.1) or later
+- **Compile SDK**: 36
+- **Min SDK**: 30 (Android 11)
 - **Target SDK**: 35
-- **Java Version**: 17
+- **Java**: 17
+- **Gradle**: 9.3.1 / AGP 9.1.0
 
 ## Build
 
@@ -80,6 +125,8 @@ app/src/main/java/com/young/aircraft/
 ./gradlew assembleDebug          # Build debug APK
 ./gradlew assembleRelease        # Build release APK
 ./gradlew test                   # Run unit tests
+./gradlew connectedAndroidTest   # Instrumented tests (requires device/emulator)
+./gradlew lint                   # Lint check
 ./gradlew clean                  # Clean build
 ```
 
