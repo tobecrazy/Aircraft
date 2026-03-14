@@ -49,10 +49,6 @@ class DeviceInfoActivity : AppCompatActivity() {
     private lateinit var pbCpuUsage: ProgressBar
     private lateinit var llCpuCores: LinearLayout
 
-    // Previous /proc/stat snapshot for delta calculation
-    private var prevTotalCpu: LongArray? = null
-    private var prevPerCoreCpu: List<LongArray>? = null
-
     // Per-core UI rows (reused across refreshes)
     private var coreRows: List<CoreRow>? = null
 
@@ -75,6 +71,7 @@ class DeviceInfoActivity : AppCompatActivity() {
         tvUptime = findViewById(R.id.tv_uptime)
         tvCpuUsagePct = findViewById(R.id.tv_cpu_usage_pct)
         pbCpuUsage = findViewById(R.id.pb_cpu_usage)
+        pbCpuUsage.progressDrawable = resources.getDrawable(R.drawable.cpu_progress_bar, null).mutate()
         llCpuCores = findViewById(R.id.ll_cpu_cores)
 
         populateStaticInfo()
@@ -141,26 +138,31 @@ class DeviceInfoActivity : AppCompatActivity() {
         }
     }
 
-    // ── CPU usage (dynamic, from /proc/stat) ───────────────────────────
+    // ── CPU usage (dynamic) ────────────────────────────────────────────
+    //
+    // Strategy 1: /proc/stat (blocked on most Android 8+ devices)
+    // Strategy 2: per-core cpufreq (current_freq / max_freq), always readable
 
-    /**
-     * Parses a single "cpu" or "cpuN" line from /proc/stat.
-     * Returns [user, nice, system, idle, iowait, irq, softirq, steal] as a LongArray.
-     */
+    private var useProcStat = false
+    private val numCores = Runtime.getRuntime().availableProcessors()
+
+    // /proc/stat snapshot fields
+    private var prevTotalLine: LongArray? = null
+    private var prevCoreLines: List<LongArray>? = null
+
+    // cpufreq cached max frequencies (read once)
+    private var maxFreqs: LongArray? = null
+
     private fun parseCpuLine(line: String): LongArray {
         val parts = line.trim().split("\\s+".toRegex())
-        // parts[0] = "cpu" or "cpu0" etc., parts[1..] = numbers
         return LongArray(minOf(parts.size - 1, 8)) { i ->
             parts.getOrNull(i + 1)?.toLongOrNull() ?: 0L
         }
     }
 
-    private data class CpuSnapshot(
-        val total: LongArray,
-        val perCore: List<LongArray>
-    )
+    private data class CpuSnapshot(val total: LongArray, val perCore: List<LongArray>)
 
-    private fun readCpuSnapshot(): CpuSnapshot? {
+    private fun readProcStatSnapshot(): CpuSnapshot? {
         return try {
             val lines = BufferedReader(FileReader("/proc/stat")).use { reader ->
                 val result = mutableListOf<String>()
@@ -173,6 +175,8 @@ class DeviceInfoActivity : AppCompatActivity() {
             }
             if (lines.isEmpty()) return null
             val total = parseCpuLine(lines[0])
+            // Verify we actually got non-zero values (some kernels return all zeros)
+            if (total.sum() == 0L) return null
             val cores = lines.drop(1).map { parseCpuLine(it) }
             CpuSnapshot(total, cores)
         } catch (_: Exception) {
@@ -190,17 +194,49 @@ class DeviceInfoActivity : AppCompatActivity() {
         return if (diffTotal > 0) ((diffTotal - diffIdle) * 100 / diffTotal).toInt().coerceIn(0, 100) else 0
     }
 
+    private fun readSysFile(path: String): Long? {
+        return try {
+            BufferedReader(FileReader(path)).use { it.readLine()?.trim()?.toLongOrNull() }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     private fun initCpuSnapshot() {
-        val snap = readCpuSnapshot() ?: return
-        prevTotalCpu = snap.total
-        prevPerCoreCpu = snap.perCore
-        buildCoreRows(snap.perCore.size)
+        // Try /proc/stat first
+        val snap = readProcStatSnapshot()
+        if (snap != null) {
+            useProcStat = true
+            prevTotalLine = snap.total
+            prevCoreLines = snap.perCore
+            buildCoreRows(snap.perCore.size)
+            return
+        }
+
+        // Fallback: cpufreq — read max frequencies once
+        useProcStat = false
+        val maxes = LongArray(numCores)
+        for (i in 0 until numCores) {
+            maxes[i] = readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq")
+                ?: readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/scaling_max_freq")
+                ?: 0L
+        }
+        maxFreqs = maxes
+        buildCoreRows(numCores)
     }
 
     private fun refreshCpuUsage() {
-        val snap = readCpuSnapshot() ?: return
-        val prevTotal = prevTotalCpu
-        val prevCores = prevPerCoreCpu
+        if (useProcStat) {
+            refreshCpuFromProcStat()
+        } else {
+            refreshCpuFromFreq()
+        }
+    }
+
+    private fun refreshCpuFromProcStat() {
+        val snap = readProcStatSnapshot() ?: return
+        val prevTotal = prevTotalLine
+        val prevCores = prevCoreLines
 
         if (prevTotal != null) {
             val overallPct = calcUsagePercent(prevTotal, snap.total)
@@ -222,8 +258,50 @@ class DeviceInfoActivity : AppCompatActivity() {
             }
         }
 
-        prevTotalCpu = snap.total
-        prevPerCoreCpu = snap.perCore
+        prevTotalLine = snap.total
+        prevCoreLines = snap.perCore
+    }
+
+    private fun refreshCpuFromFreq() {
+        val maxes = maxFreqs ?: return
+        val rows = coreRows ?: return
+        var totalPct = 0
+        var activeCount = 0
+
+        for (i in 0 until numCores) {
+            val curFreq = readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/scaling_cur_freq")
+                ?: readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_cur_freq")
+            val maxFreq = maxes[i]
+            val pct = if (curFreq != null && maxFreq > 0) {
+                (curFreq * 100 / maxFreq).toInt().coerceIn(0, 100)
+            } else {
+                // Core may be offline — check online status
+                val online = readSysFile("/sys/devices/system/cpu/cpu$i/online")
+                if (online == 0L) 0 else -1
+            }
+
+            if (i < rows.size) {
+                if (pct >= 0) {
+                    rows[i].label.text = String.format(Locale.getDefault(), "Core %d", i)
+                    val freqMhz = if (curFreq != null) " (${curFreq / 1000} MHz)" else ""
+                    rows[i].pctText.text = String.format(Locale.getDefault(), "%3d%%%s", pct, freqMhz)
+                    rows[i].bar.progress = pct
+                    updateProgressBarColor(rows[i].bar, pct)
+                    totalPct += pct
+                    activeCount++
+                } else {
+                    rows[i].label.text = String.format(Locale.getDefault(), "Core %d", i)
+                    rows[i].pctText.text = " --"
+                    rows[i].bar.progress = 0
+                    updateProgressBarColor(rows[i].bar, 0)
+                }
+            }
+        }
+
+        val overallPct = if (activeCount > 0) totalPct / activeCount else 0
+        tvCpuUsagePct.text = "$overallPct%"
+        pbCpuUsage.progress = overallPct
+        updateProgressBarColor(pbCpuUsage, overallPct)
     }
 
     private fun updateProgressBarColor(bar: ProgressBar, pct: Int) {
