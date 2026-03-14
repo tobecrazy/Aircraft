@@ -67,4 +67,25 @@
     <string name="combat_sound_title">战斗音效</string>
     <string name="combat_sound_summary_on">战斗音效已开启</string>
     <string name="combat_sound_summary_off">战斗音效已关闭</string>
+
+    <!-- Other Settings -->
+    <string name="other_settings_header">其他设置</string>
+    <string name="device_info_title">设备信息</string>
+    <string name="device_info_summary">CPU、内存、磁盘、网络等信息</string>
+    <string name="title_activity_device_info">系统监控</string>
+    <string name="device_info_cpu">CPU</string>
+    <string name="device_info_cpu_usage">CPU 使用率</string>
+    <string name="device_info_memory">内存</string>
+    <string name="device_info_disk">磁盘</string>
+    <string name="device_info_network">网络</string>
+    <string name="device_info_boot_time">开机时间</string>
+    <string name="device_info_current_time">当前时间</string>
+    <string name="device_info_app_version">应用版本</string>
+    <string name="device_info_android_version">Android 版本</string>
+    <string name="device_info_device_model">设备型号</string>
+    <string name="device_info_screen_resolution">屏幕分辨率</string>
+    <string name="device_info_uptime">运行时长</string>
+    <string name="device_info_section_resources">资源使用</string>
+    <string name="device_info_section_system">系统信息</string>
+    <string name="device_info_battery">电池</string>
 </resources>

@@ -8,6 +8,8 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
         android:name=".common.AircraftApplication"
@@ -29,6 +31,11 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+        <activity
+            android:name=".gui.DeviceInfoActivity"
+            android:exported="false"
+            android:label="@string/title_activity_device_info"
+            android:theme="@style/Theme.Aircraft.History" />
         <activity
             android:name=".gui.SettingsActivity"
             android:exported="false"

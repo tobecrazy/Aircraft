@@ -33,7 +33,8 @@ A 2D vertical-scrolling shooter game for Android, written in Kotlin. Control a j
 ```
 app/src/main/java/com/young/aircraft/
 ├── common/
-│   └── AircraftApplication.kt          # Application entry point
+│   ├── AircraftApplication.kt          # Application entry point
+│   └── GameStateManager.kt            # Singleton: broadcasts GameState via SharedFlow
 │
 ├── data/                                # ── Data Layer ──
 │   ├── AppDatabase.kt                   # Room database singleton (v2027)
@@ -44,7 +45,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── BossState.kt                    # Data model: boss HP, phase, movement
 │   ├── RedEnvelopeState.kt             # Data model: red envelope state
 │   ├── RocketState.kt                  # Data model: rocket projectile state
-│   └── MedicalKitState.kt             # Data model: medical kit state
+│   ├── MedicalKitState.kt             # Data model: medical kit state
+│   └── GameState.kt                    # Enum: game state (PLAYING, PAUSED, LOW_MEMORY…)
 │
 ├── gui/                                 # ── Presentation Layer ──
 │   ├── LaunchActivity.kt               # Home screen (Start / History / Settings)

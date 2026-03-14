@@ -1,5 +1,6 @@
 package com.young.aircraft.gui
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -9,6 +10,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
+import android.provider.Settings.Secure
 import android.util.Log
 import android.view.KeyEvent
 import android.view.Window
@@ -59,11 +61,12 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        playerId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+        playerId = Secure.getString(contentResolver, Secure.ANDROID_ID)
         coreView = GameCoreView(this)
         val startLevel = intent.getIntExtra("start_level", 1)
         val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane_2)

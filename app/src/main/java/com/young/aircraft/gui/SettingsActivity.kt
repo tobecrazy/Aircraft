@@ -35,6 +35,11 @@ class SettingsActivity : AppCompatActivity() {
                 navigateToPrivacyPolicy()
                 true
             }
+            val deviceInfo = preferenceScreen.findPreference<Preference>("device_info")
+            deviceInfo?.setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), DeviceInfoActivity::class.java))
+                true
+            }
         }
 
         private fun navigateToPrivacyPolicy() {
