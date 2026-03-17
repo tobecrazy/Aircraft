@@ -1,6 +1,5 @@
 package com.young.aircraft.service
 
-import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent
 import android.media.AudioAttributes
@@ -8,7 +7,6 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
 import androidx.preference.PreferenceManager
 import com.young.aircraft.R
@@ -23,19 +21,14 @@ class MusicService : Service() {
     private var bgMediaPlayer: MediaPlayer? = null
     private val mBinder = MusicBinder()
 
-    @SuppressLint("ObsoleteSdkInt")
     override fun onCreate() {
         super.onCreate()
-        soundPool = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val attribution: AudioAttributes =
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_GAME)
-                    .build()
-            SoundPool.Builder().setMaxStreams(MAX_STREAMS).setAudioAttributes(attribution).build()
-        } else {
-            SoundPool(MAX_STREAMS, AudioManager.STREAM_MUSIC, 100)
-        }
+        val attribution: AudioAttributes =
+            AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .build()
+        soundPool = SoundPool.Builder().setMaxStreams(MAX_STREAMS).setAudioAttributes(attribution).build()
         soundMap = hashMapOf()
         soundMap[0x002] = soundPool.load(this, R.raw.fire, 1)
         soundMap[0x003] = soundPool.load(this, R.raw.be_hit, 1)

@@ -67,4 +67,54 @@
     <string name="combat_sound_title">战斗音效</string>
     <string name="combat_sound_summary_on">战斗音效已开启</string>
     <string name="combat_sound_summary_off">战斗音效已关闭</string>
+
+    <!-- Other Settings -->
+    <string name="other_settings_header">其他设置</string>
+    <string name="device_info_title">设备信息</string>
+    <string name="device_info_summary">CPU、内存、磁盘、网络等信息</string>
+    <string name="title_activity_device_info">系统监控</string>
+    <string name="device_info_cpu">CPU</string>
+    <string name="device_info_cpu_usage">CPU 使用率</string>
+    <string name="device_info_memory">内存</string>
+    <string name="device_info_disk">磁盘</string>
+    <string name="device_info_network">网络</string>
+    <string name="device_info_boot_time">开机时间</string>
+    <string name="device_info_current_time">当前时间</string>
+    <string name="device_info_app_version">应用版本</string>
+    <string name="device_info_android_version">Android 版本</string>
+    <string name="device_info_device_model">设备型号</string>
+    <string name="device_info_screen_resolution">屏幕分辨率</string>
+    <string name="device_info_uptime">运行时长</string>
+    <string name="device_info_section_resources">资源使用</string>
+    <string name="device_info_section_system">系统信息</string>
+    <string name="device_info_battery">电池</string>
+
+    <!-- Device info format strings -->
+    <string name="device_info_fmt_android">Android %1$s (API %2$d)</string>
+    <string name="device_info_fmt_version">v%s</string>
+    <string name="device_info_fmt_resolution">%1$d x %2$d @ %3$ddpi</string>
+    <string name="device_info_fmt_cpu_detail">%1$s | %2$d cores | %3$s</string>
+    <string name="device_info_fmt_storage">%.1fG / %.1fG</string>
+    <string name="device_info_fmt_uptime_days">%1$dd %2$02dh %3$02dm %4$02ds</string>
+    <string name="device_info_fmt_uptime">%1$02dh %2$02dm %3$02ds</string>
+    <string name="device_info_battery_charging">充电中</string>
+    <string name="device_info_battery_discharging">放电中</string>
+    <string name="device_info_net_offline">离线</string>
+    <string name="device_info_net_no_connection">无网络连接</string>
+    <string name="device_info_net_wifi">Wi-Fi</string>
+    <string name="device_info_net_cellular">蜂窝网络</string>
+    <string name="device_info_net_ethernet">以太网</string>
+    <string name="device_info_net_online">在线</string>
+    <string name="device_info_net_connected">已连接</string>
+    <string name="device_info_net_wifi_detail">%1$s %2$dMbps</string>
+    <string name="device_info_net_connected_speed">已连接 %dMbps</string>
+    <string name="device_info_net_cellular_speed">~%dMbps</string>
+    <string name="device_info_net_mobile_data">移动数据</string>
+    <string name="device_info_net_wired">有线连接</string>
+    <string name="device_info_cpu_core_off">OFF</string>
+    <string name="device_info_fmt_device_model">%1$s %2$s</string>
+    <string name="device_info_fmt_pct">%d%%</string>
+    <string name="device_info_fmt_core_pct">%1$3d%%</string>
+    <string name="device_info_fmt_core_pct_freq">%1$3d%% %2$dMHz</string>
+    <string name="device_info_fmt_core_init">  0%%</string>
 </resources>

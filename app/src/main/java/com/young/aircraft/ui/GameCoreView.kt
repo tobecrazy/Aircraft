@@ -40,6 +40,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     lateinit var redEnvelopes: RedEnvelopes
     lateinit var bossEnemy: BossEnemy
     lateinit var medicalKits: MedicalKits
+    lateinit var shields: Shields
     lateinit var playerData: AircraftData
     private var surfaceHolder: SurfaceHolder? = null
     private var collisionCooldown = false
@@ -81,6 +82,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
                 .defaultVibrator
         } else {
+            @Suppress("DEPRECATION")
             context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
 
@@ -122,6 +124,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         bossEnemy.level = level
         medicalKits = MedicalKits(context, 1.0F)
         medicalKits.level = level
+        shields = Shields(context, 1.0F)
+        shields.level = level
         playerData = AircraftData(name = "Player", health_points = 100.0f)
         drawHeader = DrawHeader(context, playerData, this)
         levelStartTimeMs = System.currentTimeMillis()
@@ -173,6 +177,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
         // Medical kit pickup
         checkMedicalKitPickup(aircraftBounds)
+
+        // Shield pickup (player bullets hitting shields)
+        checkPlayerBulletsHitShields()
     }
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
@@ -180,14 +187,18 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         for ((bx, by, bulletRef) in enemyBullets) {
             val bulletBounds = enemies.getBulletBounds(bx, by)
             if (RectF.intersects(aircraftBounds, bulletBounds)) {
-                playerData.hit()
-                musicService?.playerHitSoundPlay()
-                triggerHitEffects()
-                Log.d("Game", "Player hit by enemy bullet! HP: ${playerData.health_points}")
                 // Remove the bullet that hit
                 for (enemy in enemies.activeEnemies) {
                     enemy.bullets.remove(bulletRef)
                 }
+                if (drawAircraft.isShielded()) {
+                    Log.d("Game", "Shield absorbed enemy bullet!")
+                    break
+                }
+                playerData.hit()
+                musicService?.playerHitSoundPlay()
+                triggerHitEffects()
+                Log.d("Game", "Player hit by enemy bullet! HP: ${playerData.health_points}")
                 if (!playerData.isAlive()) {
                     musicService?.gameOverSoundPlay()
                     triggerDeathExplosion()
@@ -315,6 +326,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun handleCollision() {
+        if (drawAircraft.isShielded()) {
+            collisionCooldown = true
+            return
+        }
         playerData.hit()
         collisionCooldown = true
         musicService?.playerHitSoundPlay()
@@ -360,6 +375,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private fun checkPlayerVsBoss(aircraftBounds: RectF) {
         val bossBounds = bossEnemy.getBossBounds() ?: return
         if (RectF.intersects(aircraftBounds, bossBounds)) {
+            if (drawAircraft.isShielded()) {
+                Log.d("Game", "Shield absorbed boss collision!")
+                return
+            }
             // Instant death on boss collision
             playerData.health_points = 0f
             musicService?.gameOverSoundPlay()
@@ -386,6 +405,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             if (expandedBounds.contains(bombCenterX, bombCenterY)) {
                 bombIter.remove()
                 bossEnemy.triggerBombExplosion(bombCenterX, bombCenterY)
+                if (drawAircraft.isShielded()) {
+                    Log.d("Game", "Shield absorbed boss bomb!")
+                    break
+                }
                 playerData.hit()
                 musicService?.playerHitSoundPlay()
                 triggerHitEffects()
@@ -471,6 +494,32 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
     }
 
+    private fun checkPlayerBulletsHitShields() {
+        val bullets = drawAircraft.getBullets()
+        val bulletSize = ScreenUtils.dpToPx(context, 40.0f)
+
+        for (bullet in bullets) {
+            if (bullet.y < 0) continue
+            val bulletBounds = RectF(
+                bullet.x, bullet.y,
+                bullet.x + bulletSize,
+                bullet.y + bulletSize
+            )
+
+            for (shield in shields.activeShields) {
+                if (shield.collected) continue
+                val shieldBounds = shields.getShieldBounds(shield)
+                if (RectF.intersects(bulletBounds, shieldBounds)) {
+                    drawAircraft.removeBullet(bullet)
+                    shield.collected = true
+                    drawAircraft.activateShield()
+                    Log.d("Game", "Shield collected! Player is invincible for 10 seconds.")
+                    break
+                }
+            }
+        }
+    }
+
     fun advanceToNextLevel() {
         level++
         enemies.level = level
@@ -483,6 +532,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         bossEnemy.clearAll()
         medicalKits.level = level
         medicalKits.clearAll()
+        shields.level = level
+        shields.clearAll()
+        drawAircraft.shieldEndTimeMs = 0L
         bossDefeatedThisLevel = false
         drawBackground.randomizeBackground()
         levelStartTimeMs = System.currentTimeMillis()
@@ -536,6 +588,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             drawEnemies(canvas)
             drawRedEnvelopes(canvas)
             drawMedicalKits(canvas)
+            drawShields(canvas)
             drawBossEnemy(canvas)
             checkCollision()
             checkBossDefeated()
@@ -658,6 +711,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun drawMedicalKits(canvas: Canvas) {
         medicalKits.onDraw(canvas)
+    }
+
+    private fun drawShields(canvas: Canvas) {
+        shields.onDraw(canvas)
     }
 
     private fun drawBossEnemy(canvas: Canvas) {

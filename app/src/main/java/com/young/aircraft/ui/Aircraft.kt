@@ -34,6 +34,10 @@ class Aircraft(
     // Hit flash state
     var hitTimeMs: Long = 0L
 
+    // Shield invincibility state
+    var shieldEndTimeMs: Long = 0L
+    private var shieldBlinkCounter: Int = 0
+
     // Paint with white tint for hit flash effect
     private val hitFlashPaint = Paint().apply {
         colorFilter = ColorMatrixColorFilter(
@@ -58,6 +62,14 @@ class Aircraft(
         const val FIRE_INTERVAL = 4
         const val BULLET_SPEED = 35f
         const val HIT_FLASH_DURATION_MS = 200L
+        const val SHIELD_DURATION_MS = 10_000L
+        const val SHIELD_BLINK_INTERVAL = 4  // toggle visibility every 4 frames
+    }
+
+    fun isShielded(): Boolean = System.currentTimeMillis() < shieldEndTimeMs
+
+    fun activateShield() {
+        shieldEndTimeMs = System.currentTimeMillis() + SHIELD_DURATION_MS
     }
 
     @SuppressLint("DrawAllocation")
@@ -73,10 +85,22 @@ class Aircraft(
             val screenDensity = context.resources.displayMetrics.densityDpi
             jetBitmap.density = screenDensity
             bulletBitmap.density = screenDensity
-            canvas.drawBitmap(
-                jetBitmap, jetX, jetY,
-                if (System.currentTimeMillis() - hitTimeMs < HIT_FLASH_DURATION_MS) hitFlashPaint else mPaint
-            )
+
+            // Determine paint: hit flash > shield blink > normal
+            val drawPaint = if (System.currentTimeMillis() - hitTimeMs < HIT_FLASH_DURATION_MS) {
+                hitFlashPaint
+            } else if (isShielded()) {
+                shieldBlinkCounter++
+                val cycle = shieldBlinkCounter / SHIELD_BLINK_INTERVAL
+                if (cycle % 2 == 0) mPaint else null  // null = skip drawing (blink off)
+            } else {
+                shieldBlinkCounter = 0
+                mPaint
+            }
+
+            if (drawPaint != null) {
+                canvas.drawBitmap(jetBitmap, jetX, jetY, drawPaint)
+            }
 
             // Compute actual rendered sizes accounting for canvas vs bitmap density scaling
             val scale = if (canvas.density > 0) canvas.density.toFloat() / screenDensity else 1f

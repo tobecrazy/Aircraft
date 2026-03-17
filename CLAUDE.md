@@ -45,6 +45,7 @@ The game runs on a custom `SurfaceView` (`GameCoreView`) with a dedicated render
   - `RedEnvelopes` — collectible power-up: spawns drifting gift boxes, launches rockets on detonation
   - `BossEnemy` — end-of-level boss with AI movement, bomb attacks, and dramatic multi-explosion death
   - `MedicalKits` — collectible health pickups: spawns heart items, restores player HP to max on collection
+  - `Shields` — collectible shield power-up: grants 10s invincibility with blink effect
   - `ExplosionEffect` — particle-based death animation (flash, fireball, debris, smoke phases)
 
 ### Level System (Time-Based + Boss)
@@ -104,19 +105,31 @@ The difficulty multiplier is read in `initializeGameDrawer()` and passed to `Air
 - **Boss pickup:** If the player doesn't collect it, the boss can also pick it up to restore its HP to max.
 - **Level reset:** `medicalKits.clearAll()` on `advanceToNextLevel()`.
 
+### Shield Power-Up System
+
+`Shields` (ui/) manages invincibility pickups. State in `ShieldState` (data/).
+
+- **Spawning:** One spawn attempt per level, after a 300-frame delay (10s). Spawn probability decreases with level: 90% at level 1, 50% at level 5, 5% at level 10. Formula: `max(0.05, 1.0 - (level-1) * 0.1)`. Random position in middle 15–65% of screen height.
+- **Lifetime:** 450 frames (15s at 30 FPS). Blinks in the last 5 seconds (toggling alpha every 6 frames).
+- **Sprites:** 3 shield sprites (`shield_1.png`, `shield_2.png`, `shield_3.png`), 100dp, randomly selected on spawn.
+- **Collection:** Player bullets hitting the shield collect it (bullet consumed). Activates 10-second invincibility (`SHIELD_DURATION_MS = 10_000L` in `Aircraft` ui/). While shielded, the player jet blinks every 4 frames.
+- **Protection:** Shield absorbs enemy bullet hits, boss body collisions, and boss bomb hits — all checked via `drawAircraft.isShielded()` in `GameCoreView.checkCollision()`.
+- **Level reset:** `shields.clearAll()` and `drawAircraft.shieldEndTimeMs = 0L` on `advanceToNextLevel()`.
+
 ### Collision Detection
 
 Ten checks run every frame in `GameCoreView.checkCollision()`:
 1. Player aircraft vs enemy sprites (RectF intersection, with cooldown)
-2. Enemy bullets vs player (`getEnemyBullets()` returns `Triple<x, y, EnemyBullet>` for removal by reference)
+2. Enemy bullets vs player (`getEnemyBullets()` returns `Triple<x, y, EnemyBullet>` for removal by reference; shield absorbs hit)
 3. Player bullets vs enemies (iterates `activeEnemies`, increments kill counters — both `enemiesDestroyedThisLevel` and `totalKills` — on destroy)
 4. Player bullets vs red envelopes (remaining bullets checked, consumed on hit, rocket launched on detonation)
 5. Rockets vs enemies (AoE blast on first enemy impact)
-6. Player aircraft vs boss body (instant player death)
-7. Boss bombs vs player (proximity detonation within 5dp, 20% screen blast, 20 HP damage)
+6. Player aircraft vs boss body (instant player death; shield absorbs)
+7. Boss bombs vs player (proximity detonation within 5dp, 20% screen blast, 20 HP damage; shield absorbs)
 8. Player bullets vs boss (10 damage per hit)
 9. Rockets vs boss (10 damage per hit via `bossEnemy.hitBoss()`)
 10. Medical kit pickup (player collects if not at full HP → HP restored to max; boss collects if active and not at max HP → boss HP restored to max)
+11. Shield pickup (player bullets hitting shield → bullet consumed, shield collected, 10s invincibility activated)
 
 ### Scoring & Persistence (Room Database)
 
@@ -142,6 +155,7 @@ LaunchActivity (entry point, Theme.AppCompat.NoActionBar)
   │     Intent extras: "start_level" (Int, default 1), "jet_plane_res" (Int, default jet_plane)
   ├─→ HistoryActivity (Theme.Aircraft) → HistoryFragment → RecyclerView
   └─→ SettingsActivity → SettingsFragment
+       ├─→ DeviceInfoActivity (device hardware/software info display)
        └─→ PrivacyPolicyActivity (WebView)
 ```
 
@@ -161,6 +175,10 @@ Players choose their jet on `LaunchActivity` by tapping the plane image (cycles 
 - **Game thread:** Dedicated thread in `GameCoreView` for the 30 FPS render loop (synchronized on SurfaceHolder)
 - **Service:** `MusicService` bound service with @Synchronized playback methods
 
+### Game State Broadcasting
+
+`GameStateManager` (common/) is a singleton that broadcasts `GameState` enum values (`PLAYING`, `PAUSED`, `GAME_OVER`, `LEVEL_COMPLETE`, `GAME_WON`, `LOW_MEMORY`) via a Kotlin `SharedFlow`. Game components emit state changes with `GameStateManager.emit(state)`, and observers collect from `GameStateManager.gameState`.
+
 ### Key Naming Collision
 
 There are two files named `Aircraft.kt`:
@@ -177,7 +195,7 @@ Code uses `import com.young.aircraft.data.Aircraft as AircraftData` to disambigu
 
 ### Bitmap Density
 
-All game object bitmaps must have `bitmap.density = screenDensity` set for correct canvas density scaling. This applies to player bullets, enemy bullets, red envelope sprites, rocket sprites, boss sprites, missile sprites, and medical kit sprites. Forgetting this causes incorrect rendering sizes.
+All game object bitmaps must have `bitmap.density = screenDensity` set for correct canvas density scaling. This applies to player bullets, enemy bullets, red envelope sprites, rocket sprites, boss sprites, missile sprites, medical kit sprites, and shield sprites. Forgetting this causes incorrect rendering sizes.
 
 ### Game Assets
 
@@ -188,6 +206,7 @@ All game object bitmaps must have `bitmap.density = screenDensity` set for corre
 - 3 red envelope sprites: `red_box_1.png` (closed), `red_box_3.png` (ribbon/hit), `red_box_2.png` (open/detonated)
 - 1 rocket sprite: `rocket.png` (launched from player on envelope detonation)
 - 2 medical kit sprites: `red_heart_1.png`, `red_heart_2.png` (120dp, randomly selected on spawn)
+- 3 shield sprites: `shield_1.png`, `shield_2.png`, `shield_3.png` (100dp, randomly selected on spawn)
 - 3 background images: `background.jpg`, `background_1.jpg`, `background_2.jpg` (randomized on init and level advance)
 - 6 audio files in `res/raw/`: background music (x2), fire, be_hit, enemy_be_hit, game_over
 - Localization: English (default) and Chinese (`values-zh/strings.xml`)
