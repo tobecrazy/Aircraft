@@ -40,6 +40,11 @@ class SettingsActivity : AppCompatActivity() {
                 startActivity(Intent(requireContext(), DeviceInfoActivity::class.java))
                 true
             }
+            val aboutAircraft = preferenceScreen.findPreference<Preference>("about_aircraft")
+            aboutAircraft?.setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), AboutAircraftActivity::class.java))
+                true
+            }
         }
 
         private fun navigateToPrivacyPolicy() {

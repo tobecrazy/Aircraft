@@ -42,6 +42,26 @@
     <string name="sound_settings_header">声音设置</string>
     <string name="about_us_title">关于我们</string>
     <string name="privacy_policy_title">隐私政策</string>
+    <string name="about_aircraft_title">关于飞机大战</string>
+    <string name="about_aircraft_summary">项目信息和源代码</string>
+
+    <!-- About Aircraft page -->
+    <string name="about_section_overview">概述</string>
+    <string name="about_section_specs">游戏参数</string>
+    <string name="about_section_source">源代码</string>
+    <string name="about_stat_levels">关卡</string>
+    <string name="about_stat_enemies">敌机</string>
+    <string name="about_stat_jets">战机</string>
+    <string name="about_spec_engine">引擎</string>
+    <string name="about_spec_engine_val">SurfaceView + Canvas</string>
+    <string name="about_spec_fps">帧率</string>
+    <string name="about_spec_fps_val">30 FPS</string>
+    <string name="about_spec_difficulty">难度</string>
+    <string name="about_spec_difficulty_val">简单 / 普通 / 困难</string>
+    <string name="about_spec_powerups">道具</string>
+    <string name="about_spec_powerups_val">火箭 / 医疗包 / 护盾</string>
+    <string name="about_github_label">GitHub</string>
+    <string name="about_description">一款使用 Kotlin 编写的 Android 2D 纵向卷轴射击游戏。操控战斗机向上发射子弹，消灭敌机并避免碰撞。游戏包含 10 个基于时间的关卡，难度递增，每关末尾有 Boss 战，以及多种道具系统。</string>
 
     <!-- Difficulty Preferences -->
     <string name="difficulty_settings_header">难度设置</string>
