@@ -69,6 +69,10 @@
     <string name="difficulty_easy">简单</string>
     <string name="difficulty_normal">普通</string>
     <string name="difficulty_hard">困难</string>
+    <string name="difficulty_easy_desc">更快射速，轻松作战</string>
+    <string name="difficulty_normal_desc">平衡射速，标准作战</string>
+    <string name="difficulty_hard_desc">较慢射速，激烈作战</string>
+    <string name="difficulty_current">当前: %s</string>
     <string-array name="difficulty_entries">
         <item>@string/difficulty_easy</item>
         <item>@string/difficulty_normal</item>

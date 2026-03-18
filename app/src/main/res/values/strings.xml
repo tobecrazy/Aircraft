@@ -69,6 +69,10 @@
     <string name="difficulty_easy">Easy</string>
     <string name="difficulty_normal">Normal</string>
     <string name="difficulty_hard">Hard</string>
+    <string name="difficulty_easy_desc">Faster fire rate, relaxed combat</string>
+    <string name="difficulty_normal_desc">Balanced fire rate, standard combat</string>
+    <string name="difficulty_hard_desc">Slower fire rate, intense combat</string>
+    <string name="difficulty_current">ACTIVE: %s</string>
     <string-array name="difficulty_entries">
         <item>@string/difficulty_easy</item>
         <item>@string/difficulty_normal</item>
