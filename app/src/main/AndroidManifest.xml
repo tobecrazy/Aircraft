@@ -33,6 +33,11 @@
                 android:value="" />
         </activity>
         <activity
+            android:name=".gui.AboutAircraftActivity"
+            android:exported="false"
+            android:label="@string/about_aircraft_title"
+            android:theme="@style/Theme.Aircraft.History" />
+        <activity
             android:name=".gui.DeviceInfoActivity"
             android:exported="false"
             android:label="@string/title_activity_device_info"
@@ -40,11 +45,9 @@
         <activity
             android:name=".gui.SettingsActivity"
             android:exported="false"
-            android:label="@string/title_activity_settings">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Theme.Aircraft.History" />
+
         <activity
             android:name=".gui.LaunchActivity"
             android:exported="true"
