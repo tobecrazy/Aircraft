@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2400" viewBox="0 0 1600 2400" font-family="'Segoe UI', Arial, sans-serif" font-size="11">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="3400" viewBox="0 0 1800 3400" font-family="'Segoe UI', Arial, sans-serif" font-size="11">
   <defs>
     <marker id="arrow-inherit" markerWidth="12" markerHeight="8" refX="12" refY="4" orient="auto">
       <path d="M0,0 L12,4 L0,8 Z" fill="none" stroke="#555" stroke-width="1.2"/>
@@ -44,30 +44,34 @@
       <stop offset="0%" style="stop-color:#e8eaf6"/>
       <stop offset="100%" style="stop-color:#c5cae9"/>
     </linearGradient>
+    <linearGradient id="grad-provider" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fafafa"/>
+      <stop offset="100%" style="stop-color:#e0e0e0"/>
+    </linearGradient>
     <filter id="shadow" x="-2%" y="-2%" width="104%" height="108%">
       <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.15"/>
     </filter>
   </defs>
 
   <!-- Title -->
-  <text x="800" y="30" text-anchor="middle" font-size="22" font-weight="bold" fill="#333">Aircraft — Class Diagram</text>
+  <text x="900" y="30" text-anchor="middle" font-size="22" font-weight="bold" fill="#333">Aircraft — Class Diagram</text>
 
   <!-- Legend -->
-  <g transform="translate(1200, 45)">
-    <rect x="0" y="0" width="380" height="130" rx="6" fill="#fafafa" stroke="#ccc" stroke-width="1"/>
-    <text x="190" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#555">Legend</text>
+  <g transform="translate(1380, 45)">
+    <rect x="0" y="0" width="400" height="150" rx="6" fill="#fafafa" stroke="#ccc" stroke-width="1"/>
+    <text x="200" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#555">Legend</text>
     <rect x="10" y="28" width="14" height="10" fill="url(#grad-ui)" stroke="#555" stroke-width="0.6"/>
     <text x="30" y="37" font-size="10" fill="#444">Game Engine (ui/)</text>
-    <rect x="130" y="28" width="14" height="10" fill="url(#grad-data)" stroke="#555" stroke-width="0.6"/>
-    <text x="150" y="37" font-size="10" fill="#444">Data Layer (data/)</text>
-    <rect x="270" y="28" width="14" height="10" fill="url(#grad-gui)" stroke="#555" stroke-width="0.6"/>
-    <text x="290" y="37" font-size="10" fill="#444">GUI (gui/)</text>
+    <rect x="140" y="28" width="14" height="10" fill="url(#grad-data)" stroke="#555" stroke-width="0.6"/>
+    <text x="160" y="37" font-size="10" fill="#444">Data Layer (data/)</text>
+    <rect x="280" y="28" width="14" height="10" fill="url(#grad-gui)" stroke="#555" stroke-width="0.6"/>
+    <text x="300" y="37" font-size="10" fill="#444">GUI (gui/)</text>
     <rect x="10" y="48" width="14" height="10" fill="url(#grad-service)" stroke="#555" stroke-width="0.6"/>
     <text x="30" y="57" font-size="10" fill="#444">Service</text>
-    <rect x="130" y="48" width="14" height="10" fill="url(#grad-vm)" stroke="#555" stroke-width="0.6"/>
-    <text x="150" y="57" font-size="10" fill="#444">ViewModel</text>
-    <rect x="270" y="48" width="14" height="10" fill="url(#grad-util)" stroke="#555" stroke-width="0.6"/>
-    <text x="290" y="57" font-size="10" fill="#444">Utilities</text>
+    <rect x="140" y="48" width="14" height="10" fill="url(#grad-vm)" stroke="#555" stroke-width="0.6"/>
+    <text x="160" y="57" font-size="10" fill="#444">ViewModel</text>
+    <rect x="280" y="48" width="14" height="10" fill="url(#grad-util)" stroke="#555" stroke-width="0.6"/>
+    <text x="300" y="57" font-size="10" fill="#444">Utilities</text>
     <!-- Relationship legend -->
     <line x1="10" y1="75" x2="60" y2="75" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
     <text x="68" y="79" font-size="10" fill="#444">Inheritance</text>
@@ -79,8 +83,10 @@
     <text x="258" y="96" font-size="10" fill="#444">Association</text>
     <rect x="10" y="108" width="14" height="10" fill="url(#grad-abstract)" stroke="#555" stroke-width="0.6"/>
     <text x="30" y="117" font-size="10" fill="#444">Abstract / Interface</text>
-    <rect x="130" y="108" width="14" height="10" fill="url(#grad-app)" stroke="#555" stroke-width="0.6"/>
-    <text x="150" y="117" font-size="10" fill="#444">Application</text>
+    <rect x="140" y="108" width="14" height="10" fill="url(#grad-app)" stroke="#555" stroke-width="0.6"/>
+    <text x="160" y="117" font-size="10" fill="#444">Application</text>
+    <rect x="280" y="108" width="14" height="10" fill="url(#grad-provider)" stroke="#555" stroke-width="0.6"/>
+    <text x="300" y="117" font-size="10" fill="#444">Provider</text>
   </g>
 
   <!-- ===== COMMON LAYER ===== -->
@@ -134,24 +140,26 @@
   <!-- ===== DATA LAYER ===== -->
   <!-- Aircraft (data) -->
   <g transform="translate(30, 170)" filter="url(#shadow)">
-    <rect width="220" height="140" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
-    <rect width="220" height="22" rx="6" fill="#ff9800"/>
-    <rect y="16" width="220" height="6" fill="#ff9800"/>
-    <text x="110" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» Aircraft</text>
+    <rect width="230" height="165" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="230" height="6" fill="#ff9800"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» Aircraft</text>
     <text x="10" y="38" font-size="10" fill="#555">data/Aircraft.kt</text>
-    <line x1="5" y1="44" x2="215" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- name: String</text>
     <text x="10" y="70" font-size="10" fill="#333">- health_points: Float = 100f</text>
     <text x="10" y="83" font-size="10" fill="#333">- lethality: Float = 20f</text>
     <text x="10" y="96" font-size="10" fill="#333">- icon: Int = 0</text>
-    <line x1="5" y1="102" x2="215" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="102" x2="225" y2="102" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="115" font-size="10" fill="#333">+ hit()</text>
     <text x="10" y="128" font-size="10" fill="#333">+ isAlive(): Boolean</text>
-    <text x="130" y="128" font-size="9" fill="#888">BULLET_DAMAGE=20f</text>
+    <text x="10" y="141" font-size="10" fill="#333">+ restoreHealth()</text>
+    <text x="10" y="154" font-size="10" fill="#333">+ isFullHealth(): Boolean</text>
+    <text x="130" y="162" font-size="9" fill="#888">BULLET_DAMAGE=20f, MAX_HP=100f</text>
   </g>
 
   <!-- EnemyState -->
-  <g transform="translate(270, 170)" filter="url(#shadow)">
+  <g transform="translate(280, 170)" filter="url(#shadow)">
     <rect width="230" height="150" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#ff9800"/>
     <rect y="16" width="230" height="6" fill="#ff9800"/>
@@ -169,7 +177,7 @@
   </g>
 
   <!-- EnemyBullet -->
-  <g transform="translate(520, 170)" filter="url(#shadow)">
+  <g transform="translate(530, 170)" filter="url(#shadow)">
     <rect width="170" height="85" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
     <rect width="170" height="22" rx="6" fill="#ff9800"/>
     <rect y="16" width="170" height="6" fill="#ff9800"/>
@@ -181,12 +189,100 @@
   </g>
 
   <!-- EnemyState -> EnemyBullet composition -->
-  <line x1="500" y1="240" x2="520" y2="220" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="505" y="215" font-size="9" fill="#888">*</text>
+  <line x1="510" y1="240" x2="530" y2="220" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="515" y="215" font-size="9" fill="#888">*</text>
+
+  <!-- BossState -->
+  <g transform="translate(720, 170)" filter="url(#shadow)">
+    <rect width="250" height="150" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="250" height="6" fill="#ff9800"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» BossState</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/BossState.kt</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- x / y: Float</text>
+    <text x="10" y="70" font-size="10" fill="#333">- hitPoints / maxHitPoints: Float</text>
+    <text x="10" y="83" font-size="10" fill="#333">- destroyedTime / lastHitTime: Long</text>
+    <text x="10" y="96" font-size="10" fill="#333">- bitmapIndex: Int</text>
+    <text x="10" y="109" font-size="10" fill="#333">- bombs: MutableList&lt;BossBomb&gt;</text>
+    <line x1="5" y1="115" x2="245" y2="115" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="128" font-size="10" fill="#333">+ isDestroyed() / isExpired()</text>
+  </g>
+
+  <!-- BossBomb -->
+  <g transform="translate(990, 170)" filter="url(#shadow)">
+    <rect width="180" height="85" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="180" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="180" height="6" fill="#ff9800"/>
+    <text x="90" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» BossBomb</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/BossState.kt</text>
+    <line x1="5" y1="44" x2="175" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- x / y: Float</text>
+    <text x="10" y="70" font-size="10" fill="#333">- bitmapIndex: Int</text>
+  </g>
+
+  <!-- BossState -> BossBomb composition -->
+  <line x1="970" y1="240" x2="990" y2="220" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="975" y="215" font-size="9" fill="#888">*</text>
+
+  <!-- RedEnvelopeState -->
+  <g transform="translate(1190, 170)" filter="url(#shadow)">
+    <rect width="220" height="120" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="220" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="220" height="6" fill="#ff9800"/>
+    <text x="110" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» RedEnvelopeState</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/RedEnvelopeState.kt</text>
+    <line x1="5" y1="44" x2="215" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- x / y: Float</text>
+    <text x="10" y="70" font-size="10" fill="#333">- hitPoints: Int = 3</text>
+    <text x="10" y="83" font-size="10" fill="#333">- destroyedTime / lastHitTime: Long</text>
+    <line x1="5" y1="89" x2="215" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">+ isDetonated() / isExpired()</text>
+  </g>
+
+  <!-- RocketState -->
+  <g transform="translate(1430, 170)" filter="url(#shadow)">
+    <rect width="170" height="85" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="170" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="170" height="6" fill="#ff9800"/>
+    <text x="85" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» RocketState</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/RocketState.kt</text>
+    <line x1="5" y1="44" x2="165" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- x / y: Float</text>
+    <text x="10" y="70" font-size="10" fill="#333">- active: Boolean = true</text>
+  </g>
+
+  <!-- MedicalKitState -->
+  <g transform="translate(1190, 310)" filter="url(#shadow)">
+    <rect width="200" height="110" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="200" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="200" height="6" fill="#ff9800"/>
+    <text x="100" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» MedicalKitState</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/MedicalKitState.kt</text>
+    <line x1="5" y1="44" x2="195" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- x / y: Float</text>
+    <text x="10" y="70" font-size="10" fill="#333">- spawnFrame: Int</text>
+    <text x="10" y="83" font-size="10" fill="#333">- bitmapIndex: Int</text>
+    <text x="10" y="96" font-size="10" fill="#333">- collected: Boolean = false</text>
+  </g>
+
+  <!-- ShieldState -->
+  <g transform="translate(1410, 310)" filter="url(#shadow)">
+    <rect width="200" height="110" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="200" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="200" height="6" fill="#ff9800"/>
+    <text x="100" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» ShieldState</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/ShieldState.kt</text>
+    <line x1="5" y1="44" x2="195" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- x / y: Float</text>
+    <text x="10" y="70" font-size="10" fill="#333">- spawnFrame: Int</text>
+    <text x="10" y="83" font-size="10" fill="#333">- bitmapIndex: Int</text>
+    <text x="10" y="96" font-size="10" fill="#333">- collected: Boolean = false</text>
+  </g>
 
   <!-- PlayerGameData -->
-  <g transform="translate(30, 340)" filter="url(#shadow)">
-    <rect width="230" height="130" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+  <g transform="translate(30, 365)" filter="url(#shadow)">
+    <rect width="230" height="155" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#ff9800"/>
     <rect y="16" width="230" height="6" fill="#ff9800"/>
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«entity» PlayerGameData</text>
@@ -196,11 +292,13 @@
     <text x="10" y="70" font-size="10" fill="#333">- playerId: String</text>
     <text x="10" y="83" font-size="10" fill="#333">- level: Int</text>
     <text x="10" y="96" font-size="10" fill="#333">- score: Long</text>
-    <text x="10" y="109" font-size="10" fill="#333">- timestamp: Long</text>
+    <text x="10" y="109" font-size="10" fill="#333">- jetPlaneRes: Int = 0</text>
+    <text x="10" y="122" font-size="10" fill="#333">- difficulty: String = "1.0"</text>
+    <text x="10" y="135" font-size="10" fill="#333">- timestamp: Long</text>
   </g>
 
   <!-- PlayerGameDataDao -->
-  <g transform="translate(290, 340)" filter="url(#shadow)">
+  <g transform="translate(280, 365)" filter="url(#shadow)">
     <rect width="240" height="145" rx="6" fill="url(#grad-abstract)" stroke="#7986cb" stroke-width="1.2"/>
     <rect width="240" height="22" rx="6" fill="#7986cb"/>
     <rect y="16" width="240" height="6" fill="#7986cb"/>
@@ -216,28 +314,44 @@
   </g>
 
   <!-- AppDatabase -->
-  <g transform="translate(560, 340)" filter="url(#shadow)">
-    <rect width="230" height="105" rx="6" fill="url(#grad-abstract)" stroke="#7986cb" stroke-width="1.2"/>
-    <rect width="230" height="22" rx="6" fill="#7986cb"/>
-    <rect y="16" width="230" height="6" fill="#7986cb"/>
-    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«abstract» AppDatabase</text>
-    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2026)</text>
+  <g transform="translate(540, 365)" filter="url(#shadow)">
+    <rect width="250" height="120" rx="6" fill="url(#grad-abstract)" stroke="#7986cb" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#7986cb"/>
+    <rect y="16" width="250" height="6" fill="#7986cb"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«abstract» AppDatabase</text>
+    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2028)</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- MIGRATION_2027_2028</text>
+    <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="77" font-size="10" fill="#333">+ playerGameDataDao(): Dao</text>
+    <text x="10" y="93" font-size="9" fill="#888">fallbackToDestructiveMigration(true)</text>
+  </g>
+
+  <!-- DatabaseProvider -->
+  <g transform="translate(810, 365)" filter="url(#shadow)">
+    <rect width="230" height="90" rx="6" fill="url(#grad-provider)" stroke="#757575" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#757575"/>
+    <rect y="16" width="230" height="6" fill="#757575"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» DatabaseProvider</text>
+    <text x="10" y="38" font-size="10" fill="#555">providers/DatabaseProvider.kt</text>
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- INSTANCE: AppDatabase?</text>
     <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ playerGameDataDao(): Dao</text>
-    <text x="10" y="90" font-size="10" fill="#333">+ getInstance(ctx): AppDatabase</text>
+    <text x="10" y="77" font-size="10" fill="#333">+ getDatabase(ctx): AppDatabase</text>
   </g>
 
   <!-- AppDatabase -> DAO -->
-  <line x1="560" y1="390" x2="530" y2="395" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <line x1="540" y1="420" x2="520" y2="425" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- DAO operates on PlayerGameData -->
-  <line x1="290" y1="410" x2="260" y2="405" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <line x1="280" y1="440" x2="260" y2="435" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+
+  <!-- DatabaseProvider -> AppDatabase -->
+  <line x1="810" y1="410" x2="790" y2="410" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- ===== GAME ENGINE LAYER (ui/) ===== -->
   <!-- DrawBaseObject (abstract) -->
-  <g transform="translate(30, 530)" filter="url(#shadow)">
+  <g transform="translate(30, 560)" filter="url(#shadow)">
     <rect width="240" height="110" rx="6" fill="url(#grad-abstract)" stroke="#7986cb" stroke-width="1.2"/>
     <rect width="240" height="22" rx="6" fill="#7986cb"/>
     <rect y="16" width="240" height="6" fill="#7986cb"/>
@@ -252,28 +366,30 @@
   </g>
 
   <!-- Aircraft (ui) -->
-  <g transform="translate(30, 700)" filter="url(#shadow)">
-    <rect width="250" height="185" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
-    <rect width="250" height="22" rx="6" fill="#2196f3"/>
-    <rect y="16" width="250" height="6" fill="#2196f3"/>
-    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Aircraft (Player)</text>
+  <g transform="translate(30, 730)" filter="url(#shadow)">
+    <rect width="270" height="210" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="270" height="6" fill="#2196f3"/>
+    <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Aircraft (Player)</text>
     <text x="10" y="38" font-size="10" fill="#555">ui/Aircraft.kt — extends DrawBaseObject</text>
-    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- bullets: MutableList&lt;Bullet&gt;</text>
     <text x="10" y="70" font-size="10" fill="#333">- jetX / jetY: Float</text>
-    <text x="10" y="83" font-size="10" fill="#333">- fireCounter: Int</text>
+    <text x="10" y="83" font-size="10" fill="#333">- fireAccumulator: Float</text>
     <text x="10" y="96" font-size="10" fill="#333">- maxBulletRange: Float</text>
-    <text x="10" y="109" font-size="10" fill="#333">- hitTimeMs: Long</text>
-    <line x1="5" y1="115" x2="245" y2="115" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="109" font-size="10" fill="#333">- hitTimeMs / shieldEndTimeMs: Long</text>
+    <line x1="5" y1="115" x2="265" y2="115" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="128" font-size="10" fill="#333">+ onDraw(canvas)</text>
     <text x="10" y="141" font-size="10" fill="#333">+ getBounds(): RectF</text>
-    <text x="10" y="154" font-size="10" fill="#333">+ getBullets(): List&lt;Bullet&gt;</text>
-    <text x="10" y="167" font-size="10" fill="#333">+ removeBullet(bullet)</text>
-    <text x="140" y="180" font-size="9" fill="#888">FIRE_INTERVAL=2, BULLET_SPEED=35f</text>
+    <text x="10" y="154" font-size="10" fill="#333">+ getBullets() / removeBullet()</text>
+    <text x="10" y="167" font-size="10" fill="#333">+ isShielded(): Boolean</text>
+    <text x="10" y="180" font-size="10" fill="#333">+ activateShield()</text>
+    <text x="10" y="196" font-size="9" fill="#888">FIRE_INTERVAL=4, BULLET_SPEED=35f</text>
+    <text x="10" y="206" font-size="9" fill="#888">SHIELD_DURATION_MS=10_000L</text>
   </g>
 
   <!-- Bullet (data class in ui) -->
-  <g transform="translate(30, 910)" filter="url(#shadow)">
+  <g transform="translate(30, 965)" filter="url(#shadow)">
     <rect width="170" height="85" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
     <rect width="170" height="22" rx="6" fill="#2196f3"/>
     <rect y="16" width="170" height="6" fill="#2196f3"/>
@@ -286,51 +402,53 @@
   </g>
 
   <!-- Aircraft -> Bullet composition -->
-  <line x1="115" y1="885" x2="115" y2="910" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="120" y="902" font-size="9" fill="#888">*</text>
+  <line x1="115" y1="940" x2="115" y2="965" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="120" y="957" font-size="9" fill="#888">*</text>
 
   <!-- Inheritance: Aircraft -> DrawBaseObject -->
-  <line x1="150" y1="700" x2="150" y2="640" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+  <line x1="150" y1="730" x2="150" y2="670" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
 
   <!-- DrawBackground -->
-  <g transform="translate(310, 700)" filter="url(#shadow)">
-    <rect width="220" height="115" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
-    <rect width="220" height="22" rx="6" fill="#2196f3"/>
-    <rect y="16" width="220" height="6" fill="#2196f3"/>
-    <text x="110" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DrawBackground</text>
+  <g transform="translate(330, 730)" filter="url(#shadow)">
+    <rect width="230" height="128" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="230" height="6" fill="#2196f3"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DrawBackground</text>
     <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
-    <line x1="5" y1="44" x2="215" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- mTopY: Float</text>
-    <text x="10" y="70" font-size="10" fill="#333">- mBottomY: Float</text>
-    <line x1="5" y1="76" x2="215" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- mTopY / mBottomY: Float</text>
+    <text x="10" y="70" font-size="10" fill="#333">- backgroundResId: Int</text>
+    <line x1="5" y1="76" x2="225" y2="76" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="89" font-size="10" fill="#333">+ onDraw(canvas)</text>
     <text x="10" y="102" font-size="10" fill="#333">+ updateGame()</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ randomizeBackground()</text>
   </g>
 
   <!-- Inheritance: DrawBackground -> DrawBaseObject -->
-  <line x1="380" y1="700" x2="250" y2="620" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+  <line x1="400" y1="730" x2="260" y2="650" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
 
   <!-- DrawHeader -->
-  <g transform="translate(560, 700)" filter="url(#shadow)">
-    <rect width="220" height="115" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
-    <rect width="220" height="22" rx="6" fill="#2196f3"/>
-    <rect y="16" width="220" height="6" fill="#2196f3"/>
-    <text x="110" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DrawHeader</text>
+  <g transform="translate(590, 730)" filter="url(#shadow)">
+    <rect width="230" height="128" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="230" height="6" fill="#2196f3"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DrawHeader</text>
     <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
-    <line x1="5" y1="44" x2="215" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- playerData: AircraftData</text>
     <text x="10" y="70" font-size="10" fill="#333">- gameView: GameCoreView</text>
-    <line x1="5" y1="76" x2="215" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="76" x2="225" y2="76" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="89" font-size="10" fill="#333">+ onDraw(canvas)</text>
     <text x="10" y="102" font-size="10" fill="#333">+ updateGame()</text>
+    <text x="10" y="118" font-size="9" fill="#888">HUD: level, HP bar, timer, kills, boss HP</text>
   </g>
 
   <!-- Inheritance: DrawHeader -> DrawBaseObject -->
-  <line x1="620" y1="700" x2="270" y2="610" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+  <line x1="640" y1="730" x2="270" y2="640" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
 
   <!-- Enemies -->
-  <g transform="translate(560, 850)" filter="url(#shadow)">
-    <rect width="265" height="220" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+  <g transform="translate(330, 900)" filter="url(#shadow)">
+    <rect width="265" height="230" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
     <rect width="265" height="22" rx="6" fill="#2196f3"/>
     <rect y="16" width="265" height="6" fill="#2196f3"/>
     <text x="132" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Enemies</text>
@@ -339,8 +457,8 @@
     <text x="10" y="57" font-size="10" fill="#333">- activeEnemies: MutableList&lt;EnemyState&gt;</text>
     <text x="10" y="70" font-size="10" fill="#333">- activeExplosions: MutableList&lt;ExplosionEffect&gt;</text>
     <text x="10" y="83" font-size="10" fill="#333">- bitmapList: MutableList&lt;Bitmap?&gt;</text>
-    <text x="10" y="96" font-size="10" fill="#333">- bulletBitmap: Bitmap?</text>
-    <text x="10" y="109" font-size="10" fill="#333">- level: Int</text>
+    <text x="10" y="96" font-size="10" fill="#333">- level: Int</text>
+    <text x="10" y="109" font-size="10" fill="#333">- spawnPaused: Boolean</text>
     <line x1="5" y1="115" x2="260" y2="115" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="128" font-size="10" fill="#333">+ onDraw(canvas)</text>
     <text x="10" y="141" font-size="10" fill="#333">+ getEnemyBullets(): List&lt;Triple&gt;</text>
@@ -349,17 +467,18 @@
     <text x="10" y="180" font-size="10" fill="#333">+ getEnemiesPerRow(): Int</text>
     <text x="10" y="193" font-size="10" fill="#333">+ getSpawnIntervalFrames(): Int</text>
     <text x="10" y="206" font-size="10" fill="#333">+ getBulletSpacingDp(): Float</text>
+    <text x="10" y="219" font-size="10" fill="#333">+ clearExplosions()</text>
   </g>
 
   <!-- Inheritance: Enemies -> DrawBaseObject -->
-  <line x1="630" y1="850" x2="260" y2="630" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+  <line x1="380" y1="900" x2="260" y2="660" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
 
   <!-- Enemies -> EnemyState association -->
-  <line x1="620" y1="850" x2="420" y2="320" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="530" y="600" font-size="9" fill="#888">*</text>
+  <line x1="460" y1="900" x2="420" y2="320" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="445" y="620" font-size="9" fill="#888">*</text>
 
   <!-- ExplosionEffect -->
-  <g transform="translate(860, 850)" filter="url(#shadow)">
+  <g transform="translate(630, 900)" filter="url(#shadow)">
     <rect width="240" height="165" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
     <rect width="240" height="22" rx="6" fill="#2196f3"/>
     <rect y="16" width="240" height="6" fill="#2196f3"/>
@@ -374,74 +493,211 @@
     <text x="10" y="115" font-size="10" fill="#333">+ draw(canvas: Canvas)</text>
     <text x="10" y="128" font-size="10" fill="#333">+ isFinished(): Boolean</text>
     <text x="10" y="145" font-size="9" fill="#888">inner: ExplosionParticle, SmokePuff</text>
+    <text x="10" y="158" font-size="9" fill="#888">Phases: flash→fireball→debris→smoke</text>
   </g>
 
   <!-- Enemies -> ExplosionEffect composition -->
-  <line x1="825" y1="950" x2="860" y2="940" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="835" y="930" font-size="9" fill="#888">*</text>
+  <line x1="595" y1="970" x2="630" y2="960" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="608" y="955" font-size="9" fill="#888">*</text>
+
+  <!-- RedEnvelopes -->
+  <g transform="translate(910, 730)" filter="url(#shadow)">
+    <rect width="260" height="195" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="260" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="260" height="6" fill="#2196f3"/>
+    <text x="130" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">RedEnvelopes</text>
+    <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
+    <line x1="5" y1="44" x2="255" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- activeEnvelopes: MutableList</text>
+    <text x="10" y="70" font-size="10" fill="#333">- activeRockets: MutableList</text>
+    <text x="10" y="83" font-size="10" fill="#333">- activeExplosions: MutableList</text>
+    <text x="10" y="96" font-size="10" fill="#333">- level: Int</text>
+    <line x1="5" y1="102" x2="255" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="115" font-size="10" fill="#333">+ hitEnvelope() / launchRocket()</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ triggerRocketExplosion()</text>
+    <text x="10" y="141" font-size="10" fill="#333">+ getEnvelopeBounds() / getRocketBounds()</text>
+    <text x="10" y="154" font-size="10" fill="#333">+ clearAll()</text>
+    <text x="10" y="170" font-size="9" fill="#888">SPAWN_INTERVAL=300, MAX=2</text>
+    <text x="10" y="183" font-size="9" fill="#888">DRIFT=2dp/f, ROCKET_SPEED=20dp/f</text>
+  </g>
+
+  <!-- Inheritance: RedEnvelopes -> DrawBaseObject -->
+  <line x1="910" y1="780" x2="270" y2="640" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+
+  <!-- RedEnvelopes -> RedEnvelopeState association -->
+  <line x1="1040" y1="730" x2="1300" y2="290" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1180" y="500" font-size="9" fill="#888">*</text>
+
+  <!-- RedEnvelopes -> RocketState association -->
+  <line x1="1100" y1="730" x2="1500" y2="255" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1310" y="480" font-size="9" fill="#888">*</text>
+
+  <!-- BossEnemy -->
+  <g transform="translate(910, 960)" filter="url(#shadow)">
+    <rect width="270" height="235" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="270" height="6" fill="#2196f3"/>
+    <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">BossEnemy</text>
+    <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- activeBoss: BossState?</text>
+    <text x="10" y="70" font-size="10" fill="#333">- level: Int</text>
+    <text x="10" y="83" font-size="10" fill="#333">- bossBitmaps / missileBitmaps</text>
+    <text x="10" y="96" font-size="10" fill="#333">- playerCenterX: Float</text>
+    <line x1="5" y1="102" x2="265" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="115" font-size="10" fill="#333">+ spawnBoss(level)</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ isBossActive() / isBossDefeated()</text>
+    <text x="10" y="141" font-size="10" fill="#333">+ isBossExplosionFinished()</text>
+    <text x="10" y="154" font-size="10" fill="#333">+ hitBoss(): Boolean</text>
+    <text x="10" y="167" font-size="10" fill="#333">+ getBossBounds() / getBombBounds()</text>
+    <text x="10" y="180" font-size="10" fill="#333">+ triggerBombExplosion() / clearAll()</text>
+    <text x="10" y="196" font-size="9" fill="#888">BASE_HP=1000, DMG=10, SPEED=1.5×</text>
+    <text x="10" y="209" font-size="9" fill="#888">BOMB_SPEED=8, BASE_FIRE_INTERVAL=80</text>
+    <text x="10" y="222" font-size="9" fill="#888">getBossHp(level)=1000+100*(level-1)</text>
+  </g>
+
+  <!-- Inheritance: BossEnemy -> DrawBaseObject -->
+  <line x1="910" y1="1010" x2="270" y2="650" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+
+  <!-- BossEnemy -> BossState association -->
+  <line x1="1050" y1="960" x2="850" y2="320" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="940" y="630" font-size="9" fill="#888">0..1</text>
+
+  <!-- MedicalKits -->
+  <g transform="translate(1220, 730)" filter="url(#shadow)">
+    <rect width="250" height="170" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="250" height="6" fill="#2196f3"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MedicalKits</text>
+    <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- activeKits: MutableList</text>
+    <text x="10" y="70" font-size="10" fill="#333">- level: Int</text>
+    <text x="10" y="83" font-size="10" fill="#333">- frameCounter: Int</text>
+    <line x1="5" y1="89" x2="245" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">+ getSpawnIntervalFrames(): Int</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ getMaxKitsPerLevel(): Int</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ getKitBounds(): RectF</text>
+    <text x="10" y="141" font-size="10" fill="#333">+ clearAll()</text>
+    <text x="10" y="157" font-size="9" fill="#888">LIFETIME=450f, BLINK_THRESHOLD=300</text>
+  </g>
+
+  <!-- Inheritance: MedicalKits -> DrawBaseObject -->
+  <line x1="1220" y1="780" x2="270" y2="640" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+
+  <!-- MedicalKits -> MedicalKitState association -->
+  <line x1="1345" y1="730" x2="1300" y2="420" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1315" y="570" font-size="9" fill="#888">*</text>
+
+  <!-- Shields -->
+  <g transform="translate(1500, 730)" filter="url(#shadow)">
+    <rect width="250" height="170" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="250" height="6" fill="#2196f3"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Shields</text>
+    <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- activeShields: MutableList</text>
+    <text x="10" y="70" font-size="10" fill="#333">- level: Int</text>
+    <text x="10" y="83" font-size="10" fill="#333">- spawnAttempted: Boolean</text>
+    <line x1="5" y1="89" x2="245" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">+ getSpawnProbability(): Float</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ getShieldBounds(): RectF</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ clearAll()</text>
+    <text x="10" y="144" font-size="9" fill="#888">LIFETIME=450f, SPAWN_DELAY=300</text>
+    <text x="10" y="157" font-size="9" fill="#888">Prob: max(0.05, 1.0-0.1*(lvl-1))</text>
+  </g>
+
+  <!-- Inheritance: Shields -> DrawBaseObject -->
+  <line x1="1500" y1="780" x2="270" y2="640" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+
+  <!-- Shields -> ShieldState association -->
+  <line x1="1625" y1="730" x2="1520" y2="420" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1575" y="570" font-size="9" fill="#888">*</text>
 
   <!-- ===== GameCoreView ===== -->
-  <g transform="translate(310, 1120)" filter="url(#shadow)">
-    <rect width="340" height="310" rx="6" fill="url(#grad-ui)" stroke="#1565c0" stroke-width="1.8"/>
-    <rect width="340" height="22" rx="6" fill="#1565c0"/>
-    <rect y="16" width="340" height="6" fill="#1565c0"/>
-    <text x="170" y="15" text-anchor="middle" font-size="13" font-weight="bold" fill="white">GameCoreView</text>
+  <g transform="translate(310, 1250)" filter="url(#shadow)">
+    <rect width="380" height="370" rx="6" fill="url(#grad-ui)" stroke="#1565c0" stroke-width="1.8"/>
+    <rect width="380" height="22" rx="6" fill="#1565c0"/>
+    <rect y="16" width="380" height="6" fill="#1565c0"/>
+    <text x="190" y="15" text-anchor="middle" font-size="13" font-weight="bold" fill="white">GameCoreView</text>
     <text x="10" y="38" font-size="10" fill="#555">ui/ — SurfaceView + SurfaceHolder.Callback + Runnable</text>
-    <line x1="5" y1="44" x2="335" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="375" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- drawBackground: DrawBackground</text>
     <text x="10" y="70" font-size="10" fill="#333">- drawHeader: DrawHeader</text>
     <text x="10" y="83" font-size="10" fill="#333">- drawAircraft: Aircraft (ui)</text>
     <text x="10" y="96" font-size="10" fill="#333">- enemies: Enemies</text>
-    <text x="10" y="109" font-size="10" fill="#333">- playerData: AircraftData</text>
-    <text x="10" y="122" font-size="10" fill="#333">- musicService: MusicService?</text>
-    <text x="10" y="135" font-size="10" fill="#333">- level: Int = 1</text>
-    <text x="10" y="148" font-size="10" fill="#333">- totalKills / enemiesDestroyedThisLevel: Int</text>
-    <text x="10" y="161" font-size="10" fill="#333">- isPaused / isPlayerDying / gameWon: Boolean</text>
-    <text x="10" y="174" font-size="10" fill="#333">- playerDeathExplosion: ExplosionEffect?</text>
-    <line x1="5" y1="180" x2="335" y2="180" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="193" font-size="10" fill="#333">+ run() — 30 FPS game loop</text>
-    <text x="10" y="206" font-size="10" fill="#333">+ surfaceCreated / Changed / Destroyed</text>
-    <text x="10" y="219" font-size="10" fill="#333">+ advanceToNextLevel() / pauseGame()</text>
-    <text x="10" y="232" font-size="10" fill="#333">+ onTouchEvent(event): Boolean</text>
-    <text x="10" y="245" font-size="10" fill="#333">- checkCollision()</text>
-    <text x="10" y="258" font-size="10" fill="#333">- checkLevelTimer() / checkKillTarget()</text>
-    <text x="10" y="271" font-size="10" fill="#333">- onUpdateGameDraw(canvas)</text>
-    <text x="10" y="284" font-size="10" fill="#333">- triggerHitEffects() / triggerDeathExplosion()</text>
-    <text x="10" y="300" font-size="9" fill="#888">FPS=30  MAX_LEVEL=10  SHAKE_DURATION=300ms</text>
+    <text x="10" y="109" font-size="10" fill="#333">- redEnvelopes: RedEnvelopes</text>
+    <text x="10" y="122" font-size="10" fill="#333">- bossEnemy: BossEnemy</text>
+    <text x="10" y="135" font-size="10" fill="#333">- medicalKits: MedicalKits</text>
+    <text x="10" y="148" font-size="10" fill="#333">- shields: Shields</text>
+    <text x="10" y="161" font-size="10" fill="#333">- playerData: AircraftData</text>
+    <text x="10" y="174" font-size="10" fill="#333">- musicService: MusicService?</text>
+    <text x="10" y="187" font-size="10" fill="#333">- level: Int = 1</text>
+    <text x="10" y="200" font-size="10" fill="#333">- totalKills / enemiesDestroyedThisLevel: Int</text>
+    <text x="10" y="213" font-size="10" fill="#333">- isPaused / isPlayerDying / gameWon: Boolean</text>
+    <text x="10" y="226" font-size="10" fill="#333">- playerDeathExplosion: ExplosionEffect?</text>
+    <line x1="5" y1="232" x2="375" y2="232" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="245" font-size="10" fill="#333">+ run() — 30 FPS game loop</text>
+    <text x="10" y="258" font-size="10" fill="#333">+ surfaceCreated / Changed / Destroyed</text>
+    <text x="10" y="271" font-size="10" fill="#333">+ advanceToNextLevel() / pauseGame()</text>
+    <text x="10" y="284" font-size="10" fill="#333">+ onTouchEvent(event): Boolean</text>
+    <text x="10" y="297" font-size="10" fill="#333">- checkCollision() — 11 collision checks</text>
+    <text x="10" y="310" font-size="10" fill="#333">- checkLevelTimer() / checkKillTarget()</text>
+    <text x="10" y="323" font-size="10" fill="#333">- checkBossDefeated()</text>
+    <text x="10" y="336" font-size="10" fill="#333">- onUpdateGameDraw(canvas)</text>
+    <text x="10" y="349" font-size="10" fill="#333">- triggerHitEffects() / triggerDeathExplosion()</text>
+    <text x="10" y="365" font-size="9" fill="#888">FPS=30  MAX_LEVEL=10  SHAKE_DURATION=300ms</text>
   </g>
 
   <!-- Callbacks labels -->
-  <text x="655" y="1180" font-size="10" fill="#888">onGameOver()</text>
-  <text x="655" y="1195" font-size="10" fill="#888">onLevelComplete(level)</text>
-  <text x="655" y="1210" font-size="10" fill="#888">onGameWon()</text>
+  <text x="695" y="1320" font-size="10" fill="#888">onGameOver()</text>
+  <text x="695" y="1335" font-size="10" fill="#888">onLevelComplete(level)</text>
+  <text x="695" y="1350" font-size="10" fill="#888">onGameWon()</text>
 
   <!-- GameCoreView -> Aircraft (ui) composition -->
-  <line x1="370" y1="1120" x2="180" y2="885" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="265" y="990" font-size="9" fill="#888">1</text>
+  <line x1="370" y1="1250" x2="200" y2="940" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="275" y="1090" font-size="9" fill="#888">1</text>
 
   <!-- GameCoreView -> DrawBackground composition -->
-  <line x1="400" y1="1120" x2="420" y2="815" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="415" y="970" font-size="9" fill="#888">1</text>
+  <line x1="420" y1="1250" x2="440" y2="858" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="435" y="1050" font-size="9" fill="#888">1</text>
 
   <!-- GameCoreView -> DrawHeader composition -->
-  <line x1="470" y1="1120" x2="620" y2="815" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="545" y="970" font-size="9" fill="#888">1</text>
+  <line x1="480" y1="1250" x2="650" y2="858" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="570" y="1050" font-size="9" fill="#888">1</text>
 
   <!-- GameCoreView -> Enemies composition -->
-  <line x1="520" y1="1120" x2="630" y2="1070" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="575" y="1085" font-size="9" fill="#888">1</text>
+  <line x1="400" y1="1250" x2="400" y2="1130" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="405" y="1190" font-size="9" fill="#888">1</text>
+
+  <!-- GameCoreView -> RedEnvelopes composition -->
+  <line x1="550" y1="1250" x2="1000" y2="925" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="790" y="1085" font-size="9" fill="#888">1</text>
+
+  <!-- GameCoreView -> BossEnemy composition -->
+  <line x1="600" y1="1350" x2="910" y2="1100" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="760" y="1220" font-size="9" fill="#888">1</text>
+
+  <!-- GameCoreView -> MedicalKits association -->
+  <line x1="620" y1="1280" x2="1220" y2="850" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="930" y="1060" font-size="9" fill="#888">1</text>
+
+  <!-- GameCoreView -> Shields association -->
+  <line x1="650" y1="1290" x2="1500" y2="850" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1100" y="1060" font-size="9" fill="#888">1</text>
 
   <!-- GameCoreView -> ExplosionEffect association (playerDeathExplosion) -->
-  <line x1="550" y1="1150" x2="920" y2="1015" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="770" y="1070" font-size="9" fill="#888">0..1</text>
+  <line x1="550" y1="1300" x2="750" y2="1065" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="660" y="1175" font-size="9" fill="#888">0..1</text>
 
   <!-- GameCoreView -> Aircraft(data) association -->
-  <line x1="310" y1="1240" x2="130" y2="310" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="190" y="750" font-size="9" fill="#888">playerData</text>
+  <line x1="310" y1="1380" x2="140" y2="335" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="200" y="860" font-size="9" fill="#888">playerData</text>
 
   <!-- ===== SERVICE LAYER ===== -->
-  <g transform="translate(860, 1120)" filter="url(#shadow)">
-    <rect width="270" height="195" rx="6" fill="url(#grad-service)" stroke="#e91e63" stroke-width="1.2"/>
+  <g transform="translate(860, 1250)" filter="url(#shadow)">
+    <rect width="270" height="210" rx="6" fill="url(#grad-service)" stroke="#e91e63" stroke-width="1.2"/>
     <rect width="270" height="22" rx="6" fill="#e91e63"/>
     <rect y="16" width="270" height="6" fill="#e91e63"/>
     <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MusicService</text>
@@ -458,10 +714,11 @@
     <text x="10" y="154" font-size="10" fill="#333">+ playerHitSoundPlay() @Synchronized</text>
     <text x="10" y="167" font-size="10" fill="#333">+ enemyHitSoundPlay() @Synchronized</text>
     <text x="10" y="180" font-size="10" fill="#333">+ gameOverSoundPlay() @Synchronized</text>
+    <text x="10" y="196" font-size="9" fill="#888">Sound toggles via SharedPreferences</text>
   </g>
 
   <!-- MusicBinder inner class -->
-  <g transform="translate(1155, 1190)" filter="url(#shadow)">
+  <g transform="translate(1155, 1330)" filter="url(#shadow)">
     <rect width="170" height="65" rx="6" fill="url(#grad-service)" stroke="#e91e63" stroke-width="1"/>
     <rect width="170" height="22" rx="6" fill="#e91e63"/>
     <rect y="16" width="170" height="6" fill="#e91e63"/>
@@ -472,66 +729,70 @@
   </g>
 
   <!-- MusicService -> MusicBinder composition -->
-  <line x1="1130" y1="1220" x2="1155" y2="1220" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <line x1="1130" y1="1360" x2="1155" y2="1360" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- GameCoreView -> MusicService association -->
-  <line x1="650" y1="1250" x2="860" y2="1220" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="740" y="1225" font-size="9" fill="#888">musicService</text>
+  <line x1="690" y1="1400" x2="860" y2="1370" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="770" y="1375" font-size="9" fill="#888">musicService</text>
 
   <!-- ===== GUI LAYER ===== -->
   <!-- LaunchActivity -->
-  <g transform="translate(30, 1500)" filter="url(#shadow)">
-    <rect width="230" height="105" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
-    <rect width="230" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="230" height="6" fill="#9c27b0"/>
-    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">LaunchActivity</text>
+  <g transform="translate(30, 1700)" filter="url(#shadow)">
+    <rect width="250" height="130" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="250" height="6" fill="#9c27b0"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">LaunchActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
-    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityLaunchBinding</text>
-    <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
-    <text x="10" y="94" font-size="9" fill="#888">→ MainActivity, HistoryActivity, SettingsActivity</text>
+    <text x="10" y="70" font-size="10" fill="#333">- jetPlanes: IntArray</text>
+    <text x="10" y="83" font-size="10" fill="#333">- selectedJetIndex: Int</text>
+    <text x="10" y="96" font-size="10" fill="#333">- db: AppDatabase</text>
+    <line x1="5" y1="102" x2="245" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="115" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="128" font-size="10" fill="#333">- checkSavedGameAndStart()</text>
   </g>
 
   <!-- MainActivity -->
-  <g transform="translate(290, 1500)" filter="url(#shadow)">
-    <rect width="280" height="190" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.5"/>
-    <rect width="280" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="280" height="6" fill="#9c27b0"/>
-    <text x="140" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MainActivity</text>
+  <g transform="translate(310, 1700)" filter="url(#shadow)">
+    <rect width="290" height="200" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.5"/>
+    <rect width="290" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="290" height="6" fill="#9c27b0"/>
+    <text x="145" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MainActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
-    <line x1="5" y1="44" x2="275" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="285" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- viewModel: MainActivityViewModel</text>
     <text x="10" y="70" font-size="10" fill="#333">- mService: MusicService</text>
     <text x="10" y="83" font-size="10" fill="#333">- coreView: GameCoreView</text>
     <text x="10" y="96" font-size="10" fill="#333">- playerId: String</text>
     <text x="10" y="109" font-size="10" fill="#333">- db: AppDatabase (lazy)</text>
     <text x="10" y="122" font-size="10" fill="#333">- connection: ServiceConnection</text>
-    <line x1="5" y1="128" x2="275" y2="128" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="128" x2="285" y2="128" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="141" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
     <text x="10" y="154" font-size="10" fill="#333">- saveGameData(coreView)</text>
-    <text x="10" y="167" font-size="10" fill="#333">+ onStart() / onStop()</text>
-    <text x="10" y="183" font-size="9" fill="#888">Binds MusicService, collects GameStateManager</text>
+    <text x="10" y="167" font-size="10" fill="#333">- showGameDialog()</text>
+    <text x="10" y="180" font-size="10" fill="#333">+ onStart() / onStop()</text>
+    <text x="10" y="196" font-size="9" fill="#888">Binds MusicService, collects GameStateManager</text>
   </g>
 
   <!-- MainActivity -> GameCoreView composition -->
-  <line x1="430" y1="1500" x2="470" y2="1430" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="460" y="1470" font-size="9" fill="#888">coreView</text>
+  <line x1="460" y1="1700" x2="490" y2="1620" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="480" y="1660" font-size="9" fill="#888">coreView</text>
 
   <!-- MainActivity -> MusicService association -->
-  <line x1="570" y1="1570" x2="860" y2="1290" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="710" y="1420" font-size="9" fill="#888">binds</text>
+  <line x1="600" y1="1770" x2="860" y2="1440" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="730" y="1600" font-size="9" fill="#888">binds</text>
 
   <!-- MainActivity -> AppDatabase association -->
-  <line x1="540" y1="1500" x2="660" y2="445" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="615" y="990" font-size="9" fill="#888">db</text>
+  <line x1="560" y1="1700" x2="660" y2="485" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="620" y="1100" font-size="9" fill="#888">db</text>
 
-  <!-- MainActivity -> GameStateManager association (collects SharedFlow) -->
-  <line x1="340" y1="1500" x2="375" y2="145" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="345" y="820" font-size="9" fill="#888">collects gameState</text>
+  <!-- MainActivity -> GameStateManager association -->
+  <line x1="370" y1="1700" x2="375" y2="145" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="378" y="920" font-size="9" fill="#888">collects gameState</text>
 
   <!-- HistoryActivity -->
-  <g transform="translate(600, 1500)" filter="url(#shadow)">
+  <g transform="translate(640, 1700)" filter="url(#shadow)">
     <rect width="210" height="75" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
     <rect width="210" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="210" height="6" fill="#9c27b0"/>
@@ -542,7 +803,7 @@
   </g>
 
   <!-- HistoryFragment -->
-  <g transform="translate(600, 1600)" filter="url(#shadow)">
+  <g transform="translate(640, 1800)" filter="url(#shadow)">
     <rect width="230" height="130" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="230" height="6" fill="#9c27b0"/>
@@ -558,11 +819,11 @@
   </g>
 
   <!-- HistoryActivity -> HistoryFragment composition -->
-  <line x1="700" y1="1575" x2="710" y2="1600" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <line x1="740" y1="1775" x2="750" y2="1800" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- HistoryAdapter -->
-  <g transform="translate(860, 1600)" filter="url(#shadow)">
-    <rect width="260" height="130" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+  <g transform="translate(900, 1800)" filter="url(#shadow)">
+    <rect width="260" height="145" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
     <rect width="260" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="260" height="6" fill="#9c27b0"/>
     <text x="130" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">HistoryAdapter</text>
@@ -574,27 +835,29 @@
     <text x="10" y="89" font-size="10" fill="#333">+ onCreateViewHolder() / onBindViewHolder()</text>
     <text x="10" y="102" font-size="10" fill="#333">+ getItemCount(): Int</text>
     <text x="10" y="118" font-size="9" fill="#888">inner: ViewHolder (RecyclerView.ViewHolder)</text>
+    <text x="10" y="131" font-size="9" fill="#888">Displays: rank, score, level, difficulty badge</text>
   </g>
 
   <!-- HistoryFragment -> HistoryAdapter composition -->
-  <line x1="830" y1="1660" x2="860" y2="1660" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <line x1="870" y1="1860" x2="900" y2="1860" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- SettingsActivity -->
-  <g transform="translate(30, 1640)" filter="url(#shadow)">
-    <rect width="230" height="100" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
-    <rect width="230" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="230" height="6" fill="#9c27b0"/>
-    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">SettingsActivity</text>
+  <g transform="translate(30, 1860)" filter="url(#shadow)">
+    <rect width="250" height="115" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="250" height="6" fill="#9c27b0"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">SettingsActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
-    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- binding: SettingsActivityBinding</text>
-    <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
-    <text x="10" y="93" font-size="9" fill="#888">inner: SettingsFragment (PreferenceFragmentCompat)</text>
+    <text x="10" y="93" font-size="9" fill="#888">Difficulty: Easy(1.2×)/Normal(1.0×)/Hard(0.8×)</text>
+    <text x="10" y="106" font-size="9" fill="#888">Sound toggles, inner: SettingsFragment</text>
   </g>
 
   <!-- PrivacyPolicyActivity -->
-  <g transform="translate(30, 1770)" filter="url(#shadow)">
+  <g transform="translate(30, 2005)" filter="url(#shadow)">
     <rect width="230" height="85" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="230" height="6" fill="#9c27b0"/>
@@ -607,57 +870,60 @@
   </g>
 
   <!-- SettingsActivity -> PrivacyPolicyActivity navigation -->
-  <line x1="100" y1="1740" x2="100" y2="1770" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="105" y="1760" font-size="9" fill="#888">navigates</text>
+  <line x1="100" y1="1975" x2="100" y2="2005" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="105" y="1995" font-size="9" fill="#888">navigates</text>
 
   <!-- AboutAircraftActivity -->
-  <g transform="translate(290, 1830)" filter="url(#shadow)">
-    <rect width="250" height="115" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
-    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="250" height="6" fill="#9c27b0"/>
-    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">AboutAircraftActivity</text>
+  <g transform="translate(310, 2060)" filter="url(#shadow)">
+    <rect width="260" height="115" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="260" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="260" height="6" fill="#9c27b0"/>
+    <text x="130" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">AboutAircraftActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
-    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="255" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityAboutAircraftBinding</text>
-    <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="64" x2="255" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">- setupBanner() / setupDescription()</text>
     <text x="10" y="90" font-size="10" fill="#333">- setupGithubLink() / loadProjectImage()</text>
     <text x="10" y="106" font-size="9" fill="#888">Loads image via coroutine, opens GitHub URL</text>
   </g>
 
   <!-- DeviceInfoActivity -->
-  <g transform="translate(30, 1880)" filter="url(#shadow)">
-    <rect width="230" height="105" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
-    <rect width="230" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="230" height="6" fill="#9c27b0"/>
-    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DeviceInfoActivity</text>
+  <g transform="translate(30, 2120)" filter="url(#shadow)">
+    <rect width="250" height="130" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="250" height="6" fill="#9c27b0"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DeviceInfoActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
-    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityDeviceInfoBinding</text>
-    <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ refreshDynamicInfo()</text>
-    <text x="10" y="93" font-size="9" fill="#888">CPU, memory, disk, network, battery</text>
+    <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="77" font-size="10" fill="#333">+ populateStaticInfo()</text>
+    <text x="10" y="90" font-size="10" fill="#333">+ refreshDynamicInfo()</text>
+    <text x="10" y="103" font-size="10" fill="#333">+ getCpuInfo()</text>
+    <text x="10" y="119" font-size="9" fill="#888">CPU, memory, disk, network, battery</text>
+    <text x="10" y="129" font-size="9" fill="#888">inner: CoreRow, CpuSnapshot</text>
   </g>
 
   <!-- SettingsActivity -> AboutAircraftActivity navigation -->
-  <line x1="200" y1="1740" x2="350" y2="1830" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="290" y="1790" font-size="9" fill="#888">navigates</text>
+  <line x1="220" y1="1975" x2="380" y2="2060" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="310" y="2020" font-size="9" fill="#888">navigates</text>
 
   <!-- SettingsActivity -> DeviceInfoActivity navigation -->
-  <line x1="145" y1="1740" x2="145" y2="1880" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="150" y="1820" font-size="9" fill="#888">navigates</text>
+  <line x1="155" y1="1975" x2="155" y2="2120" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="160" y="2055" font-size="9" fill="#888">navigates</text>
 
   <!-- LaunchActivity -> MainActivity navigation -->
-  <line x1="260" y1="1545" x2="290" y2="1545" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
+  <line x1="280" y1="1750" x2="310" y2="1750" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
 
   <!-- LaunchActivity -> HistoryActivity navigation -->
-  <line x1="260" y1="1560" x2="600" y2="1535" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
+  <line x1="280" y1="1765" x2="640" y2="1740" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
 
   <!-- LaunchActivity -> SettingsActivity navigation -->
-  <line x1="145" y1="1605" x2="145" y2="1640" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
+  <line x1="155" y1="1830" x2="155" y2="1860" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
 
   <!-- ===== VIEWMODEL ===== -->
-  <g transform="translate(290, 1700)" filter="url(#shadow)">
+  <g transform="translate(310, 1930)" filter="url(#shadow)">
     <rect width="260" height="95" rx="6" fill="url(#grad-vm)" stroke="#00acc1" stroke-width="1.2"/>
     <rect width="260" height="22" rx="6" fill="#00acc1"/>
     <rect y="16" width="260" height="6" fill="#00acc1"/>
@@ -670,11 +936,11 @@
   </g>
 
   <!-- MainActivity -> ViewModel association -->
-  <line x1="420" y1="1675" x2="420" y2="1700" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="425" y="1692" font-size="9" fill="#888">viewModel</text>
+  <line x1="440" y1="1900" x2="440" y2="1930" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="445" y="1920" font-size="9" fill="#888">viewModel</text>
 
   <!-- ===== UTILITIES ===== -->
-  <g transform="translate(860, 1500)" filter="url(#shadow)">
+  <g transform="translate(900, 1700)" filter="url(#shadow)">
     <rect width="230" height="80" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#689f38"/>
     <rect y="16" width="230" height="6" fill="#689f38"/>
@@ -685,33 +951,36 @@
     <text x="10" y="70" font-size="10" fill="#333">+ dpToPx() / pxToDp() / sp2px()</text>
   </g>
 
-  <g transform="translate(1120, 1500)" filter="url(#shadow)">
-    <rect width="230" height="80" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
-    <rect width="230" height="22" rx="6" fill="#689f38"/>
-    <rect y="16" width="230" height="6" fill="#689f38"/>
-    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» BitmapUtils</text>
+  <g transform="translate(1160, 1700)" filter="url(#shadow)">
+    <rect width="240" height="80" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
+    <rect width="240" height="22" rx="6" fill="#689f38"/>
+    <rect y="16" width="240" height="6" fill="#689f38"/>
+    <text x="120" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» BitmapUtils</text>
     <text x="10" y="38" font-size="10" fill="#555">utils/ — Kotlin singleton</text>
-    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <line x1="5" y1="44" x2="235" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">+ readBitMap(ctx, resId): Bitmap?</text>
     <text x="10" y="70" font-size="10" fill="#333">+ resizeBitmap() / getScaleMap()</text>
   </g>
 
   <!-- Package boundary labels -->
-  <rect x="20" y="150" width="700" height="330" rx="10" fill="none" stroke="#ff9800" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <rect x="20" y="150" width="1600" height="340" rx="10" fill="none" stroke="#ff9800" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="35" y="165" font-size="11" font-weight="bold" fill="#ff9800" opacity="0.8">data/</text>
 
-  <rect x="20" y="510" width="1100" height="510" rx="10" fill="none" stroke="#2196f3" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
-  <text x="35" y="525" font-size="11" font-weight="bold" fill="#2196f3" opacity="0.8">ui/  (Game Engine)</text>
+  <rect x="20" y="540" width="1740" height="680" rx="10" fill="none" stroke="#2196f3" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="35" y="555" font-size="11" font-weight="bold" fill="#2196f3" opacity="0.8">ui/  (Game Engine)</text>
 
-  <rect x="20" y="1480" width="1110" height="530" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
-  <text x="35" y="1495" font-size="11" font-weight="bold" fill="#9c27b0" opacity="0.8">gui/  (Presentation)</text>
+  <rect x="20" y="1680" width="1150" height="600" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="35" y="1695" font-size="11" font-weight="bold" fill="#9c27b0" opacity="0.8">gui/  (Presentation)</text>
 
-  <rect x="850" y="1100" width="490" height="220" rx="10" fill="none" stroke="#e91e63" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
-  <text x="865" y="1115" font-size="11" font-weight="bold" fill="#e91e63" opacity="0.8">service/</text>
+  <rect x="850" y="1230" width="490" height="240" rx="10" fill="none" stroke="#e91e63" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="865" y="1245" font-size="11" font-weight="bold" fill="#e91e63" opacity="0.8">service/</text>
 
-  <rect x="850" y="1480" width="510" height="110" rx="10" fill="none" stroke="#689f38" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
-  <text x="865" y="1495" font-size="11" font-weight="bold" fill="#689f38" opacity="0.8">utils/</text>
+  <rect x="890" y="1680" width="520" height="110" rx="10" fill="none" stroke="#689f38" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="905" y="1695" font-size="11" font-weight="bold" fill="#689f38" opacity="0.8">utils/</text>
 
   <rect x="20" y="40" width="480" height="115" rx="10" fill="none" stroke="#66bb6a" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="35" y="55" font-size="11" font-weight="bold" fill="#66bb6a" opacity="0.8">common/</text>
+
+  <rect x="800" y="350" width="250" height="115" rx="10" fill="none" stroke="#757575" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="815" y="365" font-size="11" font-weight="bold" fill="#757575" opacity="0.8">providers/</text>
 </svg>
