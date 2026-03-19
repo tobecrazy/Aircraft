@@ -4,6 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -47,11 +50,18 @@ class LaunchActivity : AppCompatActivity() {
                 val savedLevel = savedData[0].level
                 val savedJetRes = savedData[0].jetPlaneRes.takeIf { it != 0 } ?: R.drawable.jet_plane_2
                 runOnUiThread {
-                    AlertDialog.Builder(this@LaunchActivity)
-                        .setTitle(getString(R.string.continue_game_title))
-                        .setMessage(getString(R.string.continue_game_message, savedLevel))
+                    val dialogView = LayoutInflater.from(this@LaunchActivity)
+                        .inflate(R.layout.dialog_game, null)
+                    dialogView.findViewById<TextView>(R.id.dialog_title).text = getString(R.string.continue_game_title)
+                    dialogView.findViewById<TextView>(R.id.dialog_message).text = getString(R.string.continue_game_message, savedLevel)
+                    val dialog = AlertDialog.Builder(this@LaunchActivity)
+                        .setView(dialogView)
                         .setCancelable(true)
-                        .setPositiveButton(getString(R.string.continue_game_continue)) { dialog, _ ->
+                        .create()
+                    dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+                    dialogView.findViewById<TextView>(R.id.dialog_positive_btn).apply {
+                        text = getString(R.string.continue_game_continue)
+                        setOnClickListener {
                             dialog.dismiss()
                             startActivity(
                                 Intent(this@LaunchActivity, MainActivity::class.java)
@@ -59,7 +69,11 @@ class LaunchActivity : AppCompatActivity() {
                                     .putExtra("jet_plane_res", savedJetRes)
                             )
                         }
-                        .setNegativeButton(getString(R.string.continue_game_new)) { dialog, _ ->
+                    }
+                    dialogView.findViewById<TextView>(R.id.dialog_negative_btn).apply {
+                        text = getString(R.string.continue_game_new)
+                        visibility = View.VISIBLE
+                        setOnClickListener {
                             dialog.dismiss()
                             lifecycleScope.launch {
                                 db.playerGameDataDao().deleteByPlayerId(playerId)
@@ -69,7 +83,8 @@ class LaunchActivity : AppCompatActivity() {
                                     .putExtra("jet_plane_res", jetResId)
                             )
                         }
-                        .show()
+                    }
+                    dialog.show()
                 }
             } else {
                 startActivity(
