@@ -10,9 +10,14 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.preference.PreferenceManager
 import com.young.aircraft.R
 import com.young.aircraft.databinding.SettingsActivityBinding
+import androidx.core.content.edit
 
 class SettingsActivity : AppCompatActivity() {
-
+    companion object {
+        const val DIFFICULTY_HARD = "0.8"
+        const val DIFFICULTY_NORMAL = "1.0"
+        const val DIFFICULTY_EASY = "1.2"
+    }
     private lateinit var binding: SettingsActivityBinding
     private lateinit var prefs: android.content.SharedPreferences
 
@@ -42,7 +47,7 @@ class SettingsActivity : AppCompatActivity() {
         val optionHard = binding.root.findViewById<LinearLayout>(R.id.option_hard)
 
         fun updateSelection(value: String) {
-            val options = mapOf("1.2" to optionEasy, "1.0" to optionNormal, "0.8" to optionHard)
+            val options = mapOf(DIFFICULTY_EASY to optionEasy, DIFFICULTY_NORMAL to optionNormal, DIFFICULTY_EASY to optionHard)
             options.forEach { (key, view) -> view.isSelected = key == value }
 
             val dot = binding.root.findViewById<View>(R.id.current_indicator_dot)
@@ -50,31 +55,31 @@ class SettingsActivity : AppCompatActivity() {
             label.text = getString(R.string.difficulty_current, getDifficultyLabel(value))
             dot.setBackgroundResource(
                 when (value) {
-                    "1.2" -> R.drawable.difficulty_indicator_easy
-                    "0.8" -> R.drawable.difficulty_indicator_hard
+                    DIFFICULTY_EASY -> R.drawable.difficulty_indicator_easy
+                    DIFFICULTY_HARD -> R.drawable.difficulty_indicator_hard
                     else -> R.drawable.difficulty_indicator_normal
                 }
             )
         }
 
         fun select(value: String) {
-            prefs.edit().putString("difficulty", value).apply()
+            prefs.edit { putString("difficulty", value) }
             updateSelection(value)
         }
 
         updateSelection(getCurrentDifficulty())
 
-        optionEasy.setOnClickListener { select("1.2") }
-        optionNormal.setOnClickListener { select("1.0") }
-        optionHard.setOnClickListener { select("0.8") }
+        optionEasy.setOnClickListener { select(DIFFICULTY_EASY) }
+        optionNormal.setOnClickListener { select(DIFFICULTY_NORMAL) }
+        optionHard.setOnClickListener { select(DIFFICULTY_EASY) }
     }
 
     private fun getCurrentDifficulty(): String =
-        prefs.getString("difficulty", "1.0") ?: "1.0"
+        prefs.getString("difficulty", DIFFICULTY_NORMAL) ?: DIFFICULTY_NORMAL
 
     private fun getDifficultyLabel(value: String): String = when (value) {
-        "1.2" -> getString(R.string.difficulty_easy)
-        "0.8" -> getString(R.string.difficulty_hard)
+        DIFFICULTY_EASY -> getString(R.string.difficulty_easy)
+        DIFFICULTY_HARD -> getString(R.string.difficulty_hard)
         else -> getString(R.string.difficulty_normal)
     }
 
@@ -103,14 +108,14 @@ class SettingsActivity : AppCompatActivity() {
         switchBg.isChecked = prefs.getBoolean("background_sound", true)
         updateBgStatus(switchBg.isChecked)
         switchBg.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean("background_sound", isChecked).apply()
+            prefs.edit { putBoolean("background_sound", isChecked) }
             updateBgStatus(isChecked)
         }
 
         switchCombat.isChecked = prefs.getBoolean("combat_sound", true)
         updateCombatStatus(switchCombat.isChecked)
         switchCombat.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean("combat_sound", isChecked).apply()
+            prefs.edit { putBoolean("combat_sound", isChecked) }
             updateCombatStatus(isChecked)
         }
     }
