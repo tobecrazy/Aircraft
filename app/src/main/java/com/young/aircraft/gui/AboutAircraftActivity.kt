@@ -1,5 +1,6 @@
 package com.young.aircraft.gui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -32,6 +33,7 @@ class AboutAircraftActivity : AppCompatActivity() {
         loadProjectImage()
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setupBanner() {
         binding.tvVersionBadge.text = getString(R.string.device_info_fmt_version, BuildConfig.VERSION_NAME)
         binding.tvPlatformBadge.text = "Android ${android.os.Build.VERSION.RELEASE}"

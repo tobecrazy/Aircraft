@@ -47,7 +47,7 @@ class SettingsActivity : AppCompatActivity() {
         val optionHard = binding.root.findViewById<LinearLayout>(R.id.option_hard)
 
         fun updateSelection(value: String) {
-            val options = mapOf(DIFFICULTY_EASY to optionEasy, DIFFICULTY_NORMAL to optionNormal, DIFFICULTY_EASY to optionHard)
+            val options = mapOf(DIFFICULTY_EASY to optionEasy, DIFFICULTY_NORMAL to optionNormal, DIFFICULTY_HARD to optionHard)
             options.forEach { (key, view) -> view.isSelected = key == value }
 
             val dot = binding.root.findViewById<View>(R.id.current_indicator_dot)
@@ -71,7 +71,7 @@ class SettingsActivity : AppCompatActivity() {
 
         optionEasy.setOnClickListener { select(DIFFICULTY_EASY) }
         optionNormal.setOnClickListener { select(DIFFICULTY_NORMAL) }
-        optionHard.setOnClickListener { select(DIFFICULTY_EASY) }
+        optionHard.setOnClickListener { select(DIFFICULTY_HARD) }
     }
 
     private fun getCurrentDifficulty(): String =
