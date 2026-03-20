@@ -42,6 +42,8 @@
     <string name="sound_settings_header">Sound Settings</string>
     <string name="about_us_title">About Us</string>
     <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_accept">Accept</string>
+    <string name="privacy_policy_reject">Reject</string>
     <string name="about_aircraft_title">About Aircraft</string>
     <string name="about_aircraft_summary">Project information and source code</string>
 

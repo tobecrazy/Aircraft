@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:context=".gui.PrivacyPolicyAcceptActivity">
+
+    <!-- Header -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="#161A26"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:letterSpacing="0.25"
+            android:text="@string/privacy_policy_title"
+            android:textColor="#00FF88"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:typeface="monospace" />
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#4400FF88" />
+
+    <WebView
+        android:id="@+id/web_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#4400FF88" />
+
+    <!-- Bottom buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#161A26"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/btn_accept"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:alpha="0.3"
+            android:background="@drawable/btn_accept_bg"
+            android:enabled="false"
+            android:gravity="center"
+            android:letterSpacing="0.15"
+            android:text="@string/privacy_policy_accept"
+            android:textColor="#0F1118"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:typeface="monospace" />
+
+        <TextView
+            android:id="@+id/btn_reject"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:alpha="0.3"
+            android:background="@drawable/btn_reject_bg"
+            android:enabled="false"
+            android:gravity="center"
+            android:letterSpacing="0.15"
+            android:text="@string/privacy_policy_reject"
+            android:textColor="#FF5555"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:typeface="monospace" />
+    </LinearLayout>
+</LinearLayout>

@@ -42,6 +42,8 @@
     <string name="sound_settings_header">声音设置</string>
     <string name="about_us_title">关于我们</string>
     <string name="privacy_policy_title">隐私政策</string>
+    <string name="privacy_policy_accept">接受</string>
+    <string name="privacy_policy_reject">拒绝</string>
     <string name="about_aircraft_title">关于飞机大战</string>
     <string name="about_aircraft_summary">项目信息和源代码</string>
 
