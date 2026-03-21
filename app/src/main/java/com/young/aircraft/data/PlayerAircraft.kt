@@ -4,7 +4,7 @@ package com.young.aircraft.data
  * Create by Young
  * Default aircraft data class
  **/
-data class Aircraft(
+data class PlayerAircraft(
     val name: String,
     var health_points: Float = 100.0f,
     var lethality: Float = 20.0f,

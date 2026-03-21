@@ -25,7 +25,7 @@ import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
-import com.young.aircraft.data.Aircraft as AircraftData
+import com.young.aircraft.data.PlayerAircraft as AircraftData
 
 
 /**
@@ -41,6 +41,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     lateinit var bossEnemy: BossEnemy
     lateinit var medicalKits: MedicalKits
     lateinit var shields: Shields
+    lateinit var timeFreezes: TimeFreezes
     lateinit var playerData: AircraftData
     private var surfaceHolder: SurfaceHolder? = null
     private var collisionCooldown = false
@@ -137,6 +138,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         medicalKits.level = level
         shields = Shields(context, 1.0F)
         shields.level = level
+        timeFreezes = TimeFreezes(context, 1.0F)
+        timeFreezes.level = level
         playerData = AircraftData(name = "Player", health_points = 100.0f)
         drawHeader = DrawHeader(context, playerData, this)
         levelStartTimeMs = System.currentTimeMillis()
@@ -191,6 +194,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
         // Shield pickup (player bullets hitting shields)
         checkPlayerBulletsHitShields()
+
+        // Time freeze pickup (player or enemy touching)
+        checkTimeFreezePickup(aircraftBounds)
     }
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
@@ -531,6 +537,36 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
     }
 
+    private fun checkTimeFreezePickup(aircraftBounds: RectF) {
+        val enemySize = ScreenUtils.dpToPx(context, 48.0f)
+
+        for (timeFreeze in timeFreezes.activeTimeFreezes) {
+            if (timeFreeze.collected) continue
+            val freezeBounds = timeFreezes.getTimeFreezeBounds(timeFreeze)
+
+            // Check if player aircraft touches the time freeze
+            if (RectF.intersects(aircraftBounds, freezeBounds)) {
+                timeFreezes.collectByPlayer(timeFreeze)
+                Log.d("Game", "Player collected time freeze! Enemies frozen for 5 seconds.")
+                continue
+            }
+
+            // Check if any enemy touches the time freeze
+            for (enemy in enemies.activeEnemies) {
+                if (enemy.isDestroyed()) continue
+                val enemyBounds = RectF(
+                    enemy.x, enemy.y,
+                    enemy.x + enemySize, enemy.y + enemySize
+                )
+                if (RectF.intersects(enemyBounds, freezeBounds)) {
+                    timeFreezes.collectByEnemy(timeFreeze)
+                    Log.d("Game", "Enemy collected time freeze! Player frozen for 5 seconds.")
+                    break
+                }
+            }
+        }
+    }
+
     fun advanceToNextLevel() {
         level++
         enemies.level = level
@@ -545,6 +581,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         medicalKits.clearAll()
         shields.level = level
         shields.clearAll()
+        timeFreezes.level = level
+        timeFreezes.clearAll()
         drawAircraft.shieldEndTimeMs = 0L
         bossDefeatedThisLevel = false
         drawBackground.randomizeBackground()
@@ -601,6 +639,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             drawRedEnvelopes(canvas)
             drawMedicalKits(canvas)
             drawShields(canvas)
+            drawTimeFreezes(canvas)
             drawBossEnemy(canvas)
             checkCollision()
             checkBossDefeated()
@@ -714,6 +753,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun drawEnemies(canvas: Canvas) {
+        // Update enemy frozen state based on time freeze
+        enemies.frozen = timeFreezes.isEnemyFrozen()
         enemies.onDraw(canvas)
     }
 
@@ -729,12 +770,20 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         shields.onDraw(canvas)
     }
 
+    private fun drawTimeFreezes(canvas: Canvas) {
+        timeFreezes.onDraw(canvas)
+    }
+
     private fun drawBossEnemy(canvas: Canvas) {
         bossEnemy.playerCenterX = drawAircraft.jetX + drawAircraft.renderedJetW / 2f
+        // Update boss frozen state based on time freeze
+        bossEnemy.frozen = timeFreezes.isEnemyFrozen()
         bossEnemy.onDraw(canvas)
     }
 
     private fun drawAircraft(canvas: Canvas) {
+        // Update player frozen state based on time freeze
+        drawAircraft.frozen = timeFreezes.isPlayerFrozen()
         drawAircraft.onDraw(canvas)
     }
 

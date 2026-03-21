@@ -37,10 +37,10 @@ app/src/main/java/com/young/aircraft/
 │   └── GameStateManager.kt            # Singleton: broadcasts GameState via SharedFlow
 │
 ├── data/                                # ── Data Layer ──
-│   ├── AppDatabase.kt                   # Room database singleton (v2027)
+│   ├── AppDatabase.kt                   # Room database singleton (v2028)
 │   ├── PlayerGameData.kt               # Entity: player_game_data table
 │   ├── PlayerGameDataDao.kt            # DAO: CRUD for game records
-│   ├── Aircraft.kt                      # Data model: player HP & stats
+│   ├── PlayerAircraft.kt               # Data model: player HP & stats (renamed from Aircraft)
 │   ├── EnemyState.kt                   # Data model: enemy position & bullets
 │   ├── BossState.kt                    # Data model: boss HP, phase, movement
 │   ├── RedEnvelopeState.kt             # Data model: red envelope state

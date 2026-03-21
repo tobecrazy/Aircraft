@@ -44,7 +44,8 @@ The game runs on a custom `SurfaceView` (`GameCoreView`) with a dedicated render
 - `BossEnemy` — end-of-level boss with AI movement, bomb attacks, multi-explosion death
 - `RedEnvelopes` — collectible power-up: gift boxes that launch AoE rockets on detonation
 - `MedicalKits` — collectible health pickups: heart items that restore HP to max
-- `Shields` — collectible shield power-up: grants 10s invincibility with blink effect
+- `Shields` — collectible shield power-up: grants 10s invincibility with blink effect (spawns once per level, probability 90%→5% by level)
+- `TimeFreezes` — collectible time freeze: player pickup freezes enemies for 5s, enemy pickup freezes player for 5s (max 3 per level, probability 80%→20% by level)
 - `ExplosionEffect` — particle-based death animation (flash, fireball, debris, smoke phases)
 
 ### Level System (Time-Based + Boss)
@@ -53,7 +54,7 @@ Level duration **decreases** with progression (300s→120s); required kills **in
 
 ### Collision Detection
 
-Eleven checks run every frame in `GameCoreView.checkCollision()`:
+Twelve checks run every frame in `GameCoreView.checkCollision()`:
 1. Player vs enemy sprites (RectF intersection, with cooldown)
 2. Enemy bullets vs player (shield absorbs)
 3. Player bullets vs enemies (increments both `enemiesDestroyedThisLevel` and `totalKills`)
@@ -65,6 +66,7 @@ Eleven checks run every frame in `GameCoreView.checkCollision()`:
 9. Rockets vs boss (10 damage via `bossEnemy.hitBoss()`)
 10. Medical kit pickup (player or boss can collect → HP restored to max)
 11. Shield pickup (bullet consumed, 10s invincibility activated)
+12. Time freeze pickup (player pickup → enemies frozen 5s; enemy pickup → player frozen 5s)
 
 ### Scoring & Persistence (Room Database)
 
@@ -119,10 +121,14 @@ User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Norm
 - **Service:** `MusicService` bound service with @Synchronized playback methods
 - **Never touch game objects from the main thread.** The main thread communicates via callbacks using `post {}`.
 
+### Frozen State (Time Freeze Mechanic)
+
+`TimeFreezes` sets a `frozen: Boolean` property on `Aircraft` (ui/), `Enemies`, and `BossEnemy` each frame. When `frozen = true`, the object skips movement and bullet updates. This is a cross-cutting state — `GameCoreView` propagates it from `TimeFreezes` to all affected objects during the render loop.
+
 ## Key Gotchas
 
 ### Naming Collision
-Two files named `Aircraft.kt`: `data/Aircraft.kt` (data class) and `ui/Aircraft.kt` (rendering class). Code disambiguates with `import com.young.aircraft.data.Aircraft as AircraftData`.
+Two files named `Aircraft.kt`: `data/PlayerAircraft.kt` (data class, renamed from Aircraft) and `ui/Aircraft.kt` (rendering class). Code disambiguates with `import com.young.aircraft.data.PlayerAircraft as AircraftData`.
 
 ### Bitmap Density
 All game object bitmaps must have `bitmap.density = screenDensity` set for correct canvas density scaling. Forgetting this causes incorrect rendering sizes.

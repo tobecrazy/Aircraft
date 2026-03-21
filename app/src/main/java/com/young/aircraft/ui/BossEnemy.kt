@@ -48,6 +48,9 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     // Player tracking
     var playerCenterX: Float = screenWidth / 2f
 
+    // Freeze state (when true, boss and bombs don't move)
+    var frozen: Boolean = false
+
     // Paint with white tint for hit flash effect
     private val hitFlashPaint = Paint().apply {
         colorFilter = ColorMatrixColorFilter(
@@ -215,6 +218,9 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     }
 
     private fun updateBossMovement(boss: BossState) {
+        // Don't move if frozen
+        if (frozen) return
+
         val moveSpeed = getMovementSpeed() * speed
         val margin = ScreenUtils.dpToPx(context, 40.0f).toFloat()
         val targetMinY = screenHeight * TARGET_ZONE_TOP
@@ -257,6 +263,8 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
 
     private fun updateBombs(boss: BossState) {
         if (boss.isDestroyed()) return
+        // Don't fire new bombs if frozen
+        if (frozen) return
 
         // Only fire when boss is in the target zone (visible on screen)
         if (boss.y >= screenHeight * TARGET_ZONE_TOP) {
@@ -284,10 +292,11 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     }
 
     private fun drawBombs(canvas: Canvas, boss: BossState) {
+        val bombSpeed = if (frozen) 0f else BOMB_SPEED
         val iter = boss.bombs.iterator()
         while (iter.hasNext()) {
             val bomb = iter.next()
-            bomb.y += BOMB_SPEED * speed
+            bomb.y += bombSpeed * speed
             // Remove if off-screen bottom
             if (bomb.y > screenHeight) {
                 iter.remove()

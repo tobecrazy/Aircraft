@@ -38,6 +38,9 @@ class Aircraft(
     var shieldEndTimeMs: Long = 0L
     private var shieldBlinkCounter: Int = 0
 
+    // Freeze state (when true, bullets don't fire or move)
+    var frozen: Boolean = false
+
     // Paint with white tint for hit flash effect
     private val hitFlashPaint = Paint().apply {
         colorFilter = ColorMatrixColorFilter(
@@ -113,20 +116,23 @@ class Aircraft(
             renderedJetW = jetRenderedW
             renderedJetH = jetRenderedH
 
-            // Fire new bullet directly above the center of the aircraft
-            fireAccumulator += fireRateMultiplier
-            if (fireAccumulator >= FIRE_INTERVAL) {
-                fireAccumulator -= FIRE_INTERVAL
-                val bx = jetX + jetRenderedW / 2f - bulletRenderedW / 2f
-                val by = jetY - bulletRenderedH
-                bullets.add(Bullet(x = bx, y = by, originY = by))
+            // Fire new bullet directly above the center of the aircraft (only when not frozen)
+            if (!frozen) {
+                fireAccumulator += fireRateMultiplier
+                if (fireAccumulator >= FIRE_INTERVAL) {
+                    fireAccumulator -= FIRE_INTERVAL
+                    val bx = jetX + jetRenderedW / 2f - bulletRenderedW / 2f
+                    val by = jetY - bulletRenderedH
+                    bullets.add(Bullet(x = bx, y = by, originY = by))
+                }
             }
 
             // Update and draw each bullet, limit range to 80% of screen height
+            val bulletSpeed = if (frozen) 0f else BULLET_SPEED
             var i = 0
             while (i < bullets.size) {
                 val bullet = bullets[i]
-                bullet.y -= BULLET_SPEED * speed
+                bullet.y -= bulletSpeed * speed
                 val distanceTraveled = bullet.originY - bullet.y
                 if (bullet.y < 0 || distanceTraveled > maxBulletRange) {
                     bullets.removeAt(i)
