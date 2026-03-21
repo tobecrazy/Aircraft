@@ -49,15 +49,23 @@
             android:theme="@style/Theme.Aircraft.History" />
 
         <activity
-            android:name=".gui.LaunchActivity"
+            android:name=".gui.PrivacyPolicyAcceptActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.NoActionBar">
+            android:theme="@style/Theme.Aircraft.History">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".gui.LaunchActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".gui.OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Aircraft.History" />
         <activity
             android:name=".gui.MainActivity"
             android:exported="true"

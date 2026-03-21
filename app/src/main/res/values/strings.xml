@@ -42,6 +42,11 @@
     <string name="sound_settings_header">Sound Settings</string>
     <string name="about_us_title">About Us</string>
     <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_accept">Accept</string>
+    <string name="privacy_policy_reject">Reject</string>
+    <string name="privacy_policy_accept_tactical">\u00BB\u00BB\u00BB %s \u00AB\u00AB\u00AB</string>
+    <string name="privacy_policy_reject_tactical">\u00BB\u00BB\u00BB %s \u00AB\u00AB\u00AB</string>
+    <string name="mission_briefing_title">MISSION BRIEFING // PRIVACY PROTOCOL</string>
     <string name="about_aircraft_title">About Aircraft</string>
     <string name="about_aircraft_summary">Project information and source code</string>
 
@@ -141,4 +146,19 @@
     <string name="device_info_fmt_core_pct">%1$3d%%</string>
     <string name="device_info_fmt_core_pct_freq">%1$3d%% %2$dMHz</string>
     <string name="device_info_fmt_core_init">  0%%</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_header">PILOT TRAINING // PRIVACY PROTOCOL</string>
+    <string name="onboarding_skip">SKIP</string>
+    <string name="onboarding_next">\u00BB\u00BB\u00BB NEXT \u00AB\u00AB\u00AB</string>
+    <string name="onboarding_launch">\u00BB\u00BB\u00BB LAUNCH \u00AB\u00AB\u00AB</string>
+    <string name="onboarding_controls_title">CONTROLS</string>
+    <string name="onboarding_drag_to_move">\u25B6 DRAG to move</string>
+    <string name="onboarding_auto_fire">\u25B6 AUTO-FIRE enabled</string>
+    <string name="onboarding_collect_powerups">\u25B6 COLLECT power-ups</string>
+    <string name="onboarding_powerups_title">FIELD EQUIPMENT</string>
+    <string name="onboarding_hp_restore">\u2764 HP Restore</string>
+    <string name="onboarding_invincibility">\u26E1 Invincibility Shield</string>
+    <string name="onboarding_aoe_rocket">&#x1F381; AoE Rocket</string>
+    <string name="onboarding_collect_all">COLLECT THEM ALL!</string>
 </resources>

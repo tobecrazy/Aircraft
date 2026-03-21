@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="3400" viewBox="0 0 1800 3400" font-family="'Segoe UI', Arial, sans-serif" font-size="11">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="3100" viewBox="0 0 1800 3100" font-family="'Segoe UI', Arial, sans-serif" font-size="11">
   <defs>
     <marker id="arrow-inherit" markerWidth="12" markerHeight="8" refX="12" refY="4" orient="auto">
       <path d="M0,0 L12,4 L0,8 Z" fill="none" stroke="#555" stroke-width="1.2"/>
@@ -969,7 +969,7 @@
   <rect x="20" y="540" width="1740" height="680" rx="10" fill="none" stroke="#2196f3" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="35" y="555" font-size="11" font-weight="bold" fill="#2196f3" opacity="0.8">ui/  (Game Engine)</text>
 
-  <rect x="20" y="1680" width="1150" height="600" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <rect x="20" y="1680" width="1150" height="920" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="35" y="1695" font-size="11" font-weight="bold" fill="#9c27b0" opacity="0.8">gui/  (Presentation)</text>
 
   <rect x="850" y="1230" width="490" height="240" rx="10" fill="none" stroke="#e91e63" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
@@ -983,4 +983,110 @@
 
   <rect x="800" y="350" width="250" height="115" rx="10" fill="none" stroke="#757575" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="815" y="365" font-size="11" font-weight="bold" fill="#757575" opacity="0.8">providers/</text>
+
+  <!-- ===== NEW FIRST-LAUNCH CLASSES ===== -->
+
+  <!-- StarFieldView -->
+  <g transform="translate(1200, 1930)" filter="url(#shadow)">
+    <rect width="260" height="175" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="260" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="260" height="6" fill="#9c27b0"/>
+    <text x="130" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">StarFieldView</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends View</text>
+    <line x1="5" y1="44" x2="255" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- starX/Y/Radius/Speed/Alpha: FloatArray</text>
+    <text x="10" y="70" font-size="10" fill="#333">- starColorIndex: IntArray</text>
+    <text x="10" y="83" font-size="10" fill="#333">- isAnimating / isPausedByIdle: Boolean</text>
+    <line x1="5" y1="89" x2="255" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">+ startAnimation() / stopAnimation()</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ onUserActivity()</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ onDraw(canvas) / onSizeChanged()</text>
+    <text x="10" y="141" font-size="10" fill="#333">- initStars() / updateStarPositions()</text>
+    <text x="10" y="157" font-size="9" fill="#888">STAR_COUNT=65, ~20FPS, 3s idle auto-pause</text>
+    <text x="10" y="170" font-size="9" fill="#888">2-layer parallax, pre-allocated arrays</text>
+  </g>
+
+  <!-- PrivacyPolicyAcceptActivity -->
+  <g transform="translate(30, 2310)" filter="url(#shadow)">
+    <rect width="270" height="155" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.5"/>
+    <rect width="270" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="270" height="6" fill="#9c27b0"/>
+    <text x="135" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">PrivacyPolicyAcceptActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — AppCompatActivity ★ LAUNCHER</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- binding: ...Binding</text>
+    <text x="10" y="70" font-size="10" fill="#333">- acceptPulseAnimator: ObjectAnimator?</text>
+    <text x="10" y="83" font-size="10" fill="#333">- buttonsEnabled: Boolean</text>
+    <line x1="5" y1="89" x2="265" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">+ onCreate() / onDestroy()</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ dispatchTouchEvent(ev)</text>
+    <text x="10" y="128" font-size="10" fill="#333">- enableButtons()</text>
+    <text x="10" y="144" font-size="9" fill="#888">Gate: privacy_policy_accepted pref</text>
+    <text x="10" y="154" font-size="9" fill="#888">WebView + CSS inject + pulse glow</text>
+  </g>
+
+  <!-- OnboardingActivity -->
+  <g transform="translate(330, 2310)" filter="url(#shadow)">
+    <rect width="270" height="170" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="270" height="6" fill="#9c27b0"/>
+    <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">OnboardingActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- binding: ...Binding</text>
+    <line x1="5" y1="64" x2="265" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="77" font-size="10" fill="#333">+ onCreate() / onDestroy()</text>
+    <text x="10" y="90" font-size="10" fill="#333">+ dispatchTouchEvent(ev)</text>
+    <text x="10" y="103" font-size="10" fill="#333">- completeOnboarding()</text>
+    <text x="10" y="116" font-size="10" fill="#333">- updateIndicators(position)</text>
+    <text x="10" y="132" font-size="9" fill="#888">inner: OnboardingPagerAdapter</text>
+    <text x="10" y="145" font-size="9" fill="#888">Gate: onboarding_completed pref</text>
+    <text x="10" y="158" font-size="9" fill="#888">ViewPager2 carousel, 2 pages</text>
+  </g>
+
+  <!-- OnboardingControlsFragment -->
+  <g transform="translate(330, 2510)" filter="url(#shadow)">
+    <rect width="210" height="60" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1"/>
+    <rect width="210" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="210" height="6" fill="#9c27b0"/>
+    <text x="105" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">OnboardingControlsFragment</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — Fragment (page 0)</text>
+    <line x1="5" y1="44" x2="205" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ onCreateView()</text>
+  </g>
+
+  <!-- OnboardingPowerupsFragment -->
+  <g transform="translate(570, 2510)" filter="url(#shadow)">
+    <rect width="210" height="60" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1"/>
+    <rect width="210" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="210" height="6" fill="#9c27b0"/>
+    <text x="105" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">OnboardingPowerupsFragment</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — Fragment (page 1)</text>
+    <line x1="5" y1="44" x2="205" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ onCreateView()</text>
+  </g>
+
+  <!-- ===== NEW NAVIGATION ARROWS ===== -->
+
+  <!-- PrivacyPolicyAcceptActivity -> OnboardingActivity navigation -->
+  <line x1="300" y1="2390" x2="330" y2="2390" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
+  <text x="305" y="2383" font-size="9" fill="#888">accept</text>
+
+  <!-- OnboardingActivity -> LaunchActivity navigation (upward) -->
+  <line x1="465" y1="2310" x2="155" y2="1830" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
+  <text x="280" y="2080" font-size="9" fill="#888">launch</text>
+
+  <!-- OnboardingActivity -> OnboardingControlsFragment composition -->
+  <line x1="420" y1="2480" x2="430" y2="2510" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+
+  <!-- OnboardingActivity -> OnboardingPowerupsFragment composition -->
+  <line x1="520" y1="2480" x2="660" y2="2510" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+
+  <!-- PrivacyPolicyAcceptActivity -> StarFieldView association -->
+  <line x1="165" y1="2310" x2="1330" y2="2105" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="740" y="2195" font-size="9" fill="#888">starField</text>
+
+  <!-- OnboardingActivity -> StarFieldView association -->
+  <line x1="600" y1="2340" x2="1200" y2="2050" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="920" y="2180" font-size="9" fill="#888">starField</text>
 </svg>

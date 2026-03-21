@@ -75,7 +75,19 @@ Eleven checks run every frame in `GameCoreView.checkCollision()`:
 ### Activity Flow
 
 ```
-LaunchActivity (entry point, Theme.AppCompat.NoActionBar)
+PrivacyPolicyAcceptActivity (entry point, MAIN LAUNCHER, Theme.Aircraft.History)
+  ├─→ [Already accepted?] → skips to OnboardingActivity
+  └─→ [Not accepted] → cinematic privacy policy (StarFieldView + WebView)
+       ├─→ [Accept] → saves pref → OnboardingActivity
+       └─→ [Reject] → finishAffinity() (exits app)
+
+OnboardingActivity (Theme.Aircraft.History)
+  ├─→ [Already completed?] → skips to LaunchActivity
+  └─→ [Not completed] → 2-screen carousel (controls + power-ups)
+       ├─→ [Skip / Launch] → saves pref → LaunchActivity
+       └─→ LaunchActivity
+
+LaunchActivity (Theme.AppCompat.NoActionBar)
   ├─→ [Start Game] → checks DB for saved progress
   │     ├─→ saved data exists (level > 1) → dialog: Continue / New Game
   │     └─→ no saved data → starts at level 1

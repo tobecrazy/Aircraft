@@ -90,3 +90,5 @@ lint/tmp/
 .DS_Store
 .idea/migrations.xml
 .idea/kotlinc.xml
+/.claude/skills/gstack
+/.claude/skills
