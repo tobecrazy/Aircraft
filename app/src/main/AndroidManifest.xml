@@ -63,6 +63,10 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
+            android:name=".gui.OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Aircraft.History" />
+        <activity
             android:name=".gui.MainActivity"
             android:exported="true"
             android:theme="@style/TransparentTheme" />

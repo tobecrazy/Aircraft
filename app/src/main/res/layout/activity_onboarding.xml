@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".gui.OnboardingActivity">
+
+    <!-- Animated star field background -->
+    <com.young.aircraft.gui.StarFieldView
+        android:id="@+id/star_field"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Content overlay -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Header with SKIP button -->
+        <RelativeLayout
+            style="@style/GameHeader"
+            android:gravity="center_vertical">
+
+            <TextView
+                style="@style/GameHeaderTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/onboarding_header" />
+
+            <TextView
+                android:id="@+id/btn_skip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="16dp"
+                android:text="@string/onboarding_skip"
+                android:textColor="#88FFFFFF"
+                android:textSize="13sp"
+                android:typeface="monospace" />
+        </RelativeLayout>
+
+        <View style="@style/NeonDivider" />
+
+        <!-- ViewPager2 carousel -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <View style="@style/NeonDivider" />
+
+        <!-- Bottom: indicators + next/launch button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="#161A26"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <!-- Page indicators -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:id="@+id/indicator_1"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginEnd="6dp"
+                    android:alpha="1.0"
+                    android:background="@drawable/indicator_dot" />
+
+                <View
+                    android:id="@+id/indicator_2"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:alpha="0.3"
+                    android:background="@drawable/indicator_dot" />
+            </LinearLayout>
+
+            <!-- NEXT / LAUNCH button -->
+            <TextView
+                android:id="@+id/btn_next"
+                style="@style/TacticalButton.Accept"
+                android:layout_width="160dp"
+                android:text="@string/onboarding_next" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

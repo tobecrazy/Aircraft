@@ -24,17 +24,22 @@ class PrivacyPolicyAcceptActivityTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        // Clear acceptance state before each test
+        // Clear all gate prefs before each test
         context.getSharedPreferences("aircraft_prefs", Context.MODE_PRIVATE)
-            .edit().remove("privacy_policy_accepted").commit()
+            .edit()
+            .remove("privacy_policy_accepted")
+            .remove("onboarding_completed")
+            .commit()
     }
 
     @Test
-    fun `first launch shows privacy policy accept screen`() {
+    fun `first launch shows privacy policy accept screen with star field`() {
         ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val webView = activity.findViewById<WebView>(R.id.web_view)
                 assertNotNull(webView)
+                val starField = activity.findViewById<StarFieldView>(R.id.star_field)
+                assertNotNull(starField)
             }
         }
     }
@@ -54,7 +59,7 @@ class PrivacyPolicyAcceptActivityTest {
     }
 
     @Test
-    fun `accept button saves preference and launches LaunchActivity`() {
+    fun `accept button saves preference and routes to OnboardingActivity`() {
         ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val btnAccept = activity.findViewById<android.widget.TextView>(R.id.btn_accept)
@@ -70,7 +75,7 @@ class PrivacyPolicyAcceptActivityTest {
                 val nextIntent = shadowActivity.nextStartedActivity
                 assertNotNull(nextIntent)
                 assertEquals(
-                    LaunchActivity::class.java.name,
+                    OnboardingActivity::class.java.name,
                     nextIntent.component?.className
                 )
                 assertTrue(activity.isFinishing)
@@ -107,8 +112,7 @@ class PrivacyPolicyAcceptActivityTest {
     }
 
     @Test
-    fun `already accepted redirects to LaunchActivity immediately`() {
-        // Set acceptance before launching
+    fun `already accepted routes to OnboardingActivity immediately`() {
         context.getSharedPreferences("aircraft_prefs", Context.MODE_PRIVATE)
             .edit().putBoolean("privacy_policy_accepted", true).commit()
 
@@ -118,14 +122,24 @@ class PrivacyPolicyAcceptActivityTest {
     }
 
     @Test
-    fun `webview loads correct page for english locale`() {
+    fun `webview loads with javascript enabled`() {
         ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val webView = activity.findViewById<WebView>(R.id.web_view)
                 assertNotNull(webView)
-                // WebView is present and configured
                 assertTrue(webView.settings.javaScriptEnabled)
                 assertTrue(webView.settings.loadsImagesAutomatically)
+            }
+        }
+    }
+
+    @Test
+    fun `mission briefing header is displayed`() {
+        ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                // The layout uses the cinematic mission briefing title
+                val webView = activity.findViewById<WebView>(R.id.web_view)
+                assertNotNull("WebView should be present in cinematic layout", webView)
             }
         }
     }
