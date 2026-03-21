@@ -104,14 +104,20 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
             loadUrl("file:///android_asset/$page")
         }
 
+        // Reject button is always enabled
+        binding.btnReject.isEnabled = true
+        binding.btnReject.alpha = 1.0f
+        binding.btnReject.setOnClickListener {
+            finishAffinity()
+        }
+
+        // Accept button requires scrolling to bottom
+        binding.btnAccept.isEnabled = false
+        binding.btnAccept.alpha = 0.3f
         binding.btnAccept.setOnClickListener {
             prefs.edit().putBoolean("privacy_policy_accepted", true).apply()
             startActivity(Intent(this, OnboardingActivity::class.java))
             finish()
-        }
-
-        binding.btnReject.setOnClickListener {
-            finishAffinity()
         }
     }
 
@@ -123,17 +129,15 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
         return super.dispatchTouchEvent(ev)
     }
 
-    private var buttonsEnabled = false
+    private var acceptButtonEnabled = false
 
     private fun enableButtons() {
-        if (buttonsEnabled) return
-        buttonsEnabled = true
+        if (acceptButtonEnabled) return
+        acceptButtonEnabled = true
 
-        // Fade from disabled (0.3) to enabled over 300ms
+        // Fade accept button from disabled (0.3) to enabled over 300ms
         binding.btnAccept.animate().alpha(1.0f).setDuration(300).start()
-        binding.btnReject.animate().alpha(1.0f).setDuration(300).start()
         binding.btnAccept.isEnabled = true
-        binding.btnReject.isEnabled = true
 
         // Start neon pulse animation on accept button
         acceptPulseAnimator = ObjectAnimator.ofFloat(binding.btnAccept, "alpha", 1.0f, 0.7f).apply {

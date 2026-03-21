@@ -58,6 +58,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var isPaused = false
     private var bossDefeatedThisLevel = false
 
+    // Background pause tracking (for timer adjustment on surface recreation)
+    private var pausedAtMs: Long = 0L
+
     // Screen shake state
     private var shakeStartTimeMs: Long = 0L
     private val shakeRng = Random(System.nanoTime())
@@ -105,7 +108,15 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        initializeGameDrawer()
+        if (!gameInitialized) {
+            initializeGameDrawer()
+        } else {
+            // Resuming from background — shift level timer forward to exclude time spent in background
+            if (pausedAtMs > 0L) {
+                levelStartTimeMs += System.currentTimeMillis() - pausedAtMs
+                pausedAtMs = 0L
+            }
+        }
         isRunning = true
         gameThread = Thread(this)
         gameThread.start()
@@ -558,6 +569,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
+        pausedAtMs = System.currentTimeMillis()
         var isRetry = true
         while (isRetry) {
             try {

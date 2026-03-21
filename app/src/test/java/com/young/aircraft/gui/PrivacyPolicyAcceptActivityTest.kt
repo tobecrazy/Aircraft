@@ -45,15 +45,17 @@ class PrivacyPolicyAcceptActivityTest {
     }
 
     @Test
-    fun `buttons are disabled initially`() {
+    fun `reject button is always enabled, accept button requires scroll to bottom`() {
         ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val btnAccept = activity.findViewById<android.widget.TextView>(R.id.btn_accept)
                 val btnReject = activity.findViewById<android.widget.TextView>(R.id.btn_reject)
+                // Reject button is always enabled
+                assertTrue(btnReject.isEnabled)
+                assertEquals(1.0f, btnReject.alpha, 0.01f)
+                // Accept button requires scroll to bottom
                 assertFalse(btnAccept.isEnabled)
-                assertFalse(btnReject.isEnabled)
                 assertEquals(0.3f, btnAccept.alpha, 0.01f)
-                assertEquals(0.3f, btnReject.alpha, 0.01f)
             }
         }
     }
@@ -88,8 +90,8 @@ class PrivacyPolicyAcceptActivityTest {
         ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val btnReject = activity.findViewById<android.widget.TextView>(R.id.btn_reject)
-                btnReject.isEnabled = true
-                btnReject.alpha = 1.0f
+                // Reject is always enabled
+                assertTrue(btnReject.isEnabled)
                 btnReject.performClick()
 
                 assertTrue(activity.isFinishing)
@@ -102,7 +104,7 @@ class PrivacyPolicyAcceptActivityTest {
         ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val btnReject = activity.findViewById<android.widget.TextView>(R.id.btn_reject)
-                btnReject.isEnabled = true
+                // Reject is always enabled, no need to manually set
                 btnReject.performClick()
 
                 val prefs = activity.getSharedPreferences("aircraft_prefs", Context.MODE_PRIVATE)
