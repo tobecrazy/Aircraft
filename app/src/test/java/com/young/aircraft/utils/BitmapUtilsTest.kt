@@ -2,15 +2,25 @@ package com.young.aircraft.utils
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import org.junit.Assert.*
-import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
+import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class BitmapUtilsTest {
+    private lateinit var context: Context
+
+    @Before
+    fun setUp() {
+        context = ApplicationProvider.getApplicationContext()
+        BitmapUtils.clearCaches()
+    }
 
     @Test
     fun `getScaleMap flips bitmap vertically`() {
@@ -80,6 +90,7 @@ class BitmapUtilsTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         val resized = BitmapUtils.resizeBitmap(bitmap, 0, 50)
         assertNotNull(resized)
+        assertSame(bitmap, resized)
     }
 
     @Test
@@ -87,5 +98,40 @@ class BitmapUtilsTest {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         val resized = BitmapUtils.resizeBitmap(bitmap, 50, 0)
         assertNotNull(resized)
+        assertSame(bitmap, resized)
+    }
+
+    @Test
+    fun `readBitMap returns null for invalid resource id`() {
+        val bitmap = BitmapUtils.readBitMap(context, 0)
+        assertNull(bitmap)
+    }
+
+    @Test
+    fun `readBitMap caches decoded resource`() {
+        val first = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
+        val second = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
+
+        assertNotNull(first)
+        assertSame(first, second)
+    }
+
+    @Test
+    fun `resizeBitmap returns cached bitmap for repeated resize request`() {
+        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+
+        val first = BitmapUtils.resizeBitmap(bitmap, 50, 50)
+        val second = BitmapUtils.resizeBitmap(bitmap, 50, 50)
+
+        assertNotNull(first)
+        assertSame(first, second)
+    }
+
+    @Test
+    fun `resizeBitmap returns original when target matches source and no rotation`() {
+        val bitmap = Bitmap.createBitmap(80, 120, Bitmap.Config.ARGB_8888)
+        val resized = BitmapUtils.resizeBitmap(bitmap, 80, 120)
+
+        assertSame(bitmap, resized)
     }
 }
