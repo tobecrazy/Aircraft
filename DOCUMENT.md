@@ -89,14 +89,14 @@ Open in Android Studio, sync Gradle, and run on a device/emulator.
 
 **AGP 9.1 bundles Kotlin.** Do NOT add `org.jetbrains.kotlin.android` as a plugin — it will cause `Cannot add extension with name 'kotlin'` at build time. Only KSP is declared as a separate plugin.
 
-**Two files named `Aircraft.kt` exist.** `data/Aircraft.kt` is the player stats data class; `ui/Aircraft.kt` is the rendering class. Code disambiguates with:
+**Two files named `Aircraft.kt` exist.** `data/PlayerAircraft.kt` is the player stats data class (renamed from Aircraft); `ui/Aircraft.kt` is the rendering class. Code disambiguates with:
 ```kotlin
-import com.young.aircraft.data.Aircraft as AircraftData
+import com.young.aircraft.data.PlayerAircraft as AircraftData
 ```
 
 **KSP + built-in Kotlin requires a compat flag.** `gradle.properties` must include `android.disallowKotlinSourceSets=false` or KSP source sets will fail to register.
 
-**Room database uses destructive migration.** `AppDatabase` uses `fallbackToDestructiveMigration()`, so schema changes wipe existing data. Version is currently `2026` (chosen as the project year — simply increment when changing the schema).
+**Room database uses destructive migration.** `AppDatabase` uses `fallbackToDestructiveMigration()`, so schema changes wipe existing data. Version is currently `2028` (chosen as the project year — simply increment when changing the schema).
 
 **Bullet density must be set.** Both player and enemy bullet bitmaps must have `bitmap.density = screenDensity` or they render at wrong sizes. Both use 25dp bitmaps.
 
@@ -110,7 +110,7 @@ app/src/main/java/com/young/aircraft/
 │   └── AircraftApplication.kt          # Application entry point
 │
 ├── data/                                # ── Data Layer ──
-│   ├── AppDatabase.kt                   # Room database singleton (v2026)
+│   ├── AppDatabase.kt                   # Room database singleton (v2028)
 │   ├── PlayerGameData.kt               # Entity: player_game_data table
 │   ├── PlayerGameDataDao.kt            # DAO: CRUD for game records
 │   ├── Aircraft.kt                      # Data model: player HP & stats
@@ -313,6 +313,8 @@ Table `player_game_data` (Room entity `PlayerGameData`):
 | player_id   | String | Device `ANDROID_ID`              |
 | level       | Int    | Level reached when game ended    |
 | score       | Long   | `totalKills * 100`               |
+| jet_plane_res | Int  | Selected jet plane sprite        |
+| difficulty  | String | Game difficulty (1.2/1.0/0.8)    |
 | timestamp   | Long   | `System.currentTimeMillis()`     |
 
 ### Behavior
@@ -481,7 +483,7 @@ The full class diagram for the project is available as an SVG file ([view raw](c
 
 The diagram covers all classes across the project's packages:
 
-- **data/** — Data models (`Aircraft`, `EnemyState`, `EnemyBullet`, `PlayerGameData`), Room database (`AppDatabase`), and DAO interface (`PlayerGameDataDao`)
+- **data/** — Data models (`PlayerAircraft`, `EnemyState`, `EnemyBullet`, `PlayerGameData`), Room database (`AppDatabase`), and DAO interface (`PlayerGameDataDao`)
 - **ui/** — Game engine layer with abstract `DrawBaseObject` base class and its four subclasses (`Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`), plus `ExplosionEffect` for particle animations, `Bullet` data class, and the central `GameCoreView` (SurfaceView) that orchestrates the 30 FPS game loop
 - **gui/** — Presentation layer activities (`LaunchActivity`, `MainActivity`, `HistoryActivity`, `SettingsActivity`, `PrivacyPolicyActivity`), fragments (`HistoryFragment`), and adapter (`HistoryAdapter`)
 - **service/** — `MusicService` bound service with inner `MusicBinder`

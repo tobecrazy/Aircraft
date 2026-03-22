@@ -9,7 +9,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import com.young.aircraft.R
 import com.young.aircraft.utils.ScreenUtils
-import com.young.aircraft.data.Aircraft as AircraftData
+import com.young.aircraft.data.PlayerAircraft as AircraftData
 
 /**
  * Create by Young

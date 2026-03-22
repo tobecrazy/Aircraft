@@ -26,6 +26,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     private var bulletBitmap: Bitmap? = null
     var level: Int = 1
     var spawnPaused: Boolean = false
+    var frozen: Boolean = false  // When true, enemies and their bullets don't move
 
     // Cached resized enemy bitmaps (avoid per-frame allocation)
     private val cachedEnemyBitmaps = mutableListOf<Bitmap?>()
@@ -173,13 +174,15 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         val screenHeight = ScreenUtils.getScreenHeight(context).toFloat()
-        val moveSpeed = getEnemyMoveSpeed()
+        val moveSpeed = if (frozen) 0f else getEnemyMoveSpeed()
 
-        // Spawn timer
-        framesSinceLastSpawn++
-        if (!spawnPaused && framesSinceLastSpawn >= getSpawnIntervalFrames()) {
-            framesSinceLastSpawn = 0
-            spawnRow()
+        // Spawn timer (only when not frozen)
+        if (!frozen) {
+            framesSinceLastSpawn++
+            if (!spawnPaused && framesSinceLastSpawn >= getSpawnIntervalFrames()) {
+                framesSinceLastSpawn = 0
+                spawnRow()
+            }
         }
 
         // Move and draw alive enemies
@@ -209,7 +212,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
 
     private fun drawEnemyBullets(canvas: Canvas) {
         val screenHeight = ScreenUtils.getScreenHeight(context).toFloat()
-        val currentBulletSpeed = getEnemyBulletSpeed()
+        val currentBulletSpeed = if (frozen) 0f else getEnemyBulletSpeed()
         val spacingDp = getBulletSpacingDp()
         val spacingPx = ScreenUtils.dpToPx(context, spacingDp)
         val enemySizePx = ScreenUtils.dpToPx(context, 48.0f)
@@ -227,12 +230,14 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
                 val enemyCenterX = enemy.x + enemySizePx / 2f
                 val bulletSpawnX = enemyCenterX - renderedW / 2f
 
-                // Fire bullet when spacing threshold reached (with jitter)
-                val jitter = random.nextInt(jitterRange * 2 + 1) - jitterRange
-                val effectiveSpacing = spacingPx + jitter
-                if (enemy.bullets.isEmpty() || (enemy.bullets.last().y - enemy.y) > effectiveSpacing) {
-                    val spawnY = enemy.y + enemySizePx
-                    enemy.bullets.add(EnemyBullet(y = spawnY, originY = spawnY))
+                // Fire bullet when spacing threshold reached (with jitter) - only when not frozen
+                if (!frozen) {
+                    val jitter = random.nextInt(jitterRange * 2 + 1) - jitterRange
+                    val effectiveSpacing = spacingPx + jitter
+                    if (enemy.bullets.isEmpty() || (enemy.bullets.last().y - enemy.y) > effectiveSpacing) {
+                        val spawnY = enemy.y + enemySizePx
+                        enemy.bullets.add(EnemyBullet(y = spawnY, originY = spawnY))
+                    }
                 }
 
                 val bulletIter = enemy.bullets.iterator()
