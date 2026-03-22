@@ -12,7 +12,7 @@ A 2D vertical-scrolling shooter game for Android, written in Kotlin. Control a j
 
 - **10 Levels** with time-based progression: 300s down to 120s per level
 - **Boss Fights**: Each level ends with a boss that has AI movement, bomb attacks, and scaling HP (1000–1900)
-- **Power-Ups**: Red envelopes (3 hits to open → rocket launch → AoE blast) and medical kits (HP restore)
+- **Power-Ups**: Red envelopes (AoE rockets), medical kits (HP restore), shields (10s invincibility), and time freezes (freeze enemies or player for 5s)
 - **Touch Controls**: Drag to move, bullets fire automatically every 4 frames
 - **Scaling Difficulty**: More enemies, faster spawns, tighter bullet spacing each level
 - **Scoring**: 100 pts/kill, cumulative across all levels in a session
@@ -20,7 +20,7 @@ A 2D vertical-scrolling shooter game for Android, written in Kotlin. Control a j
 ## Features
 
 - Custom SurfaceView game engine at 30 FPS — no third-party game framework
-- 9-way per-frame collision detection system
+- 12-way per-frame collision detection system
 - Particle-based explosion effects (flash, fireball, debris, smoke phases)
 - Screen shake, damage flash, and low-health vignette effects
 - Background music (MediaPlayer) + sound effects (SoundPool, 5 streams)
@@ -46,6 +46,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── RedEnvelopeState.kt             # Data model: red envelope state
 │   ├── RocketState.kt                  # Data model: rocket projectile state
 │   ├── MedicalKitState.kt             # Data model: medical kit state
+│   ├── ShieldState.kt                 # Data model: shield power-up state
+│   ├── TimeFreezeState.kt             # Data model: time freeze power-up state
 │   └── GameState.kt                    # Enum: game state (PLAYING, PAUSED, LOW_MEMORY…)
 │
 ├── gui/                                 # ── Presentation Layer ──
@@ -65,6 +67,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── BossEnemy.kt                    # Boss AI, bombs, death sequence
 │   ├── RedEnvelopes.kt                 # Red envelope power-up & rocket system
 │   ├── MedicalKits.kt                  # Health pickup collectibles
+│   ├── Shields.kt                      # Shield power-up: 10s invincibility
+│   ├── TimeFreezes.kt                  # Time freeze power-up: freeze enemies or player
 │   ├── DrawBackground.kt               # Seamless scrolling background
 │   ├── DrawHeader.kt                   # HUD: level, HP bar, timer, kills
 │   └── ExplosionEffect.kt             # Particle-based death explosion
@@ -93,6 +97,8 @@ app/src/main/java/com/young/aircraft/
 | Jet planes | 4 | `jet_plane_1.png` – `jet_plane_4.png` (selectable) |
 | Red envelopes | 3 | `red_box_1.png`, `red_box_2.png`, `red_box_3.png` |
 | Rocket | 1 | `rocket.png` |
+| Time freezes | 3 | `timer_1.png`, `timer_2.png`, `timer_3.png` |
+| Shields | 3 | `shield_1.png`, `shield_2.png`, `shield_3.png` |
 | Backgrounds | 3 | `background.jpg`, `background_1.jpg`, `background_2.jpg` |
 | Audio | 6 | 2 BGM tracks + fire, hit, enemy_hit, game_over SFX |
 | Localization | 2 | English (default) + Chinese (`values-zh/`) |
