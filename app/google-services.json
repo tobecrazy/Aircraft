@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "25511657884",
+    "project_id": "mobaimaster-fb0c8",
+    "storage_bucket": "mobaimaster-fb0c8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:25511657884:android:efd5aabb4eec6f35cf4859",
+        "android_client_info": {
+          "package_name": "cn.dbyl.qrcodescanner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1cYtCjG_by_3OsWhRh8jFEEGnxZEsOt8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:25511657884:android:dfc80adab99931f4cf4859",
+        "android_client_info": {
+          "package_name": "com.young.aircraft"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1cYtCjG_by_3OsWhRh8jFEEGnxZEsOt8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
