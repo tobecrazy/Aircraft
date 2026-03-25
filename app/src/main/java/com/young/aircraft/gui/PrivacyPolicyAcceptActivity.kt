@@ -93,9 +93,7 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
 
             setOnScrollChangeListener { v, _, scrollY, _, _ ->
                 val wv = v as WebView
-                val contentHeight = (wv.contentHeight * wv.scale).toInt()
-                val viewHeight = wv.height
-                if (scrollY + viewHeight >= contentHeight - 10) {
+                if (scrollY > 0 && !wv.canScrollVertically(1)) {
                     enableButtons()
                 }
             }

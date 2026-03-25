@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.preference.PreferenceManager
+import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.databinding.SettingsActivityBinding
 import androidx.core.content.edit
@@ -131,6 +132,16 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.root.findViewById<LinearLayout>(R.id.row_privacy_policy).setOnClickListener {
             startActivity(Intent(this, PrivacyPolicyActivity::class.java))
+        }
+
+        val developDivider = binding.root.findViewById<View>(R.id.divider_develop_settings)
+        val developSettingsRow = binding.root.findViewById<LinearLayout>(R.id.row_develop_settings)
+        if (BuildConfig.DEBUG) {
+            developDivider.visibility = View.VISIBLE
+            developSettingsRow.visibility = View.VISIBLE
+            developSettingsRow.setOnClickListener {
+                startActivity(Intent(this, DevelopSettingsActivity::class.java))
+            }
         }
     }
 }
