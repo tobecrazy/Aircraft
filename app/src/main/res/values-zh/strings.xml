@@ -1,7 +1,5 @@
 <resources>
     <string name="app_name">飞机大战</string>
-    <string name="play">开始</string>
-    <string name="fire">开火</string>
     <string name="exit_warning_msg">再按一次退出程序</string>
     <string name="start_game">开始游戏</string>
     <string name="start_history">历史成绩</string>
@@ -30,9 +28,7 @@
     <string name="leaderboard_title">排行榜</string>
     <string name="history_no_records">暂无记录</string>
     <string name="history_col_player">玩家</string>
-    <string name="history_col_level">关卡</string>
     <string name="history_col_score">分数</string>
-    <string name="history_col_difficulty">难度</string>
     <string name="history_delete">删除</string>
     <string name="history_delete_title">删除记录</string>
     <string name="history_delete_message">确定要删除这条记录吗？</string>
@@ -70,7 +66,6 @@
 
     <!-- Difficulty Preferences -->
     <string name="difficulty_settings_header">难度设置</string>
-    <string name="difficulty_title">难度</string>
     <string name="difficulty_easy">简单</string>
     <string name="difficulty_normal">普通</string>
     <string name="difficulty_hard">困难</string>
@@ -78,16 +73,6 @@
     <string name="difficulty_normal_desc">平衡射速，标准作战</string>
     <string name="difficulty_hard_desc">较慢射速，激烈作战</string>
     <string name="difficulty_current">当前: %s</string>
-    <string-array name="difficulty_entries">
-        <item>@string/difficulty_easy</item>
-        <item>@string/difficulty_normal</item>
-        <item>@string/difficulty_hard</item>
-    </string-array>
-    <string-array name="difficulty_values">
-        <item>1.2</item>
-        <item>1.0</item>
-        <item>0.8</item>
-    </string-array>
 
     <!-- Sound Preferences -->
     <string name="background_sound_title">背景音乐</string>
@@ -101,17 +86,21 @@
     <string name="other_settings_header">其他设置</string>
     <string name="device_info_title">设备信息</string>
     <string name="device_info_summary">CPU、内存、磁盘、网络等信息</string>
+    <string name="develop_settings_title">Develop Settings</string>
+    <string name="develop_settings_summary">Debug-only tools and crash testing</string>
+    <string name="develop_settings_banner_summary">用于验证调试流程和崩溃上报的内部工具。</string>
+    <string name="develop_settings_section_actions">调试操作</string>
+    <string name="develop_settings_debug_badge">调试构建</string>
+    <string name="develop_settings_crash_title">崩溃上报验证</string>
+    <string name="develop_settings_crash_summary">仅在开发版本中使用，用于验证崩溃采集和恢复流程。</string>
+    <string name="test_crash">Test Crash</string>
     <string name="title_activity_device_info">系统监控</string>
     <string name="device_info_cpu">CPU</string>
-    <string name="device_info_cpu_usage">CPU 使用率</string>
     <string name="device_info_memory">内存</string>
     <string name="device_info_disk">磁盘</string>
     <string name="device_info_network">网络</string>
     <string name="device_info_boot_time">开机时间</string>
     <string name="device_info_current_time">当前时间</string>
-    <string name="device_info_app_version">应用版本</string>
-    <string name="device_info_android_version">Android 版本</string>
-    <string name="device_info_device_model">设备型号</string>
     <string name="device_info_screen_resolution">屏幕分辨率</string>
     <string name="device_info_uptime">运行时长</string>
     <string name="device_info_section_resources">资源使用</string>
