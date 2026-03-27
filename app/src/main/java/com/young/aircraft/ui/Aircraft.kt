@@ -62,6 +62,12 @@ class Aircraft(
     var renderedJetH: Float = 0f
 
     companion object {
+        val JET_PLANES = intArrayOf(
+            R.drawable.jet_plane_2,
+            R.drawable.jet_plane_3,
+            R.drawable.jet_plane_4,
+            R.drawable.jet_plane_1
+        )
         const val FIRE_INTERVAL = 4
         const val BULLET_SPEED = 35f
         const val HIT_FLASH_DURATION_MS = 200L

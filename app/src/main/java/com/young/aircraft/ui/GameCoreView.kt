@@ -52,6 +52,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     var onLevelComplete: ((Int) -> Unit)? = null
     var level: Int = 1
     var jetPlaneResId: Int = R.drawable.jet_plane_2
+    var jetPlaneIndex: Int = 0
     var levelStartTimeMs: Long = 0L
     var enemiesDestroyedThisLevel: Int = 0
     var totalKills: Int = 0
@@ -126,6 +127,12 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private fun initializeGameDrawer() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val fireRateMultiplier = prefs.getString("difficulty", "1.0")?.toFloatOrNull() ?: 1.0f
+        
+        // Resolve jetPlaneResId from index if possible
+        if (jetPlaneIndex in Aircraft.JET_PLANES.indices) {
+            jetPlaneResId = Aircraft.JET_PLANES[jetPlaneIndex]
+        }
+        
         drawBackground = DrawBackground(context, 2.0F)
         drawAircraft = Aircraft(context, 1.0F, jetPlaneResId, fireRateMultiplier)
         enemies = Enemies(context, 1.0F)

@@ -70,8 +70,10 @@ class MainActivity : AppCompatActivity() {
         coreView = GameCoreView(this)
         val startLevel = intent.getIntExtra("start_level", 1)
         val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane_2)
+        val jetPlaneIndex = intent.getIntExtra("jet_plane_index", 0)
         coreView.level = startLevel
         coreView.jetPlaneResId = jetPlaneRes
+        coreView.jetPlaneIndex = jetPlaneIndex
         setContentView(coreView)
         coreView.onGameOver = {
             showGameDialog(
@@ -247,10 +249,11 @@ class MainActivity : AppCompatActivity() {
                 level = coreView.level,
                 score = score,
                 jetPlaneRes = coreView.jetPlaneResId,
+                jetPlaneIndex = coreView.jetPlaneIndex,
                 difficulty = difficulty
             )
         )
-        Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score, difficulty=$difficulty")
+        Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score, jetIndex=${coreView.jetPlaneIndex}")
     }
 
     private fun exitApp() {
