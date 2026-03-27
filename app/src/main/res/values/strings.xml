@@ -150,4 +150,7 @@
     <string name="onboarding_invincibility">\u26E1 Invincibility Shield</string>
     <string name="onboarding_aoe_rocket">&#x1F381; AoE Rocket</string>
     <string name="onboarding_collect_all">COLLECT THEM ALL!</string>
+
+    <string name="invincible_mode_on">Invincible mode enabled. No damage will be taken.</string>
+    <string name="invincible_mode_off">Normal mode restored. Damage will be taken normally.</string>
 </resources>

@@ -92,3 +92,4 @@ lint/tmp/
 .idea/kotlinc.xml
 /.claude/skills/gstack
 /.claude/skills
+/.kotlin
