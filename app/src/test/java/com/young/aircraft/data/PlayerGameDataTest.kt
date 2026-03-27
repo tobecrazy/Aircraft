@@ -12,6 +12,7 @@ class PlayerGameDataTest {
         assertEquals(1, data.level)
         assertEquals(0L, data.score)
         assertEquals(0, data.jetPlaneRes)
+        assertEquals(0, data.jetPlaneIndex)
         assertEquals("1.0", data.difficulty)
         assertTrue(data.timestamp > 0)
     }
@@ -25,6 +26,7 @@ class PlayerGameDataTest {
             level = 5,
             score = 10000L,
             jetPlaneRes = 123,
+            jetPlaneIndex = 2,
             difficulty = "0.8",
             timestamp = timestamp
         )
@@ -33,6 +35,7 @@ class PlayerGameDataTest {
         assertEquals(5, data.level)
         assertEquals(10000L, data.score)
         assertEquals(123, data.jetPlaneRes)
+        assertEquals(2, data.jetPlaneIndex)
         assertEquals("0.8", data.difficulty)
         assertEquals(timestamp, data.timestamp)
     }

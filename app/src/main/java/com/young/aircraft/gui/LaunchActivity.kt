@@ -13,13 +13,14 @@ import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityLaunchBinding
 import com.young.aircraft.providers.DatabaseProvider
+import com.young.aircraft.ui.Aircraft
 import kotlinx.coroutines.launch
 
 @SuppressLint("CustomSplashScreen")
 class LaunchActivity : AppCompatActivity() {
     lateinit var binding: ActivityLaunchBinding
     private val db by lazy { DatabaseProvider.getDatabase(this) }
-    private val jetPlanes = intArrayOf(R.drawable.jet_plane_2, R.drawable.jet_plane_3, R.drawable.jet_plane_4, R.drawable.jet_plane_1)
+    private val jetPlanes = Aircraft.JET_PLANES
     private var selectedJetIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,8 +48,19 @@ class LaunchActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val savedData = db.playerGameDataDao().getByPlayerId(playerId)
             if (savedData.isNotEmpty() && savedData[0].level > 1) {
-                val savedLevel = savedData[0].level
-                val savedJetRes = savedData[0].jetPlaneRes.takeIf { it != 0 } ?: R.drawable.jet_plane_2
+                val data = savedData[0]
+                val savedLevel = data.level
+                
+                // Prioritize index, fallback to finding index from old resource ID, then default to 0
+                val savedJetIndex = if (data.jetPlaneIndex in Aircraft.JET_PLANES.indices) {
+                    data.jetPlaneIndex
+                } else {
+                    val foundIndex = Aircraft.JET_PLANES.indexOf(data.jetPlaneRes)
+                    if (foundIndex != -1) foundIndex else 0
+                }
+                
+                val savedJetRes = Aircraft.JET_PLANES[savedJetIndex]
+                
                 runOnUiThread {
                     val dialogView = LayoutInflater.from(this@LaunchActivity)
                         .inflate(R.layout.dialog_game, null)
@@ -67,6 +79,7 @@ class LaunchActivity : AppCompatActivity() {
                                 Intent(this@LaunchActivity, MainActivity::class.java)
                                     .putExtra("start_level", savedLevel)
                                     .putExtra("jet_plane_res", savedJetRes)
+                                    .putExtra("jet_plane_index", savedJetIndex)
                             )
                         }
                     }
@@ -81,6 +94,7 @@ class LaunchActivity : AppCompatActivity() {
                             startActivity(
                                 Intent(this@LaunchActivity, MainActivity::class.java)
                                     .putExtra("jet_plane_res", jetResId)
+                                    .putExtra("jet_plane_index", selectedJetIndex)
                             )
                         }
                     }
@@ -90,6 +104,7 @@ class LaunchActivity : AppCompatActivity() {
                 startActivity(
                     Intent(this@LaunchActivity, MainActivity::class.java)
                         .putExtra("jet_plane_res", jetResId)
+                        .putExtra("jet_plane_index", selectedJetIndex)
                 )
             }
         }

@@ -16,6 +16,8 @@ data class PlayerGameData(
     val score: Long,
     @ColumnInfo(name = "jet_plane_res")
     val jetPlaneRes: Int = 0,
+    @ColumnInfo(name = "jet_plane_index")
+    val jetPlaneIndex: Int = 0,
     @ColumnInfo(name = "difficulty")
     val difficulty: String = "1.0",
     @ColumnInfo(name = "timestamp")
