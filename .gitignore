@@ -94,3 +94,4 @@ lint/tmp/
 /.claude/skills
 /.kotlin
 OPTIMIZATION_PLAN.md
+/.idea
