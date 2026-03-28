@@ -34,6 +34,7 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
 
     private val envelopeSizePx: Int = ScreenUtils.dpToPx(context, 150.0f)
     private val rocketSizePx: Int = ScreenUtils.dpToPx(context, 50.0f)
+    private val envelopeSpawnMarginPx: Float = ScreenUtils.dpToPx(context, 40.0f).toFloat()
 
     // Paint with white tint for hit flash effect
     private val hitFlashPaint = Paint().apply {
@@ -51,7 +52,7 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
 
     companion object {
         const val SPAWN_INTERVAL_FRAMES = 300
-        const val MAX_ON_SCREEN = 2
+        const val MAX_ON_SCREEN = 1
         const val DRIFT_SPEED = 2f
         const val ROCKET_SPEED = 20f
         const val HIT_FLASH_DURATION_MS = 100L
@@ -80,32 +81,43 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
     }
 
     private fun getRandomLeft(): Float {
-        val random = Random(System.nanoTime())
-        val start = ScreenUtils.dpToPx(context, 40.0f)
-        val end = ScreenUtils.getScreenWidth(context) - ScreenUtils.dpToPx(context, 40.0f)
-        var randomX = screenWidth * random.nextFloat()
-        while (randomX <= start || randomX >= end) {
-            randomX = screenWidth * random.nextFloat()
-        }
-        return randomX
+        val maxLeft = (screenWidth - envelopeSpawnMarginPx - envelopeSizePx.toFloat())
+            .coerceAtLeast(envelopeSpawnMarginPx)
+        if (maxLeft <= envelopeSpawnMarginPx) return envelopeSpawnMarginPx
+        return envelopeSpawnMarginPx + Random.Default.nextFloat() * (maxLeft - envelopeSpawnMarginPx)
+    }
+
+    private fun getRandomTop(): Float {
+        val minTop = envelopeSpawnMarginPx
+        val maxTop = (screenHeight * 0.5f - envelopeSizePx.toFloat() - envelopeSpawnMarginPx)
+            .coerceAtLeast(minTop)
+        if (maxTop <= minTop) return minTop
+        return minTop + Random.Default.nextFloat() * (maxTop - minTop)
+    }
+
+    private fun hasEnvelopeOnScreen(): Boolean {
+        return activeEnvelopes.size >= MAX_ON_SCREEN
     }
 
     private fun spawnEnvelope() {
-        if (activeEnvelopes.count { !it.isDetonated() } >= MAX_ON_SCREEN) return
+        if (hasEnvelopeOnScreen()) return
         val x = getRandomLeft()
-        val y = -envelopeSizePx.toFloat()
+        val y = getRandomTop()
         activeEnvelopes.add(RedEnvelopeState(x = x, y = y))
+    }
+
+    private fun updateSpawnTimer() {
+        framesSinceLastSpawn = minOf(framesSinceLastSpawn + 1, SPAWN_INTERVAL_FRAMES)
+        if (framesSinceLastSpawn < SPAWN_INTERVAL_FRAMES) return
+        if (hasEnvelopeOnScreen()) return
+
+        framesSinceLastSpawn = 0
+        spawnEnvelope()
     }
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        // Spawn timer
-        framesSinceLastSpawn++
-        if (framesSinceLastSpawn >= SPAWN_INTERVAL_FRAMES) {
-            framesSinceLastSpawn = 0
-            spawnEnvelope()
-        }
-
+        updateSpawnTimer()
         drawEnvelopes(canvas)
         drawRockets(canvas)
         drawExplosions(canvas)
