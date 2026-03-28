@@ -6,7 +6,6 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import android.view.KeyEvent
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -16,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
@@ -60,6 +60,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         playerId = settingsRepository.getOrCreateInstallId()
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                exitApp()
+            }
+        })
         coreView = GameCoreView(this)
         val startLevel = intent.getIntExtra("start_level", 1)
         val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane_2)
@@ -146,16 +151,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_BACK -> {
-                exitApp()
-                return false
-            }
-        }
-        return super.onKeyDown(keyCode, event)
     }
 
     private fun showGameDialog(
