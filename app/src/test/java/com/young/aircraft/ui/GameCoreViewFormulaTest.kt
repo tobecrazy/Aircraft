@@ -66,4 +66,24 @@ class GameCoreViewFormulaTest {
     fun `MAX_LEVEL is 10`() {
         assertEquals(10, GameCoreView.MAX_LEVEL)
     }
+
+    @Test
+    fun `frame sleep time clamps to zero when frame overruns`() {
+        assertEquals(0L, GameCoreView.calculateFrameSleepTimeMs(33L, 45L))
+    }
+
+    @Test
+    fun `frame sleep time uses remaining budget when frame is under target`() {
+        assertEquals(13L, GameCoreView.calculateFrameSleepTimeMs(33L, 20L))
+    }
+
+    @Test
+    fun `dropped frames stays zero when frame fits budget`() {
+        assertEquals(0, GameCoreView.calculateDroppedFrames(33L, 33L))
+    }
+
+    @Test
+    fun `dropped frames counts overruns in target frame chunks`() {
+        assertEquals(2, GameCoreView.calculateDroppedFrames(33L, 100L))
+    }
 }

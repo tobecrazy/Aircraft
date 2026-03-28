@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.young.aircraft.R
+import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.ItemHistoryBinding
 import java.text.NumberFormat
@@ -74,10 +75,10 @@ class HistoryAdapter(
         holder.binding.textLevel.text = "Lv.${item.level}"
 
         // Difficulty badge
-        val (badgeRes, badgeTextColor, badgeText) = when (item.difficulty) {
-            "1.2" -> Triple(R.drawable.badge_easy, Color.parseColor("#00FF88"), ctx.getString(R.string.difficulty_easy))
-            "0.8" -> Triple(R.drawable.badge_hard, Color.parseColor("#FF4444"), ctx.getString(R.string.difficulty_hard))
-            else -> Triple(R.drawable.badge_normal, Color.parseColor("#FFFF00"), ctx.getString(R.string.difficulty_normal))
+        val (badgeRes, badgeTextColor, badgeText) = when (GameDifficulty.fromPersistedValue(item.difficulty)) {
+            GameDifficulty.EASY -> Triple(R.drawable.badge_easy, Color.parseColor("#00FF88"), ctx.getString(R.string.difficulty_easy))
+            GameDifficulty.HARD -> Triple(R.drawable.badge_hard, Color.parseColor("#FF4444"), ctx.getString(R.string.difficulty_hard))
+            GameDifficulty.NORMAL -> Triple(R.drawable.badge_normal, Color.parseColor("#FFFF00"), ctx.getString(R.string.difficulty_normal))
         }
         holder.binding.textDifficulty.setBackgroundResource(badgeRes)
         holder.binding.textDifficulty.setTextColor(badgeTextColor)

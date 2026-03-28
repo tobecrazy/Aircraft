@@ -17,12 +17,11 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import androidx.preference.PreferenceManager
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.service.MusicService
+import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.utils.ScreenUtils
-import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
@@ -81,6 +80,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     // Death explosion
     private var playerDeathExplosion: ExplosionEffect? = null
     private var isPlayerDying = false
+    private val settingsRepository = SettingsRepository(context)
 
     // Vibrator
     private val vibrator =
@@ -98,8 +98,19 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         const val SHAKE_DURATION_MS = 300L
         const val SHAKE_MAX_OFFSET_DP = 8f
         const val FLASH_DURATION_MS = 300L
+        const val HIT_VIBRATION_MS = 1000L
         fun getLevelDurationMs(level: Int): Long = (300_000L - 20_000L * (level - 1))
         fun getRequiredKills(level: Int): Int = 90 + level * 10
+        fun calculateFrameSleepTimeMs(targetFrameTimeMs: Long, frameDurationMs: Long): Long {
+            return (targetFrameTimeMs - frameDurationMs).coerceAtLeast(0L)
+        }
+
+        fun calculateDroppedFrames(targetFrameTimeMs: Long, frameDurationMs: Long): Int {
+            if (targetFrameTimeMs <= 0L || frameDurationMs <= targetFrameTimeMs) {
+                return 0
+            }
+            return ((frameDurationMs - targetFrameTimeMs) / targetFrameTimeMs).toInt()
+        }
     }
 
     init {
@@ -126,9 +137,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun initializeGameDrawer() {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        GameStateManager.isInvincible = prefs.getBoolean("invincible_mode", false)
-        val fireRateMultiplier = prefs.getString("difficulty", "1.0")?.toFloatOrNull() ?: 1.0f
+        GameStateManager.isInvincible = settingsRepository.isInvincibleModeEnabled()
+        val fireRateMultiplier = settingsRepository.getDifficulty().fireRateMultiplier
         
         // Resolve jetPlaneResId from index if possible
         if (jetPlaneIndex in Aircraft.JET_PLANES.indices) {
@@ -162,21 +172,18 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkCollision() {
         val aircraftBounds = drawAircraft.getBounds()
-        ScreenUtils.dpToPx(context, 48.0f)
 
         // Check player aircraft colliding with enemies
         for (enemy in enemies.activeEnemies) {
             if (enemy.isDestroyed()) continue
-            enemy.bitmap?.let {
-                val enemyBounds = enemies.getEnemyBounds(enemy.x, enemy.y, it)
-                if (RectF.intersects(aircraftBounds, enemyBounds)) {
-                    if (!collisionCooldown) {
-                        Log.d("Collision", "Aircraft collided with an enemy!")
-                        handleCollision()
-                    }
-                } else {
-                    collisionCooldown = false
+            val enemyBounds = enemies.getEnemyBounds(enemy)
+            if (RectF.intersects(aircraftBounds, enemyBounds)) {
+                if (!collisionCooldown) {
+                    Log.d("Collision", "Aircraft collided with an enemy!")
+                    handleCollision()
                 }
+            } else {
+                collisionCooldown = false
             }
         }
 
@@ -209,17 +216,13 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
-        val enemyBullets = enemies.getEnemyBullets()
-        for ((bx, by, bulletRef) in enemyBullets) {
-            val bulletBounds = enemies.getBulletBounds(bx, by)
+        enemies.forEachActiveBullet { enemy, bx, bulletRef ->
+            val bulletBounds = enemies.getBulletBounds(bx, bulletRef.y)
             if (RectF.intersects(aircraftBounds, bulletBounds)) {
-                // Remove the bullet that hit
-                for (enemy in enemies.activeEnemies) {
-                    enemy.bullets.remove(bulletRef)
-                }
+                enemy.bullets.remove(bulletRef)
                 if (drawAircraft.isShielded()) {
                     Log.d("Game", "Shield absorbed enemy bullet!")
-                    break
+                    return@forEachActiveBullet true
                 }
                 playerData.hit()
                 musicService?.playerHitSoundPlay()
@@ -230,8 +233,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     triggerDeathExplosion()
                     Log.d("Game", "Game Over!")
                 }
-                break
+                return@forEachActiveBullet true
             }
+            false
         }
     }
 
@@ -744,7 +748,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         shakeStartTimeMs = now
         damageFlashStartMs = now
         drawAircraft.hitTimeMs = now
-        vibrator.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE))
+        vibrator.vibrate(
+            VibrationEffect.createOneShot(HIT_VIBRATION_MS, VibrationEffect.DEFAULT_AMPLITUDE)
+        )
     }
 
     private fun triggerDeathExplosion() {
@@ -805,6 +811,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private var avg_FPS: Double = 0.0
+    private var droppedFrameCount: Int = 0
     private var isRunning = true
     var canvas: Canvas? = null
 
@@ -838,11 +845,13 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 }
             }
             timeMillis = (System.nanoTime() - startTime) / 1000000
-            waitTime = targetTime - timeMillis
+            waitTime = calculateFrameSleepTimeMs(targetTime, timeMillis)
+            droppedFrameCount += calculateDroppedFrames(targetTime, timeMillis)
 
             try {
-                Thread.sleep(abs(waitTime))
-//                Thread.yield()
+                if (waitTime > 0L) {
+                    Thread.sleep(waitTime)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -850,8 +859,12 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             frameCount++
             if (frameCount == FPS) {
                 avg_FPS = (1000 / ((totalTime / frameCount) / 1000000)).toDouble()
+                if (droppedFrameCount > 0) {
+                    Log.w("GameCoreView", "Dropped frames in last second: $droppedFrameCount")
+                }
                 frameCount = 0
                 totalTime = 0
+                droppedFrameCount = 0
             }
         }
     }

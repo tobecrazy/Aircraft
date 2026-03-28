@@ -3,7 +3,6 @@ package com.young.aircraft.gui
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
@@ -13,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityLaunchBinding
 import com.young.aircraft.providers.DatabaseProvider
+import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.ui.Aircraft
 import kotlinx.coroutines.launch
 
@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 class LaunchActivity : AppCompatActivity() {
     lateinit var binding: ActivityLaunchBinding
     private val db by lazy { DatabaseProvider.getDatabase(this) }
+    private val settingsRepository by lazy { SettingsRepository(this) }
     private val jetPlanes = Aircraft.JET_PLANES
     private var selectedJetIndex = 0
 
@@ -43,7 +44,7 @@ class LaunchActivity : AppCompatActivity() {
     }
 
     private fun checkSavedGameAndStart() {
-        val playerId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+        val playerId = settingsRepository.getOrCreateInstallId()
         val jetResId = jetPlanes[selectedJetIndex]
         lifecycleScope.launch {
             val savedData = db.playerGameDataDao().getByPlayerId(playerId)

@@ -2,14 +2,15 @@ package com.young.aircraft.service
 
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Binder
 import android.os.IBinder
-import androidx.preference.PreferenceManager
 import com.young.aircraft.R
+import com.young.aircraft.providers.SettingsRepository
 /**
  * Create by Young
  * 2026/3/10
@@ -18,11 +19,32 @@ class MusicService : Service() {
     private val MAX_STREAMS = 5
     private lateinit var soundPool: SoundPool
     private lateinit var soundMap: HashMap<Int, Int>
+    private lateinit var settingsRepository: SettingsRepository
     private var bgMediaPlayer: MediaPlayer? = null
+    private var backgroundSoundEnabled = true
+    private var combatSoundEnabled = true
     private val mBinder = MusicBinder()
+    private val settingsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            SettingsRepository.KEY_BACKGROUND_SOUND -> {
+                backgroundSoundEnabled = settingsRepository.isBackgroundSoundEnabled()
+                if (!backgroundSoundEnabled) {
+                    backgroundSoundStop()
+                }
+            }
+
+            SettingsRepository.KEY_COMBAT_SOUND -> {
+                combatSoundEnabled = settingsRepository.isCombatSoundEnabled()
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
+        settingsRepository = SettingsRepository(this)
+        backgroundSoundEnabled = settingsRepository.isBackgroundSoundEnabled()
+        combatSoundEnabled = settingsRepository.isCombatSoundEnabled()
+        settingsRepository.registerListener(settingsListener)
         val attribution: AudioAttributes =
             AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -52,14 +74,20 @@ class MusicService : Service() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        bgMediaPlayer?.release()
-        bgMediaPlayer = null
-        soundPool.release()
+        backgroundSoundStop()
         return super.onUnbind(intent)
     }
 
+    override fun onDestroy() {
+        settingsRepository.unregisterListener(settingsListener)
+        bgMediaPlayer?.release()
+        bgMediaPlayer = null
+        soundPool.release()
+        super.onDestroy()
+    }
+
     fun backgroundSoundPlay() {
-        if (!isBackgroundSoundEnabled()) return
+        if (!backgroundSoundEnabled) return
         if (bgMediaPlayer == null) {
             bgMediaPlayer = MediaPlayer.create(this, R.raw.background1).apply {
                 isLooping = true
@@ -75,38 +103,27 @@ class MusicService : Service() {
     }
 
     fun shotSoundPlay() {
-        if (!isCombatSoundEnabled()) return
+        if (!combatSoundEnabled) return
         playSound(0x002, 1.0f, 0)
     }
 
     fun playerHitSoundPlay() {
-        if (!isCombatSoundEnabled()) return
+        if (!combatSoundEnabled) return
         playSound(0x003, 1.0f, 0)
     }
 
     fun enemyHitSoundPlay() {
-        if (!isCombatSoundEnabled()) return
+        if (!combatSoundEnabled) return
         playSound(0x004, 1.0f, 0)
     }
 
     fun gameOverSoundPlay() {
-        if (!isCombatSoundEnabled()) return
+        if (!combatSoundEnabled) return
         playSound(0x005, 1.0f, 0)
-    }
-
-    private fun isBackgroundSoundEnabled(): Boolean {
-        return PreferenceManager.getDefaultSharedPreferences(this)
-            .getBoolean("background_sound", true)
-    }
-
-    private fun isCombatSoundEnabled(): Boolean {
-        return PreferenceManager.getDefaultSharedPreferences(this)
-            .getBoolean("combat_sound", true)
     }
 
     inner class MusicBinder : Binder() {
         fun getService(): MusicService = this@MusicService
     }
 }
-
 

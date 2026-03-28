@@ -12,6 +12,7 @@ data class EnemyState(
     val x: Float,
     var y: Float,
     val bitmap: Bitmap?,
+    val bitmapIndex: Int = -1,
     var health: Float,
     var destroyedTime: Long = 0L,
     val bullets: MutableList<EnemyBullet> = mutableListOf()

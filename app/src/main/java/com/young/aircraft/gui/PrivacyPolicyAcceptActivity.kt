@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityPrivacyPolicyAcceptBinding
+import com.young.aircraft.providers.SettingsRepository
 import java.util.Locale
 
 /**
@@ -25,16 +26,17 @@ import java.util.Locale
  */
 class PrivacyPolicyAcceptActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPrivacyPolicyAcceptBinding
+    private lateinit var settingsRepository: SettingsRepository
     private var acceptPulseAnimator: ObjectAnimator? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
+        settingsRepository = SettingsRepository(this)
 
         // Already accepted → route to onboarding gate (it handles its own skip)
-        val prefs = getSharedPreferences("aircraft_prefs", MODE_PRIVATE)
-        if (prefs.getBoolean("privacy_policy_accepted", false)) {
+        if (settingsRepository.isPrivacyPolicyAccepted()) {
             startActivity(Intent(this, OnboardingActivity::class.java))
             finish()
             return
@@ -113,7 +115,7 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
         binding.btnAccept.isEnabled = false
         binding.btnAccept.alpha = 0.3f
         binding.btnAccept.setOnClickListener {
-            prefs.edit().putBoolean("privacy_policy_accepted", true).apply()
+            settingsRepository.setPrivacyPolicyAccepted(true)
             startActivity(Intent(this, OnboardingActivity::class.java))
             finish()
         }
