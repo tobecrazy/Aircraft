@@ -1,6 +1,5 @@
 package com.young.aircraft.ui
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -23,6 +22,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     private val activeExplosions = mutableListOf<ExplosionEffect>()
     private var framesSinceLastSpawn: Int = 0
     private val bitmapList = mutableListOf<Bitmap?>()
+    private val rng = Random(System.nanoTime())
     private var bulletBitmap: Bitmap? = null
     var level: Int = 1
     var spawnPaused: Boolean = false
@@ -60,8 +60,17 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     }
 
     // Bullet range: 60% of screen height
+    private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+    private val enemySizePx: Float = ScreenUtils.dpToPx(context, 48.0f).toFloat()
+    private val enemyHalfSizePx: Float = enemySizePx / 2f
+    private val spawnInsetPx: Float = ScreenUtils.dpToPx(context, 40.0f).toFloat()
+    private val spawnSpreadPx: Float = ScreenUtils.dpToPx(context, 80.0f).toFloat()
+    private val baseBulletSpacingPx: Float = ScreenUtils.dpToPx(context, BASE_BULLET_SPACING_DP).toFloat()
+    private val minBulletSpacingPx: Float = ScreenUtils.dpToPx(context, MIN_BULLET_SPACING_DP).toFloat()
     private val maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.6f
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
+    private val bulletWidthPx: Float
+    private val bulletHeightPx: Float
 
     companion object {
         const val BASE_ENEMY_MOVE_SPEED = 3f
@@ -107,10 +116,9 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         }
 
         // Pre-cache resized enemy bitmaps
-        val enemySizePx = ScreenUtils.dpToPx(context, 48.0f)
         for (bmp in bitmapList) {
             cachedEnemyBitmaps.add(
-                BitmapUtils.resizeBitmap(bmp, enemySizePx, enemySizePx, 180.0f)
+                BitmapUtils.resizeBitmap(bmp, enemySizePx.toInt(), enemySizePx.toInt(), 180.0f)
             )
         }
 
@@ -124,56 +132,50 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         )
         // Match player bullet density so canvas renders both at the same visual size
         bulletBitmap?.density = screenDensity
+        bulletWidthPx = bulletBitmap?.width?.toFloat() ?: 0f
+        bulletHeightPx = bulletBitmap?.height?.toFloat() ?: 0f
     }
 
     private fun getRandomEnemyBitmapIndex(): Int {
-        val random = Random(System.nanoTime())
         val count = bitmapList.size
-        var index: Int = random.nextInt() % count
+        var index: Int = rng.nextInt() % count
         while (index < 0) {
-            index = random.nextInt() % count
+            index = rng.nextInt() % count
         }
         return index
     }
 
     private fun getRandomLeft(): Float {
-        val random = Random(System.nanoTime())
-        val start = ScreenUtils.dpToPx(context, 40.0f)
-        val end = ScreenUtils.getScreenWidth(context) - ScreenUtils.dpToPx(context, 40.0f)
-        var randomX = screenWidth * random.nextFloat()
-        while (randomX <= start || randomX >= end) {
-            randomX = screenWidth * random.nextFloat()
+        val end = screenWidth - spawnInsetPx
+        var randomX = screenWidth * rng.nextFloat()
+        while (randomX <= spawnInsetPx || randomX >= end) {
+            randomX = screenWidth * rng.nextFloat()
         }
         return randomX
     }
 
     private fun spawnRow() {
         val count = getEnemiesPerRow()
-        val enemySizeDp = 48.0f
-        val enemySizePx = ScreenUtils.dpToPx(context, enemySizeDp).toFloat()
         // Randomize each enemy's starting Y within a spread range above screen
-        val random = Random(System.nanoTime())
         val baseY = -enemySizePx
-        val spreadPx = ScreenUtils.dpToPx(context, 80.0f).toFloat()
         for (i in 0 until count) {
             val x = getRandomLeft()
             val bmpIndex = getRandomEnemyBitmapIndex()
             // Each enemy gets a random Y offset from baseY to (baseY - spreadPx)
-            val randomYOffset = random.nextFloat() * spreadPx
+            val randomYOffset = rng.nextFloat() * spawnSpreadPx
             activeEnemies.add(
                 EnemyState(
                     x = x,
                     y = baseY - randomYOffset,
                     bitmap = bitmapList[bmpIndex],
+                    bitmapIndex = bmpIndex,
                     health = 1f
                 )
             )
         }
     }
 
-    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        val screenHeight = ScreenUtils.getScreenHeight(context).toFloat()
         val moveSpeed = if (frozen) 0f else getEnemyMoveSpeed()
 
         // Spawn timer (only when not frozen)
@@ -197,8 +199,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
                     continue
                 }
                 // Draw using cached bitmap
-                val bmpIndex = bitmapList.indexOf(enemy.bitmap)
-                val cachedBmp = if (bmpIndex >= 0) cachedEnemyBitmaps[bmpIndex] else null
+                val cachedBmp = enemy.cachedBitmap()
                 cachedBmp?.let { canvas.drawBitmap(it, enemy.x, enemy.y, mPaint) }
             } else if (enemy.isExpired()) {
                 iter.remove()
@@ -211,12 +212,8 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     }
 
     private fun drawEnemyBullets(canvas: Canvas) {
-        val screenHeight = ScreenUtils.getScreenHeight(context).toFloat()
         val currentBulletSpeed = if (frozen) 0f else getEnemyBulletSpeed()
-        val spacingDp = getBulletSpacingDp()
-        val spacingPx = ScreenUtils.dpToPx(context, spacingDp)
-        val enemySizePx = ScreenUtils.dpToPx(context, 48.0f)
-        val random = Random(System.nanoTime())
+        val spacingPx = getBulletSpacingPx()
         // Small random jitter on spacing (±15%) so bullets don't fire in lock-step
         val jitterRange = (spacingPx * 0.15f).toInt().coerceAtLeast(1)
 
@@ -227,12 +224,12 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
 
             for (enemy in activeEnemies) {
                 if (enemy.isDestroyed()) continue
-                val enemyCenterX = enemy.x + enemySizePx / 2f
+                val enemyCenterX = enemy.x + enemyHalfSizePx
                 val bulletSpawnX = enemyCenterX - renderedW / 2f
 
                 // Fire bullet when spacing threshold reached (with jitter) - only when not frozen
                 if (!frozen) {
-                    val jitter = random.nextInt(jitterRange * 2 + 1) - jitterRange
+                    val jitter = rng.nextInt(jitterRange * 2 + 1) - jitterRange
                     val effectiveSpacing = spacingPx + jitter
                     if (enemy.bullets.isEmpty() || (enemy.bullets.last().y - enemy.y) > effectiveSpacing) {
                         val spawnY = enemy.y + enemySizePx
@@ -262,8 +259,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
             if (enemy.isDestroyed() && !enemy.isExpired()) {
                 val elapsed = System.currentTimeMillis() - enemy.destroyedTime
                 if (elapsed <= 100L) {
-                    val bmpIndex = bitmapList.indexOf(enemy.bitmap)
-                    val cachedBmp = if (bmpIndex >= 0) cachedEnemyBitmaps[bmpIndex] else null
+                    val cachedBmp = enemy.cachedBitmap()
                     cachedBmp?.let { canvas.drawBitmap(it, enemy.x, enemy.y, hitFlashPaint) }
                 }
             }
@@ -281,41 +277,35 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         }
     }
 
-    fun getEnemyBullets(): List<Triple<Float, Float, EnemyBullet>> {
-        val result = mutableListOf<Triple<Float, Float, EnemyBullet>>()
-        bulletBitmap?.let { bmp ->
-            val enemySizePx = ScreenUtils.dpToPx(context, 48.0f)
-            // Use raw bitmap width (density scaling is handled by getBulletBounds)
-            val halfW = bmp.width / 2f
-            for (enemy in activeEnemies) {
-                if (enemy.isDestroyed()) continue
-                val enemyCenterX = enemy.x + enemySizePx / 2f
-                val bulletX = enemyCenterX - halfW
-                for (bullet in enemy.bullets) {
-                    result.add(Triple(bulletX, bullet.y, bullet))
+    fun forEachActiveBullet(action: (EnemyState, Float, EnemyBullet) -> Boolean) {
+        val halfW = bulletWidthPx / 2f
+        for (enemy in activeEnemies) {
+            if (enemy.isDestroyed()) continue
+            val bulletX = enemy.x + enemyHalfSizePx - halfW
+            for (bullet in enemy.bullets) {
+                if (action(enemy, bulletX, bullet)) {
+                    return
                 }
             }
         }
-        return result
     }
 
     fun getBulletBounds(x: Float, y: Float): RectF {
-        bulletBitmap?.let {
-            // Use raw bitmap pixel size for bounds (same coordinate space as drawing)
-            return RectF(x, y, x + it.width, y + it.height)
-        }
-        return RectF()
+        return RectF(x, y, x + bulletWidthPx, y + bulletHeightPx)
+    }
+
+    fun getEnemyBounds(enemy: EnemyState): RectF {
+        return RectF(enemy.x, enemy.y, enemy.x + enemySizePx, enemy.y + enemySizePx)
     }
 
     fun hitEnemy(enemy: EnemyState): Boolean {
         enemy.health = -1f
         enemy.destroyedTime = System.currentTimeMillis()
         // Spawn explosion at enemy center
-        val enemySizePx = ScreenUtils.dpToPx(context, 48.0f).toFloat()
         activeExplosions.add(
             ExplosionEffect(
-                centerX = enemy.x + enemySizePx / 2f,
-                centerY = enemy.y + enemySizePx / 2f,
+                centerX = enemy.x + enemyHalfSizePx,
+                centerY = enemy.y + enemyHalfSizePx,
                 size = enemySizePx
             )
         )
@@ -330,10 +320,19 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     }
 
     override fun getEnemyBounds(x: Float, y: Float, bitmap: Bitmap): RectF {
-        val left = x
-        val top = y
-        val right = x + bitmap.width
-        val bottom = y + bitmap.height
-        return RectF(left, top, right, bottom)
+        return RectF(x, y, x + enemySizePx, y + enemySizePx)
+    }
+
+    private fun getBulletSpacingPx(): Float {
+        val spacing = baseBulletSpacingPx - (level - 1) * ScreenUtils.dpToPx(context, SPACING_DECREASE_PER_LEVEL)
+        return spacing.coerceAtLeast(minBulletSpacingPx)
+    }
+
+    private fun EnemyState.cachedBitmap(): Bitmap? {
+        return if (bitmapIndex in cachedEnemyBitmaps.indices) {
+            cachedEnemyBitmaps[bitmapIndex]
+        } else {
+            null
+        }
     }
 }

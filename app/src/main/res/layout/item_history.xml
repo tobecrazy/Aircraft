@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/item_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -89,7 +90,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/history_delete"
             android:src="@android:drawable/ic_menu_delete"
-            android:tint="#66F44336" />
+            app:tint="#66F44336" />
     </LinearLayout>
 
 </LinearLayout>

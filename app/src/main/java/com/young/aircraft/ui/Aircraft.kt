@@ -1,6 +1,5 @@
 package com.young.aircraft.ui
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -25,6 +24,17 @@ class Aircraft(
 ) : DrawBaseObject(context) {
     private val bullets = mutableListOf<Bullet>()
     private var fireAccumulator: Float = 0f
+    private val screenDensity = context.resources.displayMetrics.densityDpi
+    private val jetBitmap: Bitmap? = BitmapUtils.readBitMap(context, jetPlaneResId)?.also {
+        it.density = screenDensity
+    }
+    private val bulletBitmap: Bitmap? = BitmapUtils.resizeBitmap(
+        BitmapUtils.readBitMap(context, R.drawable.bullet_up),
+        ScreenUtils.dpToPx(context, 40.0f),
+        ScreenUtils.dpToPx(context, 40.0f)
+    )?.also {
+        it.density = screenDensity
+    }
     var jetX: Float =
         ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
     var jetY: Float =
@@ -81,20 +91,8 @@ class Aircraft(
         shieldEndTimeMs = System.currentTimeMillis() + SHIELD_DURATION_MS
     }
 
-    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        val jetBitmap = BitmapUtils.readBitMap(context, jetPlaneResId)
-        val originBitmap = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
-        val bulletBitmap = BitmapUtils.resizeBitmap(
-            originBitmap,
-            ScreenUtils.dpToPx(context, 40.0f),
-            ScreenUtils.dpToPx(context, 40.0f)
-        )
         if (jetBitmap != null && bulletBitmap != null) {
-            val screenDensity = context.resources.displayMetrics.densityDpi
-            jetBitmap.density = screenDensity
-            bulletBitmap.density = screenDensity
-
             // Determine paint: hit flash > shield blink > normal
             val drawPaint = if (System.currentTimeMillis() - hitTimeMs < HIT_FLASH_DURATION_MS) {
                 hitFlashPaint

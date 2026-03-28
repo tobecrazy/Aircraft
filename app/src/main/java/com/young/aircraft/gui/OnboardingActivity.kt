@@ -7,7 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.young.aircraft.databinding.ActivityOnboardingBinding
-import androidx.core.content.edit
+import com.young.aircraft.providers.SettingsRepository
 
 /**
  * 2-screen onboarding carousel — controls tutorial + power-ups overview.
@@ -17,14 +17,15 @@ import androidx.core.content.edit
  */
 class OnboardingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOnboardingBinding
+    private lateinit var settingsRepository: SettingsRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
+        settingsRepository = SettingsRepository(this)
 
         // Gate: skip if already completed
-        val prefs = getSharedPreferences("aircraft_prefs", MODE_PRIVATE)
-        if (prefs.getBoolean("onboarding_completed", false)) {
+        if (settingsRepository.isOnboardingCompleted()) {
             startActivity(Intent(this, LaunchActivity::class.java))
             finish()
             return
@@ -72,8 +73,7 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun completeOnboarding() {
-        getSharedPreferences("aircraft_prefs", MODE_PRIVATE)
-            .edit { putBoolean("onboarding_completed", true) }
+        settingsRepository.setOnboardingCompleted(true)
         startActivity(Intent(this, LaunchActivity::class.java))
         finish()
     }

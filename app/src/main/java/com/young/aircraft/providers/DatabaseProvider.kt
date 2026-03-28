@@ -20,7 +20,6 @@ object DatabaseProvider {
                 "aircraft_game.db"
             )
                 .addMigrations(AppDatabase.MIGRATION_2027_2028, AppDatabase.MIGRATION_2028_2029)
-                .fallbackToDestructiveMigration(true)
                 .build()
 
             INSTANCE = instance

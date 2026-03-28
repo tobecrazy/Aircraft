@@ -93,3 +93,5 @@ lint/tmp/
 /.claude/skills/gstack
 /.claude/skills
 /.kotlin
+OPTIMIZATION_PLAN.md
+/.idea

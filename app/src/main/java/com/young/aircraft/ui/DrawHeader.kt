@@ -1,6 +1,5 @@
 package com.young.aircraft.ui
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -19,150 +18,137 @@ class DrawHeader(
     private val playerData: AircraftData,
     private val gameView: GameCoreView
 ) : DrawBaseObject(context) {
-    @SuppressLint("DrawAllocation")
+    private val hudPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.GREEN
+        style = Paint.Style.FILL_AND_STROKE
+        textAlign = Paint.Align.LEFT
+        textSize = ScreenUtils.sp2px(context, 16.0f)
+    }
+    private val levelX = ScreenUtils.dpToPx(context, 40.0f).toFloat()
+    private val headerY = ScreenUtils.dpToPx(context, 35.0f).toFloat()
+    private val hpX =
+        ScreenUtils.getScreenWidth(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
+    private val hpBarWidth = ScreenUtils.dpToPx(context, 80.0f).toFloat()
+    private val hpBarHeight = ScreenUtils.dpToPx(context, 8.0f).toFloat()
+    private val hpBarY = headerY + ScreenUtils.dpToPx(context, 6.0f).toFloat()
+    private val hpBarCorner = ScreenUtils.dpToPx(context, 3.0f).toFloat()
+    private val killsY = headerY + ScreenUtils.dpToPx(context, 22.0F)
+    private val bossBarWidth = ScreenUtils.dpToPx(context, 120.0f).toFloat()
+    private val bossBarHeight = ScreenUtils.dpToPx(context, 10.0f).toFloat()
+    private val bossBarCorner = ScreenUtils.dpToPx(context, 3.0f).toFloat()
+    private val bossBarLeft = levelX + ScreenUtils.dpToPx(context, 42.0f).toFloat()
+    private val hpBarRect = RectF()
+    private val hpFillRect = RectF()
+    private val bossBarRect = RectF()
+    private val bossFillRect = RectF()
+
     override fun onDraw(canvas: Canvas) {
-        val mPaint = Paint()
-        mPaint.isAntiAlias = true
-        mPaint.color = Color.GREEN
-        mPaint.style = Paint.Style.FILL_AND_STROKE
-        mPaint.textAlign = Paint.Align.LEFT
-        mPaint.textSize = ScreenUtils.sp2px(context, 16.0f)
-        val floatX = ScreenUtils.dpToPx(context, 40.0F).toFloat()
-        val floatY = ScreenUtils.dpToPx(context, 35.0F).toFloat()
         canvas.drawText(
             context.getString(R.string.level, gameView.level.toString()),
-            floatX,
-            floatY,
-            mPaint
+            levelX,
+            headerY,
+            hudPaint
         )
 
         // Draw HP
         val hpText = "HP: ${playerData.health_points.toInt()}"
-        val hpX =
-            ScreenUtils.getScreenWidth(context).toFloat() - ScreenUtils.dpToPx(context, 100.0F)
         if (playerData.health_points <= 30) {
-            mPaint.color = Color.RED
+            hudPaint.color = Color.RED
         } else {
-            mPaint.color = Color.GREEN
+            hudPaint.color = Color.GREEN
         }
-        canvas.drawText(hpText, hpX, floatY, mPaint)
+        canvas.drawText(hpText, hpX, headerY, hudPaint)
 
         // Draw HP bar below HP text
-        val barWidth = ScreenUtils.dpToPx(context, 80.0f).toFloat()
-        val barHeight = ScreenUtils.dpToPx(context, 8.0f).toFloat()
-        val barY = floatY + ScreenUtils.dpToPx(context, 6.0f).toFloat()
-        val barCorner = ScreenUtils.dpToPx(context, 3.0f).toFloat()
         val hpFraction = (playerData.health_points / 100f).coerceIn(0f, 1f)
+        hpBarRect.set(hpX, hpBarY, hpX + hpBarWidth, hpBarY + hpBarHeight)
+        hpFillRect.set(hpX, hpBarY, hpX + hpBarWidth * hpFraction, hpBarY + hpBarHeight)
 
         // Background
-        mPaint.color = Color.DKGRAY
-        mPaint.style = Paint.Style.FILL
-        mPaint.textAlign = Paint.Align.LEFT
-        canvas.drawRoundRect(
-            RectF(hpX, barY, hpX + barWidth, barY + barHeight),
-            barCorner,
-            barCorner,
-            mPaint
-        )
+        hudPaint.color = Color.DKGRAY
+        hudPaint.style = Paint.Style.FILL
+        hudPaint.textAlign = Paint.Align.LEFT
+        canvas.drawRoundRect(hpBarRect, hpBarCorner, hpBarCorner, hudPaint)
 
         // Colored fill
-        mPaint.color = when {
+        hudPaint.color = when {
             hpFraction > 0.5f -> Color.GREEN
             hpFraction > 0.2f -> Color.YELLOW
             else -> Color.RED
         }
-        val fillWidth = barWidth * hpFraction
-        canvas.drawRoundRect(
-            RectF(hpX, barY, hpX + fillWidth, barY + barHeight),
-            barCorner,
-            barCorner,
-            mPaint
-        )
+        canvas.drawRoundRect(hpFillRect, hpBarCorner, hpBarCorner, hudPaint)
 
         // White stroke border
-        mPaint.color = Color.WHITE
-        mPaint.style = Paint.Style.STROKE
-        mPaint.strokeWidth = 1f
-        canvas.drawRoundRect(
-            RectF(hpX, barY, hpX + barWidth, barY + barHeight),
-            barCorner,
-            barCorner,
-            mPaint
-        )
-        mPaint.style = Paint.Style.FILL_AND_STROKE
+        hudPaint.color = Color.WHITE
+        hudPaint.style = Paint.Style.STROKE
+        hudPaint.strokeWidth = 1f
+        canvas.drawRoundRect(hpBarRect, hpBarCorner, hpBarCorner, hudPaint)
+        hudPaint.style = Paint.Style.FILL_AND_STROKE
         val elapsed = System.currentTimeMillis() - gameView.levelStartTimeMs
         val remainingSec =
             ((GameCoreView.getLevelDurationMs(gameView.level) - elapsed) / 1000).coerceAtLeast(0)
-        mPaint.color = if (remainingSec <= 10) Color.RED else Color.YELLOW
-        mPaint.textAlign = Paint.Align.CENTER
+        hudPaint.color = if (remainingSec <= 10) Color.RED else Color.YELLOW
+        hudPaint.textAlign = Paint.Align.CENTER
         val centerX = ScreenUtils.getScreenWidth(context).toFloat() / 2
         canvas.drawText(
             context.getString(R.string.time_remaining, remainingSec.toInt()),
             centerX,
-            floatY,
-            mPaint
+            headerY,
+            hudPaint
         )
 
         // Draw kill count (below level text)
         val requiredKills = GameCoreView.getRequiredKills(gameView.level)
-        val killsY = floatY + ScreenUtils.dpToPx(context, 22.0F)
-        mPaint.color =
+        hudPaint.color =
             if (gameView.enemiesDestroyedThisLevel >= requiredKills) Color.GREEN else Color.WHITE
-        mPaint.textAlign = Paint.Align.LEFT
+        hudPaint.textAlign = Paint.Align.LEFT
         canvas.drawText(
             context.getString(
                 R.string.kills_count,
                 gameView.enemiesDestroyedThisLevel,
                 requiredKills
-            ), floatX, killsY, mPaint
+            ), levelX, killsY, hudPaint
         )
 
         // Draw boss health bar below kills (only while boss is alive)
         val boss = gameView.bossEnemy.activeBoss
         if (boss != null && !boss.isDestroyed()) {
             val bossBarY = killsY + ScreenUtils.dpToPx(context, 10.0f).toFloat()
-            val bossBarWidth = ScreenUtils.dpToPx(context, 120.0f).toFloat()
-            val bossBarHeight = ScreenUtils.dpToPx(context, 10.0f).toFloat()
-            val bossBarCorner = ScreenUtils.dpToPx(context, 3.0f).toFloat()
             val bossFraction = (boss.hitPoints / boss.maxHitPoints).coerceIn(0f, 1f)
-
-            // Label
-            mPaint.color = Color.RED
-            mPaint.textSize = ScreenUtils.sp2px(context, 13.0f)
-            mPaint.textAlign = Paint.Align.LEFT
-            canvas.drawText("BOSS", floatX, bossBarY + bossBarHeight, mPaint)
-
-            val barLeft = floatX + ScreenUtils.dpToPx(context, 42.0f).toFloat()
-
-            // Background
-            mPaint.color = Color.DKGRAY
-            mPaint.style = Paint.Style.FILL
-            canvas.drawRoundRect(
-                RectF(barLeft, bossBarY, barLeft + bossBarWidth, bossBarY + bossBarHeight),
-                bossBarCorner, bossBarCorner, mPaint
+            bossBarRect.set(bossBarLeft, bossBarY, bossBarLeft + bossBarWidth, bossBarY + bossBarHeight)
+            bossFillRect.set(
+                bossBarLeft,
+                bossBarY,
+                bossBarLeft + bossBarWidth * bossFraction,
+                bossBarY + bossBarHeight
             )
 
+            // Label
+            hudPaint.color = Color.RED
+            hudPaint.textSize = ScreenUtils.sp2px(context, 13.0f)
+            hudPaint.textAlign = Paint.Align.LEFT
+            canvas.drawText("BOSS", levelX, bossBarY + bossBarHeight, hudPaint)
+
+            // Background
+            hudPaint.color = Color.DKGRAY
+            hudPaint.style = Paint.Style.FILL
+            canvas.drawRoundRect(bossBarRect, bossBarCorner, bossBarCorner, hudPaint)
+
             // Colored fill
-            mPaint.color = when {
+            hudPaint.color = when {
                 bossFraction > 0.5f -> Color.RED
                 bossFraction > 0.2f -> Color.YELLOW
                 else -> Color.GREEN
             }
-            val bossFillWidth = bossBarWidth * bossFraction
-            canvas.drawRoundRect(
-                RectF(barLeft, bossBarY, barLeft + bossFillWidth, bossBarY + bossBarHeight),
-                bossBarCorner, bossBarCorner, mPaint
-            )
+            canvas.drawRoundRect(bossFillRect, bossBarCorner, bossBarCorner, hudPaint)
 
             // White stroke border
-            mPaint.color = Color.WHITE
-            mPaint.style = Paint.Style.STROKE
-            mPaint.strokeWidth = 1f
-            canvas.drawRoundRect(
-                RectF(barLeft, bossBarY, barLeft + bossBarWidth, bossBarY + bossBarHeight),
-                bossBarCorner, bossBarCorner, mPaint
-            )
-            mPaint.style = Paint.Style.FILL_AND_STROKE
+            hudPaint.color = Color.WHITE
+            hudPaint.style = Paint.Style.STROKE
+            hudPaint.strokeWidth = 1f
+            canvas.drawRoundRect(bossBarRect, bossBarCorner, bossBarCorner, hudPaint)
+            hudPaint.style = Paint.Style.FILL_AND_STROKE
+            hudPaint.textSize = ScreenUtils.sp2px(context, 16.0f)
         }
     }
 
