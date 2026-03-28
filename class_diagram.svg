@@ -105,16 +105,17 @@
 
   <!-- GameStateManager -->
   <g transform="translate(260, 55)" filter="url(#shadow)">
-    <rect width="230" height="90" rx="6" fill="url(#grad-app)" stroke="#66bb6a" stroke-width="1.2"/>
+    <rect width="230" height="105" rx="6" fill="url(#grad-app)" stroke="#66bb6a" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#66bb6a"/>
     <rect y="16" width="230" height="6" fill="#66bb6a"/>
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» GameStateManager</text>
     <text x="10" y="38" font-size="10" fill="#555">common/GameStateManager.kt</text>
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- _gameState: MutableSharedFlow&lt;GameState&gt;</text>
-    <text x="10" y="70" font-size="10" fill="#333">+ gameState: SharedFlow&lt;GameState&gt;</text>
-    <line x1="5" y1="76" x2="225" y2="76" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="88" font-size="10" fill="#333">+ emit(state: GameState)</text>
+    <text x="10" y="57" font-size="10" fill="#333">+ isInvincible: Boolean</text>
+    <text x="10" y="70" font-size="10" fill="#333">- _gameState: MutableSharedFlow&lt;GameState&gt;</text>
+    <text x="10" y="83" font-size="10" fill="#333">+ gameState: SharedFlow&lt;GameState&gt;</text>
+    <line x1="5" y1="89" x2="225" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="101" font-size="10" fill="#333">+ emit(state: GameState)</text>
   </g>
 
   <!-- GameState enum -->
@@ -138,20 +139,20 @@
   <line x1="490" y1="100" x2="510" y2="100" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- ===== DATA LAYER ===== -->
-  <!-- Aircraft (data) -->
+  <!-- PlayerAircraft -->
   <g transform="translate(30, 170)" filter="url(#shadow)">
     <rect width="230" height="165" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#ff9800"/>
     <rect y="16" width="230" height="6" fill="#ff9800"/>
-    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» Aircraft</text>
-    <text x="10" y="38" font-size="10" fill="#555">data/Aircraft.kt</text>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» PlayerAircraft</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/PlayerAircraft.kt</text>
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- name: String</text>
     <text x="10" y="70" font-size="10" fill="#333">- health_points: Float = 100f</text>
     <text x="10" y="83" font-size="10" fill="#333">- lethality: Float = 20f</text>
     <text x="10" y="96" font-size="10" fill="#333">- icon: Int = 0</text>
     <line x1="5" y1="102" x2="225" y2="102" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="115" font-size="10" fill="#333">+ hit()</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ hit() (respects invincible mode)</text>
     <text x="10" y="128" font-size="10" fill="#333">+ isAlive(): Boolean</text>
     <text x="10" y="141" font-size="10" fill="#333">+ restoreHealth()</text>
     <text x="10" y="154" font-size="10" fill="#333">+ isFullHealth(): Boolean</text>
@@ -280,6 +281,20 @@
     <text x="10" y="96" font-size="10" fill="#333">- collected: Boolean = false</text>
   </g>
 
+  <!-- TimeFreezeState -->
+  <g transform="translate(1410, 440)" filter="url(#shadow)">
+    <rect width="200" height="110" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="200" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="200" height="6" fill="#ff9800"/>
+    <text x="100" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» TimeFreezeState</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/TimeFreezeState.kt</text>
+    <line x1="5" y1="44" x2="195" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- x / y: Float</text>
+    <text x="10" y="70" font-size="10" fill="#333">- spawnFrame / bitmapIndex: Int</text>
+    <text x="10" y="83" font-size="10" fill="#333">- collected: Boolean = false</text>
+    <text x="10" y="96" font-size="10" fill="#333">- collectedByPlayer: Boolean = false</text>
+  </g>
+
   <!-- PlayerGameData -->
   <g transform="translate(30, 365)" filter="url(#shadow)">
     <rect width="230" height="155" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
@@ -293,8 +308,8 @@
     <text x="10" y="83" font-size="10" fill="#333">- level: Int</text>
     <text x="10" y="96" font-size="10" fill="#333">- score: Long</text>
     <text x="10" y="109" font-size="10" fill="#333">- jetPlaneRes: Int = 0</text>
-    <text x="10" y="122" font-size="10" fill="#333">- difficulty: String = "1.0"</text>
-    <text x="10" y="135" font-size="10" fill="#333">- timestamp: Long</text>
+    <text x="10" y="122" font-size="10" fill="#333">- jetPlaneIndex: Int = 0</text>
+    <text x="10" y="135" font-size="10" fill="#333">- difficulty: String / timestamp: Long</text>
   </g>
 
   <!-- PlayerGameDataDao -->
@@ -319,9 +334,9 @@
     <rect width="250" height="22" rx="6" fill="#7986cb"/>
     <rect y="16" width="250" height="6" fill="#7986cb"/>
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«abstract» AppDatabase</text>
-    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2028)</text>
+    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2029)</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- MIGRATION_2027_2028</text>
+    <text x="10" y="57" font-size="10" fill="#333">- MIGRATION_2027_2028 / 2028_2029</text>
     <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ playerGameDataDao(): Dao</text>
     <text x="10" y="93" font-size="9" fill="#888">fallbackToDestructiveMigration(true)</text>
@@ -435,12 +450,12 @@
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DrawHeader</text>
     <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- playerData: AircraftData</text>
+    <text x="10" y="57" font-size="10" fill="#333">- playerData: PlayerAircraft</text>
     <text x="10" y="70" font-size="10" fill="#333">- gameView: GameCoreView</text>
     <line x1="5" y1="76" x2="225" y2="76" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="89" font-size="10" fill="#333">+ onDraw(canvas)</text>
     <text x="10" y="102" font-size="10" fill="#333">+ updateGame()</text>
-    <text x="10" y="118" font-size="9" fill="#888">HUD: level, HP bar, timer, kills, boss HP</text>
+    <text x="10" y="118" font-size="9" fill="#888">HUD: level, HP bar, timer, kills, freeze, boss HP</text>
   </g>
 
   <!-- Inheritance: DrawHeader -> DrawBaseObject -->
@@ -615,6 +630,33 @@
   <line x1="1625" y1="730" x2="1520" y2="420" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="1575" y="570" font-size="9" fill="#888">*</text>
 
+  <!-- TimeFreezes -->
+  <g transform="translate(1220, 930)" filter="url(#shadow)">
+    <rect width="250" height="185" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="250" height="6" fill="#2196f3"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">TimeFreezes</text>
+    <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- activeTimeFreezes: MutableList</text>
+    <text x="10" y="70" font-size="10" fill="#333">- frameCounter / level: Int</text>
+    <text x="10" y="83" font-size="10" fill="#333">- playerFreezeEndFrame: Int</text>
+    <text x="10" y="96" font-size="10" fill="#333">- enemyFreezeEndFrame: Int</text>
+    <line x1="5" y1="102" x2="245" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="115" font-size="10" fill="#333">+ getTimeFreezeBounds(): RectF</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ collectByPlayer() / collectByEnemy()</text>
+    <text x="10" y="141" font-size="10" fill="#333">+ isEnemyFrozen() / isPlayerFrozen()</text>
+    <text x="10" y="154" font-size="10" fill="#333">+ clearAll()</text>
+    <text x="10" y="170" font-size="9" fill="#888">FREEZE_DURATION=150f, MAX_SPAWNS=3</text>
+  </g>
+
+  <!-- Inheritance: TimeFreezes -> DrawBaseObject -->
+  <line x1="1220" y1="980" x2="270" y2="650" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+
+  <!-- TimeFreezes -> TimeFreezeState association -->
+  <line x1="1360" y1="930" x2="1510" y2="550" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1435" y="740" font-size="9" fill="#888">*</text>
+
   <!-- ===== GameCoreView ===== -->
   <g transform="translate(310, 1250)" filter="url(#shadow)">
     <rect width="380" height="370" rx="6" fill="url(#grad-ui)" stroke="#1565c0" stroke-width="1.8"/>
@@ -629,9 +671,9 @@
     <text x="10" y="96" font-size="10" fill="#333">- enemies: Enemies</text>
     <text x="10" y="109" font-size="10" fill="#333">- redEnvelopes: RedEnvelopes</text>
     <text x="10" y="122" font-size="10" fill="#333">- bossEnemy: BossEnemy</text>
-    <text x="10" y="135" font-size="10" fill="#333">- medicalKits: MedicalKits</text>
-    <text x="10" y="148" font-size="10" fill="#333">- shields: Shields</text>
-    <text x="10" y="161" font-size="10" fill="#333">- playerData: AircraftData</text>
+    <text x="10" y="135" font-size="10" fill="#333">- medicalKits / shields: MedicalKits / Shields</text>
+    <text x="10" y="148" font-size="10" fill="#333">- timeFreezes: TimeFreezes</text>
+    <text x="10" y="161" font-size="10" fill="#333">- playerData: PlayerAircraft</text>
     <text x="10" y="174" font-size="10" fill="#333">- musicService: MusicService?</text>
     <text x="10" y="187" font-size="10" fill="#333">- level: Int = 1</text>
     <text x="10" y="200" font-size="10" fill="#333">- totalKills / enemiesDestroyedThisLevel: Int</text>
@@ -642,7 +684,7 @@
     <text x="10" y="258" font-size="10" fill="#333">+ surfaceCreated / Changed / Destroyed</text>
     <text x="10" y="271" font-size="10" fill="#333">+ advanceToNextLevel() / pauseGame()</text>
     <text x="10" y="284" font-size="10" fill="#333">+ onTouchEvent(event): Boolean</text>
-    <text x="10" y="297" font-size="10" fill="#333">- checkCollision() — 11 collision checks</text>
+    <text x="10" y="297" font-size="10" fill="#333">- checkCollision() — 12 collision checks</text>
     <text x="10" y="310" font-size="10" fill="#333">- checkLevelTimer() / checkKillTarget()</text>
     <text x="10" y="323" font-size="10" fill="#333">- checkBossDefeated()</text>
     <text x="10" y="336" font-size="10" fill="#333">- onUpdateGameDraw(canvas)</text>
@@ -686,6 +728,10 @@
   <!-- GameCoreView -> Shields association -->
   <line x1="650" y1="1290" x2="1500" y2="850" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="1100" y="1060" font-size="9" fill="#888">1</text>
+
+  <!-- GameCoreView -> TimeFreezes association -->
+  <line x1="670" y1="1305" x2="1220" y2="1080" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="960" y="1185" font-size="9" fill="#888">1</text>
 
   <!-- GameCoreView -> ExplosionEffect association (playerDeathExplosion) -->
   <line x1="550" y1="1300" x2="750" y2="1065" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
@@ -853,7 +899,7 @@
     <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
     <text x="10" y="93" font-size="9" fill="#888">Difficulty: Easy(1.2×)/Normal(1.0×)/Hard(0.8×)</text>
-    <text x="10" y="106" font-size="9" fill="#888">Sound toggles, inner: SettingsFragment</text>
+    <text x="10" y="106" font-size="9" fill="#888">Sound toggles + links to privacy/about/device/debug</text>
   </g>
 
   <!-- PrivacyPolicyActivity -->
@@ -888,6 +934,21 @@
     <text x="10" y="106" font-size="9" fill="#888">Loads image via coroutine, opens GitHub URL</text>
   </g>
 
+  <!-- DevelopSettingsActivity -->
+  <g transform="translate(600, 2060)" filter="url(#shadow)">
+    <rect width="270" height="115" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="270" height="6" fill="#9c27b0"/>
+    <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DevelopSettingsActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityDevelopSettingsBinding</text>
+    <line x1="5" y1="64" x2="265" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="77" font-size="10" fill="#333">- clickCount: Int</text>
+    <text x="10" y="90" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="106" font-size="9" fill="#888">Test crash + hidden invincible toggle</text>
+  </g>
+
   <!-- DeviceInfoActivity -->
   <g transform="translate(30, 2120)" filter="url(#shadow)">
     <rect width="250" height="130" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
@@ -912,6 +973,10 @@
   <!-- SettingsActivity -> DeviceInfoActivity navigation -->
   <line x1="155" y1="1975" x2="155" y2="2120" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="160" y="2055" font-size="9" fill="#888">navigates</text>
+
+  <!-- SettingsActivity -> DevelopSettingsActivity navigation -->
+  <line x1="280" y1="1935" x2="600" y2="2095" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="435" y="2015" font-size="9" fill="#888">debug only</text>
 
   <!-- LaunchActivity -> MainActivity navigation -->
   <line x1="280" y1="1750" x2="310" y2="1750" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
@@ -1016,7 +1081,7 @@
     <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- binding: ...Binding</text>
     <text x="10" y="70" font-size="10" fill="#333">- acceptPulseAnimator: ObjectAnimator?</text>
-    <text x="10" y="83" font-size="10" fill="#333">- buttonsEnabled: Boolean</text>
+    <text x="10" y="83" font-size="10" fill="#333">- acceptButtonEnabled: Boolean</text>
     <line x1="5" y1="89" x2="265" y2="89" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="102" font-size="10" fill="#333">+ onCreate() / onDestroy()</text>
     <text x="10" y="115" font-size="10" fill="#333">+ dispatchTouchEvent(ev)</text>

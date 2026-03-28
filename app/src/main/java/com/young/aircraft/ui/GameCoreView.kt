@@ -19,6 +19,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.preference.PreferenceManager
 import com.young.aircraft.R
+import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.abs
@@ -126,6 +127,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun initializeGameDrawer() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        GameStateManager.isInvincible = prefs.getBoolean("invincible_mode", false)
         val fireRateMultiplier = prefs.getString("difficulty", "1.0")?.toFloatOrNull() ?: 1.0f
         
         // Resolve jetPlaneResId from index if possible

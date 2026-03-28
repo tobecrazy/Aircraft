@@ -22,6 +22,7 @@ data class PlayerAircraft(
     fun isFullHealth(): Boolean = health_points >= MAX_HP
 
     fun hit() {
+        if (com.young.aircraft.common.GameStateManager.isInvincible) return
         health_points -= BULLET_DAMAGE
     }
 

@@ -150,4 +150,7 @@
     <string name="onboarding_invincibility">\u26E1 无敌护盾</string>
     <string name="onboarding_aoe_rocket">&#x1F381; 范围火箭</string>
     <string name="onboarding_collect_all">收集所有道具！</string>
+
+    <string name="invincible_mode_on">你已经进入无敌模式。该模式下被攻击不掉血。</string>
+    <string name="invincible_mode_off">你已经恢复正常模式。该模式下正常掉血。</string>
 </resources>
