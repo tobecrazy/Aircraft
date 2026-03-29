@@ -15,7 +15,6 @@
     <string name="next_level">下一关</string>
     <string name="game_won">恭喜你，已通过全部关卡！</string>
     <string name="dialog_ok">确定</string>
-    <string name="game_over">胜败乃兵家常事，壮士请重新来过。</string>
     <string name="game_over_title">游戏结束</string>
     <string name="game_over_message">你到达了第%1$d关，得分%2$d。是否保存进度以便下次从此关继续？</string>
     <string name="game_over_save">保存进度</string>

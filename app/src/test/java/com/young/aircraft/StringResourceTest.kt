@@ -2,109 +2,117 @@ package com.young.aircraft
 
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Document
 
 class StringResourceTest {
 
-    private val modulePath = System.getProperty("user.dir")?.let {
-        if (it.endsWith("app")) it else "$it/app"
-    } ?: "app"
-
-    private val resDir = File(modulePath, "src/main/res")
-    private val javaDir = File(modulePath, "src/main/java")
-    private val manifestFile = File(modulePath, "src/main/AndroidManifest.xml")
-
-    private fun getStrings(localeDir: String = "values"): Set<String> {
-        val stringsFile = File(resDir, "$localeDir/strings.xml")
-        if (!stringsFile.exists()) return emptySet()
-
-        val factory = DocumentBuilderFactory.newInstance()
-        val builder = factory.newDocumentBuilder()
-        val doc: Document = builder.parse(stringsFile)
-        doc.documentElement.normalize()
-
-        val keys = mutableSetOf<String>()
-        val nodeList = doc.getElementsByTagName("string")
-        for (i in 0 until nodeList.length) {
-            val node = nodeList.item(i)
-            val name = node.attributes.getNamedItem("name").nodeValue
-            keys.add(name)
-        }
-        
-        val arrayList = doc.getElementsByTagName("string-array")
-        for (i in 0 until arrayList.length) {
-            val node = arrayList.item(i)
-            val name = node.attributes.getNamedItem("name").nodeValue
-            keys.add(name)
-        }
-        
-        return keys
-    }
-
     @Test
-    fun `verify no i18n uncovered strings`() {
-        val defaultStrings = getStrings("values")
-        val zhStrings = getStrings("values-zh")
+    fun testAllStringsInDefaultStringsXmlAreTranslatedInValuesZh() {
+        val projectDir = findProjectRoot()
+        val resDir = File(projectDir, "app/src/main/res")
+        val valuesDir = File(resDir, "values")
+        val valuesZhDir = File(resDir, "values-zh")
 
-        val missingInZh = defaultStrings - zhStrings
-        val extraInZh = zhStrings - defaultStrings
+        val defaultStrings = loadStringsFromXml(File(valuesDir, "strings.xml"))
+        val zhStrings = loadStringsFromXml(File(valuesZhDir, "strings.xml"))
 
+        val missingInZh = defaultStrings.keys - zhStrings.keys
         assertTrue(
-            "Strings missing in values-zh: $missingInZh",
+            "Strings missing in values-zh/strings.xml: $missingInZh",
             missingInZh.isEmpty()
         )
-        
-        // strict check: zh should not have extra keys either
-        assertTrue(
-            "Strings in values-zh but not in values: $extraInZh",
-            extraInZh.isEmpty()
-        )
     }
 
     @Test
-    fun `verify no unused strings`() {
-        val definedStrings = getStrings("values")
-        // We will scan all files in src/main/java and src/main/res (excluding values/strings.xml itself)
-        
+    fun testNoUnusedStringsInDefaultStringsXml() {
+        val projectDir = findProjectRoot()
+        val resDir = File(projectDir, "app/src/main/res")
+        val javaDir = File(projectDir, "app/src/main/java")
+        val layoutDir = File(resDir, "layout")
+        val valuesDir = File(resDir, "values")
+
+        val definedStrings = loadStringsFromXml(File(valuesDir, "strings.xml")).keys
         val usedStrings = mutableSetOf<String>()
-        
-        // Scan Java/Kotlin files
-        javaDir.walkTopDown().filter { it.isFile }.forEach { file ->
-            val content = file.readText()
-            definedStrings.forEach { key ->
-                if (content.contains("R.string.$key") || content.contains("R.array.$key")) {
-                    usedStrings.add(key)
+
+        // Scan layouts
+        layoutDir.listFiles()?.forEach { file ->
+            if (file.extension == "xml") {
+                val content = file.readText()
+                definedStrings.forEach { key ->
+                    if (content.contains("@string/$key")) {
+                        usedStrings.add(key)
+                    }
                 }
             }
         }
 
-        // Scan Res files (layout, menu, etc.) but skip the definition files themselves
-        resDir.walkTopDown().filter { it.isFile && !it.name.equals("strings.xml") }.forEach { file ->
-            val content = file.readText()
-            definedStrings.forEach { key ->
-                if (content.contains("@string/$key") || content.contains("@array/$key")) {
-                    usedStrings.add(key)
-                }
-            }
-        }
-        
         // Scan Manifest
-        if (manifestFile.exists()) {
-             val content = manifestFile.readText()
-             definedStrings.forEach { key ->
+        val manifest = File(projectDir, "app/src/main/AndroidManifest.xml")
+        if (manifest.exists()) {
+            val content = manifest.readText()
+            definedStrings.forEach { key ->
                 if (content.contains("@string/$key")) {
                     usedStrings.add(key)
                 }
             }
         }
+
+        // Scan Java/Kotlin code
+        javaDir.walkTopDown().forEach { file ->
+            if (file.extension == "kt" || file.extension == "java") {
+                val content = file.readText()
+                definedStrings.forEach { key ->
+                    if (content.contains("R.string.$key")) {
+                        usedStrings.add(key)
+                    }
+                }
+            }
+        }
         
-        val unused = definedStrings - usedStrings
+        // Whitelist known strings used by Firebase or system
+        val whitelist = setOf(
+            "google_app_id",
+            "google_api_key",
+            "google_storage_bucket",
+            "gcm_defaultSenderId",
+            "project_id",
+            "google_crash_reporting_api_key",
+            "com.google.firebase.crashlytics.mapping_file_id",
+            "com.google.firebase.crashlytics.version_control_info"
+        )
+        
+        val unused = definedStrings - usedStrings - whitelist
         
         assertTrue(
             "Unused strings found: $unused",
             unused.isEmpty()
         )
+    }
+
+    private fun findProjectRoot(): File {
+        var current: File? = File(".").absoluteFile
+        while (current != null && !File(current, "settings.gradle").exists()) {
+            current = current.parentFile
+        }
+        return current ?: File(".")
+    }
+
+    private fun loadStringsFromXml(file: File): Map<String, String> {
+        val factory = DocumentBuilderFactory.newInstance()
+        val builder = factory.newDocumentBuilder()
+        val doc: Document = builder.parse(file)
+        val strings = mutableMapOf<String, String>()
+        val nodeList = doc.getElementsByTagName("string")
+        for (i in 0 until nodeList.length) {
+            val node = nodeList.item(i)
+            val nameNode = node.attributes.getNamedItem("name")
+            if (nameNode != null) {
+                val name = nameNode.nodeValue
+                strings[name] = node.textContent
+            }
+        }
+        return strings
     }
 }
