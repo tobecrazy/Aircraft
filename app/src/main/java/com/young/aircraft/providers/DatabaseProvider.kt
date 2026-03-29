@@ -26,4 +26,11 @@ object DatabaseProvider {
             instance
         }
     }
+
+    /**
+     * For testing purposes
+     */
+    fun setDatabase(db: AppDatabase?) {
+        INSTANCE = db
+    }
 }

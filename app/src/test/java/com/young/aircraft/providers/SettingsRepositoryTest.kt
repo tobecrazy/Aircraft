@@ -62,4 +62,15 @@ class SettingsRepositoryTest {
         assertEquals(installId, installIdAgain)
         assertTrue(installId.isNotBlank())
     }
+
+    @Test
+    fun `invincible mode can be toggled and persists`() {
+        val repository = SettingsRepository(context)
+        
+        repository.setInvincibleModeEnabled(true)
+        assertTrue(repository.isInvincibleModeEnabled())
+        
+        repository.setInvincibleModeEnabled(false)
+        assertFalse(repository.isInvincibleModeEnabled())
+    }
 }
