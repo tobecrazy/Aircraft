@@ -241,15 +241,16 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkPlayerBulletsHitEnemies() {
         val bullets = drawAircraft.getBullets()
-        val enemySize = ScreenUtils.dpToPx(context, 48.0f)
-        val bulletSize = ScreenUtils.dpToPx(context, 40.0f)
+        val enemySize = enemies.enemySizePx
+        val bulletW = drawAircraft.bulletWidthPx
+        val bulletH = drawAircraft.bulletHeightPx
 
         for (bullet in bullets) {
             if (bullet.y < 0) continue
             val bulletBounds = RectF(
                 bullet.x, bullet.y,
-                bullet.x + bulletSize,
-                bullet.y + bulletSize
+                bullet.x + bulletW,
+                bullet.y + bulletH
             )
 
             for (enemy in enemies.activeEnemies) {
@@ -274,14 +275,15 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkPlayerBulletsHitRedEnvelopes() {
         val bullets = drawAircraft.getBullets()
-        val bulletSize = ScreenUtils.dpToPx(context, 40.0f)
+        val bulletW = drawAircraft.bulletWidthPx
+        val bulletH = drawAircraft.bulletHeightPx
 
         for (bullet in bullets) {
             if (bullet.y < 0) continue
             val bulletBounds = RectF(
                 bullet.x, bullet.y,
-                bullet.x + bulletSize,
-                bullet.y + bulletSize
+                bullet.x + bulletW,
+                bullet.y + bulletH
             )
 
             for (envelope in redEnvelopes.activeEnvelopes) {
@@ -417,9 +419,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
     }
 
+    private val proximityPx = ScreenUtils.dpToPx(context, 5.0f).toFloat()
+    private val maxOffsetPx = ScreenUtils.dpToPx(context, SHAKE_MAX_OFFSET_DP).toFloat()
+
     private fun checkBossBombsHitPlayer(aircraftBounds: RectF) {
         val boss = bossEnemy.activeBoss ?: return
-        val proximityPx = ScreenUtils.dpToPx(context, 5.0f).toFloat()
         val expandedBounds = RectF(
             aircraftBounds.left - proximityPx,
             aircraftBounds.top - proximityPx,
@@ -681,7 +685,6 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         val elapsed = System.currentTimeMillis() - shakeStartTimeMs
         if (elapsed >= SHAKE_DURATION_MS) return false
 
-        val maxOffsetPx = ScreenUtils.dpToPx(context, SHAKE_MAX_OFFSET_DP).toFloat()
         val decay = 1f - elapsed.toFloat() / SHAKE_DURATION_MS
         val offsetX = (shakeRng.nextFloat() * 2f - 1f) * maxOffsetPx * decay
         val offsetY = (shakeRng.nextFloat() * 2f - 1f) * maxOffsetPx * decay

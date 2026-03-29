@@ -107,9 +107,12 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
     }
 
     private fun updateSpawnTimer() {
+        if (hasEnvelopeOnScreen()) {
+            framesSinceLastSpawn = 0
+            return
+        }
         framesSinceLastSpawn = minOf(framesSinceLastSpawn + 1, SPAWN_INTERVAL_FRAMES)
         if (framesSinceLastSpawn < SPAWN_INTERVAL_FRAMES) return
-        if (hasEnvelopeOnScreen()) return
 
         framesSinceLastSpawn = 0
         spawnEnvelope()

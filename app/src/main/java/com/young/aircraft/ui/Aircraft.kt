@@ -35,6 +35,8 @@ class Aircraft(
     )?.also {
         it.density = screenDensity
     }
+    val bulletWidthPx: Float = bulletBitmap?.width?.toFloat() ?: 0f
+    val bulletHeightPx: Float = bulletBitmap?.height?.toFloat() ?: 0f
     var jetX: Float =
         ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
     var jetY: Float =

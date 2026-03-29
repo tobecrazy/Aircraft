@@ -13,7 +13,8 @@ import java.util.WeakHashMap
  * Create by Young
  **/
 object BitmapUtils {
-    private const val CACHE_DIVISOR = 32
+    // Increased cache size: use 1/8 of max memory for each cache instead of 1/32
+    private const val CACHE_DIVISOR = 8
     private val decodedBitmapCache = object : LruCache<Int, Bitmap>(defaultCacheSizeInKb()) {
         override fun sizeOf(key: Int, value: Bitmap): Int = value.cacheSizeInKb()
     }
@@ -22,15 +23,17 @@ object BitmapUtils {
             override fun sizeOf(key: TransformedBitmapKey, value: Bitmap): Int = value.cacheSizeInKb()
         }
     private val bitmapIds = WeakHashMap<Bitmap, Int>()
+    private val bitmapResIds = WeakHashMap<Bitmap, Int>()
     private var nextBitmapId = 1
 
     private data class TransformedBitmapKey(
-        val sourceId: Int,
+        val sourceId: Int, // Can be resId or internal bitmapId
         val sourceWidth: Int,
         val sourceHeight: Int,
         val targetWidth: Int,
         val targetHeight: Int,
-        val rotationBits: Int
+        val rotationBits: Int,
+        val mirrored: Boolean
     )
 
     @Synchronized
@@ -38,6 +41,7 @@ object BitmapUtils {
         decodedBitmapCache.evictAll()
         transformedBitmapCache.evictAll()
         bitmapIds.clear()
+        bitmapResIds.clear()
         nextBitmapId = 1
     }
 
@@ -51,36 +55,34 @@ object BitmapUtils {
 
         val bitmap = decodeResourceSafely(context.applicationContext.resources, resId) ?: return null
         decodedBitmapCache.put(resId, bitmap)
+        synchronized(bitmapResIds) {
+            bitmapResIds[bitmap] = resId
+        }
         return bitmap
     }
 
 
     fun getScaleMap(bitmap: Bitmap): Bitmap {
-        if (bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) {
-            return bitmap
-        }
-        val matrix = Matrix()
-        matrix.postScale(1F, -1F)
-        return try {
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-        } catch (_: IllegalArgumentException) {
-            bitmap
-        } catch (_: RuntimeException) {
-            bitmap
-        }
+        return resizeBitmapInternal(bitmap, bitmap.width, bitmap.height, 0f, true) ?: bitmap
     }
 
     fun resizeBitmap(bitmap: Bitmap?, width: Int, height: Int): Bitmap? {
-        return resizeBitmapInternal(bitmap, width, height, 0f)
+        return resizeBitmapInternal(bitmap, width, height, 0f, false)
     }
 
     @Synchronized
     fun resizeBitmap(bitmap: Bitmap?, width: Int, height: Int, degrees: Float): Bitmap? {
-        return resizeBitmapInternal(bitmap, width, height, degrees)
+        return resizeBitmapInternal(bitmap, width, height, degrees, false)
     }
 
     @Synchronized
-    private fun resizeBitmapInternal(bitmap: Bitmap?, width: Int, height: Int, degrees: Float): Bitmap? {
+    private fun resizeBitmapInternal(
+        bitmap: Bitmap?,
+        width: Int,
+        height: Int,
+        degrees: Float,
+        mirrored: Boolean
+    ): Bitmap? {
         if (bitmap == null || bitmap.isRecycled) {
             return null
         }
@@ -96,22 +98,28 @@ object BitmapUtils {
         }
 
         val normalizedDegrees = normalizeDegrees(degrees)
-        if (normalizedDegrees == 0f && sourceWidth == width && sourceHeight == height) {
+        // If no transformation needed, return original (but mirrored still needs transformation)
+        if (!mirrored && normalizedDegrees == 0f && sourceWidth == width && sourceHeight == height) {
             return bitmap
         }
 
+        // Use resId as sourceId if available, otherwise fallback to internal bitmapId.
+        // This ensures that even if the raw bitmap is evicted and re-decoded, the cache key remains stable.
+        val sourceId = synchronized(bitmapResIds) { bitmapResIds[bitmap] } ?: bitmapId(bitmap)
+
         val cacheKey = TransformedBitmapKey(
-            sourceId = bitmapId(bitmap),
+            sourceId = sourceId,
             sourceWidth = sourceWidth,
             sourceHeight = sourceHeight,
             targetWidth = width,
             targetHeight = height,
-            rotationBits = normalizedDegrees.toRawBits()
+            rotationBits = normalizedDegrees.toRawBits(),
+            mirrored = mirrored
         )
 
         transformedBitmapCache.get(cacheKey)?.takeUnless { it.isRecycled }?.let { return it }
 
-        val transformed = createTransformedBitmap(bitmap, width, height, sourceWidth, sourceHeight, normalizedDegrees)
+        val transformed = createTransformedBitmap(bitmap, width, height, sourceWidth, sourceHeight, normalizedDegrees, mirrored)
             ?: return bitmap
 
         transformed.density = bitmap.density
@@ -125,20 +133,27 @@ object BitmapUtils {
         height: Int,
         sourceWidth: Int,
         sourceHeight: Int,
-        degrees: Float
+        degrees: Float,
+        mirrored: Boolean
     ): Bitmap? {
         return try {
-            if (degrees == 0f) {
-                Bitmap.createScaledBitmap(bitmap, width, height, true)
-            } else {
+            val matrix = Matrix().apply {
                 val scaleWidth = width.toFloat() / sourceWidth
                 val scaleHeight = height.toFloat() / sourceHeight
-                val matrix = Matrix().apply {
-                    if (sourceWidth != width || sourceHeight != height) {
-                        postScale(scaleWidth, scaleHeight)
-                    }
+                if (sourceWidth != width || sourceHeight != height) {
+                    postScale(scaleWidth, scaleHeight)
+                }
+                if (mirrored) {
+                    postScale(1F, -1F)
+                }
+                if (degrees != 0f) {
                     postRotate(degrees)
                 }
+            }
+            
+            if (matrix.isIdentity) {
+                bitmap
+            } else {
                 Bitmap.createBitmap(bitmap, 0, 0, sourceWidth, sourceHeight, matrix, true)
             }
         } catch (_: IllegalArgumentException) {

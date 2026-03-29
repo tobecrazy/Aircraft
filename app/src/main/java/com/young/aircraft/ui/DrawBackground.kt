@@ -57,10 +57,8 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
             return
         }
 
-        // Preserve the drawable density so changing the scrolling background does not rescale later draw calls.
-        val baseDensity = resizedBitmap.density
-        // Alternate the base image with a vertically mirrored copy so each seam shares the same edge pixels.
-        val flippedBitmap = BitmapUtils.getScaleMap(resizedBitmap).also { it.density = baseDensity }
+        // Use the optimized and cached mirrored bitmap from BitmapUtils
+        val flippedBitmap = BitmapUtils.getScaleMap(resizedBitmap)
 
         primaryBitmap = resizedBitmap
         mirroredBitmap = flippedBitmap
