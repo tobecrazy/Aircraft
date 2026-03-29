@@ -61,7 +61,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
 
     // Bullet range: 60% of screen height
     private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
-    private val enemySizePx: Float = ScreenUtils.dpToPx(context, 48.0f).toFloat()
+    val enemySizePx: Float = ScreenUtils.dpToPx(context, 48.0f).toFloat()
     private val enemyHalfSizePx: Float = enemySizePx / 2f
     private val spawnInsetPx: Float = ScreenUtils.dpToPx(context, 40.0f).toFloat()
     private val spawnSpreadPx: Float = ScreenUtils.dpToPx(context, 80.0f).toFloat()
@@ -69,8 +69,8 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     private val minBulletSpacingPx: Float = ScreenUtils.dpToPx(context, MIN_BULLET_SPACING_DP).toFloat()
     private val maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.6f
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
-    private val bulletWidthPx: Float
-    private val bulletHeightPx: Float
+    val bulletWidthPx: Float
+    val bulletHeightPx: Float
 
     companion object {
         const val BASE_ENEMY_MOVE_SPEED = 3f

@@ -217,12 +217,13 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         drawBombExplosions(canvas)
     }
 
+    private val marginPx = ScreenUtils.dpToPx(context, 40.0f).toFloat()
+
     private fun updateBossMovement(boss: BossState) {
         // Don't move if frozen
         if (frozen) return
 
         val moveSpeed = getMovementSpeed() * speed
-        val margin = ScreenUtils.dpToPx(context, 40.0f).toFloat()
         val targetMinY = screenHeight * TARGET_ZONE_TOP
         val targetMaxY = screenHeight * TARGET_ZONE_BOTTOM
 
@@ -251,12 +252,12 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         boss.x += moveSpeed * moveDirectionX * 0.8f
 
         // Bounce off screen edges using rendered size
-        if (boss.x < margin) {
-            boss.x = margin
+        if (boss.x < marginPx) {
+            boss.x = marginPx
             moveDirectionX = 1f
         }
-        if (boss.x + renderedBossSize > screenWidth - margin) {
-            boss.x = screenWidth - margin - renderedBossSize
+        if (boss.x + renderedBossSize > screenWidth - marginPx) {
+            boss.x = screenWidth - marginPx - renderedBossSize
             moveDirectionX = -1f
         }
     }
