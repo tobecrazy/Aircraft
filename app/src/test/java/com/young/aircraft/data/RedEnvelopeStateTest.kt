@@ -12,7 +12,7 @@ class RedEnvelopeStateTest {
     }
 
     @Test
-    fun `isDetonated returns false when hitPoints is zero`() {
+    fun `isDetonated returns true when hitPoints is zero`() {
         val state = RedEnvelopeState(x = 100f, y = 100f, hitPoints = 0)
         assertTrue(state.isDetonated())
     }
@@ -36,8 +36,8 @@ class RedEnvelopeStateTest {
     }
 
     @Test
-    fun `isExpired returns true when destroyedTime is older than 500ms`() {
-        val oldTime = System.currentTimeMillis() - 600L
+    fun `isExpired returns true when destroyedTime is older than open display duration`() {
+        val oldTime = System.currentTimeMillis() - RedEnvelopeState.EXPIRATION_DURATION_MS - 1L
         val state = RedEnvelopeState(x = 100f, y = 100f, destroyedTime = oldTime)
         assertTrue(state.isExpired())
     }
@@ -46,5 +46,34 @@ class RedEnvelopeStateTest {
     fun `default hitPoints is 3`() {
         val state = RedEnvelopeState(x = 100f, y = 100f)
         assertEquals(3, state.hitPoints)
+    }
+
+    @Test
+    fun `registerHit clamps hit points at zero and records detonation time`() {
+        val state = RedEnvelopeState(x = 100f, y = 100f, hitPoints = 1)
+        val beforeHit = System.currentTimeMillis()
+
+        val detonated = state.registerHit(beforeHit)
+        val secondHit = state.registerHit(beforeHit + 50L)
+
+        assertTrue(detonated)
+        assertFalse(secondHit)
+        assertEquals(0, state.hitPoints)
+        assertEquals(beforeHit, state.destroyedTime)
+        assertEquals(beforeHit, state.lastHitTime)
+    }
+
+    @Test
+    fun `shouldShowOpenState returns true only during open display window`() {
+        val destroyedTime = System.currentTimeMillis()
+        val state = RedEnvelopeState(
+            x = 100f,
+            y = 100f,
+            hitPoints = 0,
+            destroyedTime = destroyedTime
+        )
+
+        assertTrue(state.shouldShowOpenState(destroyedTime + RedEnvelopeState.OPEN_STATE_DURATION_MS))
+        assertFalse(state.shouldShowOpenState(destroyedTime + RedEnvelopeState.OPEN_STATE_DURATION_MS + 1L))
     }
 }

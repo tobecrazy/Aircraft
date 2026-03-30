@@ -274,7 +274,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun checkPlayerBulletsHitRedEnvelopes() {
-        val bullets = drawAircraft.getBullets()
+        val bullets = drawAircraft.getBullets().toList()
         val bulletW = drawAircraft.bulletWidthPx
         val bulletH = drawAircraft.bulletHeightPx
 

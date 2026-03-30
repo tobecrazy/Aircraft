@@ -26,9 +26,8 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
     private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
 
-    // Envelope bitmaps: 3 HP = closed, 2-1 HP = ribbon, 0 HP = open
+    // Envelope bitmaps: closed while active, open briefly after detonation.
     private val closedBitmap: Bitmap?
-    private val ribbonBitmap: Bitmap?
     private val openBitmap: Bitmap?
     private val rocketBitmap: Bitmap?
 
@@ -64,11 +63,6 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
             envelopeSizePx, envelopeSizePx
         )?.also { it.density = screenDensity }
 
-        ribbonBitmap = BitmapUtils.resizeBitmap(
-            BitmapUtils.readBitMap(context, R.drawable.red_box_3),
-            envelopeSizePx, envelopeSizePx
-        )?.also { it.density = screenDensity }
-
         openBitmap = BitmapUtils.resizeBitmap(
             BitmapUtils.readBitMap(context, R.drawable.red_box_2),
             envelopeSizePx, envelopeSizePx
@@ -95,8 +89,8 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
         return minTop + Random.Default.nextFloat() * (maxTop - minTop)
     }
 
-    private fun hasEnvelopeOnScreen(): Boolean {
-        return activeEnvelopes.size >= MAX_ON_SCREEN
+    private fun hasEnvelopeOnScreen(nowMs: Long = System.currentTimeMillis()): Boolean {
+        return activeEnvelopes.count { !it.isExpired(nowMs) } >= MAX_ON_SCREEN
     }
 
     private fun spawnEnvelope() {
@@ -120,8 +114,8 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        updateSpawnTimer()
         drawEnvelopes(canvas)
+        updateSpawnTimer()
         drawRockets(canvas)
         drawExplosions(canvas)
     }
@@ -130,6 +124,12 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
         val iter = activeEnvelopes.iterator()
         while (iter.hasNext()) {
             val envelope = iter.next()
+            val now = System.currentTimeMillis()
+            if (envelope.isExpired(now)) {
+                iter.remove()
+                continue
+            }
+
             if (!envelope.isDetonated()) {
                 // Move downward
                 envelope.y += DRIFT_SPEED * speed
@@ -138,23 +138,12 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
                     iter.remove()
                     continue
                 }
-                // Select bitmap by HP
-                val bmp = when (envelope.hitPoints) {
-                    3 -> closedBitmap
-                    else -> ribbonBitmap
-                }
                 // Hit flash effect
-                val now = System.currentTimeMillis()
                 val paint = if (now - envelope.lastHitTime < HIT_FLASH_DURATION_MS) hitFlashPaint else mPaint
-                bmp?.let { canvas.drawBitmap(it, envelope.x, envelope.y, paint) }
-            } else if (envelope.isExpired()) {
-                iter.remove()
-            } else {
+                closedBitmap?.let { canvas.drawBitmap(it, envelope.x, envelope.y, paint) }
+            } else if (envelope.shouldShowOpenState(now)) {
                 // Show open box briefly after detonation
-                val elapsed = System.currentTimeMillis() - envelope.destroyedTime
-                if (elapsed <= 200L) {
-                    openBitmap?.let { canvas.drawBitmap(it, envelope.x, envelope.y, mPaint) }
-                }
+                openBitmap?.let { canvas.drawBitmap(it, envelope.x, envelope.y, mPaint) }
             }
         }
     }
@@ -192,13 +181,7 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
     }
 
     fun hitEnvelope(envelope: RedEnvelopeState): Boolean {
-        envelope.hitPoints--
-        envelope.lastHitTime = System.currentTimeMillis()
-        if (envelope.isDetonated()) {
-            envelope.destroyedTime = System.currentTimeMillis()
-            return true
-        }
-        return false
+        return envelope.registerHit()
     }
 
     fun launchRocket(playerX: Float, playerY: Float, playerW: Float) {
