@@ -81,7 +81,8 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     init {
         val bossResIds = intArrayOf(
             R.drawable.boss_1, R.drawable.boss_2, R.drawable.boss_3,
-            R.drawable.boss_4, R.drawable.boss_5
+            R.drawable.boss_4, R.drawable.boss_5, R.drawable.boss_6,
+            R.drawable.boss_7
         )
         for (resId in bossResIds) {
             val bmp = BitmapUtils.resizeBitmap(

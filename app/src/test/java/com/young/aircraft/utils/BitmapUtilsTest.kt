@@ -2,6 +2,7 @@ package com.young.aircraft.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.LruCache
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
 import org.junit.Assert.*
@@ -10,6 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.lang.reflect.Modifier
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -20,6 +22,16 @@ class BitmapUtilsTest {
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         BitmapUtils.clearCaches()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun evictDecodedBitmapCache() {
+        val field = BitmapUtils::class.java.getDeclaredField("decodedBitmapCache").apply {
+            isAccessible = true
+        }
+        val target = if (Modifier.isStatic(field.modifiers)) null else BitmapUtils
+        val cache = field.get(target) as LruCache<Int, Bitmap>
+        cache.evictAll()
     }
 
     @Test
@@ -38,6 +50,27 @@ class BitmapUtilsTest {
         val bitmap = Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888)
         val scaled = BitmapUtils.getScaleMap(bitmap)
         assertNotSame(bitmap, scaled)
+    }
+
+    @Test
+    fun `getScaleMap preserves source density`() {
+        val bitmap = Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888).apply {
+            density = 480
+        }
+
+        val scaled = BitmapUtils.getScaleMap(bitmap)
+
+        assertEquals(480, scaled.density)
+    }
+
+    @Test
+    fun `getScaleMap returns cached mirrored bitmap for repeated request`() {
+        val bitmap = Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888)
+
+        val first = BitmapUtils.getScaleMap(bitmap)
+        val second = BitmapUtils.getScaleMap(bitmap)
+
+        assertSame(first, second)
     }
 
     @Test
@@ -133,5 +166,24 @@ class BitmapUtilsTest {
         val resized = BitmapUtils.resizeBitmap(bitmap, 80, 120)
 
         assertSame(bitmap, resized)
+    }
+
+    @Test
+    fun `resizeBitmap reuses transformed cache after resource is decoded again`() {
+        val firstSource = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
+        val firstResized = BitmapUtils.resizeBitmap(firstSource, 50, 50)
+
+        assertNotNull(firstSource)
+        assertNotNull(firstResized)
+
+        evictDecodedBitmapCache()
+
+        val secondSource = BitmapUtils.readBitMap(context, R.drawable.bullet_up)
+        val secondResized = BitmapUtils.resizeBitmap(secondSource, 50, 50)
+
+        assertNotNull(secondSource)
+        assertNotNull(secondResized)
+        assertNotSame(firstSource, secondSource)
+        assertSame(firstResized, secondResized)
     }
 }

@@ -69,6 +69,21 @@ class AircraftDataTest {
     }
 
     @Test
+    fun `hit does nothing when invincible mode is enabled in GameStateManager`() {
+        com.young.aircraft.common.GameStateManager.isInvincible = true
+        try {
+            val aircraft = PlayerAircraft(name = "Test", health_points = 100f)
+            aircraft.hit()
+            assertEquals(100f, aircraft.health_points, 0.01f)
+            
+            aircraft.hit()
+            assertEquals(100f, aircraft.health_points, 0.01f)
+        } finally {
+            com.young.aircraft.common.GameStateManager.isInvincible = false
+        }
+    }
+
+    @Test
     fun `default healthPoints is MAX_HP`() {
         val aircraft = PlayerAircraft(name = "Test")
         assertEquals(PlayerAircraft.MAX_HP, aircraft.health_points, 0.01f)
