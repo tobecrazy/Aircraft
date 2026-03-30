@@ -85,14 +85,14 @@
     <string name="other_settings_header">其他设置</string>
     <string name="device_info_title">设备信息</string>
     <string name="device_info_summary">CPU、内存、磁盘、网络等信息</string>
-    <string name="develop_settings_title">Develop Settings</string>
-    <string name="develop_settings_summary">Debug-only tools and crash testing</string>
+    <string name="develop_settings_title">开发设置</string>
+    <string name="develop_settings_summary">仅限调试使用的工具和崩溃测试</string>
     <string name="develop_settings_banner_summary">用于验证调试流程和崩溃上报的内部工具。</string>
     <string name="develop_settings_section_actions">调试操作</string>
     <string name="develop_settings_debug_badge">调试构建</string>
     <string name="develop_settings_crash_title">崩溃上报验证</string>
     <string name="develop_settings_crash_summary">仅在开发版本中使用，用于验证崩溃采集和恢复流程。</string>
-    <string name="test_crash">Test Crash</string>
+    <string name="test_crash">测试崩溃</string>
     <string name="title_activity_device_info">系统监控</string>
     <string name="device_info_cpu">CPU</string>
     <string name="device_info_memory">内存</string>

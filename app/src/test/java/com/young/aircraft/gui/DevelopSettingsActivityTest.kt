@@ -67,6 +67,18 @@ class DevelopSettingsActivityTest {
     }
 
     @Test
+    fun `clicking test crash button throws RuntimeException`() {
+        ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val btnCrash = activity.findViewById<android.view.View>(R.id.btn_test_crash)
+                assertThrows(RuntimeException::class.java) {
+                    btnCrash.performClick()
+                }
+            }
+        }
+    }
+
+    @Test
     fun `back button finishes activity`() {
         ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->

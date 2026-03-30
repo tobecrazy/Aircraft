@@ -1,26 +1,15 @@
 package com.young.aircraft.gui
 
 import android.content.Context
-import android.content.Intent
-import android.os.Looper
 import androidx.room.Room
-import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.data.AppDatabase
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.ui.Aircraft
-import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -45,14 +34,13 @@ class LaunchActivityTest {
 
     private lateinit var context: Context
     private lateinit var db: AppDatabase
-    private lateinit var settingsRepository: SettingsRepository
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         Dispatchers.setMain(testDispatcher)
-        
+
         // Ensure consistent player ID for DB lookups
         context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
@@ -63,7 +51,6 @@ class LaunchActivityTest {
             .allowMainThreadQueries()
             .build()
         DatabaseProvider.setDatabase(db)
-        settingsRepository = SettingsRepository(context)
     }
 
     @After
@@ -71,7 +58,7 @@ class LaunchActivityTest {
         db.close()
         DatabaseProvider.setDatabase(null)
         Dispatchers.resetMain()
-        
+
         // Clear prefs
         context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
@@ -82,9 +69,9 @@ class LaunchActivityTest {
     @Test
     fun `launching with no saved data starts new game with default jet`() = runTest {
         val activity = Robolectric.buildActivity(LaunchActivity::class.java).setup().get()
-        
+
         activity.binding.startGame.performClick()
-        
+
         testDispatcher.scheduler.advanceUntilIdle()
         ShadowLooper.idleMainLooper()
 
@@ -103,7 +90,7 @@ class LaunchActivityTest {
 
         val activity = Robolectric.buildActivity(LaunchActivity::class.java).setup().get()
         activity.binding.startGame.performClick()
-        
+
         testDispatcher.scheduler.advanceUntilIdle()
         ShadowLooper.idleMainLooper()
 
@@ -129,7 +116,7 @@ class LaunchActivityTest {
 
         val activity = Robolectric.buildActivity(LaunchActivity::class.java).setup().get()
         activity.binding.startGame.performClick()
-        
+
         testDispatcher.scheduler.advanceUntilIdle()
         ShadowLooper.idleMainLooper()
 
@@ -142,7 +129,7 @@ class LaunchActivityTest {
             dialog.findViewById<android.view.View>(com.young.aircraft.R.id.dialog_positive_btn)
         assertNotNull("Positive button not found", positiveBtn)
         positiveBtn?.performClick()
-        
+
         testDispatcher.scheduler.advanceUntilIdle()
         ShadowLooper.idleMainLooper()
 
@@ -170,7 +157,7 @@ class LaunchActivityTest {
 
         val activity = Robolectric.buildActivity(LaunchActivity::class.java).setup().get()
         activity.binding.startGame.performClick()
-        
+
         testDispatcher.scheduler.advanceUntilIdle()
         ShadowLooper.idleMainLooper()
 
@@ -180,7 +167,7 @@ class LaunchActivityTest {
             dialog?.findViewById<android.view.View>(com.young.aircraft.R.id.dialog_positive_btn)
         assertNotNull("Positive button not found in legacy dialog", positiveBtn)
         positiveBtn?.performClick()
-        
+
         testDispatcher.scheduler.advanceUntilIdle()
         ShadowLooper.idleMainLooper()
 
