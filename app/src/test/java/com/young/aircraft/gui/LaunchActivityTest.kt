@@ -11,6 +11,7 @@ import com.young.aircraft.ui.Aircraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -24,7 +25,7 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowAlertDialog
+import org.robolectric.shadows.ShadowDialog
 import org.robolectric.shadows.ShadowLooper
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,11 +35,12 @@ class LaunchActivityTest {
 
     private lateinit var context: Context
     private lateinit var db: AppDatabase
-    private val testDispatcher = StandardTestDispatcher()
+    private lateinit var testDispatcher: TestDispatcher
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        testDispatcher = StandardTestDispatcher()
         Dispatchers.setMain(testDispatcher)
 
         val settingsRepository = SettingsRepository(context)
@@ -51,8 +53,11 @@ class LaunchActivityTest {
 
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
+            .setQueryExecutor(Runnable::run)
+            .setTransactionExecutor(Runnable::run)
             .build()
         DatabaseProvider.setDatabase(db)
+        ShadowDialog.reset()
     }
 
     @After
@@ -68,14 +73,20 @@ class LaunchActivityTest {
             .commit()
     }
 
+    private fun drainAsyncWork() {
+        repeat(3) {
+            testDispatcher.scheduler.advanceUntilIdle()
+            ShadowLooper.idleMainLooper()
+        }
+    }
+
     @Test
     fun `launching with no saved data starts new game with default jet`() = runTest {
         val activity = Robolectric.buildActivity(LaunchActivity::class.java).setup().get()
 
         activity.binding.startGame.performClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
-        ShadowLooper.idleMainLooper()
+        drainAsyncWork()
 
         val shadowActivity = shadowOf(activity)
         val nextIntent = shadowActivity.nextStartedActivity
@@ -93,8 +104,7 @@ class LaunchActivityTest {
         val activity = Robolectric.buildActivity(LaunchActivity::class.java).setup().get()
         activity.binding.startGame.performClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
-        ShadowLooper.idleMainLooper()
+        drainAsyncWork()
 
         val shadowActivity = shadowOf(activity)
         val nextIntent = shadowActivity.nextStartedActivity
@@ -119,11 +129,10 @@ class LaunchActivityTest {
         val activity = Robolectric.buildActivity(LaunchActivity::class.java).setup().get()
         activity.binding.startGame.performClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
-        ShadowLooper.idleMainLooper()
+        drainAsyncWork()
 
         // Check that AlertDialog is shown
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = ShadowDialog.getLatestDialog()
         assertNotNull("Dialog should not be null", dialog)
 
         // Click continue (positive button in custom layout)
@@ -132,8 +141,7 @@ class LaunchActivityTest {
         assertNotNull("Positive button not found", positiveBtn)
         positiveBtn?.performClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
-        ShadowLooper.idleMainLooper()
+        drainAsyncWork()
 
         val shadowActivity = shadowOf(activity)
         val nextIntent = shadowActivity.nextStartedActivity
@@ -160,18 +168,16 @@ class LaunchActivityTest {
         val activity = Robolectric.buildActivity(LaunchActivity::class.java).setup().get()
         activity.binding.startGame.performClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
-        ShadowLooper.idleMainLooper()
+        drainAsyncWork()
 
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = ShadowDialog.getLatestDialog()
         assertNotNull("Dialog should be shown for legacy data", dialog)
         val positiveBtn =
             dialog?.findViewById<android.view.View>(com.young.aircraft.R.id.dialog_positive_btn)
         assertNotNull("Positive button not found in legacy dialog", positiveBtn)
         positiveBtn?.performClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
-        ShadowLooper.idleMainLooper()
+        drainAsyncWork()
 
         val shadowActivity = shadowOf(activity)
         val nextIntent = shadowActivity.nextStartedActivity
