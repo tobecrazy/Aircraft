@@ -41,7 +41,9 @@ class LaunchActivityTest {
         context = ApplicationProvider.getApplicationContext()
         Dispatchers.setMain(testDispatcher)
 
-        // Ensure consistent player ID for DB lookups
+        val settingsRepository = SettingsRepository(context)
+        settingsRepository.setPrivacyPolicyAccepted(true)
+        settingsRepository.setOnboardingCompleted(true)
         context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putString(SettingsRepository.KEY_INSTALL_ID, "test-player-id")
