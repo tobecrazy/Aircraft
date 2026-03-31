@@ -74,4 +74,25 @@ class RedEnvelopesTest {
 
         assertEquals(1, redEnvelopes.activeEnvelopes.size)
     }
+
+    @Test
+    fun `expired envelope does not delay the next spawn by an extra cycle`() {
+        val redEnvelopes = RedEnvelopes(context, speed = 0f)
+        redEnvelopes.clearAll()
+        redEnvelopes.activeEnvelopes.add(
+            RedEnvelopeState(
+                x = 40f,
+                y = 40f,
+                hitPoints = 0,
+                destroyedTime = System.currentTimeMillis() - RedEnvelopeState.EXPIRATION_DURATION_MS - 1L
+            )
+        )
+
+        repeat(RedEnvelopes.SPAWN_INTERVAL_FRAMES) {
+            redEnvelopes.onDraw(canvas)
+        }
+
+        assertEquals(1, redEnvelopes.activeEnvelopes.size)
+        assertTrue(redEnvelopes.activeEnvelopes.first().hitPoints > 0)
+    }
 }
