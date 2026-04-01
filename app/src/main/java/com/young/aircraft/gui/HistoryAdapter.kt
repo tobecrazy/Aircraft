@@ -3,12 +3,14 @@ package com.young.aircraft.gui
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.ItemHistoryBinding
+import com.young.aircraft.utils.HallOfHeroesNameUtils
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -40,17 +42,26 @@ class HistoryAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         val ctx = holder.binding.root.context
-        val accentColor = RAINBOW_COLORS[position % RAINBOW_COLORS.size]
+        val isTopRecord = position == 0
+        val accentColor = if (isTopRecord) {
+            Color.parseColor("#FFD45A")
+        } else {
+            RAINBOW_COLORS[position % RAINBOW_COLORS.size]
+        }
 
-        // Item card background with accent-tinted stroke
-        holder.binding.itemRoot.background = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = 8f * ctx.resources.displayMetrics.density
-            setColor(Color.argb(0x1A, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)))
-            setStroke(
-                (1 * ctx.resources.displayMetrics.density).toInt(),
-                Color.argb(0x55, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
-            )
+        if (isTopRecord) {
+            holder.binding.itemRoot.setBackgroundResource(R.drawable.leaderboard_top_item_bg)
+        } else {
+            // Item card background with accent-tinted stroke
+            holder.binding.itemRoot.background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 8f * ctx.resources.displayMetrics.density
+                setColor(Color.argb(0x1A, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)))
+                setStroke(
+                    (1 * ctx.resources.displayMetrics.density).toInt(),
+                    Color.argb(0x55, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
+                )
+            }
         }
 
         // Rank circle
@@ -61,15 +72,12 @@ class HistoryAdapter(
         holder.binding.textRank.text = (position + 1).toString()
         holder.binding.textRank.setTextColor(Color.parseColor("#1B1F2B"))
 
-        // Player ID: truncate to 6 chars + ellipsis
-        holder.binding.textPlayerId.text = if (item.playerId.length > 6) {
-            item.playerId.take(6) + "\u2026"
-        } else {
-            item.playerId
-        }
+        holder.binding.textPlayerId.text = HallOfHeroesNameUtils.getDisplayName(item)
+        holder.binding.imageTopRecordBadge.visibility = if (isTopRecord) View.VISIBLE else View.GONE
 
         // Score with comma separators
         holder.binding.textScore.text = NumberFormat.getNumberInstance(Locale.US).format(item.score)
+        holder.binding.textScore.setTextColor(if (isTopRecord) Color.parseColor("#FFD45A") else Color.parseColor("#FFFF00"))
 
         // Level
         holder.binding.textLevel.text = "Lv.${item.level}"

@@ -13,8 +13,6 @@
     <string name="stat_kills">KILLS</string>
     <string name="stat_score">SCORE</string>
     <string name="next_level">NEXT LEVEL</string>
-    <string name="game_won">Congratulations, you have completed all levels!</string>
-    <string name="dialog_ok">OK</string>
     <string name="game_over_title">Game Over</string>
     <string name="game_over_message">You reached Level %1$d with a score of %2$d. Would you like to save your progress so you can continue from this level next time?</string>
     <string name="game_over_save">Save Progress</string>
@@ -32,9 +30,17 @@
     <string name="history_delete_title">Delete Record</string>
     <string name="history_delete_message">Are you sure you want to delete this record?</string>
     <string name="history_cancel">Cancel</string>
+    <string name="history_top_record_badge">Top record badge</string>
+    <string name="hall_of_heroes_title">Hall of Heroes</string>
+    <string name="hall_of_heroes_message">Congratulations! You have passed all levels. Your name will be recorded in the Hall of Heroes.</string>
+    <string name="hall_of_heroes_prompt">Enter your name</string>
+    <string name="hall_of_heroes_name_hint">Type your name</string>
+    <string name="hall_of_heroes_record_button">Record Name</string>
+    <string name="hall_of_heroes_anonymous">Anonymous</string>
+    <string name="hall_of_heroes_medal_content_description">Hall of Heroes medal</string>
 
     <!-- Preference Titles -->
-    <string name="sound_settings_header">Sound Settings</string>
+    <string name="sound_settings_header">Game Effects Settings</string>
     <string name="about_us_title">About Us</string>
     <string name="privacy_policy_title">Privacy Policy</string>
     <string name="privacy_policy_accept">Accept</string>
@@ -80,6 +86,9 @@
     <string name="combat_sound_title">Combat Sound Effects</string>
     <string name="combat_sound_summary_on">Combat sound effects are on</string>
     <string name="combat_sound_summary_off">Combat sound effects are off</string>
+    <string name="hit_shake_effect_title">Hit shake effect</string>
+    <string name="hit_shake_effect_summary_on">Shake and vibration on hit are enabled</string>
+    <string name="hit_shake_effect_summary_off">Shake and vibration on hit are disabled</string>
 
     <!-- Other Settings -->
     <string name="other_settings_header">Other Settings</string>

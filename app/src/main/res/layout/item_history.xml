@@ -27,6 +27,15 @@
             android:textSize="13sp"
             android:textStyle="bold" />
 
+        <ImageView
+            android:id="@+id/image_top_record_badge"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/history_top_record_badge"
+            android:src="@drawable/ic_top_record_flag_star"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/text_player_id"
             android:layout_width="0dp"

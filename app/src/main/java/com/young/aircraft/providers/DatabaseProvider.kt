@@ -19,7 +19,11 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "aircraft_game.db"
             )
-                .addMigrations(AppDatabase.MIGRATION_2027_2028, AppDatabase.MIGRATION_2028_2029)
+                .addMigrations(
+                    AppDatabase.MIGRATION_2027_2028,
+                    AppDatabase.MIGRATION_2028_2029,
+                    AppDatabase.MIGRATION_2029_2030
+                )
                 .build()
 
             INSTANCE = instance

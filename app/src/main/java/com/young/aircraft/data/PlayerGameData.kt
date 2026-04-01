@@ -10,6 +10,8 @@ data class PlayerGameData(
     val id: Long = 0,
     @ColumnInfo(name = "player_id")
     val playerId: String,
+    @ColumnInfo(name = "player_name")
+    val playerName: String? = null,
     @ColumnInfo(name = "level")
     val level: Int,
     @ColumnInfo(name = "score")

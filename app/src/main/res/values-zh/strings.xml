@@ -13,8 +13,6 @@
     <string name="stat_kills">击杀数</string>
     <string name="stat_score">得分</string>
     <string name="next_level">下一关</string>
-    <string name="game_won">恭喜你，已通过全部关卡！</string>
-    <string name="dialog_ok">确定</string>
     <string name="game_over_title">游戏结束</string>
     <string name="game_over_message">你到达了第%1$d关，得分%2$d。是否保存进度以便下次从此关继续？</string>
     <string name="game_over_save">保存进度</string>
@@ -32,9 +30,17 @@
     <string name="history_delete_title">删除记录</string>
     <string name="history_delete_message">确定要删除这条记录吗？</string>
     <string name="history_cancel">取消</string>
+    <string name="history_top_record_badge">最高记录徽章</string>
+    <string name="hall_of_heroes_title">英雄殿堂</string>
+    <string name="hall_of_heroes_message">恭喜！你已通过全部关卡。你的名字将被记录进英雄殿堂。</string>
+    <string name="hall_of_heroes_prompt">请输入你的名字</string>
+    <string name="hall_of_heroes_name_hint">输入名字</string>
+    <string name="hall_of_heroes_record_button">记录名字</string>
+    <string name="hall_of_heroes_anonymous">Anonymous</string>
+    <string name="hall_of_heroes_medal_content_description">英雄殿堂奖章</string>
 
     <!-- Preference Titles -->
-    <string name="sound_settings_header">声音设置</string>
+    <string name="sound_settings_header">游戏特效设置</string>
     <string name="about_us_title">关于我们</string>
     <string name="privacy_policy_title">隐私政策</string>
     <string name="privacy_policy_accept">接受</string>
@@ -80,6 +86,9 @@
     <string name="combat_sound_title">战斗音效</string>
     <string name="combat_sound_summary_on">战斗音效已开启</string>
     <string name="combat_sound_summary_off">战斗音效已关闭</string>
+    <string name="hit_shake_effect_title">受击震动特效</string>
+    <string name="hit_shake_effect_summary_on">受击时震屏和震动已开启</string>
+    <string name="hit_shake_effect_summary_off">受击时震屏和震动已关闭</string>
 
     <!-- Other Settings -->
     <string name="other_settings_header">其他设置</string>
