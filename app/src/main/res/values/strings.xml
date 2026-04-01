@@ -32,6 +32,7 @@
     <string name="history_delete_title">Delete Record</string>
     <string name="history_delete_message">Are you sure you want to delete this record?</string>
     <string name="history_cancel">Cancel</string>
+    <string name="history_top_record_badge">Top record badge</string>
     <string name="hall_of_heroes_title">Hall of Heroes</string>
     <string name="hall_of_heroes_message">Congratulations! You have passed all levels. Your name will be recorded in the Hall of Heroes.</string>
     <string name="hall_of_heroes_prompt">Enter your name</string>

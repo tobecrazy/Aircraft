@@ -32,6 +32,7 @@
     <string name="history_delete_title">删除记录</string>
     <string name="history_delete_message">确定要删除这条记录吗？</string>
     <string name="history_cancel">取消</string>
+    <string name="history_top_record_badge">最高记录徽章</string>
     <string name="hall_of_heroes_title">英雄殿堂</string>
     <string name="hall_of_heroes_message">恭喜！你已通过全部关卡。你的名字将被记录进英雄殿堂。</string>
     <string name="hall_of_heroes_prompt">请输入你的名字</string>
