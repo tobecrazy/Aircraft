@@ -33,6 +33,7 @@ class SettingsActivityTest {
         settingsRepository.setDifficulty(GameDifficulty.NORMAL)
         settingsRepository.setBackgroundSoundEnabled(true)
         settingsRepository.setCombatSoundEnabled(true)
+        settingsRepository.setHitShakeEffectEnabled(true)
     }
 
     @Test
@@ -70,15 +71,20 @@ class SettingsActivityTest {
             scenario.onActivity { activity ->
                 val switchBg = activity.findViewById<SwitchCompat>(R.id.switch_bg_sound)
                 val switchCombat = activity.findViewById<SwitchCompat>(R.id.switch_combat_sound)
+                val switchHitShake = activity.findViewById<SwitchCompat>(R.id.switch_hit_shake)
 
                 assertTrue(settingsRepository.isBackgroundSoundEnabled())
                 assertTrue(settingsRepository.isCombatSoundEnabled())
+                assertTrue(settingsRepository.isHitShakeEffectEnabled())
 
                 switchBg.isChecked = false
                 assertFalse(settingsRepository.isBackgroundSoundEnabled())
 
                 switchCombat.isChecked = false
                 assertFalse(settingsRepository.isCombatSoundEnabled())
+
+                switchHitShake.isChecked = false
+                assertFalse(settingsRepository.isHitShakeEffectEnabled())
             }
         }
     }

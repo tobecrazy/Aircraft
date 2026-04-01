@@ -41,7 +41,7 @@
     <string name="hall_of_heroes_medal_content_description">英雄殿堂奖章</string>
 
     <!-- Preference Titles -->
-    <string name="sound_settings_header">声音设置</string>
+    <string name="sound_settings_header">游戏特效设置</string>
     <string name="about_us_title">关于我们</string>
     <string name="privacy_policy_title">隐私政策</string>
     <string name="privacy_policy_accept">接受</string>
@@ -87,6 +87,9 @@
     <string name="combat_sound_title">战斗音效</string>
     <string name="combat_sound_summary_on">战斗音效已开启</string>
     <string name="combat_sound_summary_off">战斗音效已关闭</string>
+    <string name="hit_shake_effect_title">受击震动特效</string>
+    <string name="hit_shake_effect_summary_on">受击时震屏和震动已开启</string>
+    <string name="hit_shake_effect_summary_off">受击时震屏和震动已关闭</string>
 
     <!-- Other Settings -->
     <string name="other_settings_header">其他设置</string>

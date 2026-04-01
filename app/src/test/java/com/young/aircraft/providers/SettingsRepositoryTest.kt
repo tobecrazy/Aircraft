@@ -40,6 +40,7 @@ class SettingsRepositoryTest {
             .putString(SettingsRepository.KEY_DIFFICULTY, GameDifficulty.HARD.persistedValue)
             .putBoolean(SettingsRepository.KEY_BACKGROUND_SOUND, false)
             .putBoolean(SettingsRepository.KEY_COMBAT_SOUND, false)
+            .putBoolean(SettingsRepository.KEY_HIT_SHAKE_EFFECT, false)
             .putBoolean(SettingsRepository.KEY_INVINCIBLE_MODE, true)
             .commit()
 
@@ -48,6 +49,7 @@ class SettingsRepositoryTest {
         assertEquals(GameDifficulty.HARD, repository.getDifficulty())
         assertFalse(repository.isBackgroundSoundEnabled())
         assertFalse(repository.isCombatSoundEnabled())
+        assertFalse(repository.isHitShakeEffectEnabled())
         assertTrue(repository.isInvincibleModeEnabled())
     }
 
@@ -72,5 +74,16 @@ class SettingsRepositoryTest {
         
         repository.setInvincibleModeEnabled(false)
         assertFalse(repository.isInvincibleModeEnabled())
+    }
+
+    @Test
+    fun `hit shake effect can be toggled and persists`() {
+        val repository = SettingsRepository(context)
+
+        repository.setHitShakeEffectEnabled(false)
+        assertFalse(repository.isHitShakeEffectEnabled())
+
+        repository.setHitShakeEffectEnabled(true)
+        assertTrue(repository.isHitShakeEffectEnabled())
     }
 }

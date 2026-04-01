@@ -38,6 +38,12 @@ class SettingsRepository(context: Context) {
         prefs.edit { putBoolean(KEY_COMBAT_SOUND, enabled) }
     }
 
+    fun isHitShakeEffectEnabled(): Boolean = prefs.getBoolean(KEY_HIT_SHAKE_EFFECT, true)
+
+    fun setHitShakeEffectEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_HIT_SHAKE_EFFECT, enabled) }
+    }
+
     fun isInvincibleModeEnabled(): Boolean = prefs.getBoolean(KEY_INVINCIBLE_MODE, false)
 
     fun setInvincibleModeEnabled(enabled: Boolean) {
@@ -89,6 +95,9 @@ class SettingsRepository(context: Context) {
             if (!prefs.contains(KEY_COMBAT_SOUND) && legacyPrefs.contains(KEY_COMBAT_SOUND)) {
                 putBoolean(KEY_COMBAT_SOUND, legacyPrefs.getBoolean(KEY_COMBAT_SOUND, true))
             }
+            if (!prefs.contains(KEY_HIT_SHAKE_EFFECT) && legacyPrefs.contains(KEY_HIT_SHAKE_EFFECT)) {
+                putBoolean(KEY_HIT_SHAKE_EFFECT, legacyPrefs.getBoolean(KEY_HIT_SHAKE_EFFECT, true))
+            }
             if (!prefs.contains(KEY_INVINCIBLE_MODE) && legacyPrefs.contains(KEY_INVINCIBLE_MODE)) {
                 putBoolean(KEY_INVINCIBLE_MODE, legacyPrefs.getBoolean(KEY_INVINCIBLE_MODE, false))
             }
@@ -101,6 +110,7 @@ class SettingsRepository(context: Context) {
         const val KEY_DIFFICULTY = "difficulty"
         const val KEY_BACKGROUND_SOUND = "background_sound"
         const val KEY_COMBAT_SOUND = "combat_sound"
+        const val KEY_HIT_SHAKE_EFFECT = "hit_shake_effect"
         const val KEY_INVINCIBLE_MODE = "invincible_mode"
         const val KEY_PRIVACY_POLICY_ACCEPTED = "privacy_policy_accepted"
         const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"

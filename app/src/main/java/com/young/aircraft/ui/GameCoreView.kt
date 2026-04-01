@@ -748,12 +748,14 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun triggerHitEffects() {
         val now = System.currentTimeMillis()
-        shakeStartTimeMs = now
         damageFlashStartMs = now
         drawAircraft.hitTimeMs = now
-        vibrator.vibrate(
-            VibrationEffect.createOneShot(HIT_VIBRATION_MS, VibrationEffect.DEFAULT_AMPLITUDE)
-        )
+        if (settingsRepository.isHitShakeEffectEnabled()) {
+            shakeStartTimeMs = now
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(HIT_VIBRATION_MS, VibrationEffect.DEFAULT_AMPLITUDE)
+            )
+        }
     }
 
     private fun triggerDeathExplosion() {

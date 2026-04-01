@@ -41,7 +41,7 @@
     <string name="hall_of_heroes_medal_content_description">Hall of Heroes medal</string>
 
     <!-- Preference Titles -->
-    <string name="sound_settings_header">Sound Settings</string>
+    <string name="sound_settings_header">Game Effects Settings</string>
     <string name="about_us_title">About Us</string>
     <string name="privacy_policy_title">Privacy Policy</string>
     <string name="privacy_policy_accept">Accept</string>
@@ -87,6 +87,9 @@
     <string name="combat_sound_title">Combat Sound Effects</string>
     <string name="combat_sound_summary_on">Combat sound effects are on</string>
     <string name="combat_sound_summary_off">Combat sound effects are off</string>
+    <string name="hit_shake_effect_title">Hit shake effect</string>
+    <string name="hit_shake_effect_summary_on">Shake and vibration on hit are enabled</string>
+    <string name="hit_shake_effect_summary_off">Shake and vibration on hit are disabled</string>
 
     <!-- Other Settings -->
     <string name="other_settings_header">Other Settings</string>

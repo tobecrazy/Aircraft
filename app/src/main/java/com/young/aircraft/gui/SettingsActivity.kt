@@ -89,6 +89,8 @@ class SettingsActivity : AppCompatActivity() {
         val statusBg = binding.root.findViewById<TextView>(R.id.tv_bg_sound_status)
         val switchCombat = binding.root.findViewById<SwitchCompat>(R.id.switch_combat_sound)
         val statusCombat = binding.root.findViewById<TextView>(R.id.tv_combat_sound_status)
+        val switchHitShake = binding.root.findViewById<SwitchCompat>(R.id.switch_hit_shake)
+        val statusHitShake = binding.root.findViewById<TextView>(R.id.tv_hit_shake_status)
 
         fun updateBgStatus(on: Boolean) {
             statusBg.text = getString(
@@ -104,6 +106,13 @@ class SettingsActivity : AppCompatActivity() {
             )
         }
 
+        fun updateHitShakeStatus(on: Boolean) {
+            statusHitShake.text = getString(
+                if (on) R.string.hit_shake_effect_summary_on
+                else R.string.hit_shake_effect_summary_off
+            )
+        }
+
         switchBg.isChecked = settingsRepository.isBackgroundSoundEnabled()
         updateBgStatus(switchBg.isChecked)
         switchBg.setOnCheckedChangeListener { _, isChecked ->
@@ -116,6 +125,13 @@ class SettingsActivity : AppCompatActivity() {
         switchCombat.setOnCheckedChangeListener { _, isChecked ->
             settingsRepository.setCombatSoundEnabled(isChecked)
             updateCombatStatus(isChecked)
+        }
+
+        switchHitShake.isChecked = settingsRepository.isHitShakeEffectEnabled()
+        updateHitShakeStatus(switchHitShake.isChecked)
+        switchHitShake.setOnCheckedChangeListener { _, isChecked ->
+            settingsRepository.setHitShakeEffectEnabled(isChecked)
+            updateHitShakeStatus(isChecked)
         }
     }
 
