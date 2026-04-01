@@ -54,8 +54,9 @@ class PlayerGameDataTest {
 
     @Test
     fun `data class equality works`() {
-        val data1 = PlayerGameData(playerId = "test", level = 1, score = 100L)
-        val data2 = PlayerGameData(playerId = "test", level = 1, score = 100L)
+        val timestamp = 123456789L
+        val data1 = PlayerGameData(playerId = "test", level = 1, score = 100L, timestamp = timestamp)
+        val data2 = PlayerGameData(playerId = "test", level = 1, score = 100L, timestamp = timestamp)
         assertEquals(data1, data2)
     }
 
