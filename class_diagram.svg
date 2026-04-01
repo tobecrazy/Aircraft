@@ -69,7 +69,7 @@
     <rect x="10" y="48" width="14" height="10" fill="url(#grad-service)" stroke="#555" stroke-width="0.6"/>
     <text x="30" y="57" font-size="10" fill="#444">Service</text>
     <rect x="140" y="48" width="14" height="10" fill="url(#grad-vm)" stroke="#555" stroke-width="0.6"/>
-    <text x="160" y="57" font-size="10" fill="#444">ViewModel</text>
+    <text x="160" y="57" font-size="10" fill="#444">Shared Prefs / State</text>
     <rect x="280" y="48" width="14" height="10" fill="url(#grad-util)" stroke="#555" stroke-width="0.6"/>
     <text x="300" y="57" font-size="10" fill="#444">Utilities</text>
     <!-- Relationship legend -->
@@ -297,7 +297,7 @@
 
   <!-- PlayerGameData -->
   <g transform="translate(30, 365)" filter="url(#shadow)">
-    <rect width="230" height="155" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="230" height="165" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#ff9800"/>
     <rect y="16" width="230" height="6" fill="#ff9800"/>
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«entity» PlayerGameData</text>
@@ -305,11 +305,12 @@
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- id: Long (PK, autoGenerate)</text>
     <text x="10" y="70" font-size="10" fill="#333">- playerId: String</text>
-    <text x="10" y="83" font-size="10" fill="#333">- level: Int</text>
-    <text x="10" y="96" font-size="10" fill="#333">- score: Long</text>
-    <text x="10" y="109" font-size="10" fill="#333">- jetPlaneRes: Int = 0</text>
-    <text x="10" y="122" font-size="10" fill="#333">- jetPlaneIndex: Int = 0</text>
-    <text x="10" y="135" font-size="10" fill="#333">- difficulty: String / timestamp: Long</text>
+    <text x="10" y="83" font-size="10" fill="#333">- playerName: String? = null</text>
+    <text x="10" y="96" font-size="10" fill="#333">- level: Int</text>
+    <text x="10" y="109" font-size="10" fill="#333">- score: Long</text>
+    <text x="10" y="122" font-size="10" fill="#333">- jetPlaneRes / jetPlaneIndex: Int</text>
+    <text x="10" y="135" font-size="10" fill="#333">- difficulty: String = "1.0"</text>
+    <text x="10" y="148" font-size="10" fill="#333">- timestamp: Long = now()</text>
   </g>
 
   <!-- PlayerGameDataDao -->
@@ -330,21 +331,22 @@
 
   <!-- AppDatabase -->
   <g transform="translate(540, 365)" filter="url(#shadow)">
-    <rect width="250" height="120" rx="6" fill="url(#grad-abstract)" stroke="#7986cb" stroke-width="1.2"/>
+    <rect width="250" height="132" rx="6" fill="url(#grad-abstract)" stroke="#7986cb" stroke-width="1.2"/>
     <rect width="250" height="22" rx="6" fill="#7986cb"/>
     <rect y="16" width="250" height="6" fill="#7986cb"/>
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«abstract» AppDatabase</text>
-    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2029)</text>
+    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2030)</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- MIGRATION_2027_2028 / 2028_2029</text>
-    <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ playerGameDataDao(): Dao</text>
-    <text x="10" y="93" font-size="9" fill="#888">fallbackToDestructiveMigration(true)</text>
+    <text x="10" y="70" font-size="10" fill="#333">- MIGRATION_2029_2030</text>
+    <line x1="5" y1="76" x2="245" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ playerGameDataDao(): Dao</text>
+    <text x="10" y="105" font-size="9" fill="#888">Schema 2030 adds player_name</text>
   </g>
 
   <!-- DatabaseProvider -->
   <g transform="translate(810, 365)" filter="url(#shadow)">
-    <rect width="230" height="90" rx="6" fill="url(#grad-provider)" stroke="#757575" stroke-width="1.2"/>
+    <rect width="230" height="100" rx="6" fill="url(#grad-provider)" stroke="#757575" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#757575"/>
     <rect y="16" width="230" height="6" fill="#757575"/>
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» DatabaseProvider</text>
@@ -353,6 +355,34 @@
     <text x="10" y="57" font-size="10" fill="#333">- INSTANCE: AppDatabase?</text>
     <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ getDatabase(ctx): AppDatabase</text>
+    <text x="10" y="90" font-size="10" fill="#333">+ setDatabase(db?)</text>
+  </g>
+
+  <!-- GameDifficulty -->
+  <g transform="translate(1060, 365)" filter="url(#shadow)">
+    <rect width="220" height="95" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="220" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="220" height="6" fill="#ff9800"/>
+    <text x="110" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«enum» GameDifficulty</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/GameDifficulty.kt</text>
+    <line x1="5" y1="44" x2="215" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">EASY("1.2"), NORMAL("1.0")</text>
+    <text x="10" y="70" font-size="10" fill="#333">HARD("0.8")</text>
+    <line x1="5" y1="76" x2="215" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ fireRateMultiplier: Float</text>
+  </g>
+
+  <!-- SettingsRepository -->
+  <g transform="translate(810, 470)" filter="url(#shadow)">
+    <rect width="230" height="85" rx="6" fill="url(#grad-vm)" stroke="#00acc1" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#00acc1"/>
+    <rect y="16" width="230" height="6" fill="#00acc1"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">SettingsRepository</text>
+    <text x="10" y="38" font-size="10" fill="#555">providers/SettingsRepository.kt</text>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- prefs / legacyPrefs: SharedPreferences</text>
+    <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="77" font-size="10" fill="#333">+ difficulty, sound, gate, debug, install-id prefs</text>
   </g>
 
   <!-- AppDatabase -> DAO -->
@@ -363,6 +393,10 @@
 
   <!-- DatabaseProvider -> AppDatabase -->
   <line x1="810" y1="410" x2="790" y2="410" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+
+  <!-- SettingsRepository -> GameDifficulty -->
+  <line x1="1040" y1="510" x2="1060" y2="430" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1043" y="474" font-size="9" fill="#888">maps</text>
 
   <!-- ===== GAME ENGINE LAYER (ui/) ===== -->
   <!-- DrawBaseObject (abstract) -->
@@ -532,7 +566,7 @@
     <text x="10" y="128" font-size="10" fill="#333">+ triggerRocketExplosion()</text>
     <text x="10" y="141" font-size="10" fill="#333">+ getEnvelopeBounds() / getRocketBounds()</text>
     <text x="10" y="154" font-size="10" fill="#333">+ clearAll()</text>
-    <text x="10" y="170" font-size="9" fill="#888">SPAWN_INTERVAL=300, MAX=2</text>
+    <text x="10" y="170" font-size="9" fill="#888">SPAWN_INTERVAL=300, MAX=1</text>
     <text x="10" y="183" font-size="9" fill="#888">DRIFT=2dp/f, ROCKET_SPEED=20dp/f</text>
   </g>
 
@@ -760,7 +794,7 @@
     <text x="10" y="154" font-size="10" fill="#333">+ playerHitSoundPlay() @Synchronized</text>
     <text x="10" y="167" font-size="10" fill="#333">+ enemyHitSoundPlay() @Synchronized</text>
     <text x="10" y="180" font-size="10" fill="#333">+ gameOverSoundPlay() @Synchronized</text>
-    <text x="10" y="196" font-size="9" fill="#888">Sound toggles via SharedPreferences</text>
+    <text x="10" y="196" font-size="9" fill="#888">Observes SettingsRepository sound toggles</text>
   </g>
 
   <!-- MusicBinder inner class -->
@@ -793,7 +827,7 @@
     <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityLaunchBinding</text>
     <text x="10" y="70" font-size="10" fill="#333">- jetPlanes: IntArray</text>
     <text x="10" y="83" font-size="10" fill="#333">- selectedJetIndex: Int</text>
-    <text x="10" y="96" font-size="10" fill="#333">- db: AppDatabase</text>
+    <text x="10" y="96" font-size="10" fill="#333">- db / settingsRepository</text>
     <line x1="5" y1="102" x2="245" y2="102" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="115" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
     <text x="10" y="128" font-size="10" fill="#333">- checkSavedGameAndStart()</text>
@@ -807,11 +841,11 @@
     <text x="145" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MainActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
     <line x1="5" y1="44" x2="285" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- viewModel: MainActivityViewModel</text>
-    <text x="10" y="70" font-size="10" fill="#333">- mService: MusicService</text>
-    <text x="10" y="83" font-size="10" fill="#333">- coreView: GameCoreView</text>
-    <text x="10" y="96" font-size="10" fill="#333">- playerId: String</text>
-    <text x="10" y="109" font-size="10" fill="#333">- db: AppDatabase (lazy)</text>
+    <text x="10" y="57" font-size="10" fill="#333">- mService: MusicService</text>
+    <text x="10" y="70" font-size="10" fill="#333">- coreView: GameCoreView</text>
+    <text x="10" y="83" font-size="10" fill="#333">- playerId: String</text>
+    <text x="10" y="96" font-size="10" fill="#333">- db: AppDatabase (lazy)</text>
+    <text x="10" y="109" font-size="10" fill="#333">- settingsRepository: SettingsRepository</text>
     <text x="10" y="122" font-size="10" fill="#333">- connection: ServiceConnection</text>
     <line x1="5" y1="128" x2="285" y2="128" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="141" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
@@ -895,11 +929,11 @@
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">SettingsActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- binding: SettingsActivityBinding</text>
+    <text x="10" y="57" font-size="10" fill="#333">- binding / settingsRepository</text>
     <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
-    <text x="10" y="93" font-size="9" fill="#888">Difficulty: Easy(1.2×)/Normal(1.0×)/Hard(0.8×)</text>
-    <text x="10" y="106" font-size="9" fill="#888">Sound toggles + links to privacy/about/device/debug</text>
+    <text x="10" y="93" font-size="9" fill="#888">Difficulty + bg/combat/hit-shake toggles</text>
+    <text x="10" y="106" font-size="9" fill="#888">Links to privacy/about/device/debug screens</text>
   </g>
 
   <!-- PrivacyPolicyActivity -->
@@ -987,23 +1021,6 @@
   <!-- LaunchActivity -> SettingsActivity navigation -->
   <line x1="155" y1="1830" x2="155" y2="1860" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
 
-  <!-- ===== VIEWMODEL ===== -->
-  <g transform="translate(310, 1930)" filter="url(#shadow)">
-    <rect width="260" height="95" rx="6" fill="url(#grad-vm)" stroke="#00acc1" stroke-width="1.2"/>
-    <rect width="260" height="22" rx="6" fill="#00acc1"/>
-    <rect y="16" width="260" height="6" fill="#00acc1"/>
-    <text x="130" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">MainActivityViewModel</text>
-    <text x="10" y="38" font-size="10" fill="#555">viewmodel/ — extends AndroidViewModel</text>
-    <line x1="5" y1="44" x2="255" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- isReadToPlaySound: MutableLiveData&lt;Bool&gt;</text>
-    <line x1="5" y1="64" x2="255" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ updateSoundServiceStatus(status: Boolean)</text>
-  </g>
-
-  <!-- MainActivity -> ViewModel association -->
-  <line x1="440" y1="1900" x2="440" y2="1930" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="445" y="1920" font-size="9" fill="#888">viewModel</text>
-
   <!-- ===== UTILITIES ===== -->
   <g transform="translate(900, 1700)" filter="url(#shadow)">
     <rect width="230" height="80" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
@@ -1046,7 +1063,7 @@
   <rect x="20" y="40" width="480" height="115" rx="10" fill="none" stroke="#66bb6a" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="35" y="55" font-size="11" font-weight="bold" fill="#66bb6a" opacity="0.8">common/</text>
 
-  <rect x="800" y="350" width="250" height="115" rx="10" fill="none" stroke="#757575" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <rect x="800" y="350" width="250" height="210" rx="10" fill="none" stroke="#757575" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="815" y="365" font-size="11" font-weight="bold" fill="#757575" opacity="0.8">providers/</text>
 
   <!-- ===== NEW FIRST-LAUNCH CLASSES ===== -->
