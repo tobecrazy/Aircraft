@@ -75,4 +75,21 @@
         <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
     </style>
 
+    <style name="TransparentMaterialTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="homeAsUpIndicator">@drawable/ic_header_back</item>
+        <item name="android:windowBackground">@color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/transparent</item>
+        <item name="android:navigationBarColor" tools:targetApi="o_mr1">@color/transparent</item>
+    </style>
+
+    <style name="ThemeOverlay.Aircraft.HallOfHeroesBottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Aircraft.HallOfHeroesBottomSheet</item>
+    </style>
+
+    <style name="Widget.Aircraft.HallOfHeroesBottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
 </resources>

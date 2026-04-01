@@ -32,6 +32,13 @@
     <string name="history_delete_title">Delete Record</string>
     <string name="history_delete_message">Are you sure you want to delete this record?</string>
     <string name="history_cancel">Cancel</string>
+    <string name="hall_of_heroes_title">Hall of Heroes</string>
+    <string name="hall_of_heroes_message">Congratulations! You have passed all levels. Your name will be recorded in the Hall of Heroes.</string>
+    <string name="hall_of_heroes_prompt">Enter your name</string>
+    <string name="hall_of_heroes_name_hint">Type your name</string>
+    <string name="hall_of_heroes_record_button">Record Name</string>
+    <string name="hall_of_heroes_anonymous">Anonymous</string>
+    <string name="hall_of_heroes_medal_content_description">Hall of Heroes medal</string>
 
     <!-- Preference Titles -->
     <string name="sound_settings_header">Sound Settings</string>

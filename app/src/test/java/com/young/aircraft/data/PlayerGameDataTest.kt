@@ -9,6 +9,7 @@ class PlayerGameDataTest {
     fun `default values are set correctly`() {
         val data = PlayerGameData(playerId = "test123", level = 1, score = 0)
         assertEquals("test123", data.playerId)
+        assertNull(data.playerName)
         assertEquals(1, data.level)
         assertEquals(0L, data.score)
         assertEquals(0, data.jetPlaneRes)
@@ -23,6 +24,7 @@ class PlayerGameDataTest {
         val data = PlayerGameData(
             id = 1L,
             playerId = "player1",
+            playerName = "Ace",
             level = 5,
             score = 10000L,
             jetPlaneRes = 123,
@@ -32,6 +34,7 @@ class PlayerGameDataTest {
         )
         assertEquals(1L, data.id)
         assertEquals("player1", data.playerId)
+        assertEquals("Ace", data.playerName)
         assertEquals(5, data.level)
         assertEquals(10000L, data.score)
         assertEquals(123, data.jetPlaneRes)

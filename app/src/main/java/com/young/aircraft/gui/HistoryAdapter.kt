@@ -9,6 +9,7 @@ import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.ItemHistoryBinding
+import com.young.aircraft.utils.HallOfHeroesNameUtils
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -61,12 +62,7 @@ class HistoryAdapter(
         holder.binding.textRank.text = (position + 1).toString()
         holder.binding.textRank.setTextColor(Color.parseColor("#1B1F2B"))
 
-        // Player ID: truncate to 6 chars + ellipsis
-        holder.binding.textPlayerId.text = if (item.playerId.length > 6) {
-            item.playerId.take(6) + "\u2026"
-        } else {
-            item.playerId
-        }
+        holder.binding.textPlayerId.text = HallOfHeroesNameUtils.getDisplayName(item)
 
         // Score with comma separators
         holder.binding.textScore.text = NumberFormat.getNumberInstance(Locale.US).format(item.score)

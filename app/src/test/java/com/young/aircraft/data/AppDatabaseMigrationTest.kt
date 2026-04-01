@@ -34,11 +34,15 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun `migrations from 2027 to 2029 preserve existing player data`() = runBlocking {
+    fun `migrations from 2027 to 2030 preserve existing player data`() = runBlocking {
         createVersion2027Database()
 
         val migratedDb = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
-            .addMigrations(AppDatabase.MIGRATION_2027_2028, AppDatabase.MIGRATION_2028_2029)
+            .addMigrations(
+                AppDatabase.MIGRATION_2027_2028,
+                AppDatabase.MIGRATION_2028_2029,
+                AppDatabase.MIGRATION_2029_2030
+            )
             .allowMainThreadQueries()
             .build()
 
@@ -50,6 +54,7 @@ class AppDatabaseMigrationTest {
         assertEquals(7, records.first().jetPlaneRes)
         assertEquals(GameDifficulty.NORMAL.persistedValue, records.first().difficulty)
         assertEquals(0, records.first().jetPlaneIndex)
+        assertEquals(null, records.first().playerName)
 
         migratedDb.close()
     }

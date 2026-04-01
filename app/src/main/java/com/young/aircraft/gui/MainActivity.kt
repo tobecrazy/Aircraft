@@ -3,6 +3,7 @@ package com.young.aircraft.gui
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.Color
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -10,6 +11,9 @@ import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -25,6 +29,8 @@ import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.ui.GameCoreView
+import com.young.aircraft.utils.HallOfHeroesNameUtils
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
 
 
@@ -116,22 +122,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         coreView.onGameWon = {
-            showGameDialog(
-                title = getString(R.string.game_won),
-                message = null,
-                titleColor = 0xFFFFD700.toInt(),
-                positiveText = getString(R.string.dialog_ok),
-                stat1Label = getString(R.string.stat_kills),
-                stat1Value = coreView.totalKills.toString(),
-                stat2Label = getString(R.string.stat_score),
-                stat2Value = (coreView.totalKills.toLong() * 100).toString(),
-                onPositive = {
-                    lifecycleScope.launch {
-                        saveGameData(coreView)
-                        finish()
-                    }
-                }
-            )
+            showHallOfHeroesBottomSheet()
         }
         val controller = window.insetsController
         if (controller != null) {
@@ -211,13 +202,59 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private suspend fun saveGameData(coreView: GameCoreView) {
+    private fun showHallOfHeroesBottomSheet() {
+        val dialog = BottomSheetDialog(this, R.style.ThemeOverlay_Aircraft_HallOfHeroesBottomSheet)
+        val dialogView = dialog.layoutInflater.inflate(R.layout.bottom_sheet_hall_of_heroes, null)
+        val nameInput = dialogView.findViewById<EditText>(R.id.edit_hero_name)
+
+        fun recordHero() {
+            if (!dialog.isShowing) return
+            val heroName = HallOfHeroesNameUtils.resolveSubmittedName(
+                nameInput.text,
+                getString(R.string.hall_of_heroes_anonymous)
+            )
+            dialog.dismiss()
+            lifecycleScope.launch {
+                saveGameData(coreView, heroName)
+                finish()
+            }
+        }
+
+        dialog.setContentView(dialogView)
+        dialog.setCancelable(false)
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.behavior.isDraggable = false
+        dialog.setOnShowListener {
+            dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+                ?.setBackgroundColor(Color.TRANSPARENT)
+        }
+
+        dialogView.findViewById<TextView>(R.id.button_record_hero).setOnClickListener {
+            recordHero()
+        }
+        nameInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                recordHero()
+                true
+            } else {
+                false
+            }
+        }
+
+        dialog.show()
+        nameInput.requestFocus()
+    }
+
+    private suspend fun saveGameData(coreView: GameCoreView, playerName: String? = null) {
         val score = coreView.totalKills.toLong() * 100
         val difficulty = settingsRepository.getDifficulty().persistedValue
+        val existingRecord = db.playerGameDataDao().getByPlayerId(playerId).firstOrNull()
+        val persistedPlayerName = playerName ?: existingRecord?.playerName
         db.playerGameDataDao().deleteByPlayerId(playerId)
         db.playerGameDataDao().insert(
             PlayerGameData(
                 playerId = playerId,
+                playerName = persistedPlayerName,
                 level = coreView.level,
                 score = score,
                 jetPlaneRes = coreView.jetPlaneResId,
@@ -225,7 +262,10 @@ class MainActivity : AppCompatActivity() {
                 difficulty = difficulty
             )
         )
-        Log.d("Game", "Saved: player=$playerId, level=${coreView.level}, score=$score, jetIndex=${coreView.jetPlaneIndex}")
+        Log.d(
+            "Game",
+            "Saved: player=$playerId, name=$persistedPlayerName, level=${coreView.level}, score=$score, jetIndex=${coreView.jetPlaneIndex}"
+        )
     }
 
     private fun exitApp() {
