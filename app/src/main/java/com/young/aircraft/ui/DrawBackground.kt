@@ -16,7 +16,13 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
 
     companion object {
         private const val BASE_SCROLL_SPEED = 10f
-        val BACKGROUNDS = intArrayOf(R.drawable.background, R.drawable.background_1, R.drawable.background_2)
+        val BACKGROUNDS = intArrayOf(
+            R.drawable.background,
+            R.drawable.background_1,
+            R.drawable.background_2,
+            R.drawable.background_3,
+            R.drawable.background_4
+        )
     }
 
     internal data class BackgroundTile(
