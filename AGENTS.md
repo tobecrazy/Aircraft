@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-`Aircraft` is a single-module Android app. Main code lives in `app/src/main/java/com/young/aircraft`, split by responsibility: `gui/` for activities, fragments, and adapters, `ui/` for the `SurfaceView` game engine and drawable game objects, `data/` for Room entities/DAO and state models, `service/` for audio playback, `viewmodel/`, `common/`, `providers/`, and `utils/`. Resources are under `app/src/main/res`: layouts in `layout/`, images in `drawable/`, audio in `raw/`, and localized strings in `values/` and `values-zh/`. Unit tests live in `app/src/test`; device or emulator tests live in `app/src/androidTest`.
+`Aircraft` is a single-module Android app. Main code lives in `app/src/main/java/com/young/aircraft`, split by responsibility: `gui/` for activities (including the privacy gate, onboarding carousel, history/settings/device/debug screens) plus fragments/adapters, `ui/` for the `SurfaceView` game engine and drawable game objects (aircraft, enemies, power-ups, coronas, effects), `data/` for Room entities/DAO, state models, and migration-aware helper enums, `service/` for audio playback, `common/` for global singletons such as `AircraftApplication` and `GameStateManager`, `providers/` for `DatabaseProvider`/`SettingsRepository`, and `utils/` for Canvas/bitmap helpers and shared name logic. Every drawable, layout, and string is under `app/src/main/res` branches (`drawable/`, `layout/`, `raw/`, `values/`, `values-zh/`). Unit tests live in `app/src/test`; device or emulator tests live in `app/src/androidTest`.
 
 ## Build, Test, and Development Commands
 Run commands from the repository root:

@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.3] - 2026-04-02
+
+### Added
+- Top-record medal/star badge styling for the first entry in the leaderboard
+- `HistoryAdapterTest` to verify first-place badge visibility and score color
+
+### Changed
+- README project details now match the current app version, asset counts, and module inventory
+- `ChangeLogs.md` now points directly to the latest documented release entry
+
+### Fixed
+- Removed stale unused string resources that were failing `StringResourceTest`
+- Updated `PlayerGameDataTest` equality coverage to use a fixed shared timestamp
+
 ## [1.1.3] - 2026-03-28
 
 ### Added

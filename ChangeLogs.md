@@ -1,3 +1,7 @@
 # ChangeLogs
 
-The canonical release history for this repository lives in [CHANGELOG.md](CHANGELOG.md).
+This compatibility alias mirrors the canonical release history in [CHANGELOG.md](CHANGELOG.md).
+
+## Latest
+
+- Current documented release: [1.2.3 - 2026-04-02](CHANGELOG.md#123---2026-04-02)

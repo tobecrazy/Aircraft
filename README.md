@@ -17,6 +17,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Four power-up systems: red envelopes/rockets, medical kits, shields, and time freezes
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
+- Leaderboard top record highlighting with a medal/star badge and gold first-place styling
 - Utility screens for history, device info, about, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
@@ -42,7 +43,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Background music via `MediaPlayer` and combat SFX via `SoundPool`
 - Jet selection with 4 playable plane sprites and saved `jet_plane_index`
 - Device information screen with CPU, memory, disk, battery, and network telemetry
-- Robolectric coverage for onboarding, privacy gate, background tiling, string parity, and gameplay formulas
+- Robolectric coverage for onboarding, privacy gate, leaderboard styling, string parity, and gameplay formulas
 
 ## Project Structure
 
@@ -80,7 +81,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer
 │   └── StarFieldView.kt                # Animated cinematic background
 ├── providers/
-│   └── DatabaseProvider.kt             # Singleton Room provider
+│   ├── DatabaseProvider.kt             # Singleton Room provider
+│   └── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/install-id store
 ├── service/
 │   └── MusicService.kt                 # Bound BGM + SFX playback service
 ├── ui/
@@ -98,9 +100,10 @@ app/src/main/java/com/young/aircraft/
 │   └── ExplosionEffect.kt              # Particle explosion effect
 ├── utils/
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
+│   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
 │   └── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
 └── viewmodel/
-    └── MainViewModel.kt                # MainActivityViewModel sound-service readiness
+    └── (currently reserved)            # No active ViewModel classes in the app module
 ```
 
 ## Tests
@@ -109,8 +112,10 @@ app/src/main/java/com/young/aircraft/
 
 - data-model tests for gameplay and persistence state classes
 - `GameCoreViewFormulaTest` for level duration and kill-target math
+- `HistoryAdapterTest` for first-place badge visibility and gold score styling
 - `DrawBackgroundTest` for seamless mirrored tile coverage
 - `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior
+- `PlayerGameDataTest` for timestamp-aware data-class behavior
 - `StarFieldViewTest` for the animated onboarding/privacy background
 - `StringResourceTest` for locale parity and resource usage coverage
 
@@ -121,10 +126,10 @@ Instrumented tests belong in `app/src/androidTest`.
 | Category | Count | Details |
 |----------|-------|---------|
 | Enemy sprites | 15 | `enemy_1.png` to `enemy_15.png` |
-| Boss sprites | 5 | `boss_1.png` to `boss_5.png` |
+| Boss sprites | 7 | `boss_1.png` to `boss_7.png` |
 | Missile sprites | 3 | `missile_1.png` to `missile_3.png` |
 | Jet planes | 4 | `jet_plane_1.png` to `jet_plane_4.png` |
-| Red envelopes | 3 | `red_box_1.png`, `red_box_2.png`, `red_box_3.png` |
+| Red envelopes | 2 | `red_box_1.png`, `red_box_2.png` |
 | Medical kits | 2 | `red_heart_1.png`, `red_heart_2.png` |
 | Shields | 3 | `shield_1.png`, `shield_2.png`, `shield_3.png` |
 | Time freezes | 3 | `timer_1.png`, `timer_2.png`, `timer_3.png` |
@@ -150,7 +155,7 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.1.3`
+- **Version**: `1.2.3`
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `36`
 - **Min SDK**: `30`
