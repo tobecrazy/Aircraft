@@ -106,7 +106,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
 
         fun calculateDroppedFrames(targetFrameTimeMs: Long, frameDurationMs: Long): Int {
-            if (targetFrameTimeMs <= 0L || frameDurationMs <= targetFrameTimeMs) {
+            if (targetFrameTimeMs !in 1..<frameDurationMs) {
                 return 0
             }
             return ((frameDurationMs - targetFrameTimeMs) / targetFrameTimeMs).toInt()
