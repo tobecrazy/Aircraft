@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.graphics.Typeface
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.TrafficStats
 import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.os.Build
@@ -28,7 +29,10 @@ import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityDeviceInfoBinding
 import java.io.BufferedReader
+import java.io.File
 import java.io.FileReader
+import java.net.Inet4Address
+import java.net.NetworkInterface
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,6 +54,11 @@ class DeviceInfoActivity : AppCompatActivity() {
     // Battery state
     private var batteryPct = 0
     private var batteryCharging = false
+
+    // Network throughput tracking
+    private var prevRxBytes = 0L
+    private var prevTxBytes = 0L
+    private var prevTrafficTimestamp = 0L
 
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -76,6 +85,7 @@ class DeviceInfoActivity : AppCompatActivity() {
 
         populateStaticInfo()
         initCpuSnapshot()
+        initTrafficSnapshot()
         refreshDynamicInfo()
     }
 
@@ -239,6 +249,44 @@ class DeviceInfoActivity : AppCompatActivity() {
 
     private fun refreshCpuUsage() {
         if (useProcStat) refreshCpuFromProcStat() else refreshCpuFromFreq()
+        refreshCpuTemp()
+    }
+
+    private fun refreshCpuTemp() {
+        val temp = readCpuTemperature()
+        binding.tvCpuTemp.text = if (temp != null) {
+            String.format(Locale.getDefault(), getString(R.string.device_info_fmt_cpu_temp), temp)
+        } else {
+            getString(R.string.device_info_cpu_temp_na)
+        }
+        binding.tvCpuTemp.setTextColor(
+            when {
+                temp == null -> 0x55FFFFFF
+                temp >= 70f -> 0xFFFF4444.toInt()
+                temp >= 50f -> 0xFFFFFF00.toInt()
+                else -> 0xFF00FF88.toInt()
+            }
+        )
+    }
+
+    private fun readCpuTemperature(): Float? {
+        return try {
+            val dir = File("/sys/class/thermal/")
+            val zones = dir.listFiles { f -> f.name.startsWith("thermal_zone") }
+                ?.sortedBy { it.name.removePrefix("thermal_zone").toIntOrNull() ?: 0 }
+                ?: return null
+            for (zone in zones) {
+                val type = File(zone, "type").readText().trim().lowercase()
+                if (type.contains("cpu") || type.contains("soc")) {
+                    val tempRaw = File(zone, "temp").readText().trim().toLongOrNull() ?: continue
+                    return tempRaw / 1000f
+                }
+            }
+            val tempRaw = File(zones[0], "temp").readText().trim().toLongOrNull() ?: return null
+            tempRaw / 1000f
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun refreshCpuFromProcStat() {
@@ -393,7 +441,35 @@ class DeviceInfoActivity : AppCompatActivity() {
         binding.tvMemoryPct.setTextColor(pctColor(pct))
         binding.pbMemory.progress = pct
         updateProgressBarColor(binding.pbMemory, pct)
-        binding.tvMemory.text = String.format(Locale.getDefault(), getString(R.string.device_info_fmt_storage), usedGB, totalGB)
+
+        val memInfo = readProcMemInfo()
+        val buffersGB = memInfo["Buffers"]?.let { it / (1024.0 * 1024.0) } ?: 0.0
+        val cachedGB = memInfo["Cached"]?.let { it / (1024.0 * 1024.0) } ?: 0.0
+
+        binding.tvMemory.text = String.format(
+            Locale.getDefault(),
+            getString(R.string.device_info_fmt_memory_detail),
+            usedGB, availGB, totalGB, buffersGB, cachedGB
+        )
+    }
+
+    private fun readProcMemInfo(): Map<String, Long> {
+        val result = mutableMapOf<String, Long>()
+        try {
+            BufferedReader(FileReader("/proc/meminfo")).use { reader ->
+                var line = reader.readLine()
+                while (line != null) {
+                    val parts = line.split(":")
+                    if (parts.size == 2) {
+                        val key = parts[0].trim()
+                        val valueKB = parts[1].trim().split("\\s+".toRegex())[0].toLongOrNull()
+                        if (valueKB != null) result[key] = valueKB
+                    }
+                    line = reader.readLine()
+                }
+            }
+        } catch (_: Exception) { }
+        return result
     }
 
     // ── Disk ───────────────────────────────────────────────────────────
@@ -405,13 +481,18 @@ class DeviceInfoActivity : AppCompatActivity() {
         val usedBytes = totalBytes - availBytes
         val totalGB = totalBytes / (1024.0 * 1024.0 * 1024.0)
         val usedGB = usedBytes / (1024.0 * 1024.0 * 1024.0)
+        val availGB = availBytes / (1024.0 * 1024.0 * 1024.0)
         val pct = if (totalBytes > 0) (usedBytes * 100 / totalBytes).toInt().coerceIn(0, 100) else 0
 
         binding.tvDiskPct.text = getString(R.string.device_info_fmt_pct, pct)
         binding.tvDiskPct.setTextColor(pctColor(pct))
         binding.pbDisk.progress = pct
         updateProgressBarColor(binding.pbDisk, pct)
-        binding.tvDisk.text = String.format(Locale.getDefault(), getString(R.string.device_info_fmt_storage), usedGB, totalGB)
+        binding.tvDisk.text = String.format(
+            Locale.getDefault(),
+            getString(R.string.device_info_fmt_disk_detail),
+            usedGB, availGB, totalGB
+        )
     }
 
     private fun pctColor(pct: Int): Int = when {
@@ -422,6 +503,12 @@ class DeviceInfoActivity : AppCompatActivity() {
 
     // ── Network ────────────────────────────────────────────────────────
 
+    private fun initTrafficSnapshot() {
+        prevRxBytes = TrafficStats.getTotalRxBytes()
+        prevTxBytes = TrafficStats.getTotalTxBytes()
+        prevTrafficTimestamp = SystemClock.elapsedRealtime()
+    }
+
     @Suppress("DEPRECATION")
     private fun refreshNetworkInfo() {
         val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -430,6 +517,8 @@ class DeviceInfoActivity : AppCompatActivity() {
             binding.tvNetwork.text = getString(R.string.device_info_net_offline)
             binding.tvNetwork.setTextColor(0xFFFF4444.toInt())
             binding.tvNetworkDetail.text = getString(R.string.device_info_net_no_connection)
+            binding.tvNetworkThroughput.text = ""
+            binding.tvNetworkExtra.text = ""
             return
         }
         val caps = cm.getNetworkCapabilities(network)
@@ -437,6 +526,8 @@ class DeviceInfoActivity : AppCompatActivity() {
             binding.tvNetwork.text = getString(R.string.device_info_net_offline)
             binding.tvNetwork.setTextColor(0xFFFF4444.toInt())
             binding.tvNetworkDetail.text = getString(R.string.device_info_net_no_connection)
+            binding.tvNetworkThroughput.text = ""
+            binding.tvNetworkExtra.text = ""
             return
         }
 
@@ -448,8 +539,10 @@ class DeviceInfoActivity : AppCompatActivity() {
                 val info = wm?.connectionInfo
                 val ssid = info?.ssid?.removeSurrounding("\"") ?: ""
                 val linkSpeed = info?.linkSpeed ?: 0
+                val rssi = info?.rssi ?: 0
+                val signalLevel = WifiManager.calculateSignalLevel(rssi, 5)
                 binding.tvNetworkDetail.text = if (ssid.isNotEmpty() && ssid != "<unknown ssid>") {
-                    getString(R.string.device_info_net_wifi_detail, ssid, linkSpeed)
+                    getString(R.string.device_info_net_wifi_detail_ext, ssid, linkSpeed, rssi, signalLevel)
                 } else {
                     getString(R.string.device_info_net_connected_speed, linkSpeed)
                 }
@@ -471,20 +564,90 @@ class DeviceInfoActivity : AppCompatActivity() {
                 binding.tvNetworkDetail.text = getString(R.string.device_info_net_connected)
             }
         }
+
+        // Throughput calculation
+        val nowMs = SystemClock.elapsedRealtime()
+        val currRx = TrafficStats.getTotalRxBytes()
+        val currTx = TrafficStats.getTotalTxBytes()
+        val dtSec = (nowMs - prevTrafficTimestamp) / 1000.0
+
+        if (dtSec > 0 && prevTrafficTimestamp > 0
+            && currRx != TrafficStats.UNSUPPORTED.toLong()
+            && currTx != TrafficStats.UNSUPPORTED.toLong()
+        ) {
+            val rxBps = ((currRx - prevRxBytes) / dtSec).toLong().coerceAtLeast(0)
+            val txBps = ((currTx - prevTxBytes) / dtSec).toLong().coerceAtLeast(0)
+            binding.tvNetworkThroughput.text = getString(
+                R.string.device_info_net_throughput,
+                formatBytes(rxBps), formatBytes(txBps)
+            )
+        } else {
+            binding.tvNetworkThroughput.text = getString(R.string.device_info_net_throughput_init)
+        }
+        prevRxBytes = currRx
+        prevTxBytes = currTx
+        prevTrafficTimestamp = nowMs
+
+        // IP Address
+        binding.tvNetworkExtra.text = getString(R.string.device_info_net_ip, getLocalIpAddress())
+    }
+
+    private fun formatBytes(bytesPerSec: Long): String {
+        return when {
+            bytesPerSec >= 1_000_000 -> String.format(Locale.getDefault(), "%.1f MB/s", bytesPerSec / 1_000_000.0)
+            bytesPerSec >= 1_000 -> String.format(Locale.getDefault(), "%.1f KB/s", bytesPerSec / 1_000.0)
+            else -> String.format(Locale.getDefault(), "%d B/s", bytesPerSec)
+        }
+    }
+
+    private fun getLocalIpAddress(): String {
+        return try {
+            NetworkInterface.getNetworkInterfaces()?.toList()
+                ?.flatMap { it.inetAddresses.toList() }
+                ?.firstOrNull { !it.isLoopbackAddress && it is Inet4Address }
+                ?.hostAddress ?: "N/A"
+        } catch (_: Exception) {
+            "N/A"
+        }
     }
 
     // ── Uptime ─────────────────────────────────────────────────────────
 
     private fun getUptime(): String {
-        val uptimeMs = SystemClock.elapsedRealtime()
-        val seconds = (uptimeMs / 1000) % 60
-        val minutes = (uptimeMs / (1000 * 60)) % 60
-        val hours = (uptimeMs / (1000 * 60 * 60)) % 24
-        val days = uptimeMs / (1000 * 60 * 60 * 24)
-        return if (days > 0) {
-            getString(R.string.device_info_fmt_uptime_days, days, hours, minutes, seconds)
-        } else {
-            getString(R.string.device_info_fmt_uptime, hours, minutes, seconds)
+        val totalSec = SystemClock.elapsedRealtime() / 1000L
+        val ss = totalSec % 60
+        val mm = (totalSec / 60) % 60
+        val hh = (totalSec / 3600) % 24
+        val totalDays = totalSec / 86400
+
+        return when {
+            // < 1 hour: mm:ss
+            totalSec < 3600 -> {
+                String.format(Locale.getDefault(), "%02d:%02d", mm, ss)
+            }
+            // 1h to 24h: hh:mm:ss
+            totalDays < 1 -> {
+                val h = totalSec / 3600
+                String.format(Locale.getDefault(), "%02d:%02d:%02d", h, mm, ss)
+            }
+            // 1d to 30d: X day hh:mm:ss
+            totalDays < 30 -> {
+                getString(R.string.device_info_fmt_uptime_day_hms, totalDays, hh, mm, ss)
+            }
+            // 30d to 365d: X Month Y day hh:mm:ss
+            totalDays < 365 -> {
+                val months = totalDays / 30
+                val days = totalDays % 30
+                getString(R.string.device_info_fmt_uptime_month, months, days, hh, mm, ss)
+            }
+            // 365d+: Xy Xm Xd hh:mm:ss
+            else -> {
+                val years = totalDays / 365
+                val remainDays = totalDays % 365
+                val months = remainDays / 30
+                val days = remainDays % 30
+                getString(R.string.device_info_fmt_uptime_year, years, months, days, hh, mm, ss)
+            }
         }
     }
 }

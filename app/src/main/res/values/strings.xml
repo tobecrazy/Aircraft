@@ -120,9 +120,9 @@
     <string name="device_info_fmt_version">v%s</string>
     <string name="device_info_fmt_resolution">%1$d x %2$d @ %3$ddpi</string>
     <string name="device_info_fmt_cpu_detail">%1$s | %2$d cores | %3$s</string>
-    <string name="device_info_fmt_storage">%.1fG / %.1fG</string>
-    <string name="device_info_fmt_uptime_days">%1$dd %2$02dh %3$02dm %4$02ds</string>
-    <string name="device_info_fmt_uptime">%1$02dh %2$02dm %3$02ds</string>
+    <string name="device_info_fmt_uptime_day_hms">%1$d day %2$02d:%3$02d:%4$02d</string>
+    <string name="device_info_fmt_uptime_month">%1$d Month %2$d day %3$02d:%4$02d:%5$02d</string>
+    <string name="device_info_fmt_uptime_year">%1$dy %2$02dm %3$dd %4$02d:%5$02d:%6$02d</string>
     <string name="device_info_battery_charging">Charging</string>
     <string name="device_info_battery_discharging">Discharging</string>
     <string name="device_info_net_offline">Offline</string>
@@ -132,7 +132,6 @@
     <string name="device_info_net_ethernet">Ethernet</string>
     <string name="device_info_net_online">Online</string>
     <string name="device_info_net_connected">Connected</string>
-    <string name="device_info_net_wifi_detail">%1$s %2$dMbps</string>
     <string name="device_info_net_connected_speed">Connected %dMbps</string>
     <string name="device_info_net_cellular_speed">~%dMbps</string>
     <string name="device_info_net_mobile_data">Mobile data</string>
@@ -143,6 +142,14 @@
     <string name="device_info_fmt_core_pct">%1$3d%%</string>
     <string name="device_info_fmt_core_pct_freq">%1$3d%% %2$dMHz</string>
     <string name="device_info_fmt_core_init">  0%%</string>
+    <string name="device_info_fmt_cpu_temp">Temp: %.1f\u00B0C</string>
+    <string name="device_info_cpu_temp_na">Temp: N/A</string>
+    <string name="device_info_fmt_memory_detail">%.1fG used / %.1fG free\n%.1fG total | Buf %.2fG | Cache %.2fG</string>
+    <string name="device_info_fmt_disk_detail">%.1fG used / %.1fG free\n%.1fG total</string>
+    <string name="device_info_net_wifi_detail_ext">%1$s %2$dMbps RSSI:%3$ddBm [%4$d/4]</string>
+    <string name="device_info_net_throughput">\u2193%1$s \u2191%2$s</string>
+    <string name="device_info_net_throughput_init">\u2193-- \u2191--</string>
+    <string name="device_info_net_ip">IP: %s</string>
 
     <!-- Onboarding -->
     <string name="onboarding_header">PRIVACY PROTOCOL</string>

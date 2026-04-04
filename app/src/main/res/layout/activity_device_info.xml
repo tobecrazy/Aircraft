@@ -182,6 +182,15 @@
                     android:textSize="11sp"
                     android:typeface="monospace" />
 
+                <TextView
+                    android:id="@+id/tv_cpu_temp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="#55FFFFFF"
+                    android:textSize="11sp"
+                    android:typeface="monospace" />
+
                 <ProgressBar
                     android:id="@+id/pb_cpu_usage"
                     style="@android:style/Widget.ProgressBar.Horizontal"
@@ -413,6 +422,24 @@
                         android:layout_marginTop="2dp"
                         android:textColor="#55FFFFFF"
                         android:textSize="11sp"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_network_throughput"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="#00FF88"
+                        android:textSize="10sp"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/tv_network_extra"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="#44FFFFFF"
+                        android:textSize="9sp"
                         android:typeface="monospace" />
                 </LinearLayout>
             </LinearLayout>
