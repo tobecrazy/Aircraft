@@ -168,4 +168,31 @@
 
     <string name="invincible_mode_on">Invincible mode enabled. No damage will be taken.</string>
     <string name="invincible_mode_off">Normal mode restored. Damage will be taken normally.</string>
+
+    <!-- Rich Text Editor -->
+    <string name="rich_text_section_title">Rich Text</string>
+    <string name="rich_text_card_title">Rich Text Editor</string>
+    <string name="rich_text_card_summary">Test the built-in rich text editor with formatting, Markdown, and HTML support.</string>
+    <string name="test_rich_text_editor">Test Rich Text Editor</string>
+    <string name="rich_text_editor_title">Rich Text Editor</string>
+    <string name="rich_text_mode_edit">EDIT</string>
+    <string name="rich_text_mode_preview">PREVIEW</string>
+    <string name="rich_text_hint">Type here\u2026 Use toolbar for formatting, toggle MD for Markdown mode.</string>
+    <string name="rich_text_btn_size">SIZE</string>
+    <string name="rich_text_btn_color">COLOR</string>
+    <string name="rich_text_select_text">Select text first</string>
+    <string name="rich_text_size_small">Small (12sp)</string>
+    <string name="rich_text_size_medium">Medium (16sp)</string>
+    <string name="rich_text_size_large">Large (22sp)</string>
+    <string name="rich_text_size_xlarge">X-Large (30sp)</string>
+    <string name="rich_text_color_green">Green</string>
+    <string name="rich_text_color_red">Red</string>
+    <string name="rich_text_color_blue">Blue</string>
+    <string name="rich_text_color_yellow">Yellow</string>
+    <string name="rich_text_color_white">White</string>
+    <string name="rich_text_md_on">Markdown mode enabled</string>
+    <string name="rich_text_md_off">Markdown mode disabled</string>
+    <string name="rich_text_html_image">Image tag</string>
+    <string name="rich_text_html_link">Hyperlink tag</string>
+    <string name="rich_text_html_heading">Heading tag</string>
 </resources>

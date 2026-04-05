@@ -1,5 +1,6 @@
 package com.young.aircraft.gui
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -47,6 +48,10 @@ class DevelopSettingsActivity : AppCompatActivity() {
         binding.tvSummary.text = getString(R.string.develop_settings_banner_summary)
         binding.btnTestCrash.setOnClickListener {
             throw RuntimeException("Test Crash") // Force a crash
+        }
+
+        binding.btnTestRichText.setOnClickListener {
+            startActivity(Intent(this, RichTextEditorActivity::class.java))
         }
     }
 }

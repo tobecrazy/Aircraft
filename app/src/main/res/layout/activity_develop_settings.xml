@@ -187,6 +187,68 @@
                         android:layout_marginTop="14dp"
                         android:text="@string/test_crash" />
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="14dp"
+                        android:background="#00FF88" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:letterSpacing="0.2"
+                        android:text="@string/rich_text_section_title"
+                        android:textColor="#66FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/device_info_card_bg"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/rich_text_card_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingExtra="3dp"
+                        android:text="@string/rich_text_card_summary"
+                        android:textColor="#AAB4C8"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/btn_test_rich_text"
+                        style="@style/TacticalButton.Accept"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="14dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/test_rich_text_editor" />
+                </LinearLayout>
             </LinearLayout>
         </ScrollView>
     </LinearLayout>
