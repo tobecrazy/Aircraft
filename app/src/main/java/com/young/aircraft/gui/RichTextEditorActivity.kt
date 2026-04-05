@@ -211,20 +211,13 @@ class RichTextEditorActivity : AppCompatActivity() {
         val editable = binding.etEditor.text ?: return wrapHtml("")
 
         if (isMarkdownMode) {
-            // Markdown mode: process the raw plain text directly.
-            // Html.toHtml() wraps lines in <p dir="ltr">...</p> which breaks
-            // line-anchored Markdown regex (headers, lists, hr).
             val content = processMarkdown(editable.toString())
             return wrapHtml(content)
         }
 
-        // Rich-text mode: convert spans (Bold, Italic, etc.) to HTML tags
         @Suppress("DEPRECATION")
         var content = Html.toHtml(editable, Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL)
 
-        // Unescape HTML entities so user-typed HTML tags are rendered by the WebView.
-        // Literal '&' in the original text was double-escaped to '&amp;amp;' by Html.toHtml(),
-        // so this replacement chain is safe and won't corrupt it.
         content = content
             .replace("&lt;", "<")
             .replace("&gt;", ">")
@@ -234,7 +227,8 @@ class RichTextEditorActivity : AppCompatActivity() {
         return wrapHtml(content)
     }
 
-    private fun processMarkdown(input: String): String {
+    companion object {
+        internal fun processMarkdown(input: String): String {
         var result = input
 
         // Escape bare & and < that are NOT part of user-written HTML tags,
@@ -284,6 +278,7 @@ class RichTextEditorActivity : AppCompatActivity() {
         result = result.replace("\n", "<br>\n")
 
         return result
+        }
     }
 
     private fun wrapHtml(body: String): String {
