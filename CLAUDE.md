@@ -22,9 +22,10 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 
 ## Build Configuration
 
-- **Gradle:** 9.3.1, AGP 9.1.0 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.1.20-1.0.32
-- **SDK:** compileSdk 36, minSdk 30, targetSdk 35
+- **Gradle:** 9.4.1, AGP 9.1.0 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.1.20-1.0.32
+- **SDK:** compileSdk 36, minSdk 30, targetSdk 36, buildToolsVersion 36.0.0
 - **Java:** 17
+- **Room:** 2.8.4
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
 - `android.disallowKotlinSourceSets=false` in gradle.properties (required for KSP compatibility with AGP's built-in Kotlin)
@@ -71,7 +72,7 @@ Twelve checks run every frame in `GameCoreView.checkCollision()`:
 ### Scoring & Persistence (Room Database)
 
 - **Score:** 100 points per kill, cumulative across all levels in a session
-- **Database:** Room (`AppDatabase`, version 2028) with `fallbackToDestructiveMigration(true)`. Table: `player_game_data` (playerId, level, score, jetPlaneRes, difficulty, timestamp). Access via `DatabaseProvider` singleton (providers/).
+- **Database:** Room (`AppDatabase`, version 2030) with `fallbackToDestructiveMigration(true)`. Migrations exist for 2027→2028→2029→2030. Table: `player_game_data` (playerId, level, score, jetPlaneRes, difficulty, timestamp). Access via `DatabaseProvider` singleton (providers/).
 - **Critical:** `finish()` must be called inside the coroutine *after* the DB write completes in `saveGameData()`, never alongside — otherwise `lifecycleScope` cancels the write.
 
 ### Activity Flow
@@ -140,3 +141,9 @@ All game object bitmaps must have `bitmap.density = screenDensity` set for corre
 
 ### Localization
 English (default) and Chinese (`values-zh/strings.xml`).
+
+### CI
+GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew build` (compile + unit tests + lint) on push/PR to `main`, using JDK 17 (temurin).
+
+### Settings & Debug
+`SettingsRepository` (providers/) wraps SharedPreferences for difficulty, sound toggles, privacy acceptance, hit-shake effect, and a debug invincible-mode flag. `GameStateManager.isInvincible` exposes this flag to the game loop. Debug builds expose `DevelopSettingsActivity` (crash testing, invincible-mode toggle) from `SettingsActivity`.

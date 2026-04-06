@@ -43,6 +43,11 @@
             android:label="@string/develop_settings_title"
             android:theme="@style/Theme.Aircraft.History" />
         <activity
+            android:name=".gui.RichTextEditorActivity"
+            android:exported="false"
+            android:label="@string/rich_text_editor_title"
+            android:theme="@style/Theme.Aircraft.History" />
+        <activity
             android:name=".gui.SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings"

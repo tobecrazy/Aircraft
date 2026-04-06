@@ -168,4 +168,31 @@
 
     <string name="invincible_mode_on">你已经进入无敌模式。该模式下被攻击不掉血。</string>
     <string name="invincible_mode_off">你已经恢复正常模式。该模式下正常掉血。</string>
+
+    <!-- Rich Text Editor -->
+    <string name="rich_text_section_title">富文本</string>
+    <string name="rich_text_card_title">富文本编辑器</string>
+    <string name="rich_text_card_summary">测试内置富文本编辑器，支持格式化、Markdown 和 HTML。</string>
+    <string name="test_rich_text_editor">测试富文本编辑器</string>
+    <string name="rich_text_editor_title">富文本编辑器</string>
+    <string name="rich_text_mode_edit">编辑</string>
+    <string name="rich_text_mode_preview">预览</string>
+    <string name="rich_text_hint">在此输入\u2026 使用工具栏格式化文本，点击 MD 启用 Markdown 模式。</string>
+    <string name="rich_text_btn_size">字号</string>
+    <string name="rich_text_btn_color">颜色</string>
+    <string name="rich_text_select_text">请先选择文本</string>
+    <string name="rich_text_size_small">小号 (12sp)</string>
+    <string name="rich_text_size_medium">中号 (16sp)</string>
+    <string name="rich_text_size_large">大号 (22sp)</string>
+    <string name="rich_text_size_xlarge">特大号 (30sp)</string>
+    <string name="rich_text_color_green">绿色</string>
+    <string name="rich_text_color_red">红色</string>
+    <string name="rich_text_color_blue">蓝色</string>
+    <string name="rich_text_color_yellow">黄色</string>
+    <string name="rich_text_color_white">白色</string>
+    <string name="rich_text_md_on">Markdown 模式已开启</string>
+    <string name="rich_text_md_off">Markdown 模式已关闭</string>
+    <string name="rich_text_html_image">图片标签</string>
+    <string name="rich_text_html_link">超链接标签</string>
+    <string name="rich_text_html_heading">标题标签</string>
 </resources>
