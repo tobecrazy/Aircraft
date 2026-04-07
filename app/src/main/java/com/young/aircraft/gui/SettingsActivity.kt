@@ -144,6 +144,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.root.findViewById<LinearLayout>(R.id.row_about_aircraft).setOnClickListener {
             startActivity(Intent(this, AboutAircraftActivity::class.java))
         }
+        binding.root.findViewById<LinearLayout>(R.id.row_about_me).setOnClickListener {
+            startActivity(Intent(this, AboutMeActivity::class.java))
+        }
         binding.root.findViewById<LinearLayout>(R.id.row_privacy_policy).setOnClickListener {
             startActivity(Intent(this, PrivacyPolicyActivity::class.java))
         }

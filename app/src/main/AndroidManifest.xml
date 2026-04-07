@@ -33,6 +33,11 @@
             android:label="@string/about_aircraft_title"
             android:theme="@style/Theme.Aircraft.History" />
         <activity
+            android:name=".gui.AboutMeActivity"
+            android:exported="false"
+            android:label="@string/about_me_title"
+            android:theme="@style/Theme.Aircraft.History" />
+        <activity
             android:name=".gui.DeviceInfoActivity"
             android:exported="false"
             android:label="@string/title_activity_device_info"
