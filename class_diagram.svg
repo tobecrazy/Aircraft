@@ -933,7 +933,7 @@
     <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
     <text x="10" y="93" font-size="9" fill="#888">Difficulty + bg/combat/hit-shake toggles</text>
-    <text x="10" y="106" font-size="9" fill="#888">Links to privacy/about/device/debug screens</text>
+    <text x="10" y="106" font-size="9" fill="#888">Links to privacy, about, device, and debug screens</text>
   </g>
 
   <!-- PrivacyPolicyActivity -->
@@ -983,6 +983,21 @@
     <text x="10" y="106" font-size="9" fill="#888">Test crash + hidden invincible toggle</text>
   </g>
 
+  <!-- AboutMeActivity -->
+  <g transform="translate(900, 2060)" filter="url(#shadow)">
+    <rect width="250" height="115" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="250" height="6" fill="#9c27b0"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">AboutMeActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="77" font-size="10" fill="#333">+ setContent { AboutMeScreen(...) }</text>
+    <text x="10" y="90" font-size="10" fill="#333">+ localized developer/project cards</text>
+    <text x="10" y="106" font-size="9" fill="#888">Compose UI, remote profile image, repo URL</text>
+  </g>
+
   <!-- DeviceInfoActivity -->
   <g transform="translate(30, 2120)" filter="url(#shadow)">
     <rect width="250" height="130" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
@@ -1011,6 +1026,10 @@
   <!-- SettingsActivity -> DevelopSettingsActivity navigation -->
   <line x1="280" y1="1935" x2="600" y2="2095" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="435" y="2015" font-size="9" fill="#888">debug only</text>
+
+  <!-- SettingsActivity -> AboutMeActivity navigation -->
+  <line x1="280" y1="1905" x2="900" y2="2095" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="640" y="1990" font-size="9" fill="#888">navigates</text>
 
   <!-- LaunchActivity -> MainActivity navigation -->
   <line x1="280" y1="1750" x2="310" y2="1750" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>

@@ -50,6 +50,16 @@
     <string name="mission_briefing_title">隐私协议</string>
     <string name="about_aircraft_title">关于飞机大战</string>
     <string name="about_aircraft_summary">项目信息和源代码</string>
+    <string name="about_me_title">关于我</string>
+    <string name="about_me_summary">开发者简介</string>
+    <string name="about_me_developer_section_title">关于开发者</string>
+    <string name="about_me_project_section_title">关于本项目</string>
+    <string name="about_me_profile_content_description">开发者资料图片</string>
+    <string name="about_me_image_unavailable">图片不可用</string>
+    <string name="about_me_content">你好！我是 Aircraft 项目的创建者和主要开发者。Aircraft 是一款使用 Kotlin 为 Android 打造的复古风 2D 纵向卷轴射击游戏。\n\n我的软件开发经历涵盖 Android 应用开发、DevOps 和质量保证。多年来，我参与过企业级应用，也做过像这个项目一样的个人创意项目，常用技术包括 Kotlin、Java、Jetpack Compose、Room、Firebase 和 GitHub Actions。这些经验让我在实现功能的同时，也会更关注稳定性和可维护性。\n\nAircraft 起初是我给自己设下的一个挑战：只用 Android SDK 和 SurfaceView Canvas，能不能做出一款完整且流畅的街机射击游戏？没有游戏引擎，没有 Unity，也没有第三方玩法框架，只有直接 Canvas 绘制、自定义碰撞检测和精细控制的线程调度。最终它实现了稳定的 30 FPS 和较丰富的玩法。\n\n我一直很看重基础能力。现代框架很强大，但真正理解渲染循环、位图缩放、多线程状态管理和碰撞逻辑，仍然非常有价值。这个项目正是我深入打磨这些细节、并把它们变成可玩体验的实验场。\n\n在编程之外，我也喜欢参与开源、写技术文章和帮助其他开发者成长。我希望把自己学到的东西分享出去。Aircraft 同时承载了我对经典街机游戏的喜爱，以及我对把基础做扎实的软件工程理念。\n\n接下来我会继续扩展这个项目，加入更多敌机、更多道具和更细致的玩法打磨，也会继续尝试用 Jetpack Compose 改进应用中的现代化界面。如果你有任何反馈或想法，欢迎通过 GitHub 联系我。</string>
+    <string name="about_me_project_content">Aircraft 是一款完全使用 Kotlin 编写的 Android 2D 纵向卷轴射击游戏。玩家控制战机向上射击，清理敌机波次，收集道具，并在 10 个基于时间的关卡中一路挑战，每关末尾都有 Boss 战。\n\n游戏引擎基于自定义 SurfaceView，使用独立渲染线程并以 30 FPS 为目标运行。玩家战机、敌机、子弹、爆炸特效和道具等核心对象都直接绘制到 Canvas 上，碰撞检测和状态更新都在主游戏循环中完成。\n\n项目包含多种道具、使用 Room 实现的持久化分数记录、负责背景音乐和战斗音效的绑定式 MusicService、三档难度，以及中英文本地化。同时项目还集成了 GitHub Actions 持续集成、Firebase Crashlytics 崩溃上报和 Firebase Analytics 使用分析。\n\n%1$s</string>
+    <string name="about_me_project_repo_url" translatable="false">https://github.com/tobecrazy/Aircraft</string>
+    <string name="about_me_project_repo_line">%1$s：%2$s</string>
 
     <!-- About Aircraft page -->
     <string name="about_section_overview">概述</string>

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- `AboutMeActivityTest` to verify localized About Me labels, GitHub repo rendering, and back navigation under Robolectric
+
+### Changed
+- `AboutMeActivity` now reads developer and project copy from Android string resources for English and Chinese i18n
+- The About Me project card now includes the canonical GitHub repository URL: `https://github.com/tobecrazy/Aircraft`
+- `README.md`, `project_diagram.svg`, and `class_diagram.svg` now document `AboutMeActivity` and its Settings navigation path
+
 ## [1.2.3] - 2026-04-02
 
 ### Added

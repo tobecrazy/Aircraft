@@ -1,6 +1,6 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, boss fights, collectible power-ups, local save/resume support, and debug-only developer tools.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, boss fights, collectible power-ups, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Project Architecture
 
@@ -18,7 +18,8 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
 - Leaderboard top record highlighting with a medal/star badge and gold first-place styling
-- Utility screens for history, device info, about, privacy policy, and debug-only developer settings
+- Compose-powered About Me screen with localized developer/project copy and the project GitHub URL
+- Utility screens for history, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
 
@@ -43,7 +44,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Background music via `MediaPlayer` and combat SFX via `SoundPool`
 - Jet selection with 4 playable plane sprites and saved `jet_plane_index`
 - Device information screen with CPU, memory, disk, battery, and network telemetry
-- Robolectric coverage for onboarding, privacy gate, leaderboard styling, string parity, and gameplay formulas
+- Robolectric coverage for onboarding, privacy gate, About Me Compose UI wiring, leaderboard styling, string parity, and gameplay formulas
 
 ## Project Structure
 
@@ -78,6 +79,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools
 │   ├── DeviceInfoActivity.kt           # Live system monitor
 │   ├── AboutAircraftActivity.kt        # Project overview and GitHub link
+│   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer
 │   └── StarFieldView.kt                # Animated cinematic background
 ├── providers/
@@ -113,6 +115,7 @@ app/src/main/java/com/young/aircraft/
 - data-model tests for gameplay and persistence state classes
 - `GameCoreViewFormulaTest` for level duration and kill-target math
 - `HistoryAdapterTest` for first-place badge visibility and gold score styling
+- `AboutMeActivityTest` for localized About Me copy, repo URL rendering, and back navigation
 - `DrawBackgroundTest` for seamless mirrored tile coverage
 - `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior
 - `PlayerGameDataTest` for timestamp-aware data-class behavior
@@ -179,7 +182,7 @@ Instrumented tests belong in `app/src/androidTest`.
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/tobecrazy/Aircraft.git
    cd Aircraft
    ```
 2. Open the project in Android Studio.
