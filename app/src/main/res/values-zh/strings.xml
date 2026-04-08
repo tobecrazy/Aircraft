@@ -43,6 +43,7 @@
     <string name="sound_settings_header">游戏特效设置</string>
     <string name="about_us_title">关于我们</string>
     <string name="privacy_policy_title">隐私政策</string>
+    <string name="privacy_policy_summary">查看数据处理和授权相关说明。</string>
     <string name="privacy_policy_accept">接受</string>
     <string name="privacy_policy_reject">拒绝</string>
     <string name="privacy_policy_accept_tactical">\u00BB\u00BB\u00BB %s \u00AB\u00AB\u00AB</string>
@@ -81,6 +82,17 @@
 
     <!-- Difficulty Preferences -->
     <string name="difficulty_settings_header">难度设置</string>
+    <string name="settings_banner_title">准备你的飞行配置</string>
+    <string name="settings_banner_summary">在起飞前调整战斗强度、声音反馈和支援面板。</string>
+    <string name="settings_profile_chip">配置：%1$s</string>
+    <string name="settings_difficulty_card_title">战斗配置</string>
+    <string name="settings_difficulty_card_summary">为每次出击调整射速节奏和遭遇战压力。</string>
+    <string name="settings_sound_profile_chip">音频在线 %1$d/%2$d</string>
+    <string name="settings_sound_active_count">已启用 %1$d/%2$d</string>
+    <string name="settings_state_on">开启</string>
+    <string name="settings_state_off">关闭</string>
+    <string name="settings_support_header">支援与工具</string>
+    <string name="settings_project_header">项目内容</string>
     <string name="difficulty_easy">简单</string>
     <string name="difficulty_normal">普通</string>
     <string name="difficulty_hard">困难</string>

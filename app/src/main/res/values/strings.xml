@@ -43,6 +43,7 @@
     <string name="sound_settings_header">Game Effects Settings</string>
     <string name="about_us_title">About Us</string>
     <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_summary">Review data handling and consent information.</string>
     <string name="privacy_policy_accept">Accept</string>
     <string name="privacy_policy_reject">Reject</string>
     <string name="privacy_policy_accept_tactical">\u00BB\u00BB\u00BB %s \u00AB\u00AB\u00AB</string>
@@ -81,6 +82,17 @@
 
     <!-- Difficulty Preferences -->
     <string name="difficulty_settings_header">Difficulty Settings</string>
+    <string name="settings_banner_title">Prepare Your Flight Profile</string>
+    <string name="settings_banner_summary">Tune combat pressure, audio feedback, and support panels before takeoff.</string>
+    <string name="settings_profile_chip">PROFILE: %1$s</string>
+    <string name="settings_difficulty_card_title">Combat Profile</string>
+    <string name="settings_difficulty_card_summary">Adjust fire cadence and encounter pressure for each run.</string>
+    <string name="settings_sound_profile_chip">AUDIO %1$d/%2$d ONLINE</string>
+    <string name="settings_sound_active_count">%1$d OF %2$d ACTIVE</string>
+    <string name="settings_state_on">ON</string>
+    <string name="settings_state_off">OFF</string>
+    <string name="settings_support_header">Support &amp; Tools</string>
+    <string name="settings_project_header">Project</string>
     <string name="difficulty_easy">Easy</string>
     <string name="difficulty_normal">Normal</string>
     <string name="difficulty_hard">Hard</string>
