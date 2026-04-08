@@ -71,7 +71,7 @@
                         android:layout_height="14dp"
                         android:contentDescription="@string/history_top_record_badge"
                         android:src="@drawable/ic_top_record_flag_star"
-                        android:tint="#FFD45A"
+                        app:tint="#FFD45A"
                         android:visibility="gone" />
 
                     <TextView

@@ -78,6 +78,9 @@
     <string name="about_me_project_repo_line">%1$s: %2$s</string>
 
     <!-- About Aircraft page -->
+    <string name="about_banner_badge">PROJECT DOSSIER</string>
+    <string name="about_banner_summary">Build details, gameplay profile, and direct access to the Aircraft source.</string>
+    <string name="about_stack_badge">Kotlin + Canvas</string>
     <string name="about_section_overview">OVERVIEW</string>
     <string name="about_section_specs">GAME SPECS</string>
     <string name="about_section_source">SOURCE CODE</string>
@@ -93,6 +96,8 @@
     <string name="about_spec_powerups">Power-ups</string>
     <string name="about_spec_powerups_val">Rocket / MedKit / Shield</string>
     <string name="about_github_label">GitHub</string>
+    <string name="about_source_summary">Browse the repository, release history, and implementation details on GitHub.</string>
+    <string name="about_source_cta">Open Repo</string>
     <string name="about_description">A 2D vertical-scrolling shooter game for Android, written in Kotlin. Control a jet plane, fire bullets upward, and destroy enemies while avoiding collisions. Features 10 time-based levels with scaling difficulty, boss fights, and multiple power-up systems.</string>
 
     <!-- Difficulty Preferences -->
