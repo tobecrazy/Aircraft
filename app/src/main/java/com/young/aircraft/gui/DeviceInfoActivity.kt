@@ -74,6 +74,7 @@ class DeviceInfoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         binding = ActivityDeviceInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -373,8 +374,10 @@ class DeviceInfoActivity : AppCompatActivity() {
         val rows = mutableListOf<CoreRow>()
         val dp = resources.displayMetrics
         val barH = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4f, dp).toInt()
-        val gap = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5f, dp).toInt()
-        val pad = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, dp).toInt()
+        val gap = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, dp).toInt()
+        val pad = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, dp).toInt()
+        val rowPadH = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12f, dp).toInt()
+        val rowPadV = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, dp).toInt()
 
         for (i in 0 until count) {
             val row = LinearLayout(this).apply {
@@ -384,6 +387,8 @@ class DeviceInfoActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply { topMargin = gap }
+                background = ResourcesCompat.getDrawable(resources, R.drawable.device_info_item_bg, null)
+                setPadding(rowPadH, rowPadV, rowPadH, rowPadV)
             }
 
             val label = TextView(this).apply {
@@ -391,8 +396,8 @@ class DeviceInfoActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                text = String.format(Locale.getDefault(), "%d", i)
-                setTextColor(0x66FFFFFF)
+                text = String.format(Locale.getDefault(), "C%02d", i)
+                setTextColor(0x88FFFFFF.toInt())
                 textSize = 9f
                 typeface = Typeface.MONOSPACE
             }
