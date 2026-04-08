@@ -29,17 +29,23 @@ class HistoryAdapterTest {
                 PlayerGameData(playerId = "ace-pilot", playerName = "Ace Pilot", level = 10, score = 12_345),
                 PlayerGameData(playerId = "wingman", playerName = "Wingman", level = 9, score = 9_999)
             )
-        ) { _, _ -> }
+        ) { }
 
         val topHolder = adapter.onCreateViewHolder(parent, 0)
         adapter.onBindViewHolder(topHolder, 0)
 
+        assertEquals(View.VISIBLE, topHolder.binding.topRecordGroup.visibility)
         assertEquals(View.VISIBLE, topHolder.binding.imageTopRecordBadge.visibility)
         assertEquals(Color.parseColor("#FFD45A"), topHolder.binding.textScore.currentTextColor)
+        assertEquals(
+            context.getString(R.string.level, "10"),
+            topHolder.binding.textLevel.text.toString()
+        )
 
         val secondHolder = adapter.onCreateViewHolder(parent, 0)
         adapter.onBindViewHolder(secondHolder, 1)
 
+        assertEquals(View.GONE, secondHolder.binding.topRecordGroup.visibility)
         assertEquals(View.GONE, secondHolder.binding.imageTopRecordBadge.visibility)
     }
 }
