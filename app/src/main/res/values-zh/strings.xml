@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">飞机大战</string>
-    <string name="exit_warning_msg">再按一次退出程序</string>
+    <string name="exit_warning_msg">再按一次保存进度并退出</string>
     <string name="start_game">开始游戏</string>
     <string name="start_history">历史成绩</string>
     <string name="game_settings">游戏设置</string>
@@ -13,7 +13,9 @@
     <string name="stat_kills">击杀数</string>
     <string name="stat_score">得分</string>
     <string name="next_level">下一关</string>
+    <string name="level_complete_badge">区域已清空</string>
     <string name="game_over_title">游戏结束</string>
+    <string name="game_over_badge">任务失败</string>
     <string name="game_over_message">你到达了第%1$d关，得分%2$d。是否保存进度以便下次从此关继续？</string>
     <string name="game_over_save">保存进度</string>
     <string name="game_over_discard">不保存</string>
@@ -33,8 +35,10 @@
     <string name="history_top_record_badge">最高记录徽章</string>
     <string name="hall_of_heroes_title">英雄殿堂</string>
     <string name="hall_of_heroes_message">恭喜！你已通过全部关卡。你的名字将被记录进英雄殿堂。</string>
+    <string name="hall_of_heroes_badge">传奇通关</string>
     <string name="hall_of_heroes_prompt">请输入你的名字</string>
     <string name="hall_of_heroes_name_hint">输入名字</string>
+    <string name="hall_of_heroes_hint">留空则会以 Anonymous 记录。</string>
     <string name="hall_of_heroes_record_button">记录名字</string>
     <string name="hall_of_heroes_anonymous">Anonymous</string>
     <string name="hall_of_heroes_medal_content_description">英雄殿堂奖章</string>

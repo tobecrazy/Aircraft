@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Aircraft</string>
-    <string name="exit_warning_msg">Press again to exit</string>
+    <string name="exit_warning_msg">Press again to save and exit</string>
     <string name="start_game">Start Game</string>
     <string name="start_history">History</string>
     <string name="game_settings">Game Settings</string>
@@ -13,7 +13,9 @@
     <string name="stat_kills">KILLS</string>
     <string name="stat_score">SCORE</string>
     <string name="next_level">NEXT LEVEL</string>
+    <string name="level_complete_badge">SECTOR CLEARED</string>
     <string name="game_over_title">Game Over</string>
+    <string name="game_over_badge">MISSION FAILED</string>
     <string name="game_over_message">You reached Level %1$d with a score of %2$d. Would you like to save your progress so you can continue from this level next time?</string>
     <string name="game_over_save">Save Progress</string>
     <string name="game_over_discard">Don\'t Save</string>
@@ -33,8 +35,10 @@
     <string name="history_top_record_badge">Top record badge</string>
     <string name="hall_of_heroes_title">Hall of Heroes</string>
     <string name="hall_of_heroes_message">Congratulations! You have passed all levels. Your name will be recorded in the Hall of Heroes.</string>
+    <string name="hall_of_heroes_badge">LEGENDARY RUN</string>
     <string name="hall_of_heroes_prompt">Enter your name</string>
     <string name="hall_of_heroes_name_hint">Type your name</string>
+    <string name="hall_of_heroes_hint">Leave blank to be recorded as Anonymous.</string>
     <string name="hall_of_heroes_record_button">Record Name</string>
     <string name="hall_of_heroes_anonymous">Anonymous</string>
     <string name="hall_of_heroes_medal_content_description">Hall of Heroes medal</string>

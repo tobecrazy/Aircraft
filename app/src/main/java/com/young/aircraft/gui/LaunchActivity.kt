@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
+import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.ActivityLaunchBinding
 import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.providers.SettingsRepository
@@ -48,8 +49,8 @@ class LaunchActivity : AppCompatActivity() {
         val jetResId = jetPlanes[selectedJetIndex]
         lifecycleScope.launch {
             val savedData = db.playerGameDataDao().getByPlayerId(playerId)
-            if (savedData.isNotEmpty() && savedData[0].level > 1) {
-                val data = savedData[0]
+            val data = savedData.firstOrNull()
+            if (data != null && shouldOfferSavedGame(data)) {
                 val savedLevel = data.level
                 
                 // Prioritize index, fallback to finding index from old resource ID, then default to 0
@@ -109,5 +110,9 @@ class LaunchActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    private fun shouldOfferSavedGame(data: PlayerGameData): Boolean {
+        return data.level > 1 || data.score > 0L
     }
 }

@@ -38,9 +38,15 @@ import kotlinx.coroutines.launch
  * @author Young
  */
 class MainActivity : AppCompatActivity() {
+    private enum class DialogTone {
+        Success,
+        Danger
+    }
+
     private lateinit var mService: MusicService
     private lateinit var coreView: GameCoreView
     private var exitTime: Long = 0
+    private var isExitInProgress = false
     private lateinit var playerId: String
     private var isServiceBound = false
     private val db by lazy { DatabaseProvider.getDatabase(this) }
@@ -81,6 +87,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(coreView)
         coreView.onGameOver = {
             showGameDialog(
+                badgeText = getString(R.string.game_over_badge),
+                tone = DialogTone.Danger,
                 title = getString(R.string.game_over_title),
                 message = getString(R.string.game_over_message, coreView.level, coreView.totalKills.toLong() * 100),
                 titleColor = 0xFFFF4444.toInt(),
@@ -106,6 +114,8 @@ class MainActivity : AppCompatActivity() {
         }
         coreView.onLevelComplete = { completedLevel ->
             showGameDialog(
+                badgeText = getString(R.string.level_complete_badge),
+                tone = DialogTone.Success,
                 title = getString(R.string.level_complete, completedLevel),
                 message = getString(R.string.level_complete_message, completedLevel),
                 positiveText = getString(R.string.next_level),
@@ -115,7 +125,7 @@ class MainActivity : AppCompatActivity() {
                 stat2Value = (coreView.totalKills.toLong() * 100).toString(),
                 onPositive = {
                     lifecycleScope.launch {
-                        saveGameData(coreView)
+                        saveGameData(coreView, levelOverride = completedLevel + 1)
                         coreView.advanceToNextLevel()
                     }
                 }
@@ -145,6 +155,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showGameDialog(
+        badgeText: String? = null,
+        tone: DialogTone = DialogTone.Success,
         title: String,
         message: String?,
         titleColor: Int = 0xFF00FF88.toInt(),
@@ -158,6 +170,20 @@ class MainActivity : AppCompatActivity() {
         onNegative: (() -> Unit)? = null
     ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_game, null)
+        dialogView.findViewById<TextView>(R.id.dialog_badge).apply {
+            if (badgeText.isNullOrBlank()) {
+                visibility = View.GONE
+            } else {
+                visibility = View.VISIBLE
+                text = badgeText
+                setBackgroundResource(
+                    when (tone) {
+                        DialogTone.Danger -> R.drawable.dialog_badge_danger_bg
+                        DialogTone.Success -> R.drawable.dialog_badge_positive_bg
+                    }
+                )
+            }
+        }
         dialogView.findViewById<TextView>(R.id.dialog_title).apply {
             text = title
             setTextColor(titleColor)
@@ -206,6 +232,8 @@ class MainActivity : AppCompatActivity() {
         val dialog = BottomSheetDialog(this, R.style.ThemeOverlay_Aircraft_HallOfHeroesBottomSheet)
         val dialogView = dialog.layoutInflater.inflate(R.layout.bottom_sheet_hall_of_heroes, null)
         val nameInput = dialogView.findViewById<EditText>(R.id.edit_hero_name)
+        dialogView.findViewById<TextView>(R.id.text_hall_of_heroes_hint).text =
+            getString(R.string.hall_of_heroes_hint)
 
         fun recordHero() {
             if (!dialog.isShowing) return
@@ -245,8 +273,13 @@ class MainActivity : AppCompatActivity() {
         nameInput.requestFocus()
     }
 
-    private suspend fun saveGameData(coreView: GameCoreView, playerName: String? = null) {
+    private suspend fun saveGameData(
+        coreView: GameCoreView,
+        playerName: String? = null,
+        levelOverride: Int? = null
+    ) {
         val score = coreView.totalKills.toLong() * 100
+        val savedLevel = levelOverride ?: coreView.level
         val difficulty = settingsRepository.getDifficulty().persistedValue
         val existingRecord = db.playerGameDataDao().getByPlayerId(playerId).firstOrNull()
         val persistedPlayerName = playerName ?: existingRecord?.playerName
@@ -255,7 +288,7 @@ class MainActivity : AppCompatActivity() {
             PlayerGameData(
                 playerId = playerId,
                 playerName = persistedPlayerName,
-                level = coreView.level,
+                level = savedLevel,
                 score = score,
                 jetPlaneRes = coreView.jetPlaneResId,
                 jetPlaneIndex = coreView.jetPlaneIndex,
@@ -264,7 +297,7 @@ class MainActivity : AppCompatActivity() {
         )
         Log.d(
             "Game",
-            "Saved: player=$playerId, name=$persistedPlayerName, level=${coreView.level}, score=$score, jetIndex=${coreView.jetPlaneIndex}"
+            "Saved: player=$playerId, name=$persistedPlayerName, level=$savedLevel, score=$score, jetIndex=${coreView.jetPlaneIndex}"
         )
     }
 
@@ -276,8 +309,24 @@ class MainActivity : AppCompatActivity() {
             ).show()
             exitTime = System.currentTimeMillis()
         } else {
-            finish()
+            if (isExitInProgress) return
+            isExitInProgress = true
+            coreView.pauseGame()
+            lifecycleScope.launch {
+                runCatching {
+                    if (shouldAutoSaveOnExit()) {
+                        saveGameData(coreView)
+                    }
+                }.onFailure {
+                    Log.e("MainActivity", "Failed to auto-save progress on exit", it)
+                }
+                finish()
+            }
         }
+    }
+
+    private fun shouldAutoSaveOnExit(): Boolean {
+        return coreView.level > 1 || coreView.totalKills > 0
     }
 
     override fun onStart() {
