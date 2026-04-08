@@ -1,11 +1,16 @@
 package com.young.aircraft.gui
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
@@ -15,6 +20,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.util.Locale
@@ -33,26 +39,46 @@ class AboutMeActivityTest {
 
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText(activity.getString(R.string.about_me_title))
-            .assertTextEquals(activity.getString(R.string.about_me_title))
+        val titleNodes = composeRule.onAllNodesWithText(activity.getString(R.string.about_me_title))
+            .fetchSemanticsNodes()
+        assertTrue(titleNodes.isNotEmpty())
+        composeRule.onNodeWithTag("about_me_list")
+            .performScrollToNode(hasText(activity.getString(R.string.about_me_developer_section_title)))
         composeRule.onNodeWithText(activity.getString(R.string.about_me_developer_section_title))
             .assertTextEquals(activity.getString(R.string.about_me_developer_section_title))
+        composeRule.onNodeWithTag("about_me_list")
+            .performScrollToNode(hasText(activity.getString(R.string.about_me_project_section_title)))
         composeRule.onNodeWithText(activity.getString(R.string.about_me_project_section_title))
             .assertTextEquals(activity.getString(R.string.about_me_project_section_title))
 
-        val repoNodes = composeRule.onAllNodesWithText(
-            activity.getString(R.string.about_me_project_repo_url),
-            substring = true
-        ).fetchSemanticsNodes()
+        val repoNodes = composeRule.onAllNodesWithText(activity.getString(R.string.about_me_project_repo_url))
+            .fetchSemanticsNodes()
         assertTrue(repoNodes.isNotEmpty())
     }
 
     @Test
     fun `back arrow finishes activity`() {
-        composeRule.onNodeWithText("\u25C0").performClick()
+        composeRule.onNodeWithContentDescription(
+            composeRule.activity.getString(R.string.history_back)
+        ).performClick()
         composeRule.waitForIdle()
 
         assertTrue(composeRule.activity.isFinishing)
+    }
+
+    @Test
+    fun `github action launches browser intent`() {
+        val activity = composeRule.activity
+
+        composeRule.onNodeWithTag("about_me_open_repo").performClick()
+        composeRule.waitForIdle()
+
+        val nextIntent = shadowOf(activity).nextStartedActivity
+        assertEquals(Intent.ACTION_VIEW, nextIntent.action)
+        assertEquals(
+            activity.getString(R.string.about_me_project_repo_url),
+            nextIntent.dataString
+        )
     }
 
     @Test
