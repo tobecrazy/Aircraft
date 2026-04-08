@@ -16,7 +16,7 @@ import java.util.Locale
 
 class HistoryAdapter(
     private val items: MutableList<PlayerGameData>,
-    private val onDelete: (PlayerGameData, Int) -> Unit
+    private val onDelete: (PlayerGameData) -> Unit
 ) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
     companion object {
@@ -55,7 +55,7 @@ class HistoryAdapter(
             // Item card background with accent-tinted stroke
             holder.binding.itemRoot.background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = 8f * ctx.resources.displayMetrics.density
+                cornerRadius = 12f * ctx.resources.displayMetrics.density
                 setColor(Color.argb(0x1A, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)))
                 setStroke(
                     (1 * ctx.resources.displayMetrics.density).toInt(),
@@ -73,6 +73,7 @@ class HistoryAdapter(
         holder.binding.textRank.setTextColor(Color.parseColor("#1B1F2B"))
 
         holder.binding.textPlayerId.text = HallOfHeroesNameUtils.getDisplayName(item)
+        holder.binding.topRecordGroup.visibility = if (isTopRecord) View.VISIBLE else View.GONE
         holder.binding.imageTopRecordBadge.visibility = if (isTopRecord) View.VISIBLE else View.GONE
 
         // Score with comma separators
@@ -80,7 +81,7 @@ class HistoryAdapter(
         holder.binding.textScore.setTextColor(if (isTopRecord) Color.parseColor("#FFD45A") else Color.parseColor("#FFFF00"))
 
         // Level
-        holder.binding.textLevel.text = "Lv.${item.level}"
+        holder.binding.textLevel.text = ctx.getString(R.string.level, item.level.toString())
 
         // Difficulty badge
         val (badgeRes, badgeTextColor, badgeText) = when (GameDifficulty.fromPersistedValue(item.difficulty)) {
@@ -94,14 +95,8 @@ class HistoryAdapter(
 
         // Delete
         holder.binding.btnDelete.setOnClickListener {
-            onDelete(item, holder.bindingAdapterPosition)
+            onDelete(item)
         }
-    }
-
-    fun removeAt(position: Int) {
-        items.removeAt(position)
-        notifyItemRemoved(position)
-        notifyItemRangeChanged(position, items.size - position)
     }
 
     override fun getItemCount(): Int = items.size

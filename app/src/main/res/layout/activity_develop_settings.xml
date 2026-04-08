@@ -48,7 +48,7 @@
             android:layout_weight="1"
             android:clipToPadding="false"
             android:overScrollMode="never"
-            android:paddingBottom="16dp">
+            android:paddingBottom="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -59,25 +59,16 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/device_info_card_bg"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/develop_settings_hero_bg"
                     android:orientation="vertical"
                     android:paddingHorizontal="18dp"
-                    android:paddingVertical="16dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/develop_settings_title"
-                        android:textColor="#FFFFFF"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:typeface="monospace" />
+                    android:paddingVertical="18dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
                         <TextView
@@ -86,9 +77,10 @@
                             android:layout_height="wrap_content"
                             android:background="@drawable/device_info_gauge_bg"
                             android:paddingHorizontal="10dp"
-                            android:paddingVertical="3dp"
+                            android:paddingVertical="4dp"
                             android:textColor="#00FF88"
                             android:textSize="11sp"
+                            android:textStyle="bold"
                             android:typeface="monospace" />
 
                         <TextView
@@ -97,21 +89,175 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:background="@drawable/device_info_gauge_bg"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:paddingHorizontal="10dp"
-                            android:paddingVertical="3dp"
-                            android:textColor="#88FFFFFF"
+                            android:paddingVertical="4dp"
+                            android:textColor="#D8E0EF"
                             android:textSize="11sp"
+                            android:textStyle="bold"
                             android:typeface="monospace" />
                     </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/develop_settings_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
 
                     <TextView
                         android:id="@+id/tv_summary"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="8dp"
                         android:lineSpacingExtra="4dp"
                         android:textColor="#CDD2E0"
                         android:textSize="13sp"
+                        android:typeface="monospace" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:background="#16FFFFFF" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:letterSpacing="0.15"
+                                android:text="@string/develop_settings_runtime_label"
+                                android:textColor="#8C97AD"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:typeface="monospace" />
+
+                            <TextView
+                                android:id="@+id/tv_invincible_runtime_status"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:lineSpacingExtra="3dp"
+                                android:textColor="#FFFFFF"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:typeface="monospace" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tv_invincible_chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/develop_settings_status_inactive_bg"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="6dp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="14dp"
+                        android:background="#00FF88" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:letterSpacing="0.2"
+                        android:text="@string/develop_settings_section_gameplay"
+                        android:textColor="#66FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/develop_settings_panel_bg"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="2dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/develop_settings_invincible_title"
+                                android:textColor="#FFFFFF"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:typeface="monospace" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:lineSpacingExtra="3dp"
+                                android:text="@string/develop_settings_invincible_description"
+                                android:textColor="#AAB4C8"
+                                android:textSize="12sp"
+                                android:typeface="monospace" />
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switch_invincible"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:thumb="@drawable/switch_thumb"
+                            android:track="@drawable/switch_track" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="3dp"
+                        android:text="@string/develop_settings_invincible_hint"
+                        android:textColor="#7F8AA3"
+                        android:textSize="11sp"
                         android:typeface="monospace" />
                 </LinearLayout>
 
@@ -132,7 +278,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:letterSpacing="0.2"
-                        android:text="@string/develop_settings_section_actions"
+                        android:text="@string/develop_settings_section_tools"
                         android:textColor="#66FFFFFF"
                         android:textSize="11sp"
                         android:textStyle="bold"
@@ -143,7 +289,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/device_info_card_bg"
+                    android:background="@drawable/develop_settings_panel_bg"
                     android:orientation="vertical"
                     android:paddingHorizontal="16dp"
                     android:paddingVertical="14dp">
@@ -153,80 +299,20 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/device_info_gauge_bg"
                         android:paddingHorizontal="10dp"
-                        android:paddingVertical="3dp"
-                        android:text="@string/develop_settings_debug_badge"
-                        android:textColor="#FF5555"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:typeface="monospace" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/develop_settings_crash_title"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:typeface="monospace" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:lineSpacingExtra="3dp"
-                        android:text="@string/develop_settings_crash_summary"
-                        android:textColor="#AAB4C8"
-                        android:textSize="12sp"
-                        android:typeface="monospace" />
-
-                    <Button
-                        android:id="@+id/btn_test_crash"
-                        style="@style/TacticalButton.Reject"
-                        android:layout_width="match_parent"
-                        android:layout_marginTop="14dp"
-                        android:text="@string/test_crash" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <View
-                        android:layout_width="3dp"
-                        android:layout_height="14dp"
-                        android:background="#00FF88" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:letterSpacing="0.2"
+                        android:paddingVertical="4dp"
                         android:text="@string/rich_text_section_title"
-                        android:textColor="#66FFFFFF"
+                        android:textColor="#D8E0EF"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:typeface="monospace" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/device_info_card_bg"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="14dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
                         android:text="@string/rich_text_card_title"
                         android:textColor="#FFFFFF"
-                        android:textSize="14sp"
+                        android:textSize="15sp"
                         android:textStyle="bold"
                         android:typeface="monospace" />
 
@@ -240,14 +326,86 @@
                         android:textSize="12sp"
                         android:typeface="monospace" />
 
-                    <TextView
+                    <Button
                         android:id="@+id/btn_test_rich_text"
                         style="@style/TacticalButton.Accept"
                         android:layout_width="match_parent"
                         android:layout_marginTop="14dp"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:text="@string/test_rich_text_editor" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="14dp"
+                        android:background="#FF5555" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:letterSpacing="0.2"
+                        android:text="@string/develop_settings_section_danger"
+                        android:textColor="#FF9EA8"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="20dp"
+                    android:background="@drawable/develop_settings_danger_bg"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/device_info_gauge_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="@string/develop_settings_danger_badge"
+                        android:textColor="#FF6F7E"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/develop_settings_crash_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingExtra="3dp"
+                        android:text="@string/develop_settings_crash_summary"
+                        android:textColor="#D3AAB2"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+
+                    <Button
+                        android:id="@+id/btn_test_crash"
+                        style="@style/TacticalButton.Reject"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/test_crash" />
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>

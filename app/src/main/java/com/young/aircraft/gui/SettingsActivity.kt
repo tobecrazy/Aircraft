@@ -3,7 +3,6 @@ package com.young.aircraft.gui
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
@@ -16,6 +15,7 @@ import com.young.aircraft.providers.SettingsRepository
 class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: SettingsActivityBinding
     private lateinit var settingsRepository: SettingsRepository
+    private val soundOptionCount = 3
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,27 +38,26 @@ class SettingsActivity : AppCompatActivity() {
     // ── Difficulty ──────────────────────────────────────────
 
     private fun setupDifficulty() {
-        val optionEasy = binding.root.findViewById<LinearLayout>(R.id.option_easy)
-        val optionNormal = binding.root.findViewById<LinearLayout>(R.id.option_normal)
-        val optionHard = binding.root.findViewById<LinearLayout>(R.id.option_hard)
-
         fun updateSelection(difficulty: GameDifficulty) {
             val options = mapOf(
-                GameDifficulty.EASY to optionEasy,
-                GameDifficulty.NORMAL to optionNormal,
-                GameDifficulty.HARD to optionHard
+                GameDifficulty.EASY to binding.optionEasy,
+                GameDifficulty.NORMAL to binding.optionNormal,
+                GameDifficulty.HARD to binding.optionHard
             )
             options.forEach { (key, view) -> view.isSelected = key == difficulty }
 
-            val dot = binding.root.findViewById<View>(R.id.current_indicator_dot)
-            val label = binding.root.findViewById<TextView>(R.id.current_selection_label)
-            label.text = getString(R.string.difficulty_current, getDifficultyLabel(difficulty))
-            dot.setBackgroundResource(
+            binding.currentSelectionLabel.text =
+                getString(R.string.difficulty_current, getDifficultyLabel(difficulty))
+            binding.currentIndicatorDot.setBackgroundResource(
                 when (difficulty) {
                     GameDifficulty.EASY -> R.drawable.difficulty_indicator_easy
                     GameDifficulty.HARD -> R.drawable.difficulty_indicator_hard
                     else -> R.drawable.difficulty_indicator_normal
                 }
+            )
+            binding.tvActiveDifficultyChip.text = getString(
+                R.string.settings_profile_chip,
+                getDifficultyLabel(difficulty)
             )
         }
 
@@ -69,9 +68,9 @@ class SettingsActivity : AppCompatActivity() {
 
         updateSelection(getCurrentDifficulty())
 
-        optionEasy.setOnClickListener { select(GameDifficulty.EASY) }
-        optionNormal.setOnClickListener { select(GameDifficulty.NORMAL) }
-        optionHard.setOnClickListener { select(GameDifficulty.HARD) }
+        binding.optionEasy.setOnClickListener { select(GameDifficulty.EASY) }
+        binding.optionNormal.setOnClickListener { select(GameDifficulty.NORMAL) }
+        binding.optionHard.setOnClickListener { select(GameDifficulty.HARD) }
     }
 
     private fun getCurrentDifficulty(): GameDifficulty = settingsRepository.getDifficulty()
@@ -85,80 +84,116 @@ class SettingsActivity : AppCompatActivity() {
     // ── Sound toggles ──────────────────────────────────────
 
     private fun setupSoundToggles() {
-        val switchBg = binding.root.findViewById<SwitchCompat>(R.id.switch_bg_sound)
-        val statusBg = binding.root.findViewById<TextView>(R.id.tv_bg_sound_status)
-        val switchCombat = binding.root.findViewById<SwitchCompat>(R.id.switch_combat_sound)
-        val statusCombat = binding.root.findViewById<TextView>(R.id.tv_combat_sound_status)
-        val switchHitShake = binding.root.findViewById<SwitchCompat>(R.id.switch_hit_shake)
-        val statusHitShake = binding.root.findViewById<TextView>(R.id.tv_hit_shake_status)
-
-        fun updateBgStatus(on: Boolean) {
-            statusBg.text = getString(
-                if (on) R.string.background_sound_summary_on
-                else R.string.background_sound_summary_off
-            )
-        }
-
-        fun updateCombatStatus(on: Boolean) {
-            statusCombat.text = getString(
-                if (on) R.string.combat_sound_summary_on
-                else R.string.combat_sound_summary_off
-            )
-        }
-
-        fun updateHitShakeStatus(on: Boolean) {
-            statusHitShake.text = getString(
-                if (on) R.string.hit_shake_effect_summary_on
-                else R.string.hit_shake_effect_summary_off
-            )
-        }
-
-        switchBg.isChecked = settingsRepository.isBackgroundSoundEnabled()
-        updateBgStatus(switchBg.isChecked)
-        switchBg.setOnCheckedChangeListener { _, isChecked ->
-            settingsRepository.setBackgroundSoundEnabled(isChecked)
-            updateBgStatus(isChecked)
-        }
-
-        switchCombat.isChecked = settingsRepository.isCombatSoundEnabled()
-        updateCombatStatus(switchCombat.isChecked)
-        switchCombat.setOnCheckedChangeListener { _, isChecked ->
-            settingsRepository.setCombatSoundEnabled(isChecked)
-            updateCombatStatus(isChecked)
-        }
-
-        switchHitShake.isChecked = settingsRepository.isHitShakeEffectEnabled()
-        updateHitShakeStatus(switchHitShake.isChecked)
-        switchHitShake.setOnCheckedChangeListener { _, isChecked ->
-            settingsRepository.setHitShakeEffectEnabled(isChecked)
-            updateHitShakeStatus(isChecked)
-        }
+        setupSoundToggle(
+            row = binding.rowBgSound,
+            switch = binding.switchBgSound,
+            status = binding.tvBgSoundStatus,
+            chip = binding.tvBgSoundChip,
+            initialValue = settingsRepository.isBackgroundSoundEnabled(),
+            onTextRes = R.string.background_sound_summary_on,
+            offTextRes = R.string.background_sound_summary_off,
+            persist = settingsRepository::setBackgroundSoundEnabled
+        )
+        setupSoundToggle(
+            row = binding.rowCombatSound,
+            switch = binding.switchCombatSound,
+            status = binding.tvCombatSoundStatus,
+            chip = binding.tvCombatSoundChip,
+            initialValue = settingsRepository.isCombatSoundEnabled(),
+            onTextRes = R.string.combat_sound_summary_on,
+            offTextRes = R.string.combat_sound_summary_off,
+            persist = settingsRepository::setCombatSoundEnabled
+        )
+        setupSoundToggle(
+            row = binding.rowHitShake,
+            switch = binding.switchHitShake,
+            status = binding.tvHitShakeStatus,
+            chip = binding.tvHitShakeChip,
+            initialValue = settingsRepository.isHitShakeEffectEnabled(),
+            onTextRes = R.string.hit_shake_effect_summary_on,
+            offTextRes = R.string.hit_shake_effect_summary_off,
+            persist = settingsRepository::setHitShakeEffectEnabled
+        )
+        updateSoundOverview()
     }
 
     // ── Navigation rows ────────────────────────────────────
 
     private fun setupNavigation() {
-        binding.root.findViewById<LinearLayout>(R.id.row_device_info).setOnClickListener {
+        binding.rowDeviceInfo.setOnClickListener {
             startActivity(Intent(this, DeviceInfoActivity::class.java))
         }
-        binding.root.findViewById<LinearLayout>(R.id.row_about_aircraft).setOnClickListener {
+        binding.rowAboutAircraft.setOnClickListener {
             startActivity(Intent(this, AboutAircraftActivity::class.java))
         }
-        binding.root.findViewById<LinearLayout>(R.id.row_about_me).setOnClickListener {
+        binding.rowAboutMe.setOnClickListener {
             startActivity(Intent(this, AboutMeActivity::class.java))
         }
-        binding.root.findViewById<LinearLayout>(R.id.row_privacy_policy).setOnClickListener {
+        binding.rowPrivacyPolicy.setOnClickListener {
             startActivity(Intent(this, PrivacyPolicyActivity::class.java))
         }
 
-        val developDivider = binding.root.findViewById<View>(R.id.divider_develop_settings)
-        val developSettingsRow = binding.root.findViewById<LinearLayout>(R.id.row_develop_settings)
         if (BuildConfig.DEBUG) {
-            developDivider.visibility = View.VISIBLE
-            developSettingsRow.visibility = View.VISIBLE
-            developSettingsRow.setOnClickListener {
+            binding.rowDevelopSettings.visibility = View.VISIBLE
+            binding.rowDevelopSettings.setOnClickListener {
                 startActivity(Intent(this, DevelopSettingsActivity::class.java))
             }
         }
+    }
+
+    private fun setupSoundToggle(
+        row: View,
+        switch: SwitchCompat,
+        status: TextView,
+        chip: TextView,
+        initialValue: Boolean,
+        onTextRes: Int,
+        offTextRes: Int,
+        persist: (Boolean) -> Unit
+    ) {
+        fun update(enabled: Boolean) {
+            status.text = getString(if (enabled) onTextRes else offTextRes)
+            chip.text = getString(if (enabled) R.string.settings_state_on else R.string.settings_state_off)
+            chip.setBackgroundResource(
+                if (enabled) R.drawable.settings_chip_active_bg
+                else R.drawable.settings_chip_bg
+            )
+            updateSoundOverview()
+        }
+
+        switch.isChecked = initialValue
+        update(initialValue)
+        row.setOnClickListener { switch.toggle() }
+        switch.setOnCheckedChangeListener { _, isChecked ->
+            persist(isChecked)
+            update(isChecked)
+        }
+    }
+
+    private fun updateSoundOverview() {
+        val enabledCount = listOf(
+            binding.switchBgSound,
+            binding.switchCombatSound,
+            binding.switchHitShake
+        ).count { it.isChecked }
+
+        binding.tvSoundProfileChip.text = getString(
+            R.string.settings_sound_profile_chip,
+            enabledCount,
+            soundOptionCount
+        )
+        binding.tvSoundProfileChip.setBackgroundResource(
+            if (enabledCount > 0) R.drawable.settings_chip_active_bg
+            else R.drawable.settings_chip_bg
+        )
+        binding.tvSoundSectionChip.text = getString(
+            R.string.settings_sound_active_count,
+            enabledCount,
+            soundOptionCount
+        )
+        binding.tvSoundSectionChip.setBackgroundResource(
+            if (enabledCount > 0) R.drawable.settings_chip_active_bg
+            else R.drawable.settings_chip_bg
+        )
     }
 }

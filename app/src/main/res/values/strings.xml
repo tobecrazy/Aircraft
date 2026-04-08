@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Aircraft</string>
-    <string name="exit_warning_msg">Press again to exit</string>
+    <string name="exit_warning_msg">Press again to save and exit</string>
     <string name="start_game">Start Game</string>
     <string name="start_history">History</string>
     <string name="game_settings">Game Settings</string>
@@ -13,7 +13,9 @@
     <string name="stat_kills">KILLS</string>
     <string name="stat_score">SCORE</string>
     <string name="next_level">NEXT LEVEL</string>
+    <string name="level_complete_badge">SECTOR CLEARED</string>
     <string name="game_over_title">Game Over</string>
+    <string name="game_over_badge">MISSION FAILED</string>
     <string name="game_over_message">You reached Level %1$d with a score of %2$d. Would you like to save your progress so you can continue from this level next time?</string>
     <string name="game_over_save">Save Progress</string>
     <string name="game_over_discard">Don\'t Save</string>
@@ -30,11 +32,24 @@
     <string name="history_delete_title">Delete Record</string>
     <string name="history_delete_message">Are you sure you want to delete this record?</string>
     <string name="history_cancel">Cancel</string>
+    <string name="history_back">Navigate back</string>
     <string name="history_top_record_badge">Top record badge</string>
+    <string name="history_top_record_label">TOP RUN</string>
+    <string name="history_summary_badge">MISSION LOG</string>
+    <string name="history_summary_title">Review your best runs</string>
+    <string name="history_summary_empty_description">Finish a mission and your saved runs will build a leaderboard here.</string>
+    <string name="history_summary_with_top_pilot">Top pilot %1$s reached Level %2$d and leads the squad.</string>
+    <string name="history_summary_record_count">%1$d RUNS</string>
+    <string name="history_summary_best_score">BEST %1$s</string>
+    <string name="history_summary_best_score_empty">BEST --</string>
+    <string name="history_section_records">RANKED FLIGHTS</string>
+    <string name="history_empty_summary">Play a round and saved scores will appear here for quick review and cleanup.</string>
     <string name="hall_of_heroes_title">Hall of Heroes</string>
     <string name="hall_of_heroes_message">Congratulations! You have passed all levels. Your name will be recorded in the Hall of Heroes.</string>
+    <string name="hall_of_heroes_badge">LEGENDARY RUN</string>
     <string name="hall_of_heroes_prompt">Enter your name</string>
     <string name="hall_of_heroes_name_hint">Type your name</string>
+    <string name="hall_of_heroes_hint">Leave blank to be recorded as Anonymous.</string>
     <string name="hall_of_heroes_record_button">Record Name</string>
     <string name="hall_of_heroes_anonymous">Anonymous</string>
     <string name="hall_of_heroes_medal_content_description">Hall of Heroes medal</string>
@@ -43,6 +58,7 @@
     <string name="sound_settings_header">Game Effects Settings</string>
     <string name="about_us_title">About Us</string>
     <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_summary">Review data handling and consent information.</string>
     <string name="privacy_policy_accept">Accept</string>
     <string name="privacy_policy_reject">Reject</string>
     <string name="privacy_policy_accept_tactical">\u00BB\u00BB\u00BB %s \u00AB\u00AB\u00AB</string>
@@ -62,6 +78,9 @@
     <string name="about_me_project_repo_line">%1$s: %2$s</string>
 
     <!-- About Aircraft page -->
+    <string name="about_banner_badge">PROJECT DOSSIER</string>
+    <string name="about_banner_summary">Build details, gameplay profile, and direct access to the Aircraft source.</string>
+    <string name="about_stack_badge">Kotlin + Canvas</string>
     <string name="about_section_overview">OVERVIEW</string>
     <string name="about_section_specs">GAME SPECS</string>
     <string name="about_section_source">SOURCE CODE</string>
@@ -77,10 +96,23 @@
     <string name="about_spec_powerups">Power-ups</string>
     <string name="about_spec_powerups_val">Rocket / MedKit / Shield</string>
     <string name="about_github_label">GitHub</string>
+    <string name="about_source_summary">Browse the repository, release history, and implementation details on GitHub.</string>
+    <string name="about_source_cta">Open Repo</string>
     <string name="about_description">A 2D vertical-scrolling shooter game for Android, written in Kotlin. Control a jet plane, fire bullets upward, and destroy enemies while avoiding collisions. Features 10 time-based levels with scaling difficulty, boss fights, and multiple power-up systems.</string>
 
     <!-- Difficulty Preferences -->
     <string name="difficulty_settings_header">Difficulty Settings</string>
+    <string name="settings_banner_title">Prepare Your Flight Profile</string>
+    <string name="settings_banner_summary">Tune combat pressure, audio feedback, and support panels before takeoff.</string>
+    <string name="settings_profile_chip">PROFILE: %1$s</string>
+    <string name="settings_difficulty_card_title">Combat Profile</string>
+    <string name="settings_difficulty_card_summary">Adjust fire cadence and encounter pressure for each run.</string>
+    <string name="settings_sound_profile_chip">AUDIO %1$d/%2$d ONLINE</string>
+    <string name="settings_sound_active_count">%1$d OF %2$d ACTIVE</string>
+    <string name="settings_state_on">ON</string>
+    <string name="settings_state_off">OFF</string>
+    <string name="settings_support_header">Support &amp; Tools</string>
+    <string name="settings_project_header">Project</string>
     <string name="difficulty_easy">Easy</string>
     <string name="difficulty_normal">Normal</string>
     <string name="difficulty_hard">Hard</string>
@@ -106,9 +138,20 @@
     <string name="device_info_summary">CPU, memory, disk, network and more</string>
     <string name="develop_settings_title">Develop Settings</string>
     <string name="develop_settings_summary">Debug-only tools and crash testing</string>
-    <string name="develop_settings_banner_summary">Internal tools for validating debug flows and crash reporting.</string>
-    <string name="develop_settings_section_actions">Debug Actions</string>
+    <string name="develop_settings_banner_summary">Internal tools for validating runtime flags, editor surfaces, and crash reporting.</string>
+    <string name="develop_settings_section_gameplay">Gameplay Overrides</string>
+    <string name="develop_settings_section_tools">Internal Tools</string>
+    <string name="develop_settings_section_danger">Danger Zone</string>
     <string name="develop_settings_debug_badge">DEBUG BUILD</string>
+    <string name="develop_settings_runtime_label">Runtime Status</string>
+    <string name="develop_settings_invincible_title">Invincible Mode</string>
+    <string name="develop_settings_invincible_description">Ignore player damage while testing combat flow, balance, and boss phases.</string>
+    <string name="develop_settings_invincible_hint">Saved locally for debug builds and mirrored to the active runtime flag.</string>
+    <string name="develop_settings_invincible_runtime_on">Player damage is disabled for the current debug session.</string>
+    <string name="develop_settings_invincible_runtime_off">Player damage and collision loss are currently active.</string>
+    <string name="develop_settings_invincible_status_on">ACTIVE</string>
+    <string name="develop_settings_invincible_status_off">INACTIVE</string>
+    <string name="develop_settings_danger_badge">HIGH RISK</string>
     <string name="develop_settings_crash_title">Crash Reporting Validation</string>
     <string name="develop_settings_crash_summary">Trigger a controlled crash to verify crash collection in development builds.</string>
     <string name="test_crash">Test Crash</string>

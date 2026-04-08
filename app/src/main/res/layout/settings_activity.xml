@@ -10,7 +10,6 @@
         android:fitsSystemWindows="true"
         android:orientation="vertical">
 
-        <!-- ─── Header ─── -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="52dp"
@@ -59,13 +58,84 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="14dp">
 
-                <!-- ════════════════════════════════════
-                     SECTION: DIFFICULTY
-                     ════════════════════════════════════ -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/settings_hero_bg"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="18dp"
+                    android:paddingVertical="18dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/settings_chip_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="@string/title_activity_settings"
+                        android:textColor="#D8E0EF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/settings_banner_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:lineSpacingExtra="4dp"
+                        android:text="@string/settings_banner_summary"
+                        android:textColor="#CDD2E0"
+                        android:textSize="13sp"
+                        android:typeface="monospace" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_active_difficulty_chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/settings_chip_active_bg"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="6dp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+
+                        <TextView
+                            android:id="@+id/tv_sound_profile_chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/settings_chip_bg"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="6dp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -86,29 +156,46 @@
                         android:typeface="monospace" />
                 </LinearLayout>
 
-                <!-- Difficulty selector card -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/device_info_card_bg"
+                    android:background="@drawable/settings_tile_bg"
                     android:orientation="vertical"
-                    android:paddingHorizontal="6dp"
-                    android:paddingVertical="10dp">
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp">
 
-                    <!-- Three difficulty buttons side by side -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_difficulty_card_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingExtra="3dp"
+                        android:text="@string/settings_difficulty_card_summary"
+                        android:textColor="#AAB4C8"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
                         android:baselineAligned="false"
                         android:orientation="horizontal">
 
-                        <!-- Easy -->
                         <LinearLayout
                             android:id="@+id/option_easy"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="4dp"
+                            android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:background="@drawable/difficulty_option_bg"
                             android:gravity="center_horizontal"
@@ -150,17 +237,16 @@
                                 android:layout_marginTop="6dp"
                                 android:gravity="center"
                                 android:text="@string/difficulty_easy_desc"
-                                android:textColor="#55FFFFFF"
+                                android:textColor="#75FFFFFF"
                                 android:textSize="9sp"
                                 android:typeface="monospace" />
                         </LinearLayout>
 
-                        <!-- Normal -->
                         <LinearLayout
                             android:id="@+id/option_normal"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="4dp"
+                            android:layout_marginHorizontal="3dp"
                             android:layout_weight="1"
                             android:background="@drawable/difficulty_option_bg"
                             android:gravity="center_horizontal"
@@ -202,17 +288,16 @@
                                 android:layout_marginTop="6dp"
                                 android:gravity="center"
                                 android:text="@string/difficulty_normal_desc"
-                                android:textColor="#55FFFFFF"
+                                android:textColor="#75FFFFFF"
                                 android:textSize="9sp"
                                 android:typeface="monospace" />
                         </LinearLayout>
 
-                        <!-- Hard -->
                         <LinearLayout
                             android:id="@+id/option_hard"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="4dp"
+                            android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:background="@drawable/difficulty_option_bg"
                             android:gravity="center_horizontal"
@@ -254,20 +339,18 @@
                                 android:layout_marginTop="6dp"
                                 android:gravity="center"
                                 android:text="@string/difficulty_hard_desc"
-                                android:textColor="#55FFFFFF"
+                                android:textColor="#75FFFFFF"
                                 android:textSize="9sp"
                                 android:typeface="monospace" />
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Current active indicator -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="10dp">
+                        android:layout_marginTop="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <View
                             android:id="@+id/current_indicator_dot"
@@ -282,14 +365,11 @@
                             android:layout_marginStart="8dp"
                             android:letterSpacing="0.1"
                             android:textColor="#88FFFFFF"
-                            android:textSize="10sp"
+                            android:textSize="11sp"
                             android:typeface="monospace" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- ════════════════════════════════════
-                     SECTION: SOUND
-                     ════════════════════════════════════ -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -312,154 +392,205 @@
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:typeface="monospace" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/tv_sound_section_chip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/settings_chip_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/row_bg_sound"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/device_info_card_bg"
-                    android:orientation="vertical"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:paddingHorizontal="16dp"
-                    android:paddingVertical="4dp">
+                    android:paddingVertical="16dp">
 
-                    <!-- Background Music toggle -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp">
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/background_sound_title"
-                                android:textColor="#FFFFFF"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:id="@+id/tv_bg_sound_status"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:textColor="#55FFFFFF"
-                                android:textSize="11sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
-
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/switch_bg_sound"
+                        <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:thumb="@drawable/switch_thumb"
-                            android:track="@drawable/switch_track" />
-                    </LinearLayout>
+                            android:text="@string/background_sound_title"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#10FFFFFF" />
-
-                    <!-- Combat Sound toggle -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/combat_sound_title"
-                                android:textColor="#FFFFFF"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:id="@+id/tv_combat_sound_status"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:textColor="#55FFFFFF"
-                                android:textSize="11sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
-
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/switch_combat_sound"
+                        <TextView
+                            android:id="@+id/tv_bg_sound_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:thumb="@drawable/switch_thumb"
-                            android:track="@drawable/switch_track" />
+                            android:layout_marginTop="4dp"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
+                            android:typeface="monospace" />
                     </LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#10FFFFFF" />
-
-                    <!-- Hit Shake toggle -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/tv_bg_sound_chip"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp">
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/settings_chip_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/hit_shake_effect_title"
-                                android:textColor="#FFFFFF"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:id="@+id/tv_hit_shake_status"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:textColor="#55FFFFFF"
-                                android:textSize="11sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
-
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/switch_hit_shake"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:thumb="@drawable/switch_thumb"
-                            android:track="@drawable/switch_track" />
-                    </LinearLayout>
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_bg_sound"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:thumb="@drawable/switch_thumb"
+                        android:track="@drawable/switch_track" />
                 </LinearLayout>
 
-                <!-- ════════════════════════════════════
-                     SECTION: OTHER
-                     ════════════════════════════════════ -->
+                <LinearLayout
+                    android:id="@+id/row_combat_sound"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/combat_sound_title"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+
+                        <TextView
+                            android:id="@+id/tv_combat_sound_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
+                            android:typeface="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_combat_sound_chip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/settings_chip_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_combat_sound"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:thumb="@drawable/switch_thumb"
+                        android:track="@drawable/switch_track" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/row_hit_shake"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/hit_shake_effect_title"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+
+                        <TextView
+                            android:id="@+id/tv_hit_shake_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
+                            android:typeface="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_hit_shake_chip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/settings_chip_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_hit_shake"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:thumb="@drawable/switch_thumb"
+                        android:track="@drawable/switch_track" />
+                </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -476,8 +607,21 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:letterSpacing="0.2"
+                        android:background="@drawable/settings_chip_bg"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
                         android:text="@string/other_settings_header"
+                        android:textColor="#D8E0EF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:letterSpacing="0.2"
+                        android:text="@string/settings_support_header"
                         android:textColor="#66FFFFFF"
                         android:textSize="11sp"
                         android:textStyle="bold"
@@ -485,113 +629,114 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/row_device_info"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/device_info_card_bg"
-                    android:orientation="vertical"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:paddingHorizontal="16dp"
-                    android:paddingVertical="4dp">
+                    android:paddingVertical="16dp">
 
-                    <!-- Device Information -->
                     <LinearLayout
-                        android:id="@+id/row_device_info"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/settings_row_bg"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/device_info_title"
-                                android:textColor="#FFFFFF"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/device_info_summary"
-                                android:textColor="#55FFFFFF"
-                                android:textSize="11sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="›"
-                            android:textColor="#4400FF88"
-                            android:textSize="22sp"
+                            android:text="@string/device_info_title"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
                             android:typeface="monospace" />
-                    </LinearLayout>
-
-                    <View
-                        android:id="@+id/divider_develop_settings"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#10FFFFFF"
-                        android:visibility="gone" />
-
-                    <LinearLayout
-                        android:id="@+id/row_develop_settings"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/settings_row_bg"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp"
-                        android:visibility="gone">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/develop_settings_title"
-                                android:textColor="#FFFFFF"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/develop_settings_summary"
-                                android:textColor="#55FFFFFF"
-                                android:textSize="11sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="›"
-                            android:textColor="#4400FF88"
-                            android:textSize="22sp"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/device_info_summary"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
                             android:typeface="monospace" />
                     </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="›"
+                        android:textColor="#4400FF88"
+                        android:textSize="22sp"
+                        android:typeface="monospace" />
                 </LinearLayout>
 
-                <!-- ════════════════════════════════════
-                     SECTION: ABOUT US
-                     ════════════════════════════════════ -->
+                <LinearLayout
+                    android:id="@+id/row_develop_settings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/develop_settings_title"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/develop_settings_summary"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
+                            android:typeface="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/settings_chip_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="@string/develop_settings_debug_badge"
+                        android:textColor="#FF808D"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="›"
+                        android:textColor="#4400FF88"
+                        android:textSize="22sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -608,8 +753,21 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:letterSpacing="0.2"
+                        android:background="@drawable/settings_chip_bg"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
                         android:text="@string/about_us_title"
+                        android:textColor="#D8E0EF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:letterSpacing="0.2"
+                        android:text="@string/settings_project_header"
                         android:textColor="#66FFFFFF"
                         android:textSize="11sp"
                         android:textStyle="bold"
@@ -617,126 +775,122 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/row_about_aircraft"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/device_info_card_bg"
-                    android:orientation="vertical"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:paddingHorizontal="16dp"
-                    android:paddingVertical="4dp">
+                    android:paddingVertical="16dp">
 
-                    <!-- About Aircraft -->
                     <LinearLayout
-                        android:id="@+id/row_about_aircraft"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/settings_row_bg"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/about_aircraft_title"
-                                android:textColor="#FFFFFF"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/about_aircraft_summary"
-                                android:textColor="#55FFFFFF"
-                                android:textSize="11sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="›"
-                            android:textColor="#4400FF88"
-                            android:textSize="22sp"
+                            android:text="@string/about_aircraft_title"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
                             android:typeface="monospace" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#10FFFFFF" />
-
-                    <!-- About Me -->
-                    <LinearLayout
-                        android:id="@+id/row_about_me"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/settings_row_bg"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/about_me_title"
-                                android:textColor="#FFFFFF"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/about_me_summary"
-                                android:textColor="#55FFFFFF"
-                                android:textSize="11sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="›"
-                            android:textColor="#4400FF88"
-                            android:textSize="22sp"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/about_aircraft_summary"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
                             android:typeface="monospace" />
                     </LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#10FFFFFF" />
-
-                    <!-- Privacy Policy -->
-                    <LinearLayout
-                        android:id="@+id/row_privacy_policy"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/settings_row_bg"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="14dp">
+                        android:text="›"
+                        android:textColor="#4400FF88"
+                        android:textSize="22sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/row_about_me"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
+                            android:text="@string/about_me_title"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/about_me_summary"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
+                            android:typeface="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="›"
+                        android:textColor="#4400FF88"
+                        android:textSize="22sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/row_privacy_policy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="20dp"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:text="@string/privacy_policy_title"
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
@@ -746,13 +900,21 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="›"
-                            android:textColor="#4400FF88"
-                            android:textSize="22sp"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/privacy_policy_summary"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
                             android:typeface="monospace" />
                     </LinearLayout>
-                </LinearLayout>
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="›"
+                        android:textColor="#4400FF88"
+                        android:textSize="22sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
             </LinearLayout>
         </ScrollView>
     </LinearLayout>
