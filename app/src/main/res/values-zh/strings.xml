@@ -43,7 +43,6 @@
     <string name="history_summary_best_score">最高 %1$s</string>
     <string name="history_summary_best_score_empty">最高 --</string>
     <string name="history_section_records">战绩排行</string>
-    <string name="history_empty_title">还没有战斗记录</string>
     <string name="history_empty_summary">先开始一局游戏，保存后的分数会出现在这里，方便回顾和清理。</string>
     <string name="hall_of_heroes_title">英雄殿堂</string>
     <string name="hall_of_heroes_message">恭喜！你已通过全部关卡。你的名字将被记录进英雄殿堂。</string>

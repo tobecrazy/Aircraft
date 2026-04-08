@@ -43,7 +43,6 @@
     <string name="history_summary_best_score">BEST %1$s</string>
     <string name="history_summary_best_score_empty">BEST --</string>
     <string name="history_section_records">RANKED FLIGHTS</string>
-    <string name="history_empty_title">No combat logs yet</string>
     <string name="history_empty_summary">Play a round and saved scores will appear here for quick review and cleanup.</string>
     <string name="hall_of_heroes_title">Hall of Heroes</string>
     <string name="hall_of_heroes_message">Congratulations! You have passed all levels. Your name will be recorded in the Hall of Heroes.</string>
