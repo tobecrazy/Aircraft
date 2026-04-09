@@ -8,6 +8,31 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 > For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [CHANGELOG.md](CHANGELOG.md) or the compatibility alias [ChangeLogs.md](ChangeLogs.md).
 
+## Class Diagram
+
+![Class Diagram](class_diagram.svg)
+
+### Package Overview
+
+| Package | Color | Key Classes | Responsibility |
+|---------|-------|-------------|----------------|
+| `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
+| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty` | Data models, Room persistence, game state enums |
+| `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` | 30 FPS rendering, collision detection, level progression |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `StarFieldView` | Activity screens, navigation, UI components |
+| `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
+| `providers/` | Gray | `DatabaseProvider`, `SettingsRepository` | Singleton DB provider, SharedPreferences wrapper |
+| `utils/` | Light green | `ScreenUtils`, `BitmapUtils` | Screen metrics, bitmap utilities |
+
+### Key Relationships
+
+- `GameCoreView` composes all game-engine objects (`Aircraft`, `Enemies`, `DrawBackground`, `DrawHeader`, `BossEnemy`, etc.) and orchestrates the 30 FPS loop
+- All drawable game objects extend the abstract `DrawBaseObject` (provides `onDraw`, `updateGame`, `getEnemyBounds`)
+- UI layer classes hold references to their corresponding data state classes (e.g., `Enemies` → `EnemyState`, `BossEnemy` → `BossState`)
+- `MainActivity` binds `MusicService` and collects `GameStateManager.gameState` flow
+- `DatabaseProvider` singleton creates `AppDatabase`, which exposes `PlayerGameDataDao` operating on `PlayerGameData` entities
+- `SettingsRepository` maps difficulty strings to `GameDifficulty` enum values with `fireRateMultiplier`
+
 ## Highlights
 
 - Custom 30 FPS `SurfaceView` engine with no third-party game framework
@@ -54,7 +79,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
-│   ├── AppDatabase.kt                  # Room database (v2029) + migrations
+│   ├── AppDatabase.kt                  # Room database (v2030) + migrations
 │   ├── PlayerGameData.kt               # Saved run entity
 │   ├── PlayerGameDataDao.kt            # Leaderboard/save DAO
 │   ├── PlayerAircraft.kt               # Player HP and damage model
@@ -65,7 +90,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── MedicalKitState.kt              # Medical kit pickup state
 │   ├── ShieldState.kt                  # Shield pickup state
 │   ├── TimeFreezeState.kt              # Time-freeze pickup state
-│   └── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / GAME_WON / LOW_MEMORY
+│   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
+│   └── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
 │   ├── OnboardingActivity.kt           # First-run tutorial carousel
