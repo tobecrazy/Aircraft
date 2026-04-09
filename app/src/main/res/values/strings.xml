@@ -58,7 +58,17 @@
     <string name="sound_settings_header">Game Effects Settings</string>
     <string name="about_us_title">About Us</string>
     <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_badge">DATA &amp; CONSENT</string>
+    <string name="privacy_policy_banner_title">Review the current privacy policy</string>
     <string name="privacy_policy_summary">Review data handling and consent information.</string>
+    <string name="privacy_policy_document_header">POLICY DOCUMENT</string>
+    <string name="privacy_policy_source_chip">LOCAL FILE</string>
+    <string name="privacy_policy_language_en">ENGLISH</string>
+    <string name="privacy_policy_language_zh">中文</string>
+    <string name="privacy_policy_loading">Loading privacy policy...</string>
+    <string name="privacy_policy_error_title">Document unavailable</string>
+    <string name="privacy_policy_error_message">The local privacy policy could not be loaded. Retry to reopen the embedded document.</string>
+    <string name="privacy_policy_retry">Retry</string>
     <string name="privacy_policy_accept">Accept</string>
     <string name="privacy_policy_reject">Reject</string>
     <string name="privacy_policy_accept_tactical">\u00BB\u00BB\u00BB %s \u00AB\u00AB\u00AB</string>
