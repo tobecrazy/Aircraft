@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="3100" viewBox="0 0 1800 3100" font-family="'Segoe UI', Arial, sans-serif" font-size="11">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="3500" viewBox="0 0 1800 3500" font-family="'Segoe UI', Arial, sans-serif" font-size="11">
   <defs>
     <marker id="arrow-inherit" markerWidth="12" markerHeight="8" refX="12" refY="4" orient="auto">
       <path d="M0,0 L12,4 L0,8 Z" fill="none" stroke="#555" stroke-width="1.2"/>
@@ -382,7 +382,9 @@
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- prefs / legacyPrefs: SharedPreferences</text>
     <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ difficulty, sound, gate, debug, install-id prefs</text>
+    <text x="10" y="77" font-size="10" fill="#333">+ 8 keys: difficulty, sounds, shake, invincible,</text>
+    <text x="10" y="90" font-size="10" fill="#333">  privacy, onboarding, install-id</text>
+    <text x="10" y="103" font-size="9" fill="#888">Legacy migration from androidx.preference</text>
   </g>
 
   <!-- AppDatabase -> DAO -->
@@ -395,7 +397,7 @@
   <line x1="810" y1="410" x2="790" y2="410" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- SettingsRepository -> GameDifficulty -->
-  <line x1="1040" y1="510" x2="1060" y2="430" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <line x1="1040" y1="520" x2="1060" y2="430" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="1043" y="474" font-size="9" fill="#888">maps</text>
 
   <!-- ===== GAME ENGINE LAYER (ui/) ===== -->
@@ -427,14 +429,15 @@
     <text x="10" y="83" font-size="10" fill="#333">- fireAccumulator: Float</text>
     <text x="10" y="96" font-size="10" fill="#333">- maxBulletRange: Float</text>
     <text x="10" y="109" font-size="10" fill="#333">- hitTimeMs / shieldEndTimeMs: Long</text>
-    <line x1="5" y1="115" x2="265" y2="115" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="128" font-size="10" fill="#333">+ onDraw(canvas)</text>
-    <text x="10" y="141" font-size="10" fill="#333">+ getBounds(): RectF</text>
-    <text x="10" y="154" font-size="10" fill="#333">+ getBullets() / removeBullet()</text>
-    <text x="10" y="167" font-size="10" fill="#333">+ isShielded(): Boolean</text>
-    <text x="10" y="180" font-size="10" fill="#333">+ activateShield()</text>
-    <text x="10" y="196" font-size="9" fill="#888">FIRE_INTERVAL=4, BULLET_SPEED=35f</text>
-    <text x="10" y="206" font-size="9" fill="#888">SHIELD_DURATION_MS=10_000L</text>
+    <text x="10" y="122" font-size="10" fill="#333">- frozen: Boolean</text>
+    <line x1="5" y1="128" x2="265" y2="128" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="141" font-size="10" fill="#333">+ onDraw(canvas)</text>
+    <text x="10" y="154" font-size="10" fill="#333">+ getBounds(): RectF</text>
+    <text x="10" y="167" font-size="10" fill="#333">+ getBullets() / removeBullet()</text>
+    <text x="10" y="180" font-size="10" fill="#333">+ isShielded(): Boolean</text>
+    <text x="10" y="193" font-size="10" fill="#333">+ activateShield()</text>
+    <text x="10" y="209" font-size="9" fill="#888">FIRE_INTERVAL=4, BULLET_SPEED=35f</text>
+    <text x="10" y="219" font-size="9" fill="#888">SHIELD_DURATION_MS=10_000L</text>
   </g>
 
   <!-- Bullet (data class in ui) -->
@@ -451,7 +454,7 @@
   </g>
 
   <!-- Aircraft -> Bullet composition -->
-  <line x1="115" y1="940" x2="115" y2="965" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <line x1="115" y1="965" x2="115" y2="990" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
   <text x="120" y="957" font-size="9" fill="#888">*</text>
 
   <!-- Inheritance: Aircraft -> DrawBaseObject -->
@@ -459,22 +462,24 @@
 
   <!-- DrawBackground -->
   <g transform="translate(330, 730)" filter="url(#shadow)">
-    <rect width="230" height="128" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="230" height="155" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#2196f3"/>
     <rect y="16" width="230" height="6" fill="#2196f3"/>
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DrawBackground</text>
     <text x="10" y="38" font-size="10" fill="#555">ui/ — extends DrawBaseObject</text>
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- mTopY / mBottomY: Float</text>
-    <text x="10" y="70" font-size="10" fill="#333">- backgroundResId: Int</text>
-    <line x1="5" y1="76" x2="225" y2="76" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="89" font-size="10" fill="#333">+ onDraw(canvas)</text>
-    <text x="10" y="102" font-size="10" fill="#333">+ updateGame()</text>
-    <text x="10" y="115" font-size="10" fill="#333">+ randomizeBackground()</text>
+    <text x="10" y="70" font-size="10" fill="#333">- backgroundResId: Int (5 resources)</text>
+    <text x="10" y="83" font-size="10" fill="#333">  background, background_1..4</text>
+    <line x1="5" y1="89" x2="225" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">+ onDraw(canvas)</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ updateGame()</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ randomizeBackground()</text>
+    <text x="10" y="144" font-size="9" fill="#888">inner: BackgroundTile(top, bottom, mirrored)</text>
   </g>
 
   <!-- Inheritance: DrawBackground -> DrawBaseObject -->
-  <line x1="400" y1="730" x2="260" y2="650" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+  <line x1="400" y1="730" x2="260" y2="655" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
 
   <!-- DrawHeader -->
   <g transform="translate(590, 730)" filter="url(#shadow)">
@@ -496,8 +501,8 @@
   <line x1="640" y1="730" x2="270" y2="640" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
 
   <!-- Enemies -->
-  <g transform="translate(330, 900)" filter="url(#shadow)">
-    <rect width="265" height="230" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+  <g transform="translate(330, 920)" filter="url(#shadow)">
+    <rect width="265" height="245" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
     <rect width="265" height="22" rx="6" fill="#2196f3"/>
     <rect y="16" width="265" height="6" fill="#2196f3"/>
     <text x="132" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Enemies</text>
@@ -508,22 +513,23 @@
     <text x="10" y="83" font-size="10" fill="#333">- bitmapList: MutableList&lt;Bitmap?&gt;</text>
     <text x="10" y="96" font-size="10" fill="#333">- level: Int</text>
     <text x="10" y="109" font-size="10" fill="#333">- spawnPaused: Boolean</text>
-    <line x1="5" y1="115" x2="260" y2="115" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="128" font-size="10" fill="#333">+ onDraw(canvas)</text>
-    <text x="10" y="141" font-size="10" fill="#333">+ getEnemyBullets(): List&lt;Triple&gt;</text>
-    <text x="10" y="154" font-size="10" fill="#333">+ hitEnemy(enemy): Boolean</text>
-    <text x="10" y="167" font-size="10" fill="#333">+ getEnemyMoveSpeed(): Float</text>
-    <text x="10" y="180" font-size="10" fill="#333">+ getEnemiesPerRow(): Int</text>
-    <text x="10" y="193" font-size="10" fill="#333">+ getSpawnIntervalFrames(): Int</text>
-    <text x="10" y="206" font-size="10" fill="#333">+ getBulletSpacingDp(): Float</text>
-    <text x="10" y="219" font-size="10" fill="#333">+ clearExplosions()</text>
+    <text x="10" y="122" font-size="10" fill="#333">- frozen: Boolean</text>
+    <line x1="5" y1="128" x2="260" y2="128" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="141" font-size="10" fill="#333">+ onDraw(canvas)</text>
+    <text x="10" y="154" font-size="10" fill="#333">+ getEnemyBullets(): List&lt;Triple&gt;</text>
+    <text x="10" y="167" font-size="10" fill="#333">+ hitEnemy(enemy): Boolean</text>
+    <text x="10" y="180" font-size="10" fill="#333">+ getEnemyMoveSpeed(): Float</text>
+    <text x="10" y="193" font-size="10" fill="#333">+ getEnemiesPerRow(): Int</text>
+    <text x="10" y="206" font-size="10" fill="#333">+ getSpawnIntervalFrames(): Int</text>
+    <text x="10" y="219" font-size="10" fill="#333">+ getBulletSpacingDp(): Float</text>
+    <text x="10" y="232" font-size="10" fill="#333">+ clearExplosions()</text>
   </g>
 
   <!-- Inheritance: Enemies -> DrawBaseObject -->
-  <line x1="380" y1="900" x2="260" y2="660" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
+  <line x1="380" y1="920" x2="260" y2="660" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-inherit)"/>
 
   <!-- Enemies -> EnemyState association -->
-  <line x1="460" y1="900" x2="420" y2="320" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <line x1="460" y1="920" x2="420" y2="320" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="445" y="620" font-size="9" fill="#888">*</text>
 
   <!-- ExplosionEffect -->
@@ -546,7 +552,7 @@
   </g>
 
   <!-- Enemies -> ExplosionEffect composition -->
-  <line x1="595" y1="970" x2="630" y2="960" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <line x1="595" y1="990" x2="630" y2="960" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
   <text x="608" y="955" font-size="9" fill="#888">*</text>
 
   <!-- RedEnvelopes -->
@@ -593,8 +599,9 @@
     <text x="10" y="70" font-size="10" fill="#333">- level: Int</text>
     <text x="10" y="83" font-size="10" fill="#333">- bossBitmaps / missileBitmaps</text>
     <text x="10" y="96" font-size="10" fill="#333">- playerCenterX: Float</text>
-    <line x1="5" y1="102" x2="265" y2="102" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="115" font-size="10" fill="#333">+ spawnBoss(level)</text>
+    <text x="10" y="109" font-size="10" fill="#333">- frozen: Boolean</text>
+    <line x1="5" y1="115" x2="265" y2="115" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="128" font-size="10" fill="#333">+ spawnBoss(level)</text>
     <text x="10" y="128" font-size="10" fill="#333">+ isBossActive() / isBossDefeated()</text>
     <text x="10" y="141" font-size="10" fill="#333">+ isBossExplosionFinished()</text>
     <text x="10" y="154" font-size="10" fill="#333">+ hitBoss(): Boolean</text>
@@ -676,8 +683,9 @@
     <text x="10" y="70" font-size="10" fill="#333">- frameCounter / level: Int</text>
     <text x="10" y="83" font-size="10" fill="#333">- playerFreezeEndFrame: Int</text>
     <text x="10" y="96" font-size="10" fill="#333">- enemyFreezeEndFrame: Int</text>
-    <line x1="5" y1="102" x2="245" y2="102" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="115" font-size="10" fill="#333">+ getTimeFreezeBounds(): RectF</text>
+    <text x="10" y="109" font-size="10" fill="#333">- frozen: Boolean</text>
+    <line x1="5" y1="115" x2="245" y2="115" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="128" font-size="10" fill="#333">+ getTimeFreezeBounds(): RectF</text>
     <text x="10" y="128" font-size="10" fill="#333">+ collectByPlayer() / collectByEnemy()</text>
     <text x="10" y="141" font-size="10" fill="#333">+ isEnemyFrozen() / isPlayerFrozen()</text>
     <text x="10" y="154" font-size="10" fill="#333">+ clearAll()</text>
@@ -1190,4 +1198,69 @@
   <!-- OnboardingActivity -> StarFieldView association -->
   <line x1="600" y1="2340" x2="1200" y2="2050" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="920" y="2180" font-size="9" fill="#888">starField</text>
+
+  <!-- ===== ADDITIONAL CLASSES ===== -->
+
+  <!-- RichTextEditorActivity -->
+  <g transform="translate(600, 2200)" filter="url(#shadow)">
+    <rect width="280" height="180" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="280" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="280" height="6" fill="#9c27b0"/>
+    <text x="140" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">RichTextEditorActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <line x1="5" y1="44" x2="275" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityRichTextEditorBinding</text>
+    <text x="10" y="70" font-size="10" fill="#333">- isEditMode / isMarkdownMode: Boolean</text>
+    <line x1="5" y1="76" x2="275" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="102" font-size="10" fill="#333">+ edit/preview mode toggle</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ formatting: bold, italic, underline</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ size popup (12/16/22/30)</text>
+    <text x="10" y="141" font-size="10" fill="#333">+ color popup (green/red/blue/yellow)</text>
+    <text x="10" y="154" font-size="10" fill="#333">+ markdown processing / HTML insertion</text>
+    <text x="10" y="169" font-size="9" fill="#888">DEBUG-only, WebView preview, Spannable</text>
+  </g>
+
+  <!-- OnboardingPagerAdapter (proper class box) -->
+  <g transform="translate(620, 2510)" filter="url(#shadow)">
+    <rect width="250" height="95" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1"/>
+    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="250" height="6" fill="#9c27b0"/>
+    <text x="125" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">OnboardingPagerAdapter</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends FragmentStateAdapter</text>
+    <text x="10" y="52" font-size="10" fill="#555">inner class of OnboardingActivity</text>
+    <line x1="5" y1="58" x2="245" y2="58" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="71" font-size="10" fill="#333">+ getItemCount(): Int (2)</text>
+    <text x="10" y="84" font-size="10" fill="#333">+ createFragment(position): Fragment</text>
+  </g>
+
+  <!-- ProfileImageState sealed interface -->
+  <g transform="translate(1200, 2200)" filter="url(#shadow)">
+    <rect width="230" height="110" rx="6" fill="url(#grad-abstract)" stroke="#7986cb" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#7986cb"/>
+    <rect y="16" width="230" height="6" fill="#7986cb"/>
+    <text x="115" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">ProfileImageState</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/AboutMeActivity.kt (sealed)</text>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">data object Loading</text>
+    <text x="10" y="70" font-size="10" fill="#333">data object Error</text>
+    <text x="10" y="83" font-size="10" fill="#333">data class Success(bitmap: ImageBitmap)</text>
+  </g>
+
+  <!-- ===== ADDITIONAL NAVIGATION ARROWS ===== -->
+
+  <!-- DevelopSettingsActivity -> RichTextEditorActivity navigation -->
+  <line x1="735" y1="2175" x2="740" y2="2200" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="745" y="2192" font-size="9" fill="#888">navigates</text>
+
+  <!-- OnboardingActivity -> OnboardingPagerAdapter composition -->
+  <line x1="530" y1="2480" x2="620" y2="2530" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <text x="565" y="2515" font-size="9" fill="#888">inner</text>
+
+  <!-- AboutMeActivity -> ProfileImageState association -->
+  <line x1="1025" y1="2175" x2="1200" y2="2230" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1105" y="2200" font-size="9" fill="#888">state</text>
+
+  <!-- Update gui/ boundary box height -->
+  <rect x="20" y="1680" width="1420" height="940" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
 </svg>

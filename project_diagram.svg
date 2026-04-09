@@ -153,8 +153,17 @@
   <text x="1090" y="265" text-anchor="middle" fill="#7c3aed" font-size="9">WebView</text>
   <text x="1090" y="280" text-anchor="middle" fill="#7c3aed" font-size="9">Privacy policy page</text>
 
+  <!-- RichTextEditorActivity -->
+  <rect x="1000" y="310" width="180" height="68" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)" opacity="0.9"/>
+  <rect x="1000" y="310" width="180" height="19" rx="8" fill="#c084fc"/>
+  <rect x="1000" y="322" width="180" height="7" fill="#c084fc"/>
+  <text x="1090" y="324" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">RichTextEditorActivity</text>
+  <text x="1090" y="344" text-anchor="middle" fill="#6b21a8" font-size="8.5" font-weight="600">DEBUG ONLY</text>
+  <text x="1090" y="358" text-anchor="middle" fill="#7c3aed" font-size="8.5">Markdown editor + WebView preview</text>
+  <text x="1090" y="370" text-anchor="middle" fill="#7c3aed" font-size="8.5">Formatting toolbar</text>
+
   <!-- Utility screens summary -->
-  <rect x="1190" y="224" width="170" height="96" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="1190" y="224" width="170" height="110" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
   <rect x="1190" y="224" width="170" height="22" rx="8" fill="#c084fc"/>
   <rect x="1190" y="238" width="170" height="8" fill="#c084fc"/>
   <text x="1275" y="240" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Utility Screens</text>
@@ -162,6 +171,7 @@
   <text x="1275" y="275" text-anchor="middle" fill="#7c3aed" font-size="7.8">Device Info · About Aircraft</text>
   <text x="1275" y="289" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Me · Privacy Policy</text>
   <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">Develop settings (DEBUG only)</text>
+  <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">Rich Text Editor (DEBUG only)</text>
 
   <!-- OnboardingActivity → LaunchActivity arrow -->
   <path d="M395,198 L395,208 L130,208 L130,222" stroke="#8b5cf6" stroke-width="1.5" fill="none" marker-end="url(#arr-purple)"/>
@@ -177,61 +187,65 @@
   <line x1="940" y1="264" x2="998" y2="264" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-purple)"/>
   <line x1="940" y1="286" x2="1188" y2="286" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-purple)"/>
 
+  <!-- DevelopSettingsActivity → RichTextEditorActivity -->
+  <path d="M850,310 L850,340 L1000,340" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-purple)"/>
+  <text x="920" y="335" fill="#8b5cf6" font-size="7">test rich text</text>
+
   <!-- ==================== GAME ENGINE LAYER ==================== -->
-  <rect x="20" y="336" width="1360" height="430" rx="10" fill="url(#g-engine)" stroke="#38bdf8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
-  <text x="36" y="356" fill="#0369a1" font-size="13" font-weight="700">GAME ENGINE LAYER</text>
-  <text x="220" y="356" fill="#7dd3fc" font-size="10">ui/ — Custom SurfaceView + Canvas (no framework)</text>
+  <rect x="20" y="390" width="1360" height="430" rx="10" fill="url(#g-engine)" stroke="#38bdf8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <text x="36" y="410" fill="#0369a1" font-size="13" font-weight="700">GAME ENGINE LAYER</text>
+  <text x="220" y="410" fill="#7dd3fc" font-size="10">ui/ — Custom SurfaceView + Canvas (no framework)</text>
 
   <!-- GameCoreView - Central -->
-  <rect x="40" y="370" width="320" height="130" rx="10" fill="url(#g-core)" filter="url(#shadow)"/>
-  <text x="200" y="396" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="700">GameCoreView</text>
-  <text x="200" y="414" text-anchor="middle" fill="#bfdbfe" font-size="10">SurfaceView + Runnable</text>
-  <line x1="60" y1="422" x2="340" y2="422" stroke="#60a5fa" stroke-width="0.5" opacity="0.5"/>
-  <text x="200" y="438" text-anchor="middle" fill="#dbeafe" font-size="9">30 FPS Render Loop</text>
-  <text x="200" y="452" text-anchor="middle" fill="#dbeafe" font-size="9">Collision Detection (12 checks/frame)</text>
-  <text x="200" y="466" text-anchor="middle" fill="#dbeafe" font-size="9">Level Progression, Bosses &amp; Freeze Logic</text>
-  <text x="200" y="480" text-anchor="middle" fill="#dbeafe" font-size="9">Touch Input Handling</text>
-  <text x="200" y="494" text-anchor="middle" fill="#dbeafe" font-size="9">Shake, Flash &amp; Vignette Effects</text>
+  <rect x="40" y="424" width="320" height="130" rx="10" fill="url(#g-core)" filter="url(#shadow)"/>
+  <text x="200" y="450" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="700">GameCoreView</text>
+  <text x="200" y="468" text-anchor="middle" fill="#bfdbfe" font-size="10">SurfaceView + Runnable</text>
+  <line x1="60" y1="476" x2="340" y2="476" stroke="#60a5fa" stroke-width="0.5" opacity="0.5"/>
+  <text x="200" y="492" text-anchor="middle" fill="#dbeafe" font-size="9">30 FPS Render Loop</text>
+  <text x="200" y="506" text-anchor="middle" fill="#dbeafe" font-size="9">Collision Detection (12 checks/frame)</text>
+  <text x="200" y="520" text-anchor="middle" fill="#dbeafe" font-size="9">Level Progression, Bosses &amp; Freeze Logic</text>
+  <text x="200" y="534" text-anchor="middle" fill="#dbeafe" font-size="9">Touch Input Handling</text>
+  <text x="200" y="548" text-anchor="middle" fill="#dbeafe" font-size="9">Shake, Flash, Vignette &amp; Death Effects</text>
 
   <!-- DrawBaseObject -->
-  <rect x="400" y="370" width="200" height="56" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="6,3" filter="url(#shadow-sm)"/>
-  <text x="500" y="393" text-anchor="middle" fill="#0369a1" font-size="11" font-weight="600" font-style="italic">DrawBaseObject</text>
-  <text x="500" y="408" text-anchor="middle" fill="#0ea5e9" font-size="9">abstract: onDraw, updateGame</text>
+  <rect x="400" y="424" width="200" height="56" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="6,3" filter="url(#shadow-sm)"/>
+  <text x="500" y="447" text-anchor="middle" fill="#0369a1" font-size="11" font-weight="600" font-style="italic">DrawBaseObject</text>
+  <text x="500" y="462" text-anchor="middle" fill="#0ea5e9" font-size="9">abstract: onDraw, updateGame</text>
 
   <!-- extends arrows from DrawBaseObject to game objects -->
   <!-- Aircraft -->
-  <rect x="400" y="446" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
-  <rect x="400" y="446" width="160" height="19" rx="7" fill="#0ea5e9"/>
-  <rect x="400" y="458" width="160" height="7" fill="#0ea5e9"/>
-  <text x="480" y="460" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Aircraft</text>
-  <text x="480" y="481" text-anchor="middle" fill="#0369a1" font-size="8.5">Player jet sprite</text>
-  <text x="480" y="493" text-anchor="middle" fill="#0369a1" font-size="8.5">Auto-fire bullets (4 frames)</text>
-  <text x="480" y="505" text-anchor="middle" fill="#0369a1" font-size="8.5">4 selectable jet planes</text>
+  <rect x="400" y="500" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="400" y="500" width="160" height="19" rx="7" fill="#0ea5e9"/>
+  <rect x="400" y="512" width="160" height="7" fill="#0ea5e9"/>
+  <text x="480" y="514" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Aircraft</text>
+  <text x="480" y="535" text-anchor="middle" fill="#0369a1" font-size="8.5">Player jet sprite</text>
+  <text x="480" y="547" text-anchor="middle" fill="#0369a1" font-size="8.5">Auto-fire bullets (4 frames)</text>
+  <text x="480" y="559" text-anchor="middle" fill="#0369a1" font-size="8.5">4 selectable jet planes</text>
 
   <!-- Enemies -->
-  <rect x="580" y="446" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
-  <rect x="580" y="446" width="160" height="19" rx="7" fill="#0ea5e9"/>
-  <rect x="580" y="458" width="160" height="7" fill="#0ea5e9"/>
-  <text x="660" y="460" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Enemies</text>
-  <text x="660" y="481" text-anchor="middle" fill="#0369a1" font-size="8.5">15 sprite types</text>
-  <text x="660" y="493" text-anchor="middle" fill="#0369a1" font-size="8.5">Row spawning + Y tracking</text>
-  <text x="660" y="505" text-anchor="middle" fill="#0369a1" font-size="8.5">Red-tinted bullets</text>
+  <rect x="580" y="500" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="580" y="500" width="160" height="19" rx="7" fill="#0ea5e9"/>
+  <rect x="580" y="512" width="160" height="7" fill="#0ea5e9"/>
+  <text x="660" y="514" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Enemies</text>
+  <text x="660" y="535" text-anchor="middle" fill="#0369a1" font-size="8.5">15 sprite types</text>
+  <text x="660" y="547" text-anchor="middle" fill="#0369a1" font-size="8.5">Row spawning + Y tracking</text>
+  <text x="660" y="559" text-anchor="middle" fill="#0369a1" font-size="8.5">Red-tinted bullets</text>
 
   <!-- DrawBackground -->
-  <rect x="760" y="446" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
-  <rect x="760" y="446" width="160" height="19" rx="7" fill="#0ea5e9"/>
-  <rect x="760" y="458" width="160" height="7" fill="#0ea5e9"/>
-  <text x="840" y="460" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">DrawBackground</text>
-  <text x="840" y="481" text-anchor="middle" fill="#0369a1" font-size="8.5">Mirrored seamless tiling</text>
-  <text x="840" y="493" text-anchor="middle" fill="#0369a1" font-size="8.5">Randomized scrolling backgrounds</text>
+  <rect x="760" y="500" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="760" y="500" width="160" height="19" rx="7" fill="#0ea5e9"/>
+  <rect x="760" y="512" width="160" height="7" fill="#0ea5e9"/>
+  <text x="840" y="514" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">DrawBackground</text>
+  <text x="840" y="535" text-anchor="middle" fill="#0369a1" font-size="8.5">5 backgrounds, seamless tiling</text>
+  <text x="840" y="547" text-anchor="middle" fill="#0369a1" font-size="8.5">Randomized scrolling</text>
 
   <!-- DrawHeader -->
-  <rect x="940" y="446" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
-  <rect x="940" y="446" width="160" height="19" rx="7" fill="#0ea5e9"/>
-  <rect x="940" y="458" width="160" height="7" fill="#0ea5e9"/>
-  <text x="1020" y="460" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">DrawHeader</text>
-  <text x="1020" y="481" text-anchor="middle" fill="#0369a1" font-size="8.5">HUD overlay</text>
-  <text x="1020" y="493" text-anchor="middle" fill="#0369a1" font-size="8.5">Level / HP / Timer / Kills / Freeze</text>
+  <rect x="940" y="500" width="160" height="68" rx="7" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="940" y="500" width="160" height="19" rx="7" fill="#0ea5e9"/>
+  <rect x="940" y="512" width="160" height="7" fill="#0ea5e9"/>
+  <text x="1020" y="514" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">DrawHeader</text>
+  <text x="1020" y="535" text-anchor="middle" fill="#0369a1" font-size="8.5">HUD overlay</text>
+  <text x="1020" y="547" text-anchor="middle" fill="#0369a1" font-size="8.5">Level / HP / Timer / Kills / Freeze</text>
 
   <!-- Extends lines from DrawBaseObject -->
   <line x1="500" y1="426" x2="500" y2="435" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>
