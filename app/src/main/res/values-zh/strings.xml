@@ -58,7 +58,17 @@
     <string name="sound_settings_header">游戏特效设置</string>
     <string name="about_us_title">关于我们</string>
     <string name="privacy_policy_title">隐私政策</string>
+    <string name="privacy_policy_badge">数据与授权</string>
+    <string name="privacy_policy_banner_title">查看当前隐私政策</string>
     <string name="privacy_policy_summary">查看数据处理和授权相关说明。</string>
+    <string name="privacy_policy_document_header">政策文档</string>
+    <string name="privacy_policy_source_chip">本地文档</string>
+    <string name="privacy_policy_language_en">ENGLISH</string>
+    <string name="privacy_policy_language_zh">中文</string>
+    <string name="privacy_policy_loading">正在加载隐私政策...</string>
+    <string name="privacy_policy_error_title">文档暂时不可用</string>
+    <string name="privacy_policy_error_message">本地隐私政策加载失败，请重试以重新打开嵌入文档。</string>
+    <string name="privacy_policy_retry">重试</string>
     <string name="privacy_policy_accept">接受</string>
     <string name="privacy_policy_reject">拒绝</string>
     <string name="privacy_policy_accept_tactical">\u00BB\u00BB\u00BB %s \u00AB\u00AB\u00AB</string>
