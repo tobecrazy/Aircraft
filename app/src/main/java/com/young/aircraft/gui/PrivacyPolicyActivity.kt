@@ -29,7 +29,7 @@ class PrivacyPolicyActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_Aircraft_History)
+        setTheme(R.style.Theme_Aircraft_Common)
         super.onCreate(savedInstanceState)
 
         binding = ActivityPrivacyPolicyBinding.inflate(layoutInflater)
