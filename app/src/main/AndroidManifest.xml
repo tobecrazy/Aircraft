@@ -19,7 +19,7 @@
             android:name=".gui.HistoryActivity"
             android:exported="false"
             android:label="@string/history_title"
-            android:theme="@style/Theme.Aircraft.History" />
+            android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.PrivacyPolicyActivity"
             android:exported="false">
@@ -31,37 +31,37 @@
             android:name=".gui.AboutAircraftActivity"
             android:exported="false"
             android:label="@string/about_aircraft_title"
-            android:theme="@style/Theme.Aircraft.History" />
+            android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.AboutMeActivity"
             android:exported="false"
             android:label="@string/about_me_title"
-            android:theme="@style/Theme.Aircraft.History" />
+            android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.DeviceInfoActivity"
             android:exported="false"
             android:label="@string/title_activity_device_info"
-            android:theme="@style/Theme.Aircraft.History" />
+            android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.DevelopSettingsActivity"
             android:exported="false"
             android:label="@string/develop_settings_title"
-            android:theme="@style/Theme.Aircraft.History" />
+            android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.RichTextEditorActivity"
             android:exported="false"
             android:label="@string/rich_text_editor_title"
-            android:theme="@style/Theme.Aircraft.History" />
+            android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings"
-            android:theme="@style/Theme.Aircraft.History" />
+            android:theme="@style/Theme.Aircraft.Common" />
 
         <activity
             android:name=".gui.PrivacyPolicyAcceptActivity"
             android:exported="true"
-            android:theme="@style/Theme.Aircraft.History">
+            android:theme="@style/Theme.Aircraft.Common">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -75,7 +75,7 @@
         <activity
             android:name=".gui.OnboardingActivity"
             android:exported="false"
-            android:theme="@style/Theme.Aircraft.History" />
+            android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.MainActivity"
             android:exported="true"
