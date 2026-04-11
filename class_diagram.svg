@@ -1142,37 +1142,15 @@
     <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">OnboardingActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
     <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- binding: ...Binding</text>
+    <text x="10" y="57" font-size="10" fill="#333">- starFieldView: StarFieldView?</text>
     <line x1="5" y1="64" x2="265" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ onCreate() / onDestroy()</text>
     <text x="10" y="90" font-size="10" fill="#333">+ dispatchTouchEvent(ev)</text>
     <text x="10" y="103" font-size="10" fill="#333">- completeOnboarding()</text>
-    <text x="10" y="116" font-size="10" fill="#333">- updateIndicators(position)</text>
-    <text x="10" y="132" font-size="9" fill="#888">inner: OnboardingPagerAdapter</text>
+    <text x="10" y="116" font-size="10" fill="#333">+ setContent { OnboardingScreen }</text>
+    <text x="10" y="132" font-size="9" fill="#888">Compose: HorizontalPager, 2 pages</text>
     <text x="10" y="145" font-size="9" fill="#888">Gate: onboarding_completed pref</text>
-    <text x="10" y="158" font-size="9" fill="#888">ViewPager2 carousel, 2 pages</text>
-  </g>
-
-  <!-- OnboardingControlsFragment -->
-  <g transform="translate(330, 2510)" filter="url(#shadow)">
-    <rect width="210" height="60" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1"/>
-    <rect width="210" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="210" height="6" fill="#9c27b0"/>
-    <text x="105" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">OnboardingControlsFragment</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — Fragment (page 0)</text>
-    <line x1="5" y1="44" x2="205" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">+ onCreateView()</text>
-  </g>
-
-  <!-- OnboardingPowerupsFragment -->
-  <g transform="translate(570, 2510)" filter="url(#shadow)">
-    <rect width="210" height="60" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1"/>
-    <rect width="210" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="210" height="6" fill="#9c27b0"/>
-    <text x="105" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">OnboardingPowerupsFragment</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — Fragment (page 1)</text>
-    <line x1="5" y1="44" x2="205" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">+ onCreateView()</text>
+    <text x="10" y="158" font-size="9" fill="#888">AnimatedVisibility entrance effects</text>
   </g>
 
   <!-- ===== NEW NAVIGATION ARROWS ===== -->
@@ -1185,11 +1163,6 @@
   <line x1="465" y1="2310" x2="155" y2="1830" stroke="#555" stroke-width="1" stroke-dasharray="6,3" marker-end="url(#arrow-assoc)"/>
   <text x="280" y="2080" font-size="9" fill="#888">launch</text>
 
-  <!-- OnboardingActivity -> OnboardingControlsFragment composition -->
-  <line x1="420" y1="2480" x2="430" y2="2510" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-
-  <!-- OnboardingActivity -> OnboardingPowerupsFragment composition -->
-  <line x1="520" y1="2480" x2="660" y2="2510" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
 
   <!-- PrivacyPolicyAcceptActivity -> StarFieldView association -->
   <line x1="165" y1="2310" x2="1330" y2="2105" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
@@ -1221,18 +1194,6 @@
     <text x="10" y="169" font-size="9" fill="#888">DEBUG-only, WebView preview, Spannable</text>
   </g>
 
-  <!-- OnboardingPagerAdapter (proper class box) -->
-  <g transform="translate(620, 2510)" filter="url(#shadow)">
-    <rect width="250" height="95" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1"/>
-    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="250" height="6" fill="#9c27b0"/>
-    <text x="125" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">OnboardingPagerAdapter</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends FragmentStateAdapter</text>
-    <text x="10" y="52" font-size="10" fill="#555">inner class of OnboardingActivity</text>
-    <line x1="5" y1="58" x2="245" y2="58" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="71" font-size="10" fill="#333">+ getItemCount(): Int (2)</text>
-    <text x="10" y="84" font-size="10" fill="#333">+ createFragment(position): Fragment</text>
-  </g>
 
   <!-- ProfileImageState sealed interface -->
   <g transform="translate(1200, 2200)" filter="url(#shadow)">
@@ -1253,9 +1214,6 @@
   <line x1="735" y1="2175" x2="740" y2="2200" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="745" y="2192" font-size="9" fill="#888">navigates</text>
 
-  <!-- OnboardingActivity -> OnboardingPagerAdapter composition -->
-  <line x1="530" y1="2480" x2="620" y2="2530" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-  <text x="565" y="2515" font-size="9" fill="#888">inner</text>
 
   <!-- AboutMeActivity -> ProfileImageState association -->
   <line x1="1025" y1="2175" x2="1200" y2="2230" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>

@@ -21,7 +21,7 @@ class HistoryAdapterTest {
     fun `top record shows badge and gold score styling`() {
         val context = ContextThemeWrapper(
             ApplicationProvider.getApplicationContext(),
-            R.style.Theme_Aircraft_History
+            R.style.Theme_Aircraft_Common
         )
         val parent = FrameLayout(context)
         val adapter = HistoryAdapter(
