@@ -215,7 +215,7 @@
     <string name="device_info_net_ip">IP: %s</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_header">PRIVACY PROTOCOL</string>
+
     <string name="onboarding_skip">SKIP</string>
     <string name="onboarding_next">\u00BB\u00BB\u00BB NEXT \u00AB\u00AB\u00AB</string>
     <string name="onboarding_launch">\u00BB\u00BB\u00BB LAUNCH \u00AB\u00AB\u00AB</string>
