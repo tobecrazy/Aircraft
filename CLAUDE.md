@@ -26,6 +26,7 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 - **SDK:** compileSdk 36, minSdk 30, targetSdk 36, buildToolsVersion 36.0.0
 - **Java:** 17
 - **Room:** 2.8.4
+- **Compose BOM:** 2026.03.01 (material3, foundation, activity-compose 1.13.0)
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
 - `android.disallowKotlinSourceSets=false` in gradle.properties (required for KSP compatibility with AGP's built-in Kotlin)
@@ -77,16 +78,18 @@ Twelve checks run every frame in `GameCoreView.checkCollision()`:
 
 ### Activity Flow
 
+All GUI activities use Jetpack Compose (`setContent`) for their UI layer.
+
 ```
-PrivacyPolicyAcceptActivity (entry point, MAIN LAUNCHER, Theme.Aircraft.History)
+PrivacyPolicyAcceptActivity (entry point, MAIN LAUNCHER, Theme.Aircraft.Common)
   ├─→ [Already accepted?] → skips to OnboardingActivity
   └─→ [Not accepted] → cinematic privacy policy (StarFieldView + WebView)
        ├─→ [Accept] → saves pref → OnboardingActivity
        └─→ [Reject] → finishAffinity() (exits app)
 
-OnboardingActivity (Theme.Aircraft.History)
+OnboardingActivity (Theme.Aircraft.Common)
   ├─→ [Already completed?] → skips to LaunchActivity
-  └─→ [Not completed] → 2-screen carousel (controls + power-ups)
+  └─→ [Not completed] → Compose HorizontalPager carousel (ControlsPage + PowerupsPage)
        ├─→ [Skip / Launch] → saves pref → LaunchActivity
        └─→ LaunchActivity
 
@@ -94,10 +97,10 @@ LaunchActivity (Theme.AppCompat.NoActionBar)
   ├─→ [Start Game] → checks DB for saved progress
   │     ├─→ saved data exists (level > 1) → dialog: Continue / New Game
   │     └─→ no saved data → starts at level 1
-  ├─→ MainActivity (TransparentTheme) → GameCoreView (full-screen immersive game)
+  ├─→ MainActivity (TransparentMaterialTheme) → GameCoreView (full-screen immersive game)
   │     Intent extras: "start_level" (Int), "jet_plane_res" (Int)
-  ├─→ HistoryActivity (Theme.Aircraft) → HistoryFragment → RecyclerView
-  └─→ SettingsActivity (custom layout, no fragment)
+  ├─→ HistoryActivity (Theme.Aircraft.Common) → HistoryFragment → RecyclerView
+  └─→ SettingsActivity (Theme.Aircraft.Common)
        ├─→ DeviceInfoActivity (device hardware/software info)
        ├─→ AboutAircraftActivity
        └─→ PrivacyPolicyActivity (WebView)
@@ -126,6 +129,10 @@ User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Norm
 
 `TimeFreezes` sets a `frozen: Boolean` property on `Aircraft` (ui/), `Enemies`, and `BossEnemy` each frame. When `frozen = true`, the object skips movement and bullet updates. This is a cross-cutting state — `GameCoreView` propagates it from `TimeFreezes` to all affected objects during the render loop.
 
+### Compose UI Layer
+
+All 12 GUI activities use Jetpack Compose (`setContent`) with Material3/MaterialComponents. There is no shared Compose theme — each activity uses hardcoded color constants matching the XML tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing.
+
 ## Key Gotchas
 
 ### Naming Collision
@@ -135,9 +142,11 @@ Two files named `Aircraft.kt`: `data/PlayerAircraft.kt` (data class, renamed fro
 All game object bitmaps must have `bitmap.density = screenDensity` set for correct canvas density scaling. Forgetting this causes incorrect rendering sizes.
 
 ### Themes
-- `TransparentTheme` (app default) — translucent window, used by game activities
-- `Theme.Aircraft` — Material DayNight.DarkActionBar, solid background, used by HistoryActivity
-- Activities needing a solid background **must** set `android:theme="@style/Theme.Aircraft"` in the manifest
+- `TransparentTheme` (app default) — translucent window, AppCompat-based, used as the application-level theme
+- `TransparentMaterialTheme` — translucent window with MaterialComponents, used by MainActivity (game host)
+- `Theme.Aircraft.Common` — MaterialComponents DayNight NoActionBar with dark background (#1B1F2B), used by most non-game activities
+- `Theme.Aircraft` — MaterialComponents DayNight DarkActionBar, not currently assigned to any activity in the manifest
+- Activities needing a solid background **must** set `android:theme="@style/Theme.Aircraft.Common"` in the manifest
 
 ### Localization
 English (default) and Chinese (`values-zh/strings.xml`).
