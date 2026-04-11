@@ -84,8 +84,8 @@
   <rect x="290" y="132" width="210" height="8" fill="#9333ea"/>
   <text x="395" y="134" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">OnboardingActivity</text>
   <text x="395" y="155" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">PILOT TRAINING</text>
-  <text x="395" y="170" text-anchor="middle" fill="#7c3aed" font-size="8.5">ViewPager2 carousel (2 pages)</text>
-  <text x="395" y="183" text-anchor="middle" fill="#7c3aed" font-size="8.5">Controls + Power-ups fragments</text>
+  <text x="395" y="170" text-anchor="middle" fill="#7c3aed" font-size="8.5">Compose HorizontalPager (2 pages)</text>
+  <text x="395" y="183" text-anchor="middle" fill="#7c3aed" font-size="8.5">Animated entrance effects</text>
 
   <!-- StarFieldView -->
   <rect x="540" y="118" width="180" height="80" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>

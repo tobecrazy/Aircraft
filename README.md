@@ -19,7 +19,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty` | Data models, Room persistence, game state enums |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` | 30 FPS rendering, collision detection, level progression |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `StarFieldView` | Activity screens, navigation, UI components |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `StarFieldView` | Activity screens, navigation, Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
 | `providers/` | Gray | `DatabaseProvider`, `SettingsRepository` | Singleton DB provider, SharedPreferences wrapper |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils` | Screen metrics, bitmap utilities |
@@ -37,13 +37,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 - Custom 30 FPS `SurfaceView` engine with no third-party game framework
 - First-launch privacy acceptance flow with cinematic `StarFieldView`
-- Two-page onboarding for controls and power-ups
+- Compose-powered two-page onboarding carousel with animated entrance effects
 - 10 levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
 - Four power-up systems: red envelopes/rockets, medical kits, shields, and time freezes
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
 - Leaderboard top record highlighting with a medal/star badge and gold first-place styling
-- Compose-powered About Me screen with localized developer/project copy and the project GitHub URL
+- Compose-powered About Me and Onboarding screens with localized copy and smooth transition animations
 - Utility screens for history, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
@@ -94,8 +94,7 @@ app/src/main/java/com/young/aircraft/
 │   └── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
-│   ├── OnboardingActivity.kt           # First-run tutorial carousel
-│   ├── OnboardingFragments.kt          # Controls + power-up fragments
+│   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host, dialogs, DB save flow
 │   ├── HistoryActivity.kt              # History screen container

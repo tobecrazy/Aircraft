@@ -9,11 +9,19 @@ All notable changes to this project will be documented in this file.
 - Class Diagram section in README with package overview table and key relationships summary
 
 ### Changed
+- `OnboardingActivity` migrated from ViewPager2 + Fragments + XML layouts to Jetpack Compose with `HorizontalPager`, `AnimatedVisibility`, and `AnimatedContent`
+- `StarFieldView` retained as a Canvas-based custom View wrapped via `AndroidView` composable
+- Onboarding tests rewritten with `createAndroidComposeRule` and Compose test tags
 - `AboutMeActivity` now reads developer and project copy from Android string resources for English and Chinese i18n
 - The About Me project card now includes the canonical GitHub repository URL: `https://github.com/tobecrazy/Aircraft`
-- `README.md`, `project_diagram.svg`, and `class_diagram.svg` now document `AboutMeActivity` and its Settings navigation path
+- `README.md`, `project_diagram.svg`, and `class_diagram.svg` updated for the Compose onboarding migration
 - `README.md` project structure now lists `GameDifficulty.kt` and corrects `AppDatabase` version to v2030
 - Architecture diagram summary added with packages, threading model, and first-launch gate chain
+
+### Removed
+- `OnboardingFragments.kt` (Controls + Power-ups fragments replaced by Compose pages)
+- `activity_onboarding.xml`, `fragment_onboarding_controls.xml`, `fragment_onboarding_powerups.xml` (XML layouts replaced by composables)
+- `indicator_dot.xml` (page indicator drawable replaced by Compose dot composables)
 
 ## [1.2.3] - 2026-04-02
 
@@ -78,7 +86,7 @@ The class and project architecture diagrams ([class_diagram.svg](class_diagram.s
 | Common | `common/` | `AircraftApplication`, `GameStateManager` |
 | Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2030), `GameState` (enum), `GameDifficulty` (enum) |
 | Game Engine | `ui/` | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable) |
-| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` + fragments, `LaunchActivity`, `MainActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `StarFieldView` |
+| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `StarFieldView` |
 | Service | `service/` | `MusicService` + `MusicBinder` |
 | Providers | `providers/` | `DatabaseProvider`, `SettingsRepository` |
 | Utilities | `utils/` | `ScreenUtils`, `BitmapUtils` |
@@ -100,5 +108,5 @@ PrivacyPolicyAcceptActivity (LAUNCHER)
 
 OnboardingActivity
   ├─→ [skip/launch] → LaunchActivity
-  └─ ViewPager2: ControlsFragment + PowerupsFragment
+  └─ Compose HorizontalPager: ControlsPage + PowerupsPage
 ```
