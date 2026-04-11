@@ -328,7 +328,9 @@
 
                     <Button
                         android:id="@+id/btn_test_rich_text"
-                        style="@style/TacticalButton.Accept"
+                        style="@style/TacticalButton"
+                        android:textColor="@color/green"
+                        android:textStyle="bold"
                         android:layout_width="match_parent"
                         android:layout_marginTop="14dp"
                         android:text="@string/test_rich_text_editor" />
