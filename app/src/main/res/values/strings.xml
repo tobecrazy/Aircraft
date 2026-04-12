@@ -160,6 +160,11 @@
     <string name="qr_code_tool_qr_placeholder">QR code will appear here</string>
     <string name="qr_code_tool_generate_section">GENERATE</string>
     <string name="qr_code_tool_content_too_long">Content is too long for a QR code. Please shorten your text.</string>
+    <string name="qr_code_tool_copy">Copy</string>
+    <string name="qr_code_tool_copied">Copied to clipboard</string>
+    <string name="qr_code_tool_camera_rationale_title">Camera Permission Needed</string>
+    <string name="qr_code_tool_camera_rationale_message">The camera is used to scan QR codes. Please grant camera access to use this feature.</string>
+    <string name="qr_code_tool_camera_rationale_ok">Continue</string>
     <string name="develop_settings_title">Develop Settings</string>
     <string name="develop_settings_summary">Debug-only tools and crash testing</string>
     <string name="develop_settings_banner_summary">Internal tools for validating runtime flags, editor surfaces, and crash reporting.</string>

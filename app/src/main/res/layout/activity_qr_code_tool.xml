@@ -45,7 +45,29 @@
             android:layout_height="1dp"
             android:background="#4400FF88" />
 
+        <!-- SurfaceView for camera preview (outside ScrollView for proper rendering) -->
+        <SurfaceView
+            android:id="@+id/surface_camera"
+            android:layout_width="match_parent"
+            android:layout_height="280dp"
+            android:layout_marginHorizontal="14dp"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
+
+        <!-- Scan status text (outside ScrollView, shown during scanning) -->
+        <TextView
+            android:id="@+id/tv_scan_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:textColor="#00FF88"
+            android:textSize="12sp"
+            android:typeface="monospace"
+            android:visibility="gone" />
+
         <ScrollView
+            android:id="@+id/scroll_content"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -71,27 +93,6 @@
                     android:padding="16dp"
                     android:scaleType="fitCenter" />
 
-                <!-- SurfaceView for camera preview (initially hidden) -->
-                <SurfaceView
-                    android:id="@+id/surface_camera"
-                    android:layout_width="match_parent"
-                    android:layout_height="280dp"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="12dp"
-                    android:visibility="gone" />
-
-                <!-- Scan status text -->
-                <TextView
-                    android:id="@+id/tv_scan_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="8dp"
-                    android:textColor="#00FF88"
-                    android:textSize="12sp"
-                    android:typeface="monospace"
-                    android:visibility="gone" />
-
                 <!-- Scan QR Code Button -->
                 <TextView
                     android:id="@+id/btn_scan_qr"
@@ -101,6 +102,7 @@
                     android:background="@drawable/settings_tile_bg"
                     android:clickable="true"
                     android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:text="@string/qr_code_tool_scan_button"
                     android:textColor="#00FF88"
@@ -157,6 +159,7 @@
                     android:background="@drawable/settings_tile_bg"
                     android:clickable="true"
                     android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:text="@string/qr_code_tool_generate_button"
                     android:textColor="#00FF88"

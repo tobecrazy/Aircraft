@@ -1,6 +1,8 @@
 package com.young.aircraft.gui
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -23,6 +25,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
@@ -95,6 +98,18 @@ class QRCodeToolActivity : AppCompatActivity() {
                     == PackageManager.PERMISSION_GRANTED
                 ) {
                     startScanning()
+                } else if (ActivityCompat.shouldShowRequestPermissionRationale(
+                        this, Manifest.permission.CAMERA
+                    )
+                ) {
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.qr_code_tool_camera_rationale_title)
+                        .setMessage(R.string.qr_code_tool_camera_rationale_message)
+                        .setPositiveButton(R.string.qr_code_tool_camera_rationale_ok) { _, _ ->
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                        .setNegativeButton(R.string.history_cancel, null)
+                        .show()
                 } else {
                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
@@ -105,7 +120,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     private fun startScanning() {
         isScanning = true
         binding.btnScanQr.text = getString(R.string.qr_code_tool_stop_scan)
-        binding.ivQrCode.visibility = View.GONE
+        binding.scrollContent.visibility = View.GONE
         binding.surfaceCamera.visibility = View.VISIBLE
         binding.tvScanStatus.visibility = View.VISIBLE
         binding.tvScanStatus.text = getString(R.string.qr_code_tool_scanning)
@@ -135,8 +150,8 @@ class QRCodeToolActivity : AppCompatActivity() {
         stopBackgroundThread()
         binding.btnScanQr.text = getString(R.string.qr_code_tool_scan_button)
         binding.surfaceCamera.visibility = View.GONE
-        binding.ivQrCode.visibility = View.VISIBLE
         binding.tvScanStatus.visibility = View.GONE
+        binding.scrollContent.visibility = View.VISIBLE
     }
 
     @Suppress("MissingPermission")
@@ -164,7 +179,8 @@ class QRCodeToolActivity : AppCompatActivity() {
                     )
                     val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
                     val hints = mapOf(
-                        DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE)
+                        DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+                        DecodeHintType.CHARACTER_SET to "UTF-8"
                     )
                     val result = MultiFormatReader().decode(binaryBitmap, hints)
                     runOnUiThread { onScanResult(result.text) }
@@ -276,6 +292,11 @@ class QRCodeToolActivity : AppCompatActivity() {
             .setTitle(R.string.qr_code_tool_scan_result)
             .setMessage(result)
             .setPositiveButton(android.R.string.ok, null)
+            .setNeutralButton(R.string.qr_code_tool_copy) { _, _ ->
+                val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
+                Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
+            }
             .show()
     }
 
@@ -337,6 +358,7 @@ class QRCodeToolActivity : AppCompatActivity() {
 
             binding.surfaceCamera.visibility = View.GONE
             binding.tvScanStatus.visibility = View.GONE
+            binding.scrollContent.visibility = View.VISIBLE
             binding.ivQrCode.visibility = View.VISIBLE
             binding.ivQrCode.setImageBitmap(bitmap)
         } catch (_: WriterException) {
