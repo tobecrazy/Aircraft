@@ -123,6 +123,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowDeviceInfo.setOnClickListener {
             startActivity(Intent(this, DeviceInfoActivity::class.java))
         }
+        binding.rowQrCodeTool.setOnClickListener {
+            startActivity(Intent(this, QRCodeToolActivity::class.java))
+        }
         binding.rowAboutAircraft.setOnClickListener {
             startActivity(Intent(this, AboutAircraftActivity::class.java))
         }

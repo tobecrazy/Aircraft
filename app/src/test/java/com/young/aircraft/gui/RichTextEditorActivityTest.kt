@@ -2,7 +2,6 @@ package com.young.aircraft.gui
 
 import android.content.Context
 import android.graphics.Typeface
-import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
@@ -11,6 +10,7 @@ import android.widget.EditText
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
+import com.young.aircraft.ui.RichTextEditorView
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -31,15 +31,21 @@ class RichTextEditorActivityTest {
         context = ApplicationProvider.getApplicationContext()
     }
 
+    private fun findEditor(activity: RichTextEditorActivity): EditText =
+        activity.findViewById<RichTextEditorView>(R.id.rich_editor).editor
+
+    private fun findRichEditor(activity: RichTextEditorActivity): RichTextEditorView =
+        activity.findViewById(R.id.rich_editor)
+
     // ── Activity lifecycle ───────────────────────────────────
 
     @Test
     fun `activity launches in edit mode`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<EditText>(R.id.et_editor)
+                val editorView = findRichEditor(activity)
                 val preview = activity.findViewById<View>(R.id.wv_preview)
-                assertEquals(View.VISIBLE, editor.visibility)
+                assertEquals(View.VISIBLE, editorView.visibility)
                 assertEquals(View.GONE, preview.visibility)
             }
         }
@@ -58,27 +64,25 @@ class RichTextEditorActivityTest {
     // ── Mode toggle ──────────────────────────────────────────
 
     @Test
-    fun `clicking preview hides editor and toolbar`() {
+    fun `clicking preview hides editor`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 activity.findViewById<View>(R.id.btn_preview_mode).performClick()
 
-                assertEquals(View.GONE, activity.findViewById<View>(R.id.et_editor).visibility)
-                assertEquals(View.GONE, activity.findViewById<View>(R.id.toolbar_scroll).visibility)
+                assertEquals(View.GONE, findRichEditor(activity).visibility)
                 assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.wv_preview).visibility)
             }
         }
     }
 
     @Test
-    fun `clicking edit after preview restores editor and toolbar`() {
+    fun `clicking edit after preview restores editor`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 activity.findViewById<View>(R.id.btn_preview_mode).performClick()
                 activity.findViewById<View>(R.id.btn_edit_mode).performClick()
 
-                assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.et_editor).visibility)
-                assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.toolbar_scroll).visibility)
+                assertEquals(View.VISIBLE, findRichEditor(activity).visibility)
                 assertEquals(View.GONE, activity.findViewById<View>(R.id.wv_preview).visibility)
             }
         }
@@ -90,11 +94,11 @@ class RichTextEditorActivityTest {
     fun `bold without selection shows toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<EditText>(R.id.et_editor)
+                val editor = findEditor(activity)
                 editor.setText("hello")
-                editor.setSelection(0, 0) // cursor, no selection
+                editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.btn_bold).performClick()
+                activity.findViewById<View>(R.id.rich_btn_bold).performClick()
                 assertEquals(
                     context.getString(R.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
@@ -107,11 +111,11 @@ class RichTextEditorActivityTest {
     fun `italic without selection shows toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<EditText>(R.id.et_editor)
+                val editor = findEditor(activity)
                 editor.setText("hello")
                 editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.btn_italic).performClick()
+                activity.findViewById<View>(R.id.rich_btn_italic).performClick()
                 assertEquals(
                     context.getString(R.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
@@ -124,11 +128,11 @@ class RichTextEditorActivityTest {
     fun `underline without selection shows toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<EditText>(R.id.et_editor)
+                val editor = findEditor(activity)
                 editor.setText("hello")
                 editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.btn_underline).performClick()
+                activity.findViewById<View>(R.id.rich_btn_underline).performClick()
                 assertEquals(
                     context.getString(R.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
@@ -143,11 +147,11 @@ class RichTextEditorActivityTest {
     fun `bold applies StyleSpan BOLD to selected text`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<EditText>(R.id.et_editor)
+                val editor = findEditor(activity)
                 editor.setText("hello world")
                 editor.setSelection(0, 5)
 
-                activity.findViewById<View>(R.id.btn_bold).performClick()
+                activity.findViewById<View>(R.id.rich_btn_bold).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(0, 5, StyleSpan::class.java)
@@ -161,11 +165,11 @@ class RichTextEditorActivityTest {
     fun `italic applies StyleSpan ITALIC to selected text`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<EditText>(R.id.et_editor)
+                val editor = findEditor(activity)
                 editor.setText("hello world")
                 editor.setSelection(6, 11)
 
-                activity.findViewById<View>(R.id.btn_italic).performClick()
+                activity.findViewById<View>(R.id.rich_btn_italic).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(6, 11, StyleSpan::class.java)
@@ -179,15 +183,14 @@ class RichTextEditorActivityTest {
     fun `underline applies UnderlineSpan to selected text`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<EditText>(R.id.et_editor)
+                val editor = findEditor(activity)
                 editor.setText("hello world")
                 editor.setSelection(0, 5)
 
-                activity.findViewById<View>(R.id.btn_underline).performClick()
+                activity.findViewById<View>(R.id.rich_btn_underline).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(0, 5, UnderlineSpan::class.java)
-                // At least one from user click (button setup also adds one to the "U" label)
                 assertTrue(spans.isNotEmpty())
             }
         }
@@ -199,7 +202,7 @@ class RichTextEditorActivityTest {
     fun `markdown toggle shows enabled toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_markdown).performClick()
+                activity.findViewById<View>(R.id.rich_btn_markdown).performClick()
                 assertEquals(
                     context.getString(R.string.rich_text_md_on),
                     ShadowToast.getTextOfLatestToast()
@@ -212,7 +215,7 @@ class RichTextEditorActivityTest {
     fun `markdown double toggle shows disabled toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btn = activity.findViewById<View>(R.id.btn_markdown)
+                val btn = activity.findViewById<View>(R.id.rich_btn_markdown)
                 btn.performClick() // ON
                 btn.performClick() // OFF
                 assertEquals(

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#0F1118"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="#161A26"
+            android:gravity="center_vertical">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/history_cancel"
+                android:src="?attr/homeAsUpIndicator" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:letterSpacing="0.25"
+                android:text="@string/qr_code_tool_title"
+                android:textColor="#00FF88"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:typeface="monospace" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#4400FF88" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="14dp">
+
+                <!-- QR Code Display -->
+                <ImageView
+                    android:id="@+id/iv_qr_code"
+                    android:layout_width="240dp"
+                    android:layout_height="240dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/device_info_card_bg"
+                    android:contentDescription="@string/qr_code_tool_qr_placeholder"
+                    android:padding="16dp"
+                    android:scaleType="fitCenter" />
+
+                <!-- SurfaceView for camera preview (initially hidden) -->
+                <SurfaceView
+                    android:id="@+id/surface_camera"
+                    android:layout_width="match_parent"
+                    android:layout_height="280dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone" />
+
+                <!-- Scan status text -->
+                <TextView
+                    android:id="@+id/tv_scan_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:textColor="#00FF88"
+                    android:textSize="12sp"
+                    android:typeface="monospace"
+                    android:visibility="gone" />
+
+                <!-- Scan QR Code Button -->
+                <TextView
+                    android:id="@+id/btn_scan_qr"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="@string/qr_code_tool_scan_button"
+                    android:textColor="#00FF88"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace" />
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="20dp"
+                    android:background="#4400FF88" />
+
+                <!-- Generate section header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="14dp"
+                        android:background="#00FF88" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:letterSpacing="0.2"
+                        android:text="@string/qr_code_tool_generate_section"
+                        android:textColor="#66FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
+                <!-- Rich Text Editor -->
+                <com.young.aircraft.ui.RichTextEditorView
+                    android:id="@+id/rich_editor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp" />
+
+                <!-- Generate QR Code Button -->
+                <TextView
+                    android:id="@+id/btn_generate_qr"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="24dp"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="@string/qr_code_tool_generate_button"
+                    android:textColor="#00FF88"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace" />
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</layout>
