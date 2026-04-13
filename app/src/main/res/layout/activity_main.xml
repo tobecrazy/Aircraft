@@ -14,7 +14,7 @@
             android:id="@+id/jet_plane"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:contentDescription="@null"
+            android:contentDescription="@string/app_name"
             android:scaleType="fitCenter"
             android:src="@drawable/jet_plane_2"
             app:layout_constraintBottom_toBottomOf="parent"

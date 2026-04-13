@@ -676,6 +676,53 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/row_qr_code_tool"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/settings_tile_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/qr_code_tool_title"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/qr_code_tool_summary"
+                            android:textColor="#AAB4C8"
+                            android:textSize="11sp"
+                            android:typeface="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="›"
+                        android:textColor="#4400FF88"
+                        android:textSize="22sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/row_develop_settings"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

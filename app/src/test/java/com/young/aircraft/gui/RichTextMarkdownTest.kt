@@ -1,5 +1,6 @@
 package com.young.aircraft.gui
 
+import com.young.aircraft.ui.RichTextEditorView
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -9,20 +10,20 @@ class RichTextMarkdownTest {
 
     @Test
     fun `h1 header is converted`() {
-        val result = RichTextEditorActivity.processMarkdown("# Hello")
+        val result = RichTextEditorView.processMarkdown("# Hello")
         assertTrue(result.contains("<h1>Hello</h1>"))
     }
 
     @Test
     fun `h2 header is converted`() {
-        val result = RichTextEditorActivity.processMarkdown("## Sub heading")
+        val result = RichTextEditorView.processMarkdown("## Sub heading")
         assertTrue(result.contains("<h2>Sub heading</h2>"))
     }
 
     @Test
     fun `h3 through h6 headers are converted`() {
         val input = "### H3\n#### H4\n##### H5\n###### H6"
-        val result = RichTextEditorActivity.processMarkdown(input)
+        val result = RichTextEditorView.processMarkdown(input)
         assertTrue(result.contains("<h3>H3</h3>"))
         assertTrue(result.contains("<h4>H4</h4>"))
         assertTrue(result.contains("<h5>H5</h5>"))
@@ -31,7 +32,7 @@ class RichTextMarkdownTest {
 
     @Test
     fun `text without hash is not converted to header`() {
-        val result = RichTextEditorActivity.processMarkdown("no header here")
+        val result = RichTextEditorView.processMarkdown("no header here")
         assertFalse(result.contains("<h1>"))
         assertFalse(result.contains("<h2>"))
     }
@@ -40,25 +41,25 @@ class RichTextMarkdownTest {
 
     @Test
     fun `double asterisks produce bold`() {
-        val result = RichTextEditorActivity.processMarkdown("**bold**")
+        val result = RichTextEditorView.processMarkdown("**bold**")
         assertTrue(result.contains("<b>bold</b>"))
     }
 
     @Test
     fun `single asterisks produce italic`() {
-        val result = RichTextEditorActivity.processMarkdown("*italic*")
+        val result = RichTextEditorView.processMarkdown("*italic*")
         assertTrue(result.contains("<i>italic</i>"))
     }
 
     @Test
     fun `double tildes produce strikethrough`() {
-        val result = RichTextEditorActivity.processMarkdown("~~deleted~~")
+        val result = RichTextEditorView.processMarkdown("~~deleted~~")
         assertTrue(result.contains("<s>deleted</s>"))
     }
 
     @Test
     fun `bold and italic in same line`() {
-        val result = RichTextEditorActivity.processMarkdown("**bold** and *italic*")
+        val result = RichTextEditorView.processMarkdown("**bold** and *italic*")
         assertTrue(result.contains("<b>bold</b>"))
         assertTrue(result.contains("<i>italic</i>"))
     }
@@ -67,7 +68,7 @@ class RichTextMarkdownTest {
 
     @Test
     fun `backtick produces inline code`() {
-        val result = RichTextEditorActivity.processMarkdown("`code`")
+        val result = RichTextEditorView.processMarkdown("`code`")
         assertTrue(result.contains("<code"))
         assertTrue(result.contains("code</code>"))
     }
@@ -76,7 +77,7 @@ class RichTextMarkdownTest {
 
     @Test
     fun `triple backticks produce code block`() {
-        val result = RichTextEditorActivity.processMarkdown("```\nval x = 1\n```")
+        val result = RichTextEditorView.processMarkdown("```\nval x = 1\n```")
         assertTrue(result.contains("<pre"))
         assertTrue(result.contains("<code"))
         assertTrue(result.contains("val x = 1"))
@@ -86,14 +87,14 @@ class RichTextMarkdownTest {
 
     @Test
     fun `markdown image is converted to img tag`() {
-        val result = RichTextEditorActivity.processMarkdown("![alt text](https://example.com/pic.png)")
+        val result = RichTextEditorView.processMarkdown("![alt text](https://example.com/pic.png)")
         assertTrue(result.contains("<img src=\"https://example.com/pic.png\""))
         assertTrue(result.contains("alt=\"alt text\""))
     }
 
     @Test
     fun `image with empty alt text`() {
-        val result = RichTextEditorActivity.processMarkdown("![](https://example.com/pic.png)")
+        val result = RichTextEditorView.processMarkdown("![](https://example.com/pic.png)")
         assertTrue(result.contains("<img src=\"https://example.com/pic.png\""))
     }
 
@@ -101,7 +102,7 @@ class RichTextMarkdownTest {
 
     @Test
     fun `markdown link is converted to anchor tag`() {
-        val result = RichTextEditorActivity.processMarkdown("[Click here](https://example.com)")
+        val result = RichTextEditorView.processMarkdown("[Click here](https://example.com)")
         assertTrue(result.contains("<a href=\"https://example.com\""))
         assertTrue(result.contains("Click here</a>"))
     }
@@ -110,13 +111,13 @@ class RichTextMarkdownTest {
 
     @Test
     fun `three dashes produce horizontal rule`() {
-        val result = RichTextEditorActivity.processMarkdown("above\n---\nbelow")
+        val result = RichTextEditorView.processMarkdown("above\n---\nbelow")
         assertTrue(result.contains("<hr"))
     }
 
     @Test
     fun `five dashes also produce horizontal rule`() {
-        val result = RichTextEditorActivity.processMarkdown("-----")
+        val result = RichTextEditorView.processMarkdown("-----")
         assertTrue(result.contains("<hr"))
     }
 
@@ -124,7 +125,7 @@ class RichTextMarkdownTest {
 
     @Test
     fun `dash items produce list items`() {
-        val result = RichTextEditorActivity.processMarkdown("- item one\n- item two")
+        val result = RichTextEditorView.processMarkdown("- item one\n- item two")
         assertTrue(result.contains("<li>item one</li>"))
         assertTrue(result.contains("<li>item two</li>"))
     }
@@ -133,7 +134,7 @@ class RichTextMarkdownTest {
 
     @Test
     fun `newlines are converted to br tags`() {
-        val result = RichTextEditorActivity.processMarkdown("line1\nline2")
+        val result = RichTextEditorView.processMarkdown("line1\nline2")
         assertTrue(result.contains("<br>"))
     }
 
@@ -149,7 +150,7 @@ class RichTextMarkdownTest {
             ---
             [link](https://example.com)
         """.trimIndent()
-        val result = RichTextEditorActivity.processMarkdown(input)
+        val result = RichTextEditorView.processMarkdown(input)
         assertTrue(result.contains("<h1>Title</h1>"))
         assertTrue(result.contains("<b>bold</b>"))
         assertTrue(result.contains("<i>italic</i>"))
@@ -163,13 +164,13 @@ class RichTextMarkdownTest {
 
     @Test
     fun `empty input returns empty with br`() {
-        val result = RichTextEditorActivity.processMarkdown("")
+        val result = RichTextEditorView.processMarkdown("")
         assertEquals("", result)
     }
 
     @Test
     fun `plain text without markdown passes through`() {
-        val result = RichTextEditorActivity.processMarkdown("hello world")
+        val result = RichTextEditorView.processMarkdown("hello world")
         assertTrue(result.contains("hello world"))
         assertFalse(result.contains("<h1>"))
         assertFalse(result.contains("<b>"))
@@ -177,14 +178,14 @@ class RichTextMarkdownTest {
 
     @Test
     fun `hash without space is not a header`() {
-        val result = RichTextEditorActivity.processMarkdown("#noheader")
+        val result = RichTextEditorView.processMarkdown("#noheader")
         assertFalse(result.contains("<h1>"))
     }
 
     @Test
     fun `image link is not confused with regular link`() {
         val input = "![img](pic.png) and [link](url)"
-        val result = RichTextEditorActivity.processMarkdown(input)
+        val result = RichTextEditorView.processMarkdown(input)
         assertTrue(result.contains("<img src=\"pic.png\""))
         assertTrue(result.contains("<a href=\"url\""))
     }
