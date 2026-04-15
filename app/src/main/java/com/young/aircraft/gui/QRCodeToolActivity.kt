@@ -19,7 +19,6 @@ import android.media.ImageReader
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.View
 import android.widget.Toast
@@ -53,6 +52,17 @@ class QRCodeToolActivity : AppCompatActivity() {
     private var isScanning = false
     private var isCameraOpening = false
     private var frameCounter = 0
+    private val scanSurfaceCallback = object : SurfaceHolder.Callback {
+        override fun surfaceCreated(holder: SurfaceHolder) {
+            if (isScanning) openCamera()
+        }
+
+        override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) = Unit
+
+        override fun surfaceDestroyed(holder: SurfaceHolder) {
+            releaseCamera()
+        }
+    }
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -68,11 +78,13 @@ class QRCodeToolActivity : AppCompatActivity() {
 
         binding = ActivityQrCodeToolBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.surfaceCamera.holder.addCallback(scanSurfaceCallback)
 
         setupHeader()
         setupScanButton()
         setupGenerateButton()
         setupEditor()
+        renderContentState()
     }
 
     private fun setupHeader() {
@@ -81,9 +93,9 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     private fun setupEditor() {
         binding.richEditor.setHint(getString(R.string.qr_code_tool_input_hint))
-        binding.richEditor.setEditorBackground(R.drawable.device_info_card_bg)
+        binding.richEditor.setEditorBackground(R.drawable.qr_tool_preview_frame_bg)
         binding.richEditor.setEditorHeight(
-            (160 * resources.displayMetrics.density).toInt()
+            (192 * resources.displayMetrics.density).toInt()
         )
     }
 
@@ -119,24 +131,9 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     private fun startScanning() {
         isScanning = true
-        binding.btnScanQr.text = getString(R.string.qr_code_tool_stop_scan)
-        binding.scrollContent.visibility = View.GONE
-        binding.surfaceCamera.visibility = View.VISIBLE
-        binding.tvScanStatus.visibility = View.VISIBLE
-        binding.tvScanStatus.text = getString(R.string.qr_code_tool_scanning)
-
+        frameCounter = 0
+        renderScanningState()
         startBackgroundThread()
-
-        binding.surfaceCamera.holder.addCallback(object : SurfaceHolder.Callback {
-            override fun surfaceCreated(holder: SurfaceHolder) {
-                openCamera()
-            }
-
-            override fun surfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {}
-            override fun surfaceDestroyed(holder: SurfaceHolder) {
-                releaseCamera()
-            }
-        })
 
         // If surface is already available, open camera immediately
         if (binding.surfaceCamera.holder.surface.isValid) {
@@ -148,10 +145,7 @@ class QRCodeToolActivity : AppCompatActivity() {
         isScanning = false
         releaseCamera()
         stopBackgroundThread()
-        binding.btnScanQr.text = getString(R.string.qr_code_tool_scan_button)
-        binding.surfaceCamera.visibility = View.GONE
-        binding.tvScanStatus.visibility = View.GONE
-        binding.scrollContent.visibility = View.VISIBLE
+        renderContentState()
     }
 
     @Suppress("MissingPermission")
@@ -159,7 +153,19 @@ class QRCodeToolActivity : AppCompatActivity() {
         if (isCameraOpening || cameraDevice != null) return
         isCameraOpening = true
         val cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
-        val cameraId = findBackCamera(cameraManager) ?: return
+        val cameraId = findBackCamera(cameraManager)
+        if (cameraId == null) {
+            isCameraOpening = false
+            runOnUiThread {
+                Toast.makeText(
+                    this,
+                    R.string.qr_code_tool_camera_error,
+                    Toast.LENGTH_SHORT
+                ).show()
+                stopScanning()
+            }
+            return
+        }
 
         imageReader = ImageReader.newInstance(640, 480, ImageFormat.YUV_420_888, 2).apply {
             setOnImageAvailableListener({ reader ->
@@ -192,33 +198,45 @@ class QRCodeToolActivity : AppCompatActivity() {
             }, backgroundHandler)
         }
 
-        cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
-            override fun onOpened(camera: CameraDevice) {
-                isCameraOpening = false
-                cameraDevice = camera
-                createPreviewSession()
-            }
-
-            override fun onDisconnected(camera: CameraDevice) {
-                isCameraOpening = false
-                camera.close()
-                cameraDevice = null
-            }
-
-            override fun onError(camera: CameraDevice, error: Int) {
-                isCameraOpening = false
-                camera.close()
-                cameraDevice = null
-                runOnUiThread {
-                    Toast.makeText(
-                        this@QRCodeToolActivity,
-                        R.string.qr_code_tool_camera_error,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    stopScanning()
+        try {
+            cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
+                override fun onOpened(camera: CameraDevice) {
+                    isCameraOpening = false
+                    cameraDevice = camera
+                    createPreviewSession()
                 }
+
+                override fun onDisconnected(camera: CameraDevice) {
+                    isCameraOpening = false
+                    camera.close()
+                    cameraDevice = null
+                }
+
+                override fun onError(camera: CameraDevice, error: Int) {
+                    isCameraOpening = false
+                    camera.close()
+                    cameraDevice = null
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@QRCodeToolActivity,
+                            R.string.qr_code_tool_camera_error,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        stopScanning()
+                    }
+                }
+            }, backgroundHandler)
+        } catch (_: CameraAccessException) {
+            isCameraOpening = false
+            runOnUiThread {
+                Toast.makeText(
+                    this,
+                    R.string.qr_code_tool_camera_error,
+                    Toast.LENGTH_SHORT
+                ).show()
+                stopScanning()
             }
-        }, backgroundHandler)
+        }
     }
 
     private fun findBackCamera(cameraManager: CameraManager): String? {
@@ -311,6 +329,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun startBackgroundThread() {
+        if (backgroundThread != null) return
         backgroundThread = HandlerThread("QRScanThread").also { it.start() }
         backgroundHandler = Handler(backgroundThread!!.looper)
     }
@@ -320,6 +339,47 @@ class QRCodeToolActivity : AppCompatActivity() {
         backgroundThread?.join()
         backgroundThread = null
         backgroundHandler = null
+    }
+
+    private fun renderScanningState() {
+        binding.scrollContent.visibility = View.GONE
+        binding.cameraContainer.visibility = View.VISIBLE
+        binding.surfaceCamera.visibility = View.VISIBLE
+        binding.tvScanStatus.visibility = View.VISIBLE
+        binding.tvScanStatus.text = getString(R.string.qr_code_tool_scanning)
+        updateScanButton()
+    }
+
+    private fun renderContentState() {
+        val hasQrPreview = binding.ivQrCode.drawable != null
+        binding.cameraContainer.visibility = View.GONE
+        binding.surfaceCamera.visibility = View.GONE
+        binding.tvScanStatus.visibility = View.GONE
+        binding.scrollContent.visibility = View.VISIBLE
+        binding.tvHeroStatus.text = getString(
+            if (hasQrPreview) R.string.qr_code_tool_status_generated
+            else R.string.qr_code_tool_status_ready
+        )
+        binding.tvPreviewTitle.text = getString(
+            if (hasQrPreview) R.string.qr_code_tool_preview_generated_title
+            else R.string.qr_code_tool_preview_idle_title
+        )
+        binding.tvPreviewHint.text = getString(
+            if (hasQrPreview) R.string.qr_code_tool_preview_generated_hint
+            else R.string.qr_code_tool_preview_idle_hint
+        )
+        binding.tvQrPlaceholder.visibility = if (hasQrPreview) View.GONE else View.VISIBLE
+        updateScanButton()
+    }
+
+    private fun updateScanButton() {
+        binding.btnScanQr.text = getString(
+            if (isScanning) R.string.qr_code_tool_stop_scan else R.string.qr_code_tool_scan_button
+        )
+        binding.btnScanQr.setBackgroundResource(
+            if (isScanning) R.drawable.qr_tool_stop_action_bg
+            else R.drawable.qr_tool_secondary_action_bg
+        )
     }
 
     // ── Generate QR Code ───────────────────────────────────
@@ -356,11 +416,9 @@ class QRCodeToolActivity : AppCompatActivity() {
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
 
-            binding.surfaceCamera.visibility = View.GONE
-            binding.tvScanStatus.visibility = View.GONE
-            binding.scrollContent.visibility = View.VISIBLE
             binding.ivQrCode.visibility = View.VISIBLE
             binding.ivQrCode.setImageBitmap(bitmap)
+            renderContentState()
         } catch (_: WriterException) {
             Toast.makeText(this, R.string.qr_code_tool_content_too_long, Toast.LENGTH_SHORT).show()
         }

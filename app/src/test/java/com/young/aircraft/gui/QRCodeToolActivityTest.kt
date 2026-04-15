@@ -86,6 +86,27 @@ class QRCodeToolActivityTest {
     }
 
     @Test
+    fun `initial state shows ready preview messaging`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val heroStatus = activity.findViewById<TextView>(R.id.tv_hero_status)
+                val previewTitle = activity.findViewById<TextView>(R.id.tv_preview_title)
+                val placeholder = activity.findViewById<TextView>(R.id.tv_qr_placeholder)
+
+                assertEquals(
+                    context.getString(R.string.qr_code_tool_status_ready),
+                    heroStatus.text.toString()
+                )
+                assertEquals(
+                    context.getString(R.string.qr_code_tool_preview_idle_title),
+                    previewTitle.text.toString()
+                )
+                assertEquals(View.VISIBLE, placeholder.visibility)
+            }
+        }
+    }
+
+    @Test
     fun `SurfaceView is not inside ScrollView`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
@@ -199,6 +220,32 @@ class QRCodeToolActivityTest {
                 assertEquals(View.VISIBLE, activity.findViewById<ScrollView>(R.id.scroll_content).visibility)
                 assertEquals(View.GONE, activity.findViewById<SurfaceView>(R.id.surface_camera).visibility)
                 assertEquals(View.GONE, activity.findViewById<TextView>(R.id.tv_scan_status).visibility)
+            }
+        }
+    }
+
+    @Test
+    fun `generate updates preview state and hides placeholder`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
+                editor.editor.setText("https://young.example/qr")
+
+                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
+
+                val heroStatus = activity.findViewById<TextView>(R.id.tv_hero_status)
+                val previewTitle = activity.findViewById<TextView>(R.id.tv_preview_title)
+                val placeholder = activity.findViewById<TextView>(R.id.tv_qr_placeholder)
+
+                assertEquals(
+                    context.getString(R.string.qr_code_tool_status_generated),
+                    heroStatus.text.toString()
+                )
+                assertEquals(
+                    context.getString(R.string.qr_code_tool_preview_generated_title),
+                    previewTitle.text.toString()
+                )
+                assertEquals(View.GONE, placeholder.visibility)
             }
         }
     }
