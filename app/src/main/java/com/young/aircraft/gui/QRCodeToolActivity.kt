@@ -39,6 +39,8 @@ import com.google.zxing.WriterException
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
+import androidx.core.graphics.toColorInt
+import androidx.core.graphics.createBitmap
 
 class QRCodeToolActivity : AppCompatActivity() {
 
@@ -409,13 +411,13 @@ class QRCodeToolActivity : AppCompatActivity() {
             val width = bitMatrix.width
             val height = bitMatrix.height
             val pixels = IntArray(width * height)
-            val bgColor = Color.parseColor("#0F1118")
+            val bgColor = "#0F1118".toColorInt()
             for (y in 0 until height) {
                 for (x in 0 until width) {
                     pixels[y * width + x] = if (bitMatrix[x, y]) Color.WHITE else bgColor
                 }
             }
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height)
             bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
 
             binding.ivQrCode.setImageBitmap(bitmap)
