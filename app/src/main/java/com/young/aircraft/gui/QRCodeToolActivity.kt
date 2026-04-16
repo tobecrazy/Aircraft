@@ -368,6 +368,7 @@ class QRCodeToolActivity : AppCompatActivity() {
             if (hasQrPreview) R.string.qr_code_tool_preview_generated_hint
             else R.string.qr_code_tool_preview_idle_hint
         )
+        binding.qrPreviewContainer.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
         binding.tvQrPlaceholder.visibility = if (hasQrPreview) View.GONE else View.VISIBLE
         updateScanButton()
     }
@@ -380,6 +381,7 @@ class QRCodeToolActivity : AppCompatActivity() {
             if (isScanning) R.drawable.qr_tool_stop_action_bg
             else R.drawable.qr_tool_secondary_action_bg
         )
+        binding.btnGenerateQr.visibility =  if (isScanning) View.GONE else View.VISIBLE
     }
 
     // ── Generate QR Code ───────────────────────────────────
@@ -416,7 +418,6 @@ class QRCodeToolActivity : AppCompatActivity() {
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
 
-            binding.ivQrCode.visibility = View.VISIBLE
             binding.ivQrCode.setImageBitmap(bitmap)
             renderContentState()
         } catch (_: WriterException) {

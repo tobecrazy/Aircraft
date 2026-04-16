@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - `AboutMeActivityTest` to verify localized About Me labels, GitHub repo rendering, and back navigation under Robolectric
 - Class Diagram section in README with package overview table and key relationships summary
+- QR tool hero/status copy for English and Chinese plus dedicated neon drawables for preview, scan, and action states
+- Robolectric assertions covering QR tool ready/generated preview messaging
 
 ### Changed
 - `OnboardingActivity` migrated from ViewPager2 + Fragments + XML layouts to Jetpack Compose with `HorizontalPager`, `AnimatedVisibility`, and `AnimatedContent`
@@ -17,6 +19,8 @@ All notable changes to this project will be documented in this file.
 - `README.md`, `project_diagram.svg`, and `class_diagram.svg` updated for the Compose onboarding migration
 - `README.md` project structure now lists `GameDifficulty.kt` and corrects `AppDatabase` version to v2030
 - Architecture diagram summary added with packages, threading model, and first-launch gate chain
+- `QRCodeToolActivity` now uses a hero-card layout, framed output panel, full-height camera scan state, and persistent bottom scan action instead of the previous flat stacked layout
+- QR tool state handling now renders idle/scanning/generated preview text explicitly and reuses a single `SurfaceHolder.Callback`
 
 ### Removed
 - `OnboardingFragments.kt` (Controls + Power-ups fragments replaced by Compose pages)
