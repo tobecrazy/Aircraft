@@ -941,7 +941,25 @@
     <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
     <text x="10" y="93" font-size="9" fill="#888">Difficulty + bg/combat/hit-shake toggles</text>
-    <text x="10" y="106" font-size="9" fill="#888">Links to privacy, about, device, and debug screens</text>
+    <text x="10" y="106" font-size="9" fill="#888">Links to privacy, QR, about, device, and debug screens</text>
+  </g>
+
+  <!-- QRCodeToolActivity -->
+  <g transform="translate(310, 1860)" filter="url(#shadow)">
+    <rect width="270" height="155" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="270" height="6" fill="#9c27b0"/>
+    <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">QRCodeToolActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityQrCodeToolBinding</text>
+    <text x="10" y="70" font-size="10" fill="#333">- imageReader / backgroundThread / handler</text>
+    <line x1="5" y1="76" x2="265" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ startScanning() / stopScanning()</text>
+    <text x="10" y="102" font-size="10" fill="#333">+ generateQrCode(content)</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ renderScanningState()</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ renderContentState() / onScanResult()</text>
+    <text x="10" y="144" font-size="9" fill="#888">Camera2 preview + ZXing decode/encode + RichTextEditorView</text>
   </g>
 
   <!-- PrivacyPolicyActivity -->
@@ -960,6 +978,10 @@
   <!-- SettingsActivity -> PrivacyPolicyActivity navigation -->
   <line x1="100" y1="1975" x2="100" y2="2005" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="105" y="1995" font-size="9" fill="#888">navigates</text>
+
+  <!-- SettingsActivity -> QRCodeToolActivity navigation -->
+  <line x1="280" y1="1900" x2="310" y2="1900" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="283" y="1892" font-size="9" fill="#888">navigates</text>
 
   <!-- AboutAircraftActivity -->
   <g transform="translate(310, 2060)" filter="url(#shadow)">
