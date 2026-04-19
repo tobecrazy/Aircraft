@@ -1,43 +1,38 @@
 package com.young.aircraft.gui
 
-import android.graphics.Color
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.updatePadding
-import com.young.aircraft.databinding.ActivityHistoryBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.young.aircraft.gui.theme.AircraftTheme
+import com.young.aircraft.providers.DatabaseProvider
 
-class HistoryActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityHistoryBinding
-
-    @Suppress("DEPRECATION")
+class HistoryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityHistoryBinding.inflate(layoutInflater)
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = Color.TRANSPARENT
-        window.navigationBarColor = Color.TRANSPARENT
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
+        enableEdgeToEdge()
+        
+        val dao = DatabaseProvider.getDatabase(this).playerGameDataDao()
+        
+        setContent {
+            AircraftTheme {
+                val viewModel: HistoryViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            return HistoryViewModel(dao) as T
+                        }
+                    }
+                )
+                
+                HistoryScreen(
+                    viewModel = viewModel,
+                    onBackClick = { finish() }
+                )
+            }
         }
-
-        setContentView(binding.root)
-
-        ViewCompat.setOnApplyWindowInsetsListener(binding.fragmentContainer) { view, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.updatePadding(
-                left = systemBars.left,
-                top = systemBars.top,
-                right = systemBars.right,
-                bottom = systemBars.bottom
-            )
-            insets
-        }
-        ViewCompat.requestApplyInsets(binding.fragmentContainer)
     }
 }

@@ -21,7 +21,7 @@
             android:name=".gui.HistoryActivity"
             android:exported="false"
             android:label="@string/history_title"
-            android:theme="@style/Theme.Aircraft.Common" />
+            android:theme="@style/Theme.Aircraft.Compose" />
         <activity
             android:name=".gui.PrivacyPolicyActivity"
             android:exported="false">
@@ -60,10 +60,14 @@
             android:label="@string/rich_text_editor_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
+            android:name=".gui.StoreActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Aircraft.Compose" />
+        <activity
             android:name=".gui.SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings"
-            android:theme="@style/Theme.Aircraft.Common" />
+            android:theme="@style/Theme.Aircraft.Compose" />
 
         <activity
             android:name=".gui.PrivacyPolicyAcceptActivity"
@@ -78,7 +82,7 @@
         <activity
             android:name=".gui.LaunchActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:theme="@style/Theme.Aircraft.Compose" />
         <activity
             android:name=".gui.OnboardingActivity"
             android:exported="false"
