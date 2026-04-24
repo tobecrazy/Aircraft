@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.AppDatabase
+import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
 import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.providers.SettingsRepository
@@ -119,6 +120,32 @@ class MainActivityTest {
         val gameContainer = activity.findViewById<android.widget.FrameLayout>(R.id.game_container)
         assertEquals(1, gameContainer.childCount)
         assertTrue(gameContainer.getChildAt(0) is com.young.aircraft.ui.GameCoreView)
+    }
+
+    @Test
+    fun `mission briefing reflects launch sector difficulty and airframe`() = runTest {
+        SettingsRepository(context).setDifficulty(GameDifficulty.HARD)
+
+        val intent = android.content.Intent(context, MainActivity::class.java).apply {
+            putExtra("start_level", 4)
+            putExtra("jet_plane_index", 2)
+            putExtra("jet_plane_res", com.young.aircraft.ui.Aircraft.JET_PLANES[2])
+        }
+        val activity = Robolectric.buildActivity(MainActivity::class.java, intent).create().get()
+        drainAsyncWork()
+
+        assertEquals(
+            activity.getString(R.string.game_hud_chip_sector, 4),
+            activity.findViewById<android.widget.TextView>(R.id.tv_sector_chip).text.toString()
+        )
+        assertEquals(
+            activity.getString(R.string.game_hud_chip_difficulty, activity.getString(R.string.difficulty_hard)),
+            activity.findViewById<android.widget.TextView>(R.id.tv_difficulty_chip).text.toString()
+        )
+        assertEquals(
+            activity.getString(R.string.game_hud_chip_airframe, 3),
+            activity.findViewById<android.widget.TextView>(R.id.tv_airframe_chip).text.toString()
+        )
     }
 
     @Test

@@ -124,8 +124,8 @@
   <rect x="280" y="238" width="180" height="8" fill="#7c3aed"/>
   <text x="370" y="240" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">MainActivity</text>
   <text x="370" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">GAME HOST</text>
-  <text x="370" y="275" text-anchor="middle" fill="#7c3aed" font-size="9">Hosts GameCoreView</text>
-  <text x="370" y="290" text-anchor="middle" fill="#7c3aed" font-size="9">Binds MusicService</text>
+  <text x="370" y="275" text-anchor="middle" fill="#7c3aed" font-size="8.7">Tactical shell + GameCoreView</text>
+  <text x="370" y="290" text-anchor="middle" fill="#7c3aed" font-size="8.7">Briefing card · Pause overlay · MusicService</text>
 
   <!-- HistoryActivity -->
   <rect x="520" y="224" width="180" height="80" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
@@ -243,7 +243,7 @@
   <rect x="940" y="512" width="160" height="7" fill="#0ea5e9"/>
   <text x="1020" y="514" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">DrawHeader</text>
   <text x="1020" y="535" text-anchor="middle" fill="#0369a1" font-size="8.5">HUD overlay</text>
-  <text x="1020" y="547" text-anchor="middle" fill="#0369a1" font-size="8.5">Level / HP / Timer / Kills / Freeze</text>
+  <text x="1020" y="547" text-anchor="middle" fill="#0369a1" font-size="8.2">Level / Hull / Timer / Score / Boss</text>
 
   <!-- Extends lines from DrawBaseObject -->
   <line x1="500" y1="426" x2="500" y2="435" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,2"/>

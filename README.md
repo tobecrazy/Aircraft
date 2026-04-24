@@ -36,6 +36,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 ## Highlights
 
 - Custom 30 FPS `SurfaceView` engine with no third-party game framework
+- Green tactical in-game shell for `MainActivity` with a mission-briefing card, pause overlay, and themed end-of-run dialogs
 - First-launch privacy acceptance flow with cinematic `StarFieldView`
 - Compose-powered two-page onboarding carousel with animated entrance effects
 - 10 levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
@@ -64,6 +65,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 ## Features
 
 - 12-way per-frame collision system covering enemies, bullets, bosses, rockets, and pickups
+- In-game briefing panel shows live launch context including sector, difficulty profile, and selected airframe
 - Particle-based explosion effects with flash, fireball, debris, and smoke phases
 - Screen shake, red damage flash, and low-health vignette effects
 - Background music via `MediaPlayer` and combat SFX via `SoundPool`
@@ -97,7 +99,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
 │   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
-│   ├── MainActivity.kt                 # Game host, dialogs, DB save flow
+│   ├── MainActivity.kt                 # Game host, tactical overlay shell, pause flow, dialogs, and DB save flow
 │   ├── HistoryActivity.kt              # History screen container
 │   ├── HistoryFragment.kt              # Leaderboard fragment
 │   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
@@ -144,6 +146,7 @@ app/src/main/java/com/young/aircraft/
 - `HistoryAdapterTest` for first-place badge visibility and gold score styling
 - `QRCodeToolActivityTest` for scan/generate screen state, dialog actions, and Settings navigation
 - `AboutMeActivityTest` for localized About Me copy, repo URL rendering, and back navigation
+- `MainActivityTest` for tactical overlay behavior, mission-briefing chips, and low-memory pause handling
 - `DrawBackgroundTest` for seamless mirrored tile coverage
 - `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior
 - `PlayerGameDataTest` for timestamp-aware data-class behavior

@@ -27,6 +27,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
+import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.ActivityMainBinding
@@ -103,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         )
-        configureOverlayUi()
+        configureOverlayUi(startLevel = startLevel, jetPlaneIndex = jetPlaneIndex)
         coreView.onGameOver = {
             showGameDialog(
                 badgeText = getString(R.string.game_over_badge),
@@ -174,7 +175,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun configureOverlayUi() {
+    private fun configureOverlayUi(startLevel: Int, jetPlaneIndex: Int) {
+        bindMissionBriefing(startLevel, jetPlaneIndex)
         binding.btnPause.setOnClickListener {
             showPauseOverlay()
         }
@@ -196,6 +198,17 @@ class MainActivity : AppCompatActivity() {
                     .start()
             }
         }, 4200)
+    }
+
+    private fun bindMissionBriefing(startLevel: Int, jetPlaneIndex: Int) {
+        val difficultyLabel = when (settingsRepository.getDifficulty()) {
+            GameDifficulty.EASY -> getString(R.string.difficulty_easy)
+            GameDifficulty.NORMAL -> getString(R.string.difficulty_normal)
+            GameDifficulty.HARD -> getString(R.string.difficulty_hard)
+        }
+        binding.tvSectorChip.text = getString(R.string.game_hud_chip_sector, startLevel)
+        binding.tvDifficultyChip.text = getString(R.string.game_hud_chip_difficulty, difficultyLabel)
+        binding.tvAirframeChip.text = getString(R.string.game_hud_chip_airframe, jetPlaneIndex + 1)
     }
 
     private fun showPauseOverlay() {
