@@ -6,11 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - `AboutMeActivityTest` to verify localized About Me labels, GitHub repo rendering, and back navigation under Robolectric
+- `MainActivityTest` coverage for the tactical overlay shell, mission-briefing chips, quit flow, and low-memory pause behavior
 - Class Diagram section in README with package overview table and key relationships summary
 - QR tool hero/status copy for English and Chinese plus dedicated neon drawables for preview, scan, and action states
 - Robolectric assertions covering QR tool ready/generated preview messaging
 
 ### Changed
+- `MainActivity` now hosts gameplay inside a green tactical shell with a pause overlay, mission-briefing card, and launch-context chips for sector, difficulty, and airframe
+- Gameplay HUD/dialog surfaces were refreshed to keep `MainActivity`, game dialogs, and the Hall of Heroes bottom sheet on a consistent green theme
 - `OnboardingActivity` migrated from ViewPager2 + Fragments + XML layouts to Jetpack Compose with `HorizontalPager`, `AnimatedVisibility`, and `AnimatedContent`
 - `StarFieldView` retained as a Canvas-based custom View wrapped via `AndroidView` composable
 - Onboarding tests rewritten with `createAndroidComposeRule` and Compose test tags

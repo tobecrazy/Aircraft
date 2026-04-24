@@ -1,6 +1,18 @@
 <resources>
     <string name="app_name">Aircraft</string>
     <string name="exit_warning_msg">Press again to save and exit</string>
+    <string name="pause_title">GAME PAUSED</string>
+    <string name="pause_resume">RESUME</string>
+    <string name="pause_quit">QUIT</string>
+    <string name="game_hud_pause">Pause</string>
+    <string name="game_hud_pause_badge">COMBAT HOLD</string>
+    <string name="game_hud_pause_summary">Combat systems are suspended. Resume when you are ready to re-enter the airspace.</string>
+    <string name="game_hud_tip_badge">TACTICAL BRIEF</string>
+    <string name="game_hud_tip_title">MISSION READY</string>
+    <string name="game_hud_tip_subtitle">Drag to move, auto-fire stays active, and clear the enemy quota before time expires.</string>
+    <string name="game_hud_chip_sector">SECTOR %1$d</string>
+    <string name="game_hud_chip_difficulty">PROFILE %1$s</string>
+    <string name="game_hud_chip_airframe">AIRFRAME %1$d</string>
     <string name="start_game">Start Game</string>
     <string name="start_history">History</string>
     <string name="game_settings">Game Settings</string>

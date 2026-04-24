@@ -23,7 +23,7 @@
         android:paddingHorizontal="12dp"
         android:paddingVertical="6dp"
         android:text="@string/hall_of_heroes_badge"
-        android:textColor="#FFF5C7"
+        android:textColor="#FFD9FFEC"
         android:textSize="11sp"
         android:textStyle="bold" />
 
@@ -42,7 +42,7 @@
         android:layout_marginTop="8dp"
         android:fontFamily="monospace"
         android:text="@string/hall_of_heroes_title"
-        android:textColor="#FFD45A"
+        android:textColor="#7DFFBB"
         android:textSize="24sp"
         android:textStyle="bold" />
 
@@ -73,7 +73,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
             android:text="@string/hall_of_heroes_prompt"
-            android:textColor="#99FFD45A"
+            android:textColor="#997DFFBB"
             android:textSize="12sp"
             android:textStyle="bold" />
 

@@ -7,19 +7,270 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white"
+        android:background="#020611"
+        android:fitsSystemWindows="false"
         tools:context=".gui.MainActivity">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/jet_plane"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:contentDescription="@string/app_name"
-            android:scaleType="fitCenter"
-            android:src="@drawable/jet_plane_2"
+        <FrameLayout
+            android:id="@+id/game_container"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:id="@+id/top_scrim"
+            android:layout_width="0dp"
+            android:layout_height="140dp"
+            android:background="@drawable/game_overlay_top_scrim"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_pause"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginEnd="18dp"
+            android:background="@drawable/game_action_chip_bg"
+            android:contentDescription="@string/game_hud_pause"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="44dp"
+            android:paddingStart="18dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="10dp"
+            android:text="@string/game_hud_pause"
+            android:textAllCaps="false"
+            android:textColor="#FFF7FBFF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:cornerRadius="22dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/game_tip_card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="26dp"
+            android:background="@drawable/game_hint_card_bg"
+            android:elevation="8dp"
+            android:gravity="start"
+            android:orientation="vertical"
+            android:paddingStart="18dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="14dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/tv_game_tip_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/game_action_chip_bg"
+                android:fontFamily="monospace"
+                android:paddingStart="10dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="5dp"
+                android:text="@string/game_hud_tip_badge"
+                android:textColor="#FFF3FFF8"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_game_tip_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.12"
+                android:text="@string/game_hud_tip_title"
+                android:textColor="#FFF0FFF7"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_game_tip_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="monospace"
+                android:text="@string/game_hud_tip_subtitle"
+                android:textColor="#B8E8D0"
+                android:textSize="12sp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp">
+
+                <TextView
+                    android:id="@+id/tv_sector_chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/game_meta_chip_bg"
+                    android:fontFamily="monospace"
+                    android:paddingStart="12dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="7dp"
+                    android:textColor="#FFE8FFF2"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_difficulty_chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/game_meta_chip_bg"
+                    android:fontFamily="monospace"
+                    android:paddingStart="12dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="7dp"
+                    android:textColor="#FFE8FFF2"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_airframe_chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/game_meta_chip_bg"
+                    android:fontFamily="monospace"
+                    android:paddingStart="12dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="7dp"
+                    android:textColor="#FFE8FFF2"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <androidx.constraintlayout.helper.widget.Flow
+                    android:id="@+id/game_tip_chip_flow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="tv_sector_chip,tv_difficulty_chip,tv_airframe_chip"
+                    app:flow_horizontalAlign="start"
+                    app:flow_horizontalGap="8dp"
+                    app:flow_verticalGap="8dp"
+                    app:flow_wrapMode="aligned"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/pause_overlay"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#9E020611"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:id="@+id/pause_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="28dp"
+                android:layout_marginEnd="28dp"
+                android:background="@drawable/game_pause_panel_bg"
+                android:elevation="14dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingStart="24dp"
+                android:paddingTop="24dp"
+                android:paddingEnd="24dp"
+                android:paddingBottom="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/game_action_chip_bg"
+                    android:fontFamily="monospace"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="@string/game_hud_pause_badge"
+                    android:textColor="#FFD6FFE9"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_pause_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:letterSpacing="0.08"
+                    android:text="@string/pause_title"
+                    android:textColor="#FFF4FFF9"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_pause_summary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:text="@string/game_hud_pause_summary"
+                    android:textColor="#B8E0C8"
+                    android:textSize="14sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_resume"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/game_primary_button_bg"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="50dp"
+                    android:text="@string/pause_resume"
+                    android:textAllCaps="false"
+                    android:textColor="#FF08130E"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_quit"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:backgroundTint="@android:color/transparent"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="50dp"
+                    android:text="@string/pause_quit"
+                    android:textAllCaps="false"
+                    android:textColor="#FFD8F2E4"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    app:strokeColor="#4D39D17A"
+                    app:strokeWidth="1dp" />
+            </LinearLayout>
+        </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

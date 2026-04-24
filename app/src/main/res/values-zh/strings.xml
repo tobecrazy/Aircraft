@@ -1,6 +1,18 @@
 <resources>
     <string name="app_name">飞机大战</string>
     <string name="exit_warning_msg">再按一次保存进度并退出</string>
+    <string name="pause_title">游戏暂停</string>
+    <string name="pause_resume">继续</string>
+    <string name="pause_quit">退出</string>
+    <string name="game_hud_pause">暂停</string>
+    <string name="game_hud_pause_badge">战斗冻结</string>
+    <string name="game_hud_pause_summary">战斗系统已暂停，准备好后可继续进入空域。</string>
+    <string name="game_hud_tip_badge">战术简报</string>
+    <string name="game_hud_tip_title">任务就绪</string>
+    <string name="game_hud_tip_subtitle">拖动战机移动，自动射击会持续开启，并在倒计时结束前清空目标击杀数。</string>
+    <string name="game_hud_chip_sector">区域 %1$d</string>
+    <string name="game_hud_chip_difficulty">配置 %1$s</string>
+    <string name="game_hud_chip_airframe">战机 %1$d</string>
     <string name="start_game">开始游戏</string>
     <string name="start_history">历史成绩</string>
     <string name="game_settings">游戏设置</string>

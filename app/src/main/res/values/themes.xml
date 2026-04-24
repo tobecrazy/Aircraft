@@ -84,8 +84,14 @@
         <item name="android:navigationBarColor" tools:targetApi="o_mr1">@color/transparent</item>
     </style>
 
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/dialog_exit</item>
+    </style>
+
     <style name="ThemeOverlay.Aircraft.HallOfHeroesBottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.Aircraft.HallOfHeroesBottomSheet</item>
+        <item name="android:backgroundDimAmount">0.75</item>
     </style>
 
     <style name="Widget.Aircraft.HallOfHeroesBottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
