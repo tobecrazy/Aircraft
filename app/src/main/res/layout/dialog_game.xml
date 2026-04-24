@@ -34,6 +34,7 @@
         android:textStyle="bold" />
 
     <View
+        android:id="@+id/dialog_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="14dp"
@@ -61,6 +62,7 @@
         android:visibility="gone">
 
         <LinearLayout
+            android:id="@+id/stat_card_1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
@@ -69,7 +71,7 @@
             android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="10dp"
-            android:paddingVertical="14dp">
+            android:paddingVertical="18dp">
 
             <TextView
                 android:id="@+id/stat_label_1"
@@ -87,11 +89,12 @@
                 android:layout_marginTop="6dp"
                 android:fontFamily="monospace"
                 android:textColor="#FFFFFF"
-                android:textSize="20sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/stat_card_2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
@@ -100,7 +103,7 @@
             android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="10dp"
-            android:paddingVertical="14dp">
+            android:paddingVertical="18dp">
 
             <TextView
                 android:id="@+id/stat_label_2"
@@ -118,7 +121,7 @@
                 android:layout_marginTop="6dp"
                 android:fontFamily="monospace"
                 android:textColor="#FFFFFF"
-                android:textSize="20sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

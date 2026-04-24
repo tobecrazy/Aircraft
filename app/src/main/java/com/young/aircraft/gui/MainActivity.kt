@@ -1,5 +1,6 @@
 package com.young.aircraft.gui
 
+import android.animation.ValueAnimator
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -11,6 +12,8 @@ import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -20,11 +23,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.GameState
 import com.young.aircraft.data.PlayerGameData
+import com.young.aircraft.databinding.ActivityMainBinding
 import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.service.MusicService
@@ -44,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var mService: MusicService
+    private lateinit var binding: ActivityMainBinding
     private lateinit var coreView: GameCoreView
     private var exitTime: Long = 0
     private var isExitInProgress = false
@@ -74,9 +80,14 @@ class MainActivity : AppCompatActivity() {
         playerId = settingsRepository.getOrCreateInstallId()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                exitApp()
+                if (binding.pauseOverlay.isVisible) {
+                    hidePauseOverlay()
+                } else {
+                    exitApp()
+                }
             }
         })
+        binding = ActivityMainBinding.inflate(layoutInflater)
         coreView = GameCoreView(this)
         val startLevel = intent.getIntExtra("start_level", 1)
         val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane_2)
@@ -84,7 +95,15 @@ class MainActivity : AppCompatActivity() {
         coreView.level = startLevel
         coreView.jetPlaneResId = jetPlaneRes
         coreView.jetPlaneIndex = jetPlaneIndex
-        setContentView(coreView)
+        setContentView(binding.root)
+        binding.gameContainer.addView(
+            coreView,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+        configureOverlayUi()
         coreView.onGameOver = {
             showGameDialog(
                 badgeText = getString(R.string.game_over_badge),
@@ -146,11 +165,91 @@ class MainActivity : AppCompatActivity() {
                 when (state) {
                     GameState.LOW_MEMORY -> {
                         coreView.pauseGame()
+                        showPauseOverlay()
                         Log.d("MainActivity", "Game paused due to low memory")
                     }
                     else -> {}
                 }
             }
+        }
+    }
+
+    private fun configureOverlayUi() {
+        binding.btnPause.setOnClickListener {
+            showPauseOverlay()
+        }
+        binding.btnResume.setOnClickListener {
+            hidePauseOverlay()
+        }
+        binding.btnQuit.setOnClickListener {
+            quitFromPauseOverlay()
+        }
+        binding.gameTipCard.postDelayed({
+            if (!isFinishing && !isDestroyed && binding.gameTipCard.isVisible) {
+                binding.gameTipCard.animate()
+                    .alpha(0f)
+                    .translationY(binding.gameTipCard.height / 3f)
+                    .setDuration(280)
+                    .withEndAction {
+                        binding.gameTipCard.isVisible = false
+                    }
+                    .start()
+            }
+        }, 4200)
+    }
+
+    private fun showPauseOverlay() {
+        if (binding.pauseOverlay.isVisible) return
+        coreView.pauseGame()
+        binding.pauseOverlay.apply {
+            alpha = 0f
+            isVisible = true
+            animate()
+                .alpha(1f)
+                .setDuration(180)
+                .start()
+        }
+        binding.pausePanel.apply {
+            alpha = 0f
+            scaleX = 0.94f
+            scaleY = 0.94f
+            animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(220)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+    }
+
+    private fun hidePauseOverlay(shouldResumeGame: Boolean = true) {
+        if (!binding.pauseOverlay.isVisible) return
+        binding.pauseOverlay.animate()
+            .alpha(0f)
+            .setDuration(160)
+            .withEndAction {
+                binding.pauseOverlay.isVisible = false
+            }
+            .start()
+        if (shouldResumeGame) {
+            coreView.resumeGame()
+        }
+    }
+
+    private fun quitFromPauseOverlay() {
+        if (isExitInProgress) return
+        isExitInProgress = true
+        hidePauseOverlay(shouldResumeGame = false)
+        lifecycleScope.launch {
+            runCatching {
+                if (shouldAutoSaveOnExit()) {
+                    saveGameData(coreView)
+                }
+            }.onFailure {
+                Log.e("MainActivity", "Failed to save progress from pause overlay", it)
+            }
+            finish()
         }
     }
 
@@ -198,18 +297,45 @@ class MainActivity : AppCompatActivity() {
         }
         if (stat1Label != null && stat2Label != null) {
             dialogView.findViewById<LinearLayout>(R.id.dialog_stats_container).visibility = View.VISIBLE
-            dialogView.findViewById<TextView>(R.id.stat_label_1).text = stat1Label
+            dialogView.findViewById<TextView>(R.id.stat_label_1).text = "\u2694 $stat1Label"
             dialogView.findViewById<TextView>(R.id.stat_value_1).text = stat1Value
-            dialogView.findViewById<TextView>(R.id.stat_label_2).text = stat2Label
+            dialogView.findViewById<TextView>(R.id.stat_label_2).text = "\u2605 $stat2Label"
             dialogView.findViewById<TextView>(R.id.stat_value_2).text = stat2Value
         }
+
+        val dividerColor = when (tone) {
+            DialogTone.Danger -> 0x44FF4444.toInt()
+            DialogTone.Success -> 0x4400FF88.toInt()
+        }
+        dialogView.findViewById<View>(R.id.dialog_divider).setBackgroundColor(dividerColor)
+
+        val statCardBg = when (tone) {
+            DialogTone.Danger -> R.drawable.dialog_stat_card_danger_bg
+            DialogTone.Success -> R.drawable.dialog_stat_card_bg
+        }
+        dialogView.findViewById<LinearLayout>(R.id.stat_card_1).setBackgroundResource(statCardBg)
+        dialogView.findViewById<LinearLayout>(R.id.stat_card_2).setBackgroundResource(statCardBg)
+
+        val statLabelColor = when (tone) {
+            DialogTone.Danger -> 0x88FF6F7E.toInt()
+            DialogTone.Success -> 0x88FFFFFF.toInt()
+        }
+        dialogView.findViewById<TextView>(R.id.stat_label_1).setTextColor(statLabelColor)
+        dialogView.findViewById<TextView>(R.id.stat_label_2).setTextColor(statLabelColor)
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .setCancelable(false)
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
+        dialog.window?.setDimAmount(0.7f)
+        val buttonBg = when (tone) {
+            DialogTone.Danger -> R.drawable.dialog_button_primary_danger
+            DialogTone.Success -> R.drawable.dialog_button_primary
+        }
         dialogView.findViewById<TextView>(R.id.dialog_positive_btn).apply {
             text = positiveText
+            setBackgroundResource(buttonBg)
             setOnClickListener {
                 dialog.dismiss()
                 onPositive()
@@ -226,6 +352,25 @@ class MainActivity : AppCompatActivity() {
             }
         }
         dialog.show()
+
+        if (stat1Value != null) {
+            val target1 = stat1Value.toIntOrNull() ?: 0
+            if (target1 > 0) animateCountUp(dialogView.findViewById(R.id.stat_value_1), target1)
+        }
+        if (stat2Value != null) {
+            val target2 = stat2Value.toIntOrNull() ?: 0
+            if (target2 > 0) animateCountUp(dialogView.findViewById(R.id.stat_value_2), target2, 1000)
+        }
+    }
+
+    private fun animateCountUp(textView: TextView, targetValue: Int, durationMs: Long = 800) {
+        ValueAnimator.ofInt(0, targetValue).apply {
+            duration = durationMs
+            interpolator = AccelerateDecelerateInterpolator()
+            startDelay = 200
+            addUpdateListener { textView.text = (it.animatedValue as Int).toString() }
+            start()
+        }
     }
 
     private fun showHallOfHeroesBottomSheet() {
@@ -270,6 +415,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog.show()
+        dialogView.alpha = 0f
+        dialogView.translationY = 120f
+        dialogView.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(350)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
         nameInput.requestFocus()
     }
 
@@ -338,9 +491,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            window.insetsController?.let { controller ->
+                controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        }
+    }
+
 
     override fun onStop() {
         super.onStop()
+        if (binding.pauseOverlay.isVisible) {
+            binding.pauseOverlay.clearAnimation()
+            binding.pauseOverlay.isVisible = false
+        }
         if (isServiceBound) {
             mService.backgroundSoundStop()
             unbindService(connection)

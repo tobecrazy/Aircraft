@@ -892,6 +892,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         isPaused = true
     }
 
+    fun resumeGame() {
+        isPaused = false
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         Log.d("YoungTest", "$event ---- $keyCode")
         drawAircraft.updateGame()

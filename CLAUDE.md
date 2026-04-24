@@ -13,23 +13,30 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 ```bash
 ./gradlew assembleDebug          # Build debug APK
 ./gradlew assembleRelease        # Build release APK
-./gradlew test                   # Run unit tests
+./gradlew test                   # Run unit tests (Robolectric + JUnit)
 ./gradlew testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"  # Single test class
 ./gradlew connectedAndroidTest   # Instrumented tests (requires device/emulator)
 ./gradlew clean                  # Clean build
 ./gradlew lint                   # Lint check
+./gradlew lintDebug              # Lint debug variant only (matches CI)
 ```
 
 ## Build Configuration
 
 - **Gradle:** 9.4.1, AGP 9.1.0 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.1.20-1.0.32
+- **Build files:** Groovy DSL (`build.gradle`, not `.gradle.kts`)
 - **SDK:** compileSdk 36, minSdk 30, targetSdk 36, buildToolsVersion 36.0.0
 - **Java:** 17
 - **Room:** 2.8.4
 - **Compose BOM:** 2026.03.01 (material3, foundation, activity-compose 1.13.0)
+- **Firebase:** BOM 34.12.0 (Analytics + Crashlytics)
+- **ZXing:** 3.5.4 (QR code generation/decoding)
+- **Networking:** Retrofit 3.0.0, OkHttp 5.3.2
+- **Test stack:** JUnit 4.13.2, Robolectric 4.16.1, Mockito 5.23.0/Kotlin 6.3.0, Compose UI test
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
 - `android.disallowKotlinSourceSets=false` in gradle.properties (required for KSP compatibility with AGP's built-in Kotlin)
+- Release signing reads from `keystore.properties` in project root (not checked in)
 
 ## Architecture
 
@@ -100,10 +107,13 @@ LaunchActivity (Theme.AppCompat.NoActionBar)
   ├─→ MainActivity (TransparentMaterialTheme) → GameCoreView (full-screen immersive game)
   │     Intent extras: "start_level" (Int), "jet_plane_res" (Int)
   ├─→ HistoryActivity (Theme.Aircraft.Common) → HistoryFragment → RecyclerView
+  ├─→ QRCodeToolActivity (Theme.Aircraft.Common) → QR scan/generate utility
   └─→ SettingsActivity (Theme.Aircraft.Common)
        ├─→ DeviceInfoActivity (device hardware/software info)
        ├─→ AboutAircraftActivity
-       └─→ PrivacyPolicyActivity (WebView)
+       ├─→ AboutMeActivity (Compose-based developer profile)
+       ├─→ PrivacyPolicyActivity (WebView)
+       └─→ DevelopSettingsActivity (debug builds only — crash testing, invincible-mode toggle)
 ```
 
 ### Game State Broadcasting
@@ -112,7 +122,7 @@ LaunchActivity (Theme.AppCompat.NoActionBar)
 
 ### Difficulty System
 
-User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Normal (`"1.0"`), Hard (`"0.8"`). The multiplier controls the player's fire rate accumulator in `Aircraft` (ui/).
+User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Normal (`"1.0"`), Hard (`"0.8"`). The multiplier controls the player's fire rate accumulator in `Aircraft` (ui/). The `GameDifficulty` enum (data/) maps these strings to `fireRateMultiplier` values.
 
 ### Audio
 
@@ -131,7 +141,7 @@ User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Norm
 
 ### Compose UI Layer
 
-All 12 GUI activities use Jetpack Compose (`setContent`) with Material3/MaterialComponents. There is no shared Compose theme — each activity uses hardcoded color constants matching the XML tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing.
+All GUI activities use Jetpack Compose (`setContent`) with Material3/MaterialComponents. There is no shared Compose theme — each activity uses hardcoded color constants matching the XML tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing.
 
 ## Key Gotchas
 
@@ -149,10 +159,13 @@ All game object bitmaps must have `bitmap.density = screenDensity` set for corre
 - Activities needing a solid background **must** set `android:theme="@style/Theme.Aircraft.Common"` in the manifest
 
 ### Localization
-English (default) and Chinese (`values-zh/strings.xml`).
+English (default) and Chinese (`values-zh/strings.xml`). A `StringResourceTest` verifies locale parity and usage coverage — when adding/removing strings, ensure both locales stay in sync to avoid test failures. Unused strings in `strings.xml` will also cause test failures; clean up orphans after refactors.
 
 ### CI
-GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew build` (compile + unit tests + lint) on push/PR to `main`, using JDK 17 (temurin).
+GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug lintDebug` on push/PR to `main`, using JDK 17 (temurin). Note: CI does **not** run unit tests — only compile and lint.
 
 ### Settings & Debug
 `SettingsRepository` (providers/) wraps SharedPreferences for difficulty, sound toggles, privacy acceptance, hit-shake effect, and a debug invincible-mode flag. `GameStateManager.isInvincible` exposes this flag to the game loop. Debug builds expose `DevelopSettingsActivity` (crash testing, invincible-mode toggle) from `SettingsActivity`.
+
+### Firebase
+Firebase Analytics and Crashlytics are integrated via the Firebase BOM. The `google-services.json` config file is required in `app/` for Firebase to initialize. Crashlytics plugin is applied in `app/build.gradle`.
