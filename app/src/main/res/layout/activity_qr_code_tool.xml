@@ -1,119 +1,215 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F1118"
+    android:orientation="vertical">
 
-    <data />
-
-    <LinearLayout
+    <RelativeLayout
+        android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#0F1118"
-        android:fitsSystemWindows="true"
-        android:orientation="vertical">
+        android:layout_height="60dp"
+        android:background="#161A26"
+        android:gravity="center_vertical">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:background="#161A26"
-            android:gravity="center_vertical">
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/history_cancel"
+            android:src="?attr/homeAsUpIndicator" />
 
-            <ImageButton
-                android:id="@+id/btn_back"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:layout_marginStart="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/history_cancel"
-                android:src="?attr/homeAsUpIndicator" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:gravity="center_horizontal"
+                android:letterSpacing="0.25"
+                android:text="@string/qr_code_tool_title"
+                android:textColor="#00FF88"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:typeface="monospace" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/qr_code_tool_summary"
+                android:textColor="#88FFFFFF"
+                android:textSize="10sp"
+                android:typeface="monospace" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#4400FF88" />
+
+    <FrameLayout
+        android:id="@+id/camera_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingStart="14dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="12dp"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/qr_tool_surface_panel_bg"
+            android:padding="14dp"
+            tools:ignore="UselessParent">
+
+            <SurfaceView
+                android:id="@+id/surface_camera"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+            <View
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:layout_gravity="center"
+                android:background="@drawable/qr_tool_scan_frame_bg" />
+
+            <View
+                android:id="@+id/scan_line"
+                android:layout_width="220dp"
+                android:layout_height="2dp"
+                android:layout_gravity="center_horizontal"
+                android:background="#8800FF88"
+                android:visibility="gone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:background="@drawable/qr_tool_status_pill_bg"
+                android:paddingStart="10dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="5dp"
+                android:text="@string/qr_code_tool_scan_section"
+                android:textColor="#D8E0EF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:typeface="monospace" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tv_scan_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:letterSpacing="0.25"
-                    android:text="@string/qr_code_tool_title"
-                    android:textColor="#00FF88"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:typeface="monospace" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/qr_code_tool_summary"
-                    android:textColor="#88FFFFFF"
-                    android:textSize="10sp"
-                    android:typeface="monospace" />
-            </LinearLayout>
-        </RelativeLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#4400FF88" />
-
-        <FrameLayout
-            android:id="@+id/camera_container"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:paddingStart="14dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="12dp"
-            android:visibility="gone">
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/qr_tool_surface_panel_bg"
-                android:padding="14dp"
-                tools:ignore="UselessParent">
-
-                <SurfaceView
-                    android:id="@+id/surface_camera"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="gone" />
-
-                <View
-                    android:layout_width="220dp"
-                    android:layout_height="220dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/qr_tool_scan_frame_bg" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top|start"
                     android:background="@drawable/qr_tool_status_pill_bg"
                     android:paddingStart="10dp"
                     android:paddingTop="5dp"
                     android:paddingEnd="10dp"
                     android:paddingBottom="5dp"
-                    android:text="@string/qr_code_tool_scan_section"
+                    android:textColor="#00FF88"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="@string/qr_code_tool_scan_hint"
                     android:textColor="#D8E0EF"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
+                    android:typeface="monospace" />
+
+                <TextView
+                    android:id="@+id/btn_pick_qr"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/qr_tool_secondary_action_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:text="@string/qr_code_tool_pick_gallery"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:typeface="monospace" />
+            </LinearLayout>
+        </FrameLayout>
+    </FrameLayout>
+
+    <ScrollView
+        android:id="@+id/scroll_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/device_info_hero_bg"
+                android:orientation="vertical"
+                android:paddingHorizontal="18dp"
+                android:paddingVertical="18dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/tv_scan_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/qr_tool_status_pill_bg"
+                        android:paddingStart="10dp"
+                        android:paddingTop="5dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="5dp"
+                        android:text="@string/qr_code_tool_hero_badge"
+                        android:textColor="#D8E0EF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/tv_hero_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/qr_tool_status_pill_bg"
@@ -122,355 +218,294 @@
                         android:paddingEnd="10dp"
                         android:paddingBottom="5dp"
                         android:textColor="#00FF88"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:typeface="monospace"
-                        android:visibility="gone" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:lineSpacingExtra="4dp"
-                        android:text="@string/qr_code_tool_scan_hint"
-                        android:textColor="#D8E0EF"
-                        android:textSize="12sp"
-                        android:typeface="monospace" />
-
-                    <TextView
-                        android:id="@+id/btn_pick_qr"
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/qr_tool_secondary_action_bg"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground"
-                        android:gravity="center"
-                        android:text="@string/qr_code_tool_pick_gallery"
-                        android:textColor="#FFFFFF"
-                        android:textSize="12sp"
+                        android:textSize="10sp"
                         android:textStyle="bold"
                         android:typeface="monospace" />
                 </LinearLayout>
-            </FrameLayout>
-        </FrameLayout>
 
-        <ScrollView
-            android:id="@+id/scroll_content"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:overScrollMode="never">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/qr_code_tool_title"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="14dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="@string/qr_code_tool_hero_description"
+                    android:textColor="#CDD2E0"
+                    android:textSize="13sp"
+                    android:typeface="monospace" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/device_info_hero_bg"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="18dp"
-                    android:paddingVertical="18dp">
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:layout_weight="1"
+                        android:background="@drawable/device_info_item_bg"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="12dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/qr_tool_status_pill_bg"
-                            android:paddingStart="10dp"
-                            android:paddingTop="5dp"
-                            android:paddingEnd="10dp"
-                            android:paddingBottom="5dp"
-                            android:text="@string/qr_code_tool_hero_badge"
-                            android:textColor="#D8E0EF"
+                            android:text="@string/qr_code_tool_scan_section"
+                            android:textColor="#88FFFFFF"
                             android:textSize="10sp"
                             android:textStyle="bold"
                             android:typeface="monospace" />
 
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="1dp"
-                            android:layout_weight="1" />
-
                         <TextView
-                            android:id="@+id/tv_hero_status"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/qr_tool_status_pill_bg"
-                            android:paddingStart="10dp"
-                            android:paddingTop="5dp"
-                            android:paddingEnd="10dp"
-                            android:paddingBottom="5dp"
-                            android:textColor="#00FF88"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
+                            android:layout_marginTop="6dp"
+                            android:lineSpacingExtra="4dp"
+                            android:text="@string/qr_code_tool_scan_card_hint"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
                             android:typeface="monospace" />
                     </LinearLayout>
 
-                    <TextView
-                        android:layout_width="match_parent"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:text="@string/qr_code_tool_title"
-                        android:textColor="#FFFFFF"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:typeface="monospace" />
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/device_info_item_bg"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/qr_code_tool_generate_section"
+                            android:textColor="#88FFFFFF"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:lineSpacingExtra="4dp"
+                            android:text="@string/qr_code_tool_generate_card_hint"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:typeface="monospace" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/device_info_card_bg"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="16dp">
+
+                <TextView
+                    android:id="@+id/tv_preview_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/qr_tool_status_pill_bg"
+                    android:paddingStart="10dp"
+                    android:paddingTop="5dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="5dp"
+                    android:text="@string/qr_code_tool_preview_section"
+                    android:textColor="#D8E0EF"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace" />
+
+                <TextView
+                    android:id="@+id/tv_preview_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace" />
+
+                <TextView
+                    android:id="@+id/tv_preview_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="4dp"
+                    android:textColor="#AAB4C8"
+                    android:textSize="12sp"
+                    android:typeface="monospace" />
+
+                <FrameLayout
+                    android:id="@+id/qr_preview_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/qr_tool_preview_frame_bg"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/iv_qr_code"
+                        android:layout_width="220dp"
+                        android:layout_height="220dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/qr_code_tool_qr_placeholder"
+                        android:padding="16dp"
+                        android:scaleType="fitCenter" />
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:id="@+id/tv_qr_placeholder"
+                        android:layout_width="190dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
                         android:lineSpacingExtra="4dp"
-                        android:text="@string/qr_code_tool_hero_description"
-                        android:textColor="#CDD2E0"
+                        android:text="@string/qr_code_tool_qr_placeholder"
+                        android:textColor="#88FFFFFF"
                         android:textSize="13sp"
                         android:typeface="monospace" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:baselineAligned="false"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:background="@drawable/device_info_item_bg"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/qr_code_tool_scan_section"
-                                android:textColor="#88FFFFFF"
-                                android:textSize="10sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="6dp"
-                                android:lineSpacingExtra="4dp"
-                                android:text="@string/qr_code_tool_scan_card_hint"
-                                android:textColor="#FFFFFF"
-                                android:textSize="12sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/device_info_item_bg"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/qr_code_tool_generate_section"
-                                android:textColor="#88FFFFFF"
-                                android:textSize="10sp"
-                                android:textStyle="bold"
-                                android:typeface="monospace" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="6dp"
-                                android:lineSpacingExtra="4dp"
-                                android:text="@string/qr_code_tool_generate_card_hint"
-                                android:textColor="#FFFFFF"
-                                android:textSize="12sp"
-                                android:typeface="monospace" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:background="@drawable/device_info_card_bg"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="16dp">
-
-                    <TextView
-                        android:id="@+id/tv_preview_badge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <ImageView
+                        android:id="@+id/btn_save_qr"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="bottom|end"
+                        android:layout_margin="8dp"
                         android:background="@drawable/qr_tool_status_pill_bg"
-                        android:paddingStart="10dp"
-                        android:paddingTop="5dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="5dp"
-                        android:text="@string/qr_code_tool_preview_section"
-                        android:textColor="#D8E0EF"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        android:typeface="monospace" />
-
-                    <TextView
-                        android:id="@+id/tv_preview_title"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:textColor="#FFFFFF"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:typeface="monospace" />
-
-                    <TextView
-                        android:id="@+id/tv_preview_hint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:lineSpacingExtra="4dp"
-                        android:textColor="#AAB4C8"
-                        android:textSize="12sp"
-                        android:typeface="monospace" />
-
-                    <FrameLayout
-                        android:id="@+id/qr_preview_container"
-                        android:visibility="gone"
-                        android:layout_width="match_parent"
-                        android:layout_height="260dp"
-                        android:layout_marginTop="14dp"
-                        android:background="@drawable/qr_tool_preview_frame_bg">
-
-                        <ImageView
-                            android:id="@+id/iv_qr_code"
-                            android:layout_width="220dp"
-                            android:layout_height="220dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/qr_code_tool_qr_placeholder"
-                            android:padding="16dp"
-                            android:scaleType="fitCenter" />
-
-                        <TextView
-                            android:id="@+id/tv_qr_placeholder"
-                            android:layout_width="190dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:gravity="center"
-                            android:lineSpacingExtra="4dp"
-                            android:text="@string/qr_code_tool_qr_placeholder"
-                            android:textColor="#88FFFFFF"
-                            android:textSize="13sp"
-                            android:typeface="monospace" />
-                    </FrameLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="22dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <View
-                        android:layout_width="3dp"
-                        android:layout_height="14dp"
-                        android:background="#00FF88" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:letterSpacing="0.2"
-                        android:text="@string/qr_code_tool_generate_section"
-                        android:textColor="#66FFFFFF"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:typeface="monospace" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="24dp"
-                    android:background="@drawable/device_info_card_bg"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="16dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:lineSpacingExtra="4dp"
-                        android:text="@string/qr_code_tool_editor_helper"
-                        android:textColor="#AAB4C8"
-                        android:textSize="12sp"
-                        android:typeface="monospace" />
-
-                    <com.young.aircraft.ui.RichTextEditorView
-                        android:id="@+id/rich_editor"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp" />
-
-                </LinearLayout>
+                        android:contentDescription="@string/qr_code_tool_save_button"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        android:padding="10dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_qr_save"
+                        android:visibility="gone" />
+                </FrameLayout>
             </LinearLayout>
-        </ScrollView>
 
-        <TextView
-            android:id="@+id/btn_generate_qr"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginStart="14dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="14dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/qr_tool_primary_action_bg"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            android:gravity="center"
-            android:text="@string/qr_code_tool_generate_button"
-            android:textColor="#08121A"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:typeface="monospace" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/btn_scan_qr"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginStart="14dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="14dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/qr_tool_secondary_action_bg"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            android:gravity="center"
-            android:text="@string/qr_code_tool_scan_button"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:typeface="monospace" />
-    </LinearLayout>
-</layout>
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="14dp"
+                    android:background="#00FF88" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:letterSpacing="0.2"
+                    android:text="@string/qr_code_tool_generate_section"
+                    android:textColor="#66FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:typeface="monospace" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/device_info_card_bg"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:lineSpacingExtra="4dp"
+                    android:text="@string/qr_code_tool_editor_helper"
+                    android:textColor="#AAB4C8"
+                    android:textSize="12sp"
+                    android:typeface="monospace" />
+
+                <com.young.aircraft.ui.RichTextEditorView
+                    android:id="@+id/rich_editor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/btn_generate_qr"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="14dp"
+        android:background="@drawable/qr_tool_primary_action_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:text="@string/qr_code_tool_generate_button"
+        android:textColor="#08121A"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:typeface="monospace" />
+
+    <TextView
+        android:id="@+id/btn_pick_gallery_idle"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="14dp"
+        android:background="@drawable/qr_tool_secondary_action_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:text="@string/qr_code_tool_pick_gallery"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:typeface="monospace"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/btn_scan_qr"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/qr_tool_secondary_action_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:text="@string/qr_code_tool_scan_button"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:typeface="monospace" />
+</LinearLayout>

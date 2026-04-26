@@ -199,6 +199,7 @@
     <string name="qr_code_tool_pick_gallery">从相册选择</string>
     <string name="qr_code_tool_invalid_qr">所选图片不包含有效的二维码</string>
     <string name="qr_code_tool_pick_failed">无法加载所选图片</string>
+    <string name="qr_code_tool_save_button">保存二维码</string>
     <string name="develop_settings_title">开发设置</string>
     <string name="develop_settings_summary">仅限调试使用的工具和崩溃测试</string>
     <string name="develop_settings_banner_summary">用于验证运行时开关、编辑器界面和崩溃上报的内部工具。</string>
