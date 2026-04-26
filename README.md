@@ -19,7 +19,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty` | Data models, Room persistence, game state enums |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` | 30 FPS rendering, collision detection, level progression |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `StarFieldView` | Activity screens, navigation, Compose UI |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
 | `providers/` | Gray | `DatabaseProvider`, `SettingsRepository` | Singleton DB provider, SharedPreferences wrapper |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils` | Screen metrics, bitmap utilities |
@@ -45,7 +45,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
 - Leaderboard top record highlighting with a medal/star badge and gold first-place styling
 - Compose-powered About Me and Onboarding screens with localized copy and smooth transition animations
-- Utility screens for history, QR code scanning/generation, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
+- Utility screens for history, QR code scanning/generation/save-to-device, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
 
@@ -70,7 +70,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Screen shake, red damage flash, and low-health vignette effects
 - Background music via `MediaPlayer` and combat SFX via `SoundPool`
 - Jet selection with 4 playable plane sprites and saved `jet_plane_index`
-- QR code utility with live camera scan, rich-text encoding input, and framed preview output
+- QR code utility with live camera scan, gallery image import, rich-text encoding input, framed preview output, and long-press save to device
 - Device information screen with CPU, memory, disk, battery, and network telemetry
 - Robolectric coverage for onboarding, privacy gate, QR tool flows, About Me Compose UI wiring, leaderboard styling, string parity, and gameplay formulas
 
@@ -104,7 +104,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── HistoryFragment.kt              # Leaderboard fragment
 │   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
 │   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
-│   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview and rich-text encoding
+│   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools
 │   ├── DeviceInfoActivity.kt           # Live system monitor
 │   ├── AboutAircraftActivity.kt        # Project overview and GitHub link
@@ -144,7 +144,7 @@ app/src/main/java/com/young/aircraft/
 - data-model tests for gameplay and persistence state classes
 - `GameCoreViewFormulaTest` for level duration and kill-target math
 - `HistoryAdapterTest` for first-place badge visibility and gold score styling
-- `QRCodeToolActivityTest` for scan/generate screen state, dialog actions, and Settings navigation
+- `QRCodeToolActivityTest` for scan/generate screen state, bottom-sheet result dialog, save-to-device flow, gallery pick button, and Settings navigation
 - `AboutMeActivityTest` for localized About Me copy, repo URL rendering, and back navigation
 - `MainActivityTest` for tactical overlay behavior, mission-briefing chips, and low-memory pause handling
 - `DrawBackgroundTest` for seamless mirrored tile coverage
@@ -191,12 +191,12 @@ Instrumented tests belong in `app/src/androidTest`.
 
 - **Version**: `1.2.3`
 - **Android Studio**: Meerkat (`2024.3.1`) or later
-- **Compile SDK**: `36`
+- **Compile SDK**: `37`
 - **Min SDK**: `30`
 - **Target SDK**: `36`
 - **Java**: `17`
 - **Gradle Wrapper**: `9.4.1`
-- **Android Gradle Plugin**: `9.1.0`
+- **Android Gradle Plugin**: `9.1.1`
 
 ## Build
 

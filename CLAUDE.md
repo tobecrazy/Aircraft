@@ -23,12 +23,12 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 
 ## Build Configuration
 
-- **Gradle:** 9.4.1, AGP 9.1.0 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.1.20-1.0.32
+- **Gradle:** 9.4.1, AGP 9.1.1 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.1.20-1.0.32
 - **Build files:** Groovy DSL (`build.gradle`, not `.gradle.kts`)
-- **SDK:** compileSdk 36, minSdk 30, targetSdk 36, buildToolsVersion 36.0.0
+- **SDK:** compileSdk 37, minSdk 30, targetSdk 36, buildToolsVersion 36.0.0
 - **Java:** 17
 - **Room:** 2.8.4
-- **Compose BOM:** 2026.03.01 (material3, foundation, activity-compose 1.13.0)
+- **Compose BOM:** 2026.04.01 (material3, foundation, activity-compose 1.13.0)
 - **Firebase:** BOM 34.12.0 (Analytics + Crashlytics)
 - **ZXing:** 3.5.4 (QR code generation/decoding)
 - **Networking:** Retrofit 3.0.0, OkHttp 5.3.2
@@ -85,7 +85,7 @@ Twelve checks run every frame in `GameCoreView.checkCollision()`:
 
 ### Activity Flow
 
-All GUI activities use Jetpack Compose (`setContent`) for their UI layer.
+Most GUI activities use ViewBinding with XML layouts. Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent`). Activities like `QRCodeToolActivity`, `HistoryActivity`, `LaunchActivity`, `SettingsActivity`, and `MainActivity` all use ViewBinding.
 
 ```
 PrivacyPolicyAcceptActivity (entry point, MAIN LAUNCHER, Theme.Aircraft.Common)
@@ -141,7 +141,7 @@ User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Norm
 
 ### Compose UI Layer
 
-All GUI activities use Jetpack Compose (`setContent`) with Material3/MaterialComponents. There is no shared Compose theme — each activity uses hardcoded color constants matching the XML tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing.
+Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent`) with Material3. There is no shared Compose theme — each uses hardcoded color constants matching the XML tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing.
 
 ## Key Gotchas
 
@@ -169,3 +169,9 @@ GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug l
 
 ### Firebase
 Firebase Analytics and Crashlytics are integrated via the Firebase BOM. The `google-services.json` config file is required in `app/` for Firebase to initialize. Crashlytics plugin is applied in `app/build.gradle`.
+
+### QR Code Inverted Colors
+Generated QR codes use **white modules on dark background** (`#0F1118`) for the tactical theme. This is the inverse of standard QR codes (black on white). When decoding these images from file, ZXing's binarizer must try `source.invert()` as a fallback, otherwise decode always fails. See `decodeQrFromBitmap()` in `QRCodeToolActivity`.
+
+### Bottom Sheet Dialogs
+`BottomSheetDialog` with transparent background is used in `MainActivity` (hall of heroes) and `QRCodeToolActivity` (scan results). Each has a matching `ThemeOverlay` style in `themes.xml` and a custom layout in `res/layout/bottom_sheet_*.xml`. The pattern: create dialog with theme → inflate layout → `setContentView` → set `design_bottom_sheet` background to transparent in `setOnShowListener`.
