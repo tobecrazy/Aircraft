@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.ImageFormat
 import android.hardware.camera2.CameraAccessException
@@ -22,10 +23,12 @@ import android.os.HandlerThread
 import android.view.SurfaceHolder
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
@@ -35,6 +38,7 @@ import com.google.zxing.MultiFormatReader
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
+import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.WriterException
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
@@ -54,6 +58,23 @@ class QRCodeToolActivity : AppCompatActivity() {
     private var isScanning = false
     private var isCameraOpening = false
     private var frameCounter = 0
+    private var generatedBitmap: Bitmap? = null
+
+    private val createDocumentLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("image/png")
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        val bitmap = generatedBitmap ?: return@registerForActivityResult
+        val saved = contentResolver.openOutputStream(uri)?.use { stream ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        } ?: false
+        Toast.makeText(
+            this,
+            if (saved) R.string.qr_code_tool_save_success else R.string.qr_code_tool_save_failed,
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
     private val scanSurfaceCallback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) {
             if (isScanning) openCamera()
@@ -74,6 +95,30 @@ class QRCodeToolActivity : AppCompatActivity() {
         ).show()
     }
 
+    private val pickMediaLauncher = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        try {
+            val options = BitmapFactory.Options().apply {
+                inPreferredConfig = Bitmap.Config.ARGB_8888
+            }
+            val rawBitmap = contentResolver.openInputStream(uri)?.use {
+                BitmapFactory.decodeStream(it, null, options)
+            }
+            if (rawBitmap == null) {
+                Toast.makeText(this, R.string.qr_code_tool_pick_failed, Toast.LENGTH_SHORT).show()
+                return@registerForActivityResult
+            }
+            val bitmap = if (rawBitmap.config != Bitmap.Config.ARGB_8888) {
+                rawBitmap.copy(Bitmap.Config.ARGB_8888, false).also { rawBitmap.recycle() }
+            } else rawBitmap
+            decodeQrFromBitmap(bitmap)
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.qr_code_tool_pick_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
@@ -86,6 +131,8 @@ class QRCodeToolActivity : AppCompatActivity() {
         setupScanButton()
         setupGenerateButton()
         setupEditor()
+        setupQrLongPress()
+        setupPickButton()
         renderContentState()
     }
 
@@ -308,16 +355,28 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     private fun onScanResult(result: String) {
         stopScanning()
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.qr_code_tool_scan_result)
-            .setMessage(result)
-            .setPositiveButton(android.R.string.ok, null)
-            .setNeutralButton(R.string.qr_code_tool_copy) { _, _ ->
-                val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
-                Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
-            }
-            .show()
+        val dialog = BottomSheetDialog(this, R.style.ThemeOverlay_Aircraft_QrToolBottomSheet)
+        val sheetView = dialog.layoutInflater.inflate(R.layout.bottom_sheet_scan_result, null)
+
+        sheetView.findViewById<android.widget.TextView>(R.id.tv_scan_result_text).text = result
+
+        sheetView.findViewById<android.widget.TextView>(R.id.btn_copy_result).setOnClickListener {
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
+            Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
+        }
+
+        sheetView.findViewById<android.widget.TextView>(R.id.btn_dismiss_result).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.setContentView(sheetView)
+        dialog.setOnShowListener {
+            dialog.findViewById<android.widget.FrameLayout>(
+                com.google.android.material.R.id.design_bottom_sheet
+            )?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        }
+        dialog.show()
     }
 
     private fun releaseCamera() {
@@ -366,10 +425,9 @@ class QRCodeToolActivity : AppCompatActivity() {
             if (hasQrPreview) R.string.qr_code_tool_preview_generated_title
             else R.string.qr_code_tool_preview_idle_title
         )
-        binding.tvPreviewHint.text = getString(
-            if (hasQrPreview) R.string.qr_code_tool_preview_generated_hint
-            else R.string.qr_code_tool_preview_idle_hint
-        )
+        binding.tvPreviewHint.text = if (hasQrPreview)
+            "${getString(R.string.qr_code_tool_preview_generated_hint)}\n${getString(R.string.qr_code_tool_save_hint)}"
+        else getString(R.string.qr_code_tool_preview_idle_hint)
         binding.qrPreviewContainer.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
         binding.tvQrPlaceholder.visibility = if (hasQrPreview) View.GONE else View.VISIBLE
         updateScanButton()
@@ -384,6 +442,55 @@ class QRCodeToolActivity : AppCompatActivity() {
             else R.drawable.qr_tool_secondary_action_bg
         )
         binding.btnGenerateQr.visibility =  if (isScanning) View.GONE else View.VISIBLE
+    }
+
+    // ── Save QR Code ────────────────────────────────────────
+
+    private fun setupQrLongPress() {
+        binding.ivQrCode.setOnLongClickListener {
+            if (generatedBitmap != null) {
+                saveQrToGallery()
+                true
+            } else false
+        }
+    }
+
+    private fun saveQrToGallery() {
+        if (generatedBitmap == null) return
+        createDocumentLauncher.launch("QRCode_${System.currentTimeMillis()}.png")
+    }
+
+    // ── Pick QR from Gallery ──────────────────────────────────
+
+    private fun setupPickButton() {
+        binding.btnPickQr.setOnClickListener {
+            pickMediaLauncher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        }
+    }
+
+    private fun decodeQrFromBitmap(bitmap: Bitmap) {
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        val source = RGBLuminanceSource(width, height, pixels)
+        val hints = mapOf(
+            DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+            DecodeHintType.CHARACTER_SET to "UTF-8",
+            DecodeHintType.TRY_HARDER to true
+        )
+        try {
+            val result = try {
+                MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source)), hints)
+            } catch (_: NotFoundException) {
+                MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source.invert())), hints)
+            }
+            onScanResult(result.text)
+        } catch (_: NotFoundException) {
+            Toast.makeText(this, R.string.qr_code_tool_invalid_qr, Toast.LENGTH_SHORT).show()
+        }
     }
 
     // ── Generate QR Code ───────────────────────────────────
@@ -419,6 +526,7 @@ class QRCodeToolActivity : AppCompatActivity() {
             }
             val bitmap = createBitmap(width, height)
             bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+            generatedBitmap = bitmap
 
             binding.ivQrCode.setImageBitmap(bitmap)
             renderContentState()

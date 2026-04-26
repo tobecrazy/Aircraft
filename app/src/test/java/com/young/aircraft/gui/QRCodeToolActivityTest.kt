@@ -2,13 +2,12 @@ package com.young.aircraft.gui
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.DialogInterface
+import android.graphics.Bitmap
 import android.view.SurfaceView
 import android.view.View
 import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
@@ -21,7 +20,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
-import org.robolectric.shadows.ShadowLooper
 import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
@@ -41,9 +39,6 @@ class QRCodeToolActivityTest {
         method.isAccessible = true
         method.invoke(activity, text)
     }
-
-    private fun getLatestAlertDialog(): AlertDialog? =
-        ShadowDialog.getLatestDialog() as? AlertDialog
 
     // ── Activity lifecycle ───────────────────────────────────
 
@@ -265,64 +260,51 @@ class QRCodeToolActivityTest {
         }
     }
 
-    // ── Scan result dialog ───────────────────────────────────
+    // ── Scan result bottom sheet ──────────────────────────────
 
     @Test
-    fun `onScanResult shows dialog`() {
+    fun `onScanResult shows bottom sheet`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "https://example.com")
 
-                val dialog = getLatestAlertDialog()
-                assertNotNull("Dialog should be shown", dialog)
+                val dialog = ShadowDialog.getLatestDialog()
+                assertNotNull("Bottom sheet dialog should be shown", dialog)
                 assertTrue(dialog!!.isShowing)
             }
         }
     }
 
     @Test
-    fun `onScanResult dialog shows scanned text`() {
+    fun `onScanResult bottom sheet shows scanned text`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "Hello QR")
 
-                val dialog = getLatestAlertDialog()!!
-                val messageView = dialog.findViewById<TextView>(android.R.id.message)
-                assertEquals("Hello QR", messageView?.text.toString())
+                val dialog = ShadowDialog.getLatestDialog()!!
+                val resultText = dialog.findViewById<TextView>(R.id.tv_scan_result_text)
+                assertEquals("Hello QR", resultText?.text.toString())
             }
         }
     }
 
     @Test
-    fun `onScanResult dialog has OK and Copy buttons`() {
+    fun `onScanResult bottom sheet has copy and dismiss buttons`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "test")
 
-                val dialog = getLatestAlertDialog()!!
-                assertNotNull(dialog.getButton(AlertDialog.BUTTON_POSITIVE))
-
-                val copyButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+                val dialog = ShadowDialog.getLatestDialog()!!
+                val copyButton = dialog.findViewById<TextView>(R.id.btn_copy_result)
+                val dismissButton = dialog.findViewById<TextView>(R.id.btn_dismiss_result)
                 assertNotNull("Copy button should exist", copyButton)
+                assertNotNull("Dismiss button should exist", dismissButton)
                 assertEquals(
-                    context.getString(R.string.qr_code_tool_copy),
-                    copyButton.text.toString()
+                    context.getString(R.string.qr_code_tool_copy_result),
+                    copyButton?.text.toString()
                 )
             }
         }
-    }
-
-    private fun clickDialogButton(dialog: AlertDialog, which: Int) {
-        val button = dialog.getButton(which)
-        val alertField = AlertDialog::class.java.getDeclaredField("mAlert")
-        alertField.isAccessible = true
-        val alertController = alertField.get(dialog)
-        val field = alertController.javaClass.getDeclaredField("mButtonHandler")
-        field.isAccessible = true
-        val mButtonHandler = field.get(alertController) as View.OnClickListener
-        mButtonHandler.onClick(button)
-        // The ButtonHandler posts a Message — flush the main looper to process it
-        ShadowLooper.idleMainLooper()
     }
 
     @Test
@@ -331,8 +313,8 @@ class QRCodeToolActivityTest {
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "clipboard test 你好")
 
-                val dialog = getLatestAlertDialog()!!
-                clickDialogButton(dialog, DialogInterface.BUTTON_NEUTRAL)
+                val dialog = ShadowDialog.getLatestDialog()!!
+                dialog.findViewById<TextView>(R.id.btn_copy_result)!!.performClick()
 
                 val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 assertEquals("clipboard test 你好", clipboard.primaryClip?.getItemAt(0)?.text)
@@ -346,8 +328,8 @@ class QRCodeToolActivityTest {
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "toast test")
 
-                val dialog = getLatestAlertDialog()!!
-                clickDialogButton(dialog, DialogInterface.BUTTON_NEUTRAL)
+                val dialog = ShadowDialog.getLatestDialog()!!
+                dialog.findViewById<TextView>(R.id.btn_copy_result)!!.performClick()
 
                 assertEquals(
                     context.getString(R.string.qr_code_tool_copied),
@@ -358,14 +340,14 @@ class QRCodeToolActivityTest {
     }
 
     @Test
-    fun `onScanResult dialog shows Chinese text correctly`() {
+    fun `onScanResult bottom sheet shows Chinese text correctly`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "二维码扫描结果")
 
-                val dialog = getLatestAlertDialog()!!
-                val messageView = dialog.findViewById<TextView>(android.R.id.message)
-                assertEquals("二维码扫描结果", messageView?.text.toString())
+                val dialog = ShadowDialog.getLatestDialog()!!
+                val resultText = dialog.findViewById<TextView>(R.id.tv_scan_result_text)
+                assertEquals("二维码扫描结果", resultText?.text.toString())
             }
         }
     }
@@ -397,6 +379,149 @@ class QRCodeToolActivityTest {
                 assertEquals(
                     context.getString(R.string.qr_code_tool_input_hint),
                     editor.editor.hint.toString()
+                )
+            }
+        }
+    }
+
+    // ── Pick from Gallery button ────────────────────────────
+
+    @Test
+    fun `pick button exists in layout`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val btnPick = activity.findViewById<TextView>(R.id.btn_pick_qr)
+                assertNotNull("Pick from Gallery button should exist", btnPick)
+            }
+        }
+    }
+
+    @Test
+    fun `pick button is inside camera container`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val btnPick = activity.findViewById<View>(R.id.btn_pick_qr)
+                val cameraContainer = activity.findViewById<View>(R.id.camera_container)
+
+                var parent = btnPick.parent
+                var found = false
+                while (parent != null) {
+                    if (parent === cameraContainer) {
+                        found = true
+                        break
+                    }
+                    parent = (parent as? View)?.parent
+                }
+                assertTrue("Pick button must be a descendant of camera_container", found)
+            }
+        }
+    }
+
+    @Test
+    fun `pick button has correct label`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val btnPick = activity.findViewById<TextView>(R.id.btn_pick_qr)
+                assertEquals(
+                    context.getString(R.string.qr_code_tool_pick_gallery),
+                    btnPick.text.toString()
+                )
+            }
+        }
+    }
+
+    // ── Long-press save ─────────────────────────────────────
+
+    @Test
+    fun `QR image has long click listener`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
+                assertTrue("ivQrCode should be long clickable", ivQrCode.isLongClickable)
+            }
+        }
+    }
+
+    @Test
+    fun `long click without generated bitmap returns false`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
+                val consumed = ivQrCode.performLongClick()
+                assertFalse("Long click should not be consumed without a generated bitmap", consumed)
+            }
+        }
+    }
+
+    @Test
+    fun `long click after generating QR code is consumed`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
+                editor.editor.setText("save test")
+                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
+
+                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
+                val consumed = ivQrCode.performLongClick()
+                assertTrue("Long click should be consumed after QR generation", consumed)
+            }
+        }
+    }
+
+    @Test
+    fun `long click after generating QR launches file picker intent`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
+                editor.editor.setText("save picker test")
+                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
+
+                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
+                ivQrCode.performLongClick()
+
+                val intent = shadowOf(activity).nextStartedActivityForResult
+                assertNotNull("File picker intent should be launched", intent)
+            }
+        }
+    }
+
+    // ── Preview hint includes save hint after generation ─────
+
+    @Test
+    fun `preview hint includes save hint after generation`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
+                editor.editor.setText("hint test")
+                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
+
+                val previewHint = activity.findViewById<TextView>(R.id.tv_preview_hint)
+                assertTrue(
+                    "Preview hint should contain save hint after generation",
+                    previewHint.text.toString().contains(
+                        context.getString(R.string.qr_code_tool_save_hint)
+                    )
+                )
+            }
+        }
+    }
+
+    // ── decodeQrFromBitmap ──────────────────────────────────
+
+    @Test
+    fun `decodeQrFromBitmap with non-QR bitmap shows invalid toast`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val nonQrBitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+
+                val method = QRCodeToolActivity::class.java
+                    .getDeclaredMethod("decodeQrFromBitmap", Bitmap::class.java)
+                method.isAccessible = true
+                method.invoke(activity, nonQrBitmap)
+
+                assertEquals(
+                    context.getString(R.string.qr_code_tool_invalid_qr),
+                    ShadowToast.getTextOfLatestToast()
                 )
             }
         }

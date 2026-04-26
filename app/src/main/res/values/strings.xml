@@ -188,9 +188,17 @@
     <string name="qr_code_tool_content_too_long">Content is too long for a QR code. Please shorten your text.</string>
     <string name="qr_code_tool_copy">Copy</string>
     <string name="qr_code_tool_copied">Copied to clipboard</string>
+    <string name="qr_code_tool_copy_result">Copy Result</string>
+    <string name="qr_code_tool_scan_result_label">DECODED CONTENT</string>
     <string name="qr_code_tool_camera_rationale_title">Camera Permission Needed</string>
     <string name="qr_code_tool_camera_rationale_message">The camera is used to scan QR codes. Please grant camera access to use this feature.</string>
     <string name="qr_code_tool_camera_rationale_ok">Continue</string>
+    <string name="qr_code_tool_save_success">QR code saved to gallery</string>
+    <string name="qr_code_tool_save_failed">Failed to save QR code</string>
+    <string name="qr_code_tool_save_hint">Long press QR code to save</string>
+    <string name="qr_code_tool_pick_gallery">Pick from Gallery</string>
+    <string name="qr_code_tool_invalid_qr">Selected image does not contain a valid QR code</string>
+    <string name="qr_code_tool_pick_failed">Failed to load selected image</string>
     <string name="develop_settings_title">Develop Settings</string>
     <string name="develop_settings_summary">Debug-only tools and crash testing</string>
     <string name="develop_settings_banner_summary">Internal tools for validating runtime flags, editor surfaces, and crash reporting.</string>
