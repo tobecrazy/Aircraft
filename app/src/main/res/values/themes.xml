@@ -98,4 +98,13 @@
         <item name="android:background">@android:color/transparent</item>
     </style>
 
+    <style name="ThemeOverlay.Aircraft.QrToolBottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Aircraft.QrToolBottomSheet</item>
+        <item name="android:backgroundDimAmount">0.75</item>
+    </style>
+
+    <style name="Widget.Aircraft.QrToolBottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
 </resources>

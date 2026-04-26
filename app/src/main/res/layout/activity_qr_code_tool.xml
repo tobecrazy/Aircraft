@@ -136,6 +136,22 @@
                         android:textColor="#D8E0EF"
                         android:textSize="12sp"
                         android:typeface="monospace" />
+
+                    <TextView
+                        android:id="@+id/btn_pick_qr"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/qr_tool_secondary_action_bg"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:gravity="center"
+                        android:text="@string/qr_code_tool_pick_gallery"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
                 </LinearLayout>
             </FrameLayout>
         </FrameLayout>
