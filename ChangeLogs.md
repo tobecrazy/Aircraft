@@ -10,6 +10,13 @@ All notable changes to this project will be documented in this file.
 - Class Diagram section in README with package overview table and key relationships summary
 - QR tool hero/status copy for English and Chinese plus dedicated neon drawables for preview, scan, and action states
 - Robolectric assertions covering QR tool ready/generated preview messaging
+- Long-press save-to-device for generated QR codes via system file picker (`CreateDocument`), with editable filename and user-chosen save location
+- Pick-from-gallery for QR scanning via Android photo picker (`PickVisualMedia`), with ZXing `RGBLuminanceSource` decode and inverted-luminance fallback for white-on-dark QR codes
+- Bottom sheet scan result dialog (`BottomSheetDialog`) with selectable result text, Copy Result button, and tactical theme styling
+- `bottom_sheet_scan_result.xml` layout and `qr_tool_sheet_background.xml` drawable for the QR scan result bottom sheet
+- `ThemeOverlay.Aircraft.QrToolBottomSheet` style for the QR tool bottom sheet dialog
+- New localized strings for QR save, gallery pick, invalid QR, and scan result copy in both English and Chinese
+- Unit tests for QR save flow (file picker intent launch), gallery pick button, long-click behavior, bottom sheet result display, copy-to-clipboard, and inverted QR bitmap decode
 
 ### Changed
 - `MainActivity` now hosts gameplay inside a green tactical shell with a pause overlay, mission-briefing card, and launch-context chips for sector, difficulty, and airframe
@@ -24,6 +31,11 @@ All notable changes to this project will be documented in this file.
 - Architecture diagram summary added with packages, threading model, and first-launch gate chain
 - `QRCodeToolActivity` now uses a hero-card layout, framed output panel, full-height camera scan state, and persistent bottom scan action instead of the previous flat stacked layout
 - QR tool state handling now renders idle/scanning/generated preview text explicitly and reuses a single `SurfaceHolder.Callback`
+- QR scan result display changed from `MaterialAlertDialogBuilder` to a styled `BottomSheetDialog` with Copy Result button
+- QR tool camera scan view now includes a "Pick from Gallery" button for decoding QR codes from saved images
+- QR tool preview hint now shows "Long press QR code to save" after generation
+- Bumped compileSdk to 37, AGP to 9.1.1, Compose BOM to 2026.04.01
+- `CLAUDE.md` updated with corrected build versions, accurate Compose/ViewBinding activity mapping, and new gotchas for inverted QR colors and bottom sheet dialog pattern
 
 ### Removed
 - `OnboardingFragments.kt` (Controls + Power-ups fragments replaced by Compose pages)

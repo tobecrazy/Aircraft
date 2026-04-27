@@ -526,4 +526,95 @@ class QRCodeToolActivityTest {
             }
         }
     }
+
+    // ── Save button overlay ─────────────────────────────────────
+
+    @Test
+    fun `save button is hidden initially`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val btnSave = activity.findViewById<ImageView>(R.id.btn_save_qr)
+                assertNotNull("Save button should exist", btnSave)
+                assertEquals(View.GONE, btnSave.visibility)
+            }
+        }
+    }
+
+    @Test
+    fun `save button is visible after generating QR`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
+                editor.editor.setText("save button test")
+                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
+
+                val btnSave = activity.findViewById<ImageView>(R.id.btn_save_qr)
+                assertEquals(View.VISIBLE, btnSave.visibility)
+            }
+        }
+    }
+
+    @Test
+    fun `save button click launches file picker`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
+                editor.editor.setText("save icon test")
+                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
+
+                activity.findViewById<View>(R.id.btn_save_qr).performClick()
+
+                val intent = shadowOf(activity).nextStartedActivityForResult
+                assertNotNull("File picker intent should be launched", intent)
+            }
+        }
+    }
+
+    // ── Idle gallery pick button ───────────────────────────────
+
+    @Test
+    fun `idle gallery pick button exists`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val btn = activity.findViewById<TextView>(R.id.btn_pick_gallery_idle)
+                assertNotNull("Idle gallery pick button should exist", btn)
+            }
+        }
+    }
+
+    @Test
+    fun `idle gallery pick button is visible`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val btn = activity.findViewById<TextView>(R.id.btn_pick_gallery_idle)
+                assertEquals(View.VISIBLE, btn.visibility)
+            }
+        }
+    }
+
+    @Test
+    fun `idle gallery pick button has correct label`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val btn = activity.findViewById<TextView>(R.id.btn_pick_gallery_idle)
+                assertEquals(
+                    context.getString(R.string.qr_code_tool_pick_gallery),
+                    btn.text.toString()
+                )
+            }
+        }
+    }
+
+    // ── Scan line ───────────────────────────────────────────────
+
+    @Test
+    fun `scan line view exists and is hidden initially`() {
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val scanLine = activity.findViewById<View>(R.id.scan_line)
+                assertNotNull("Scan line should exist", scanLine)
+                assertEquals(View.GONE, scanLine.visibility)
+            }
+        }
+    }
 }

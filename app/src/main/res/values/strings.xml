@@ -199,6 +199,7 @@
     <string name="qr_code_tool_pick_gallery">Pick from Gallery</string>
     <string name="qr_code_tool_invalid_qr">Selected image does not contain a valid QR code</string>
     <string name="qr_code_tool_pick_failed">Failed to load selected image</string>
+    <string name="qr_code_tool_save_button">Save QR Code</string>
     <string name="develop_settings_title">Develop Settings</string>
     <string name="develop_settings_summary">Debug-only tools and crash testing</string>
     <string name="develop_settings_banner_summary">Internal tools for validating runtime flags, editor surfaces, and crash reporting.</string>

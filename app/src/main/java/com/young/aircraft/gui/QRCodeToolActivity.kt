@@ -1,6 +1,8 @@
 package com.young.aircraft.gui
 
 import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.pm.PackageManager
@@ -28,6 +30,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.core.view.updatePadding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
@@ -40,6 +48,7 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.WriterException
+import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
@@ -59,6 +68,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     private var isCameraOpening = false
     private var frameCounter = 0
     private var generatedBitmap: Bitmap? = null
+    private var scanLineAnimator: ObjectAnimator? = null
 
     private val createDocumentLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("image/png")
@@ -123,8 +133,24 @@ class QRCodeToolActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
+
         binding = ActivityQrCodeToolBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.header.updatePadding(top = systemBars.top)
+            binding.btnScanQr.updatePadding(bottom = systemBars.bottom)
+            insets
+        }
+
         binding.surfaceCamera.holder.addCallback(scanSurfaceCallback)
 
         setupHeader()
@@ -133,7 +159,26 @@ class QRCodeToolActivity : AppCompatActivity() {
         setupEditor()
         setupQrLongPress()
         setupPickButton()
+        setupSaveButton()
+        setupIdleGalleryPickButton()
+        setupAccessibility()
         renderContentState()
+    }
+
+    private fun setupAccessibility() {
+        val buttonDelegate = object : androidx.core.view.AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(
+                host: View,
+                info: AccessibilityNodeInfoCompat
+            ) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.className = "android.widget.Button"
+            }
+        }
+        ViewCompat.setAccessibilityDelegate(binding.btnGenerateQr, buttonDelegate)
+        ViewCompat.setAccessibilityDelegate(binding.btnScanQr, buttonDelegate)
+        ViewCompat.setAccessibilityDelegate(binding.btnPickQr, buttonDelegate)
+        ViewCompat.setAccessibilityDelegate(binding.btnPickGalleryIdle, buttonDelegate)
     }
 
     private fun setupHeader() {
@@ -184,7 +229,20 @@ class QRCodeToolActivity : AppCompatActivity() {
         renderScanningState()
         startBackgroundThread()
 
-        // If surface is already available, open camera immediately
+        val scanLine = binding.scanLine
+        scanLine.visibility = View.VISIBLE
+        scanLine.post {
+            val parent = scanLine.parent as? View ?: return@post
+            val topOfFrame = 0f
+            val bottomOfFrame = (parent.height - scanLine.height).toFloat()
+            scanLineAnimator = ObjectAnimator.ofFloat(scanLine, "y", topOfFrame, bottomOfFrame).apply {
+                duration = 2000
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.REVERSE
+                start()
+            }
+        }
+
         if (binding.surfaceCamera.holder.surface.isValid) {
             openCamera()
         }
@@ -192,6 +250,9 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     private fun stopScanning() {
         isScanning = false
+        scanLineAnimator?.cancel()
+        scanLineAnimator = null
+        binding.scanLine.visibility = View.GONE
         releaseCamera()
         stopBackgroundThread()
         renderContentState()
@@ -360,13 +421,28 @@ class QRCodeToolActivity : AppCompatActivity() {
 
         sheetView.findViewById<android.widget.TextView>(R.id.tv_scan_result_text).text = result
 
-        sheetView.findViewById<android.widget.TextView>(R.id.btn_copy_result).setOnClickListener {
+        val btnCopy = sheetView.findViewById<android.widget.TextView>(R.id.btn_copy_result)
+        val btnDismiss = sheetView.findViewById<android.widget.TextView>(R.id.btn_dismiss_result)
+
+        val sheetButtonDelegate = object : androidx.core.view.AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(
+                host: View,
+                info: AccessibilityNodeInfoCompat
+            ) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.className = "android.widget.Button"
+            }
+        }
+        ViewCompat.setAccessibilityDelegate(btnCopy, sheetButtonDelegate)
+        ViewCompat.setAccessibilityDelegate(btnDismiss, sheetButtonDelegate)
+
+        btnCopy.setOnClickListener {
             val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
             clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
             Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
         }
 
-        sheetView.findViewById<android.widget.TextView>(R.id.btn_dismiss_result).setOnClickListener {
+        btnDismiss.setOnClickListener {
             dialog.dismiss()
         }
 
@@ -403,20 +479,45 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun renderScanningState() {
-        binding.scrollContent.visibility = View.GONE
+        binding.cameraContainer.alpha = 0f
         binding.cameraContainer.visibility = View.VISIBLE
         binding.surfaceCamera.visibility = View.VISIBLE
         binding.tvScanStatus.visibility = View.VISIBLE
         binding.tvScanStatus.text = getString(R.string.qr_code_tool_scanning)
+
+        binding.scrollContent.animate().alpha(0f).setDuration(200).withEndAction {
+            binding.scrollContent.visibility = View.GONE
+            binding.cameraContainer.animate().alpha(1f).setDuration(200).start()
+        }.start()
+
         updateScanButton()
     }
 
     private fun renderContentState() {
         val hasQrPreview = binding.ivQrCode.drawable != null
-        binding.cameraContainer.visibility = View.GONE
+        if (binding.cameraContainer.visibility == View.VISIBLE) {
+            binding.cameraContainer.animate().alpha(0f).setDuration(200).withEndAction {
+                binding.cameraContainer.visibility = View.GONE
+                showContentArea(hasQrPreview, animate = true)
+            }.start()
+        } else {
+            binding.cameraContainer.visibility = View.GONE
+            showContentArea(hasQrPreview, animate = false)
+        }
+        updateScanButton()
+    }
+
+    private fun showContentArea(hasQrPreview: Boolean, animate: Boolean = false) {
         binding.surfaceCamera.visibility = View.GONE
         binding.tvScanStatus.visibility = View.GONE
-        binding.scrollContent.visibility = View.VISIBLE
+        if (animate) {
+            binding.scrollContent.alpha = 0f
+            binding.scrollContent.visibility = View.VISIBLE
+            binding.scrollContent.animate().alpha(1f).setDuration(200).start()
+        } else {
+            binding.scrollContent.alpha = 1f
+            binding.scrollContent.visibility = View.VISIBLE
+        }
         binding.tvHeroStatus.text = getString(
             if (hasQrPreview) R.string.qr_code_tool_status_generated
             else R.string.qr_code_tool_status_ready
@@ -430,7 +531,7 @@ class QRCodeToolActivity : AppCompatActivity() {
         else getString(R.string.qr_code_tool_preview_idle_hint)
         binding.qrPreviewContainer.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
         binding.tvQrPlaceholder.visibility = if (hasQrPreview) View.GONE else View.VISIBLE
-        updateScanButton()
+        binding.btnSaveQr.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
     }
 
     private fun updateScanButton() {
@@ -441,7 +542,8 @@ class QRCodeToolActivity : AppCompatActivity() {
             if (isScanning) R.drawable.qr_tool_stop_action_bg
             else R.drawable.qr_tool_secondary_action_bg
         )
-        binding.btnGenerateQr.visibility =  if (isScanning) View.GONE else View.VISIBLE
+        binding.btnGenerateQr.visibility = if (isScanning) View.GONE else View.VISIBLE
+        binding.btnPickGalleryIdle.visibility = if (isScanning) View.GONE else View.VISIBLE
     }
 
     // ── Save QR Code ────────────────────────────────────────
@@ -470,27 +572,76 @@ class QRCodeToolActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupSaveButton() {
+        binding.btnSaveQr.setOnClickListener { saveQrToGallery() }
+    }
+
+    private fun setupIdleGalleryPickButton() {
+        binding.btnPickGalleryIdle.setOnClickListener {
+            pickMediaLauncher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        }
+    }
+
     private fun decodeQrFromBitmap(bitmap: Bitmap) {
-        val width = bitmap.width
-        val height = bitmap.height
-        val pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        val source = RGBLuminanceSource(width, height, pixels)
         val hints = mapOf(
             DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
             DecodeHintType.CHARACTER_SET to "UTF-8",
             DecodeHintType.TRY_HARDER to true
         )
-        try {
-            val result = try {
-                MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source)), hints)
-            } catch (_: NotFoundException) {
-                MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source.invert())), hints)
-            }
-            onScanResult(result.text)
-        } catch (_: NotFoundException) {
+        val scaled800 = scaleBitmapDown(bitmap, 800)
+        val scaled400 = scaleBitmapDown(bitmap, 400)
+        val result = tryDecodeBitmap(bitmap, hints)
+            ?: tryDecodeBitmap(scaled800, hints)
+            ?: tryDecodeBitmap(scaled400, hints)
+            ?: tryDecodeBitmap(cropCenter(bitmap, 0.6f), hints)
+            ?: tryDecodeBitmap(cropCenter(scaled800, 0.6f), hints)
+        if (result != null) {
+            onScanResult(result)
+        } else {
             Toast.makeText(this, R.string.qr_code_tool_invalid_qr, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun tryDecodeBitmap(bitmap: Bitmap, hints: Map<DecodeHintType, Any>): String? {
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        val source = RGBLuminanceSource(width, height, pixels)
+        val reader = MultiFormatReader()
+        try {
+            return reader.decode(BinaryBitmap(HybridBinarizer(source)), hints).text
+        } catch (_: NotFoundException) {}
+        try {
+            return reader.decode(BinaryBitmap(HybridBinarizer(source.invert())), hints).text
+        } catch (_: NotFoundException) {}
+        try {
+            return reader.decode(BinaryBitmap(GlobalHistogramBinarizer(source)), hints).text
+        } catch (_: NotFoundException) {}
+        try {
+            return reader.decode(BinaryBitmap(GlobalHistogramBinarizer(source.invert())), hints).text
+        } catch (_: NotFoundException) {}
+        return null
+    }
+
+    private fun scaleBitmapDown(bitmap: Bitmap, maxDimension: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        if (width <= maxDimension && height <= maxDimension) return bitmap
+        val scale = maxDimension.toFloat() / maxOf(width, height)
+        return Bitmap.createScaledBitmap(
+            bitmap, (width * scale).toInt(), (height * scale).toInt(), true
+        )
+    }
+
+    private fun cropCenter(bitmap: Bitmap, ratio: Float): Bitmap {
+        val cropW = (bitmap.width * ratio).toInt()
+        val cropH = (bitmap.height * ratio).toInt()
+        val x = (bitmap.width - cropW) / 2
+        val y = (bitmap.height - cropH) / 2
+        return Bitmap.createBitmap(bitmap, x, y, cropW, cropH)
     }
 
     // ── Generate QR Code ───────────────────────────────────
@@ -544,6 +695,8 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        scanLineAnimator?.cancel()
+        scanLineAnimator = null
         releaseCamera()
         stopBackgroundThread()
     }
