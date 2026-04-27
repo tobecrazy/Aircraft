@@ -48,6 +48,7 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.WriterException
+import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
@@ -584,26 +585,63 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun decodeQrFromBitmap(bitmap: Bitmap) {
-        val width = bitmap.width
-        val height = bitmap.height
-        val pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        val source = RGBLuminanceSource(width, height, pixels)
         val hints = mapOf(
             DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
             DecodeHintType.CHARACTER_SET to "UTF-8",
             DecodeHintType.TRY_HARDER to true
         )
-        try {
-            val result = try {
-                MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source)), hints)
-            } catch (_: NotFoundException) {
-                MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source.invert())), hints)
-            }
-            onScanResult(result.text)
-        } catch (_: NotFoundException) {
+        val scaled800 = scaleBitmapDown(bitmap, 800)
+        val scaled400 = scaleBitmapDown(bitmap, 400)
+        val result = tryDecodeBitmap(bitmap, hints)
+            ?: tryDecodeBitmap(scaled800, hints)
+            ?: tryDecodeBitmap(scaled400, hints)
+            ?: tryDecodeBitmap(cropCenter(bitmap, 0.6f), hints)
+            ?: tryDecodeBitmap(cropCenter(scaled800, 0.6f), hints)
+        if (result != null) {
+            onScanResult(result)
+        } else {
             Toast.makeText(this, R.string.qr_code_tool_invalid_qr, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun tryDecodeBitmap(bitmap: Bitmap, hints: Map<DecodeHintType, Any>): String? {
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        val source = RGBLuminanceSource(width, height, pixels)
+        val reader = MultiFormatReader()
+        try {
+            return reader.decode(BinaryBitmap(HybridBinarizer(source)), hints).text
+        } catch (_: NotFoundException) {}
+        try {
+            return reader.decode(BinaryBitmap(HybridBinarizer(source.invert())), hints).text
+        } catch (_: NotFoundException) {}
+        try {
+            return reader.decode(BinaryBitmap(GlobalHistogramBinarizer(source)), hints).text
+        } catch (_: NotFoundException) {}
+        try {
+            return reader.decode(BinaryBitmap(GlobalHistogramBinarizer(source.invert())), hints).text
+        } catch (_: NotFoundException) {}
+        return null
+    }
+
+    private fun scaleBitmapDown(bitmap: Bitmap, maxDimension: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        if (width <= maxDimension && height <= maxDimension) return bitmap
+        val scale = maxDimension.toFloat() / maxOf(width, height)
+        return Bitmap.createScaledBitmap(
+            bitmap, (width * scale).toInt(), (height * scale).toInt(), true
+        )
+    }
+
+    private fun cropCenter(bitmap: Bitmap, ratio: Float): Bitmap {
+        val cropW = (bitmap.width * ratio).toInt()
+        val cropH = (bitmap.height * ratio).toInt()
+        val x = (bitmap.width - cropW) / 2
+        val y = (bitmap.height - cropH) / 2
+        return Bitmap.createBitmap(bitmap, x, y, cropW, cropH)
     }
 
     // ── Generate QR Code ───────────────────────────────────
