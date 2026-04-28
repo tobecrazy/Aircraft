@@ -4,12 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0F1118"
+    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <RelativeLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="52dp"
         android:background="#161A26"
         android:gravity="center_vertical">
 
@@ -24,32 +25,16 @@
             android:contentDescription="@string/history_cancel"
             android:src="?attr/homeAsUpIndicator" />
 
-        <LinearLayout
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:letterSpacing="0.25"
-                android:text="@string/qr_code_tool_title"
-                android:textColor="#00FF88"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:typeface="monospace" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/qr_code_tool_summary"
-                android:textColor="#88FFFFFF"
-                android:textSize="10sp"
-                android:typeface="monospace" />
-        </LinearLayout>
+            android:letterSpacing="0.25"
+            android:text="@string/qr_code_tool_title"
+            android:textColor="#00FF88"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:typeface="monospace" />
     </RelativeLayout>
 
     <View
