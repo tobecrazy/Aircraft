@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -19,6 +20,7 @@ import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
 import android.media.ImageReader
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -36,6 +38,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
@@ -52,8 +55,13 @@ import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
+import com.young.aircraft.utils.FilePickerHelper
 import androidx.core.graphics.toColorInt
 import androidx.core.graphics.createBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.FileOutputStream
 
 class QRCodeToolActivity : AppCompatActivity() {
 
@@ -68,6 +76,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     private var isCameraOpening = false
     private var frameCounter = 0
     private var generatedBitmap: Bitmap? = null
+    private var savedFileUri: Uri? = null
     private var scanLineAnimator: ObjectAnimator? = null
 
     private val createDocumentLauncher = registerForActivityResult(
@@ -78,11 +87,20 @@ class QRCodeToolActivity : AppCompatActivity() {
         val saved = contentResolver.openOutputStream(uri)?.use { stream ->
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         } ?: false
-        Toast.makeText(
-            this,
-            if (saved) R.string.qr_code_tool_save_success else R.string.qr_code_tool_save_failed,
-            Toast.LENGTH_SHORT
-        ).show()
+        if (saved) {
+            Toast.makeText(this, R.string.qr_code_tool_save_success, Toast.LENGTH_SHORT).show()
+            savedFileUri = uri
+            binding.btnShareQr.visibility = View.VISIBLE
+        } else {
+            Toast.makeText(this, R.string.qr_code_tool_save_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val pickFileLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri == null) return@registerForActivityResult
+        handlePickedFileUri(uri)
     }
 
     private val scanSurfaceCallback = object : SurfaceHolder.Callback {
@@ -109,24 +127,7 @@ class QRCodeToolActivity : AppCompatActivity() {
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri == null) return@registerForActivityResult
-        try {
-            val options = BitmapFactory.Options().apply {
-                inPreferredConfig = Bitmap.Config.ARGB_8888
-            }
-            val rawBitmap = contentResolver.openInputStream(uri)?.use {
-                BitmapFactory.decodeStream(it, null, options)
-            }
-            if (rawBitmap == null) {
-                Toast.makeText(this, R.string.qr_code_tool_pick_failed, Toast.LENGTH_SHORT).show()
-                return@registerForActivityResult
-            }
-            val bitmap = if (rawBitmap.config != Bitmap.Config.ARGB_8888) {
-                rawBitmap.copy(Bitmap.Config.ARGB_8888, false).also { rawBitmap.recycle() }
-            } else rawBitmap
-            decodeQrFromBitmap(bitmap)
-        } catch (_: Exception) {
-            Toast.makeText(this, R.string.qr_code_tool_pick_failed, Toast.LENGTH_SHORT).show()
-        }
+        handlePickedFileUri(uri)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -160,6 +161,7 @@ class QRCodeToolActivity : AppCompatActivity() {
         setupQrLongPress()
         setupPickButton()
         setupSaveButton()
+        setupShareButton()
         setupIdleGalleryPickButton()
         setupAccessibility()
         renderContentState()
@@ -532,6 +534,7 @@ class QRCodeToolActivity : AppCompatActivity() {
         binding.qrPreviewContainer.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
         binding.tvQrPlaceholder.visibility = if (hasQrPreview) View.GONE else View.VISIBLE
         binding.btnSaveQr.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
+        binding.btnShareQr.visibility = if (hasQrPreview && savedFileUri != null) View.VISIBLE else View.GONE
     }
 
     private fun updateScanButton() {
@@ -562,13 +565,45 @@ class QRCodeToolActivity : AppCompatActivity() {
         createDocumentLauncher.launch("QRCode_${System.currentTimeMillis()}.png")
     }
 
+    private fun setupShareButton() {
+        binding.btnShareQr.setOnClickListener {
+            shareQrCode()
+        }
+    }
+
+    private fun shareQrCode() {
+        val bitmap = generatedBitmap ?: return
+        lifecycleScope.launch {
+            try {
+                val file = withContext(Dispatchers.IO) {
+                    val target = FilePickerHelper.createQrImageFile(this@QRCodeToolActivity)
+                    FileOutputStream(target).use { stream ->
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                    }
+                    target
+                }
+                val uri = FilePickerHelper.getUriForFile(this@QRCodeToolActivity, file)
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.qr_code_tool_share_button)))
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this@QRCodeToolActivity,
+                    R.string.qr_code_tool_save_failed,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
     // ── Pick QR from Gallery ──────────────────────────────────
 
     private fun setupPickButton() {
         binding.btnPickQr.setOnClickListener {
-            pickMediaLauncher.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-            )
+            pickFileLauncher.launch("image/*")
         }
     }
 
@@ -581,6 +616,40 @@ class QRCodeToolActivity : AppCompatActivity() {
             pickMediaLauncher.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
+        }
+    }
+
+    private fun handlePickedFileUri(uri: Uri) {
+        lifecycleScope.launch {
+            try {
+                val bitmap = withContext(Dispatchers.IO) {
+                    val cachedFile = FilePickerHelper.copyUriToCache(this@QRCodeToolActivity, uri)
+                    val source = cachedFile?.inputStream()
+                        ?: contentResolver.openInputStream(uri)
+                    val options = BitmapFactory.Options().apply {
+                        inPreferredConfig = Bitmap.Config.ARGB_8888
+                    }
+                    val rawBitmap = source?.use { BitmapFactory.decodeStream(it, null, options) }
+                    if (rawBitmap != null && rawBitmap.config != Bitmap.Config.ARGB_8888) {
+                        rawBitmap.copy(Bitmap.Config.ARGB_8888, false).also { rawBitmap.recycle() }
+                    } else rawBitmap
+                }
+                if (bitmap == null) {
+                    Toast.makeText(
+                        this@QRCodeToolActivity,
+                        R.string.qr_code_tool_pick_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+                decodeQrFromBitmap(bitmap)
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this@QRCodeToolActivity,
+                    R.string.qr_code_tool_pick_failed,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
     }
 

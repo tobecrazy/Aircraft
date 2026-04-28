@@ -469,7 +469,7 @@ class QRCodeToolActivityTest {
     }
 
     @Test
-    fun `long click after generating QR launches file picker intent`() {
+    fun `long click after generating QR launches save file picker`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
@@ -555,7 +555,7 @@ class QRCodeToolActivityTest {
     }
 
     @Test
-    fun `save button click launches file picker`() {
+    fun `save button click launches save file picker`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
