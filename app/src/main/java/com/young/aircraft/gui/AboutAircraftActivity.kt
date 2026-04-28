@@ -2,7 +2,6 @@ package com.young.aircraft.gui
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -12,14 +11,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.net.toUri
 import androidx.core.view.updatePadding
-import androidx.lifecycle.lifecycleScope
+import coil.load
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityAboutAircraftBinding
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.net.URL
 
 class AboutAircraftActivity : AppCompatActivity() {
 
@@ -83,26 +78,25 @@ class AboutAircraftActivity : AppCompatActivity() {
 
     private fun loadProjectImage() {
         val imageUrl = "https://images.cnblogs.com/cnblogs_com/tobecrazy/432338/o_250810143405_Card.png"
-        binding.progressImage.visibility = View.VISIBLE
-        binding.tvImageFallback.visibility = View.GONE
-        binding.ivProject.visibility = View.INVISIBLE
-
-        lifecycleScope.launch {
-            val bitmap = withContext(Dispatchers.IO) {
-                runCatching {
-                    URL(imageUrl).openConnection().apply {
-                        connectTimeout = 4_000
-                        readTimeout = 4_000
-                    }.getInputStream().use { BitmapFactory.decodeStream(it) }
-                }.getOrNull()
-            }
-            binding.progressImage.visibility = View.GONE
-            if (bitmap != null) {
-                binding.ivProject.visibility = View.VISIBLE
-                binding.ivProject.setImageBitmap(bitmap)
-            } else {
-                binding.tvImageFallback.visibility = View.VISIBLE
-            }
+        binding.ivProject.load(imageUrl) {
+            crossfade(true)
+            placeholder(R.drawable.ic_placeholder)
+            error(R.drawable.ic_placeholder)
+            listener(
+                onStart = {
+                    binding.progressImage.visibility = View.VISIBLE
+                    binding.tvImageFallback.visibility = View.GONE
+                    binding.ivProject.visibility = View.INVISIBLE
+                },
+                onSuccess = { _, _ ->
+                    binding.progressImage.visibility = View.GONE
+                    binding.ivProject.visibility = View.VISIBLE
+                },
+                onError = { _, _ ->
+                    binding.progressImage.visibility = View.GONE
+                    binding.tvImageFallback.visibility = View.VISIBLE
+                }
+            )
         }
     }
 }

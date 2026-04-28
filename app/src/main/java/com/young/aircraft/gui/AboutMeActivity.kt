@@ -1,13 +1,10 @@
 package com.young.aircraft.gui
 
 import android.content.Intent
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +26,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,7 +33,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -48,32 +43,28 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.young.aircraft.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.net.URL
 
 class AboutMeActivity : AppCompatActivity() {
 
@@ -98,7 +89,7 @@ class AboutMeActivity : AppCompatActivity() {
                         startActivity(
                             Intent(
                                 Intent.ACTION_VIEW,
-                                Uri.parse(getString(R.string.about_me_project_repo_url))
+                                getString(R.string.about_me_project_repo_url).toUri()
                             )
                         )
                     }
@@ -245,7 +236,6 @@ private fun AboutMeHeroCard(
     repoUrl: String,
     onOpenRepo: () -> Unit
 ) {
-    val imageState by rememberProfileImageState()
     val cardShape = RoundedCornerShape(20.dp)
 
     BoxWithConstraints(
@@ -269,7 +259,6 @@ private fun AboutMeHeroCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 HeroImagePanel(
-                    imageState = imageState,
                     modifier = Modifier.weight(0.42f)
                 )
                 HeroTextPanel(
@@ -282,7 +271,7 @@ private fun AboutMeHeroCard(
             Column(
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                HeroImagePanel(imageState = imageState)
+                HeroImagePanel()
                 HeroTextPanel(
                     repoUrl = repoUrl,
                     onOpenRepo = onOpenRepo
@@ -388,7 +377,6 @@ private fun HeroChip(
 
 @Composable
 private fun HeroImagePanel(
-    imageState: ProfileImageState,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -400,52 +388,20 @@ private fun HeroImagePanel(
             .heightIn(min = 220.dp),
         contentAlignment = Alignment.Center
     ) {
-        when (imageState) {
-            is ProfileImageState.Success -> {
-                Image(
-                    bitmap = imageState.bitmap,
-                    contentDescription = stringResource(R.string.about_me_profile_content_description),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.15f)
-                        .clip(RoundedCornerShape(16.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            ProfileImageState.Error -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.15f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.about_me_image_unavailable),
-                        color = TextSecondary,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    )
-                }
-            }
-
-            ProfileImageState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.15f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = AccentGreen,
-                        modifier = Modifier.size(36.dp),
-                        strokeWidth = 3.dp
-                    )
-                }
-            }
-        }
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(PROFILE_IMAGE_URL)
+                .crossfade(true)
+                .build(),
+            contentDescription = stringResource(R.string.about_me_profile_content_description),
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.15f)
+                .clip(RoundedCornerShape(16.dp)),
+            contentScale = ContentScale.Crop,
+            placeholder = ColorPainter(HeroPanelBackground),
+            error = ColorPainter(HeroPanelBackground)
+        )
     }
 }
 
@@ -559,34 +515,8 @@ private fun ProjectNarrativeCard(
     }
 }
 
-@Composable
-private fun rememberProfileImageState(): State<ProfileImageState> {
-    return produceState<ProfileImageState>(
-        initialValue = ProfileImageState.Loading,
-        key1 = PROFILE_IMAGE_URL
-    ) {
-        value = withContext(Dispatchers.IO) {
-            runCatching {
-                val connection = URL(PROFILE_IMAGE_URL).openConnection().apply {
-                    connectTimeout = 4_000
-                    readTimeout = 4_000
-                }
-                connection.getInputStream().use { stream ->
-                    BitmapFactory.decodeStream(stream)?.asImageBitmap()
-                }
-            }.getOrNull()?.let(ProfileImageState::Success) ?: ProfileImageState.Error
-        }
-    }
-}
-
 private fun String.toParagraphs(): List<String> {
     return split("\n\n")
         .map(String::trim)
         .filter(String::isNotEmpty)
-}
-
-private sealed interface ProfileImageState {
-    data object Loading : ProfileImageState
-    data object Error : ProfileImageState
-    data class Success(val bitmap: ImageBitmap) : ProfileImageState
 }
