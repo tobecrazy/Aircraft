@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - `ThemeOverlay.Aircraft.QrToolBottomSheet` style for the QR tool bottom sheet dialog
 - New localized strings for QR save, gallery pick, invalid QR, and scan result copy in both English and Chinese
 - Unit tests for QR save flow (file picker intent launch), gallery pick button, long-click behavior, bottom sheet result display, copy-to-clipboard, and inverted QR bitmap decode
+- Coil image loading library (`io.coil-kt:coil:2.7.0` + `io.coil-kt:coil-compose:2.7.0`) for efficient network image loading with crossfade animations
+- `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
 - `MainActivity` now hosts gameplay inside a green tactical shell with a pause overlay, mission-briefing card, and launch-context chips for sector, difficulty, and airframe
@@ -26,6 +28,9 @@ All notable changes to this project will be documented in this file.
 - Onboarding tests rewritten with `createAndroidComposeRule` and Compose test tags
 - `AboutMeActivity` now reads developer and project copy from Android string resources for English and Chinese i18n
 - The About Me project card now includes the canonical GitHub repository URL: `https://github.com/tobecrazy/Aircraft`
+- `AboutMeActivity` image loading replaced with Coil `AsyncImage` using `ImageRequest.Builder` with `crossfade(true)` and `ColorPainter` placeholder/error states
+- `AboutAircraftActivity` image loading replaced with Coil `ImageView.load()` with `crossfade(true)` and listener callbacks for progress/error visibility
+- `HistoryActivity` layout background changed from solid dark color (`#0F1118`) to `launch_background.jpeg` (Chinese ink painting)
 - `README.md`, `project_diagram.svg`, and `class_diagram.svg` updated for the Compose onboarding migration
 - `README.md` project structure now lists `GameDifficulty.kt` and corrects `AppDatabase` version to v2030
 - Architecture diagram summary added with packages, threading model, and first-launch gate chain

@@ -44,7 +44,9 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
 - Leaderboard top record highlighting with a medal/star badge and gold first-place styling
+- History screen with Chinese ink-painting background (`launch_background.jpeg`)
 - Compose-powered About Me and Onboarding screens with localized copy and smooth transition animations
+- Coil-based network image loading with crossfade animations (`AsyncImage` for Compose, `ImageView.load()` for Views)
 - Utility screens for history, QR code scanning/generation/save-to-device, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
