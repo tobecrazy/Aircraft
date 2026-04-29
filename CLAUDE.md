@@ -145,6 +145,9 @@ Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent
 
 ## Key Gotchas
 
+### UI Consistency
+All UI interfaces must maintain a consistent style. When adding or modifying activities, match the existing patterns: standard 52dp header, color scheme (`#0F1118` background, `#161A26` header, `#00FF88` accent), monospace typography, `fitsSystemWindows="true"`, and the shared drawable/theme conventions. Never introduce novel layout structures or color values without checking how peer screens are built.
+
 ### Naming Collision
 Two files named `Aircraft.kt`: `data/PlayerAircraft.kt` (data class, renamed from Aircraft) and `ui/Aircraft.kt` (rendering class). Code disambiguates with `import com.young.aircraft.data.PlayerAircraft as AircraftData`.
 
@@ -159,7 +162,7 @@ All game object bitmaps must have `bitmap.density = screenDensity` set for corre
 - Activities needing a solid background **must** set `android:theme="@style/Theme.Aircraft.Common"` in the manifest
 
 ### Localization
-English (default) and Chinese (`values-zh/strings.xml`). A `StringResourceTest` verifies locale parity and usage coverage — when adding/removing strings, ensure both locales stay in sync to avoid test failures. Unused strings in `strings.xml` will also cause test failures; clean up orphans after refactors.
+English (default) and Chinese (`values-zh/strings.xml`). A `StringResourceTest` verifies locale parity and usage coverage — when adding/removing strings, ensure both locales stay in sync to avoid test failures. Unused strings in `strings.xml` will also cause test failures; clean up orphans after refactors. If there are any String changes, ensure that all Strings are i18n-compatible and properly referenced (no hardcoded text in layouts or code — always use `@string/` in XML and `getString(R.string.*)` in Kotlin).
 
 ### CI
 GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug lintDebug` on push/PR to `main`, using JDK 17 (temurin). Note: CI does **not** run unit tests — only compile and lint.
