@@ -175,3 +175,9 @@ Generated QR codes use **white modules on dark background** (`#0F1118`) for the 
 
 ### Bottom Sheet Dialogs
 `BottomSheetDialog` with transparent background is used in `MainActivity` (hall of heroes) and `QRCodeToolActivity` (scan results). Each has a matching `ThemeOverlay` style in `themes.xml` and a custom layout in `res/layout/bottom_sheet_*.xml`. The pattern: create dialog with theme → inflate layout → `setContentView` → set `design_bottom_sheet` background to transparent in `setOnShowListener`.
+
+### Standard Activity Header Pattern
+Non-game activities share a consistent header: **52dp RelativeLayout** (`#161A26` background) with a 48dp back ImageButton (start-aligned) and a centered title TextView (`#00FF88`, 16sp, bold, monospace, letterSpacing 0.25). A 1dp green divider (`#4400FF88`) separates it from content. The root layout uses `android:fitsSystemWindows="true"` for status bar handling — do NOT use manual `WindowCompat.setDecorFitsSystemWindows(window, false)` + inset listeners in these activities.
+
+### FileProvider
+A `FileProvider` is registered in the manifest with authority `${applicationId}.fileprovider`. Path configuration in `res/xml/file_paths.xml` exposes `external-files-path` (Pictures/) and `cache-path`. The `FilePickerHelper` utility (utils/) provides `getUriForFile()`, `createQrImageFile()`, `copyUriToCache()`, and `queryFileInfo()`. Used by `QRCodeToolActivity` for sharing QR codes via `Intent.ACTION_SEND` with `FLAG_GRANT_READ_URI_PERMISSION`.
