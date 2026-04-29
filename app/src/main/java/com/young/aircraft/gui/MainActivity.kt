@@ -24,18 +24,19 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
-import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.ActivityMainBinding
 import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.utils.HallOfHeroesNameUtils
+import com.young.aircraft.viewmodel.GameViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
 
@@ -52,11 +53,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mService: MusicService
     private lateinit var binding: ActivityMainBinding
     private lateinit var coreView: GameCoreView
+    private lateinit var viewModel: GameViewModel
     private var exitTime: Long = 0
     private var isExitInProgress = false
-    private lateinit var playerId: String
     private var isServiceBound = false
-    private val db by lazy { DatabaseProvider.getDatabase(this) }
     private val settingsRepository by lazy { SettingsRepository(this) }
 
     private val connection = object : ServiceConnection {
@@ -78,7 +78,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        playerId = settingsRepository.getOrCreateInstallId()
+
+        val playerId = settingsRepository.getOrCreateInstallId()
+        val dao = DatabaseProvider.getDatabase(this).playerGameDataDao()
+        viewModel = ViewModelProvider(this, GameViewModel.Factory(dao, playerId))[GameViewModel::class.java]
+
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (binding.pauseOverlay.isVisible) {
@@ -106,33 +110,41 @@ class MainActivity : AppCompatActivity() {
         )
         configureOverlayUi(startLevel = startLevel, jetPlaneIndex = jetPlaneIndex)
         coreView.onGameOver = {
+            val score = viewModel.calculateScore(coreView.totalKills)
             showGameDialog(
                 badgeText = getString(R.string.game_over_badge),
                 tone = DialogTone.Danger,
                 title = getString(R.string.game_over_title),
-                message = getString(R.string.game_over_message, coreView.level, coreView.totalKills.toLong() * 100),
+                message = getString(R.string.game_over_message, coreView.level, score),
                 titleColor = 0xFFFF4444.toInt(),
                 positiveText = getString(R.string.game_over_save),
                 negativeText = getString(R.string.game_over_discard),
                 stat1Label = getString(R.string.stat_kills),
                 stat1Value = coreView.totalKills.toString(),
                 stat2Label = getString(R.string.stat_score),
-                stat2Value = (coreView.totalKills.toLong() * 100).toString(),
+                stat2Value = score.toString(),
                 onPositive = {
                     lifecycleScope.launch {
-                        saveGameData(coreView)
+                        viewModel.saveGameData(
+                            level = coreView.level,
+                            totalKills = coreView.totalKills,
+                            jetPlaneResId = coreView.jetPlaneResId,
+                            jetPlaneIndex = coreView.jetPlaneIndex,
+                            difficulty = settingsRepository.getDifficulty().persistedValue
+                        )
                         finish()
                     }
                 },
                 onNegative = {
                     lifecycleScope.launch {
-                        db.playerGameDataDao().deleteByPlayerId(playerId)
+                        viewModel.deletePlayerData()
                         finish()
                     }
                 }
             )
         }
         coreView.onLevelComplete = { completedLevel ->
+            val score = viewModel.calculateScore(coreView.totalKills)
             showGameDialog(
                 badgeText = getString(R.string.level_complete_badge),
                 tone = DialogTone.Success,
@@ -142,10 +154,16 @@ class MainActivity : AppCompatActivity() {
                 stat1Label = getString(R.string.stat_kills),
                 stat1Value = coreView.enemiesDestroyedThisLevel.toString(),
                 stat2Label = getString(R.string.stat_score),
-                stat2Value = (coreView.totalKills.toLong() * 100).toString(),
+                stat2Value = score.toString(),
                 onPositive = {
                     lifecycleScope.launch {
-                        saveGameData(coreView, levelOverride = completedLevel + 1)
+                        viewModel.saveGameData(
+                            level = completedLevel + 1,
+                            totalKills = coreView.totalKills,
+                            jetPlaneResId = coreView.jetPlaneResId,
+                            jetPlaneIndex = coreView.jetPlaneIndex,
+                            difficulty = settingsRepository.getDifficulty().persistedValue
+                        )
                         coreView.advanceToNextLevel()
                     }
                 }
@@ -256,8 +274,14 @@ class MainActivity : AppCompatActivity() {
         hidePauseOverlay(shouldResumeGame = false)
         lifecycleScope.launch {
             runCatching {
-                if (shouldAutoSaveOnExit()) {
-                    saveGameData(coreView)
+                if (viewModel.shouldAutoSaveOnExit(coreView.level, coreView.totalKills)) {
+                    viewModel.saveGameData(
+                        level = coreView.level,
+                        totalKills = coreView.totalKills,
+                        jetPlaneResId = coreView.jetPlaneResId,
+                        jetPlaneIndex = coreView.jetPlaneIndex,
+                        difficulty = settingsRepository.getDifficulty().persistedValue
+                    )
                 }
             }.onFailure {
                 Log.e("MainActivity", "Failed to save progress from pause overlay", it)
@@ -310,9 +334,9 @@ class MainActivity : AppCompatActivity() {
         }
         if (stat1Label != null && stat2Label != null) {
             dialogView.findViewById<LinearLayout>(R.id.dialog_stats_container).visibility = View.VISIBLE
-            dialogView.findViewById<TextView>(R.id.stat_label_1).text = "\u2694 $stat1Label"
+            dialogView.findViewById<TextView>(R.id.stat_label_1).text = "⚔ $stat1Label"
             dialogView.findViewById<TextView>(R.id.stat_value_1).text = stat1Value
-            dialogView.findViewById<TextView>(R.id.stat_label_2).text = "\u2605 $stat2Label"
+            dialogView.findViewById<TextView>(R.id.stat_label_2).text = "★ $stat2Label"
             dialogView.findViewById<TextView>(R.id.stat_value_2).text = stat2Value
         }
 
@@ -401,7 +425,14 @@ class MainActivity : AppCompatActivity() {
             )
             dialog.dismiss()
             lifecycleScope.launch {
-                saveGameData(coreView, heroName)
+                viewModel.saveGameData(
+                    level = coreView.level,
+                    totalKills = coreView.totalKills,
+                    jetPlaneResId = coreView.jetPlaneResId,
+                    jetPlaneIndex = coreView.jetPlaneIndex,
+                    difficulty = settingsRepository.getDifficulty().persistedValue,
+                    playerName = heroName
+                )
                 finish()
             }
         }
@@ -439,34 +470,6 @@ class MainActivity : AppCompatActivity() {
         nameInput.requestFocus()
     }
 
-    private suspend fun saveGameData(
-        coreView: GameCoreView,
-        playerName: String? = null,
-        levelOverride: Int? = null
-    ) {
-        val score = coreView.totalKills.toLong() * 100
-        val savedLevel = levelOverride ?: coreView.level
-        val difficulty = settingsRepository.getDifficulty().persistedValue
-        val existingRecord = db.playerGameDataDao().getByPlayerId(playerId).firstOrNull()
-        val persistedPlayerName = playerName ?: existingRecord?.playerName
-        db.playerGameDataDao().deleteByPlayerId(playerId)
-        db.playerGameDataDao().insert(
-            PlayerGameData(
-                playerId = playerId,
-                playerName = persistedPlayerName,
-                level = savedLevel,
-                score = score,
-                jetPlaneRes = coreView.jetPlaneResId,
-                jetPlaneIndex = coreView.jetPlaneIndex,
-                difficulty = difficulty
-            )
-        )
-        Log.d(
-            "Game",
-            "Saved: player=$playerId, name=$persistedPlayerName, level=$savedLevel, score=$score, jetIndex=${coreView.jetPlaneIndex}"
-        )
-    }
-
     private fun exitApp() {
         if ((System.currentTimeMillis() - exitTime) > 2000) {
             Toast.makeText(
@@ -480,8 +483,14 @@ class MainActivity : AppCompatActivity() {
             coreView.pauseGame()
             lifecycleScope.launch {
                 runCatching {
-                    if (shouldAutoSaveOnExit()) {
-                        saveGameData(coreView)
+                    if (viewModel.shouldAutoSaveOnExit(coreView.level, coreView.totalKills)) {
+                        viewModel.saveGameData(
+                            level = coreView.level,
+                            totalKills = coreView.totalKills,
+                            jetPlaneResId = coreView.jetPlaneResId,
+                            jetPlaneIndex = coreView.jetPlaneIndex,
+                            difficulty = settingsRepository.getDifficulty().persistedValue
+                        )
                     }
                 }.onFailure {
                     Log.e("MainActivity", "Failed to auto-save progress on exit", it)
@@ -489,10 +498,6 @@ class MainActivity : AppCompatActivity() {
                 finish()
             }
         }
-    }
-
-    private fun shouldAutoSaveOnExit(): Boolean {
-        return coreView.level > 1 || coreView.totalKills > 0
     }
 
     override fun onStart() {
