@@ -5,14 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.young.aircraft.R
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.databinding.FragmentHistoryBinding
 import com.young.aircraft.providers.DatabaseProvider
-import com.young.aircraft.utils.HallOfHeroesNameUtils
+import com.young.aircraft.viewmodel.HistoryUiState
+import com.young.aircraft.viewmodel.HistoryViewModel
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -21,6 +25,8 @@ class HistoryFragment : Fragment() {
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
     private val scoreFormatter = NumberFormat.getNumberInstance(Locale.US)
+
+    private lateinit var viewModel: HistoryViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,55 +39,58 @@ class HistoryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.btnBack.setOnClickListener {
-            requireActivity().finish()
-        }
+
+        val dao = DatabaseProvider.getDatabase(requireContext()).playerGameDataDao()
+        viewModel = ViewModelProvider(this, HistoryViewModel.Factory(dao))[HistoryViewModel::class.java]
+
+        binding.btnBack.setOnClickListener { requireActivity().finish() }
         binding.recyclerHistory.layoutManager = LinearLayoutManager(requireContext())
-        loadHistory()
+
+        observeState()
     }
 
-    private fun loadHistory() {
+    private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val records = DatabaseProvider.getDatabase(requireContext())
-                .playerGameDataDao()
-                .getAllByScoreDesc()
-
-            updateSummary(records)
-
-            if (records.isEmpty()) {
-                showEmpty()
-            } else {
-                binding.recyclerHistory.visibility = View.VISIBLE
-                binding.emptyState.visibility = View.GONE
-                binding.recyclerHistory.adapter = HistoryAdapter(records.toMutableList()) { item ->
-                    confirmDelete(item)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    renderState(state)
                 }
             }
         }
     }
 
-    private fun updateSummary(records: List<PlayerGameData>) {
-        val topRecord = records.firstOrNull()
+    private fun renderState(state: HistoryUiState) {
         binding.tvRecordCountChip.text = getString(
             R.string.history_summary_record_count,
-            records.size
+            state.recordCount
         )
-        binding.tvBestScoreChip.text = if (topRecord == null) {
+        binding.tvBestScoreChip.text = if (state.bestScore == null) {
             getString(R.string.history_summary_best_score_empty)
         } else {
             getString(
                 R.string.history_summary_best_score,
-                scoreFormatter.format(topRecord.score)
+                scoreFormatter.format(state.bestScore)
             )
         }
-        binding.tvSummaryOverview.text = if (topRecord == null) {
+        binding.tvSummaryOverview.text = if (state.topPilotName == null) {
             getString(R.string.history_summary_empty_description)
         } else {
             getString(
                 R.string.history_summary_with_top_pilot,
-                HallOfHeroesNameUtils.getDisplayName(topRecord),
-                topRecord.level
+                state.topPilotName,
+                state.topPilotLevel
             )
+        }
+
+        if (state.records.isEmpty() && !state.isLoading) {
+            binding.recyclerHistory.visibility = View.GONE
+            binding.emptyState.visibility = View.VISIBLE
+        } else {
+            binding.recyclerHistory.visibility = View.VISIBLE
+            binding.emptyState.visibility = View.GONE
+            binding.recyclerHistory.adapter = HistoryAdapter(state.records.toMutableList()) { item ->
+                confirmDelete(item)
+            }
         }
     }
 
@@ -90,24 +99,10 @@ class HistoryFragment : Fragment() {
             .setTitle(getString(R.string.history_delete_title))
             .setMessage(getString(R.string.history_delete_message))
             .setPositiveButton(getString(R.string.history_delete)) { _, _ ->
-                deleteRecord(item)
+                viewModel.deleteRecord(item)
             }
             .setNegativeButton(getString(R.string.history_cancel), null)
             .show()
-    }
-
-    private fun deleteRecord(item: PlayerGameData) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            DatabaseProvider.getDatabase(requireContext())
-                .playerGameDataDao()
-                .delete(item)
-            loadHistory()
-        }
-    }
-
-    private fun showEmpty() {
-        binding.recyclerHistory.visibility = View.GONE
-        binding.emptyState.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {
