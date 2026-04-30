@@ -19,6 +19,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty` | Data models, Room persistence, game state enums |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` | 30 FPS rendering, collision detection, level progression |
+| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel` | MVVM mediation between Views and Repositories/DAOs |
 | `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
 | `providers/` | Gray | `DatabaseProvider`, `SettingsRepository` | Singleton DB provider, SharedPreferences wrapper |
@@ -29,6 +30,8 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - `GameCoreView` composes all game-engine objects (`Aircraft`, `Enemies`, `DrawBackground`, `DrawHeader`, `BossEnemy`, etc.) and orchestrates the 30 FPS loop
 - All drawable game objects extend the abstract `DrawBaseObject` (provides `onDraw`, `updateGame`, `getEnemyBounds`)
 - UI layer classes hold references to their corresponding data state classes (e.g., `Enemies` → `EnemyState`, `BossEnemy` → `BossState`)
+- Activities delegate to ViewModels for data access: `MainActivity` → `GameViewModel`, `SettingsActivity` → `SettingsViewModel`, `LaunchActivity` → `LaunchViewModel`, etc.
+- ViewModels mediate access to `SettingsRepository` and `PlayerGameDataDao` — Activities never access repositories or DAOs directly
 - `MainActivity` binds `MusicService` and collects `GameStateManager.gameState` flow
 - `DatabaseProvider` singleton creates `AppDatabase`, which exposes `PlayerGameDataDao` operating on `PlayerGameData` entities
 - `SettingsRepository` maps difficulty strings to `GameDifficulty` enum values with `fireRateMultiplier`
@@ -136,7 +139,15 @@ app/src/main/java/com/young/aircraft/
 │   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
 │   └── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
 └── viewmodel/
-    └── (currently reserved)            # No active ViewModel classes in the app module
+    ├── GameViewModel.kt                # Save/load game, sound prefs, player ID (MainActivity)
+    ├── SettingsViewModel.kt            # Difficulty + sound toggles StateFlow (SettingsActivity)
+    ├── SettingsUiState.kt              # UI state data class for settings screen
+    ├── LaunchViewModel.kt              # Saved-game check and delete (LaunchActivity)
+    ├── HistoryViewModel.kt             # Leaderboard data loading and deletion (HistoryFragment)
+    ├── HistoryUiState.kt               # UI state data class for history screen
+    ├── OnboardingViewModel.kt          # Onboarding completion gate (OnboardingActivity)
+    ├── PrivacyPolicyViewModel.kt       # Privacy acceptance gate (PrivacyPolicyAcceptActivity)
+    └── DevelopSettingsViewModel.kt     # Invincible mode toggle (DevelopSettingsActivity)
 ```
 
 ## Tests
@@ -151,6 +162,8 @@ app/src/main/java/com/young/aircraft/
 - `MainActivityTest` for tactical overlay behavior, mission-briefing chips, and low-memory pause handling
 - `DrawBackgroundTest` for seamless mirrored tile coverage
 - `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior
+- `LaunchActivityTest` for saved-game detection, continue/new-game dialog, and jet selection
+- `DevelopSettingsViewModelTest`, `PrivacyPolicyViewModelTest`, `OnboardingViewModelTest`, `LaunchViewModelTest` for ViewModel unit coverage
 - `PlayerGameDataTest` for timestamp-aware data-class behavior
 - `StarFieldViewTest` for the animated onboarding/privacy background
 - `StringResourceTest` for locale parity and resource usage coverage

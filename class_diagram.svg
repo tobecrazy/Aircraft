@@ -833,13 +833,13 @@
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">LaunchActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityLaunchBinding</text>
+    <text x="10" y="57" font-size="10" fill="#333">- viewModel: LaunchViewModel</text>
     <text x="10" y="70" font-size="10" fill="#333">- jetPlanes: IntArray</text>
-    <text x="10" y="83" font-size="10" fill="#333">- selectedJetIndex: Int</text>
-    <text x="10" y="96" font-size="10" fill="#333">- db / settingsRepository</text>
-    <line x1="5" y1="102" x2="245" y2="102" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="115" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
-    <text x="10" y="128" font-size="10" fill="#333">- checkSavedGameAndStart()</text>
+    <text x="10" y="83" font-size="10" fill="#333">- starFieldView: StarFieldView?</text>
+    <line x1="5" y1="89" x2="245" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="115" font-size="10" fill="#333">- checkForSavedGame()</text>
+    <text x="10" y="128" font-size="10" fill="#333">- launchGame() / deleteSavedGame()</text>
   </g>
 
   <!-- MainActivity -->
@@ -853,9 +853,9 @@
     <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityMainBinding</text>
     <text x="10" y="70" font-size="10" fill="#333">- coreView: GameCoreView</text>
     <text x="10" y="83" font-size="10" fill="#333">- mService: MusicService</text>
-    <text x="10" y="96" font-size="10" fill="#333">- playerId: String</text>
-    <text x="10" y="109" font-size="10" fill="#333">- db: AppDatabase (lazy)</text>
-    <text x="10" y="122" font-size="10" fill="#333">- settingsRepository / connection</text>
+    <text x="10" y="96" font-size="10" fill="#333">- viewModel: GameViewModel</text>
+    <text x="10" y="109" font-size="10" fill="#333">- connection: ServiceConnection</text>
+    <text x="10" y="122" font-size="10" fill="#333"></text>
     <line x1="5" y1="128" x2="285" y2="128" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="141" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
     <text x="10" y="154" font-size="10" fill="#333">- bindMissionBriefing() / showPauseOverlay()</text>
@@ -872,9 +872,8 @@
   <line x1="600" y1="1770" x2="860" y2="1440" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="730" y="1600" font-size="9" fill="#888">binds</text>
 
-  <!-- MainActivity -> AppDatabase association -->
-  <line x1="560" y1="1700" x2="660" y2="485" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
-  <text x="620" y="1100" font-size="9" fill="#888">db</text>
+  <!-- MainActivity -> GameViewModel association -->
+  <text x="405" y="1693" font-size="9" fill="#888">viewModel</text>
 
   <!-- MainActivity -> GameStateManager association -->
   <line x1="370" y1="1700" x2="375" y2="145" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
@@ -938,7 +937,7 @@
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">SettingsActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- binding / settingsRepository</text>
+    <text x="10" y="57" font-size="10" fill="#333">- binding / viewModel: SettingsViewModel</text>
     <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
     <text x="10" y="93" font-size="9" fill="#888">Difficulty + bg/combat/hit-shake toggles</text>
@@ -1012,7 +1011,7 @@
     <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DevelopSettingsActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
     <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- binding: ActivityDevelopSettingsBinding</text>
+    <text x="10" y="57" font-size="10" fill="#333">- binding / viewModel: DevelopSettingsViewModel</text>
     <line x1="5" y1="64" x2="265" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">- clickCount: Int</text>
     <text x="10" y="90" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
@@ -1227,6 +1226,105 @@
   <!-- DevelopSettingsActivity -> RichTextEditorActivity navigation -->
   <line x1="735" y1="2175" x2="740" y2="2200" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="745" y="2192" font-size="9" fill="#888">navigates</text>
+
+  <!-- ===== VIEWMODEL LAYER ===== -->
+  <rect x="20" y="2650" width="1420" height="260" rx="10" fill="none" stroke="#00897b" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.7"/>
+  <text x="35" y="2668" font-size="11" font-weight="bold" fill="#00897b" opacity="0.9">viewmodel/  (MVVM Layer — View → ViewModel → Repository → SharedPreferences)</text>
+
+  <!-- GameViewModel -->
+  <g transform="translate(30, 2680)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">GameViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ PlayerGameDataDao</text>
+    <text x="10" y="51" font-size="9" fill="#555">→ SettingsRepository</text>
+    <line x1="5" y1="57" x2="185" y2="57" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="70" font-size="9" fill="#333">+ saveGame() / loadSoundPrefs()</text>
+    <text x="10" y="83" font-size="9" fill="#333">+ playerId / difficulty</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: MainActivity</text>
+  </g>
+
+  <!-- SettingsViewModel -->
+  <g transform="translate(235, 2680)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">SettingsViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ SettingsRepository</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="9" fill="#333">+ uiState: StateFlow</text>
+    <text x="10" y="70" font-size="9" fill="#333">+ setDifficulty() / toggles</text>
+    <text x="10" y="83" font-size="9" fill="#333">+ showDevelopSettings</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: SettingsActivity</text>
+  </g>
+
+  <!-- LaunchViewModel -->
+  <g transform="translate(440, 2680)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">LaunchViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ PlayerGameDataDao</text>
+    <text x="10" y="51" font-size="9" fill="#555">→ SettingsRepository</text>
+    <line x1="5" y1="57" x2="185" y2="57" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="70" font-size="9" fill="#333">+ checkForSavedGame()</text>
+    <text x="10" y="83" font-size="9" fill="#333">+ deleteSavedGame()</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: LaunchActivity</text>
+  </g>
+
+  <!-- HistoryViewModel -->
+  <g transform="translate(645, 2680)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">HistoryViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ PlayerGameDataDao</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="9" fill="#333">+ history: StateFlow</text>
+    <text x="10" y="70" font-size="9" fill="#333">+ deleteRecord()</text>
+    <text x="10" y="83" font-size="9" fill="#333">+ loadHistory()</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: HistoryFragment</text>
+  </g>
+
+  <!-- OnboardingViewModel -->
+  <g transform="translate(850, 2680)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">OnboardingViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ SettingsRepository</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="9" fill="#333">+ isAlreadyCompleted()</text>
+    <text x="10" y="70" font-size="9" fill="#333">+ completeOnboarding()</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: OnboardingActivity</text>
+  </g>
+
+  <!-- PrivacyPolicyViewModel -->
+  <g transform="translate(1055, 2680)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="10" font-weight="bold" fill="white">PrivacyPolicyViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ SettingsRepository</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="9" fill="#333">+ isAlreadyAccepted()</text>
+    <text x="10" y="70" font-size="9" fill="#333">+ acceptPolicy()</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: PrivacyPolicyAcceptActivity</text>
+  </g>
+
+  <!-- DevelopSettingsViewModel -->
+  <g transform="translate(1260, 2680)" filter="url(#shadow)">
+    <rect width="170" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="170" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="170" height="6" fill="#00897b"/>
+    <text x="85" y="15" text-anchor="middle" font-size="9" font-weight="bold" fill="white">DevelopSettingsViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ SettingsRepository</text>
+    <line x1="5" y1="44" x2="165" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="9" fill="#333">+ isInvincibleModeEnabled()</text>
+    <text x="10" y="70" font-size="9" fill="#333">+ setInvincibleModeEnabled()</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: DevelopSettingsActivity</text>
+  </g>
 
 
   <!-- Update gui/ boundary box height -->

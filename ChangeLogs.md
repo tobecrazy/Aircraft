@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- MVVM architecture layer with 7 ViewModels: `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`
+- `DevelopSettingsViewModel` and `DevelopSettingsViewModelTest` for invincible-mode toggle
+- `PrivacyPolicyViewModel`, `OnboardingViewModel`, `LaunchViewModel` with unit tests
+- `SettingsUiState` and `HistoryUiState` data classes for reactive UI state
+- `ViewModelProvider.Factory` pattern on all ViewModels — each Factory accepts `Context` and creates its own dependencies internally
+- ViewModel layer section in `class_diagram.svg` and `project_diagram.svg`
 - `AboutMeActivityTest` to verify localized About Me labels, GitHub repo rendering, and back navigation under Robolectric
 - `MainActivityTest` coverage for the tactical overlay shell, mission-briefing chips, quit flow, and low-memory pause behavior
 - Class Diagram section in README with package overview table and key relationships summary
@@ -21,6 +27,14 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- All Activities now follow MVVM: `SettingsRepository` and `DatabaseProvider` access moved from Activities into ViewModel Factories (View → ViewModel → Repository → SharedPreferences)
+- `MainActivity` no longer directly accesses `AppDatabase` or `SettingsRepository` — delegates to `GameViewModel`
+- `LaunchActivity` delegates saved-game logic to `LaunchViewModel`
+- `SettingsActivity` delegates preference reads/writes to `SettingsViewModel` with `StateFlow`
+- `DevelopSettingsActivity` delegates invincible-mode to `DevelopSettingsViewModel`
+- `PrivacyPolicyAcceptActivity` and `OnboardingActivity` delegate gate checks to their respective ViewModels
+- `project_diagram.svg` now includes a ViewModel layer between Presentation and Game Engine
+- `class_diagram.svg` updated: Activity boxes show ViewModel fields; new ViewModel section added
 - `MainActivity` now hosts gameplay inside a green tactical shell with a pause overlay, mission-briefing card, and launch-context chips for sector, difficulty, and airframe
 - Gameplay HUD/dialog surfaces were refreshed to keep `MainActivity`, game dialogs, and the Hall of Heroes bottom sheet on a consistent green theme
 - `OnboardingActivity` migrated from ViewPager2 + Fragments + XML layouts to Jetpack Compose with `HorizontalPager`, `AnimatedVisibility`, and `AnimatedContent`
@@ -110,6 +124,7 @@ The class and project architecture diagrams ([class_diagram.svg](class_diagram.s
 | Common | `common/` | `AircraftApplication`, `GameStateManager` |
 | Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2030), `GameState` (enum), `GameDifficulty` (enum) |
 | Game Engine | `ui/` | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable) |
+| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel` |
 | Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `StarFieldView` |
 | Service | `service/` | `MusicService` + `MusicBinder` |
 | Providers | `providers/` | `DatabaseProvider`, `SettingsRepository` |
