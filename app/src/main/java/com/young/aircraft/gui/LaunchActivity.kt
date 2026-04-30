@@ -7,6 +7,7 @@ import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -62,12 +63,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
-import com.young.aircraft.data.PlayerGameData
-import com.young.aircraft.providers.DatabaseProvider
-import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.ui.Aircraft
+import com.young.aircraft.viewmodel.LaunchViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -83,19 +81,19 @@ private val DialogGradientTop = Color(0xFF1C2432)
 private val DialogGradientBottom = Color(0xFF141D26)
 private val DialogTextBody = Color(0xFFD8E0EF)
 
-internal data class SavedGameInfo(val level: Int, val jetIndex: Int, val jetRes: Int)
+data class SavedGameInfo(val level: Int, val jetIndex: Int, val jetRes: Int)
 
 @SuppressLint("CustomSplashScreen")
 class LaunchActivity : AppCompatActivity() {
-    private val db by lazy { DatabaseProvider.getDatabase(this) }
-    private val settingsRepository by lazy { SettingsRepository(this) }
-    private val jetPlanes = Aircraft.JET_PLANES
+    internal lateinit var viewModel: LaunchViewModel
     private var starFieldView: StarFieldView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
+
+        viewModel = ViewModelProvider(this, LaunchViewModel.Factory(this))[LaunchViewModel::class.java]
 
         setContent {
             MaterialTheme {
@@ -107,20 +105,7 @@ class LaunchActivity : AppCompatActivity() {
     }
 
     internal suspend fun checkForSavedGame(): SavedGameInfo? {
-        val playerId = settingsRepository.getOrCreateInstallId()
-        val savedData = db.playerGameDataDao().getByPlayerId(playerId)
-        val data = savedData.firstOrNull()
-        if (data != null && shouldOfferSavedGame(data)) {
-            val savedJetIndex = if (data.jetPlaneIndex in Aircraft.JET_PLANES.indices) {
-                data.jetPlaneIndex
-            } else {
-                val foundIndex = Aircraft.JET_PLANES.indexOf(data.jetPlaneRes)
-                if (foundIndex != -1) foundIndex else 0
-            }
-            val savedJetRes = Aircraft.JET_PLANES[savedJetIndex]
-            return SavedGameInfo(data.level, savedJetIndex, savedJetRes)
-        }
-        return null
+        return viewModel.checkForSavedGame()
     }
 
     internal fun launchGame(level: Int? = null, jetRes: Int, jetIndex: Int) {
@@ -134,14 +119,7 @@ class LaunchActivity : AppCompatActivity() {
     }
 
     internal fun deleteSavedGame() {
-        val playerId = settingsRepository.getOrCreateInstallId()
-        lifecycleScope.launch {
-            db.playerGameDataDao().deleteByPlayerId(playerId)
-        }
-    }
-
-    private fun shouldOfferSavedGame(data: PlayerGameData): Boolean {
-        return data.level > 1 || data.score > 0L
+        viewModel.deleteSavedGame()
     }
 
     override fun onDestroy() {

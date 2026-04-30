@@ -6,6 +6,7 @@ import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -63,7 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.young.aircraft.R
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -85,17 +86,18 @@ private val ButtonTextDark = Color(0xFF0F1118)
  * Skip or Launch → save pref → LaunchActivity
  */
 class OnboardingActivity : AppCompatActivity() {
-    private lateinit var settingsRepository: SettingsRepository
+    private lateinit var viewModel: OnboardingViewModel
     private var starFieldView: StarFieldView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        settingsRepository = SettingsRepository(this)
+
+        viewModel = ViewModelProvider(this, OnboardingViewModel.Factory(this))[OnboardingViewModel::class.java]
 
         // Gate: skip if already completed
-        if (settingsRepository.isOnboardingCompleted()) {
+        if (viewModel.isAlreadyCompleted()) {
             startActivity(Intent(this, LaunchActivity::class.java))
             finish()
             return
@@ -113,7 +115,7 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun completeOnboarding() {
-        settingsRepository.setOnboardingCompleted(true)
+        viewModel.completeOnboarding()
         startActivity(Intent(this, LaunchActivity::class.java))
         finish()
     }

@@ -1,7 +1,9 @@
 package com.young.aircraft.viewmodel
 
+import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.data.PlayerGameDataDao
+import com.young.aircraft.providers.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -14,7 +16,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -25,13 +26,16 @@ class GameViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var dao: PlayerGameDataDao
+    private lateinit var settingsRepository: SettingsRepository
     private lateinit var viewModel: GameViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         dao = mock()
-        viewModel = GameViewModel(dao, "test-player")
+        settingsRepository = mock()
+        whenever(settingsRepository.getDifficulty()).thenReturn(GameDifficulty.NORMAL)
+        viewModel = GameViewModel(dao, "test-player", settingsRepository)
     }
 
     @After
@@ -62,15 +66,20 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `saveGameData deletes existing and inserts new record`() = runTest(testDispatcher) {
+    fun `getDifficulty delegates to repository`() {
+        whenever(settingsRepository.getDifficulty()).thenReturn(GameDifficulty.HARD)
+        assertEquals(GameDifficulty.HARD, viewModel.getDifficulty())
+    }
+
+    @Test
+    fun `saveGameData deletes existing and inserts new record with difficulty from repository`() = runTest(testDispatcher) {
         whenever(dao.getByPlayerId("test-player")).thenReturn(emptyList())
 
         viewModel.saveGameData(
             level = 3,
             totalKills = 25,
             jetPlaneResId = 123,
-            jetPlaneIndex = 1,
-            difficulty = "1.0"
+            jetPlaneIndex = 1
         )
 
         verify(dao).deleteByPlayerId("test-player")
@@ -98,8 +107,7 @@ class GameViewModelTest {
             level = 5,
             totalKills = 10,
             jetPlaneResId = 0,
-            jetPlaneIndex = 0,
-            difficulty = "1.0"
+            jetPlaneIndex = 0
         )
 
         val captor = argumentCaptor<PlayerGameData>()
@@ -120,13 +128,29 @@ class GameViewModelTest {
             totalKills = 100,
             jetPlaneResId = 0,
             jetPlaneIndex = 0,
-            difficulty = "0.8",
             playerName = "NewHero"
         )
 
         val captor = argumentCaptor<PlayerGameData>()
         verify(dao).insert(captor.capture())
         assertEquals("NewHero", captor.firstValue.playerName)
+    }
+
+    @Test
+    fun `saveGameData uses hard difficulty from repository`() = runTest(testDispatcher) {
+        whenever(settingsRepository.getDifficulty()).thenReturn(GameDifficulty.HARD)
+        whenever(dao.getByPlayerId("test-player")).thenReturn(emptyList())
+
+        viewModel.saveGameData(
+            level = 1,
+            totalKills = 10,
+            jetPlaneResId = 0,
+            jetPlaneIndex = 0
+        )
+
+        val captor = argumentCaptor<PlayerGameData>()
+        verify(dao).insert(captor.capture())
+        assertEquals("0.8", captor.firstValue.difficulty)
     }
 
     @Test

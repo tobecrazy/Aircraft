@@ -11,7 +11,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.databinding.SettingsActivityBinding
-import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.viewmodel.SettingsUiState
 import com.young.aircraft.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
@@ -28,8 +27,7 @@ class SettingsActivity : AppCompatActivity() {
         binding = SettingsActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val repository = SettingsRepository(this)
-        viewModel = ViewModelProvider(this, SettingsViewModel.Factory(repository))[SettingsViewModel::class.java]
+        viewModel = ViewModelProvider(this, SettingsViewModel.Factory(this))[SettingsViewModel::class.java]
 
         setupClickListeners()
         observeState()

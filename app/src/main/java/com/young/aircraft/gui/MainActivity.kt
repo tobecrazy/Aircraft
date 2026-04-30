@@ -31,8 +31,6 @@ import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
 import com.young.aircraft.databinding.ActivityMainBinding
-import com.young.aircraft.providers.DatabaseProvider
-import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.utils.HallOfHeroesNameUtils
@@ -57,7 +55,6 @@ class MainActivity : AppCompatActivity() {
     private var exitTime: Long = 0
     private var isExitInProgress = false
     private var isServiceBound = false
-    private val settingsRepository by lazy { SettingsRepository(this) }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
@@ -79,9 +76,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
 
-        val playerId = settingsRepository.getOrCreateInstallId()
-        val dao = DatabaseProvider.getDatabase(this).playerGameDataDao()
-        viewModel = ViewModelProvider(this, GameViewModel.Factory(dao, playerId))[GameViewModel::class.java]
+        viewModel = ViewModelProvider(this, GameViewModel.Factory(this))[GameViewModel::class.java]
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -129,8 +124,7 @@ class MainActivity : AppCompatActivity() {
                             level = coreView.level,
                             totalKills = coreView.totalKills,
                             jetPlaneResId = coreView.jetPlaneResId,
-                            jetPlaneIndex = coreView.jetPlaneIndex,
-                            difficulty = settingsRepository.getDifficulty().persistedValue
+                            jetPlaneIndex = coreView.jetPlaneIndex
                         )
                         finish()
                     }
@@ -161,8 +155,7 @@ class MainActivity : AppCompatActivity() {
                             level = completedLevel + 1,
                             totalKills = coreView.totalKills,
                             jetPlaneResId = coreView.jetPlaneResId,
-                            jetPlaneIndex = coreView.jetPlaneIndex,
-                            difficulty = settingsRepository.getDifficulty().persistedValue
+                            jetPlaneIndex = coreView.jetPlaneIndex
                         )
                         coreView.advanceToNextLevel()
                     }
@@ -219,7 +212,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun bindMissionBriefing(startLevel: Int, jetPlaneIndex: Int) {
-        val difficultyLabel = when (settingsRepository.getDifficulty()) {
+        val difficultyLabel = when (viewModel.getDifficulty()) {
             GameDifficulty.EASY -> getString(R.string.difficulty_easy)
             GameDifficulty.NORMAL -> getString(R.string.difficulty_normal)
             GameDifficulty.HARD -> getString(R.string.difficulty_hard)
@@ -279,8 +272,7 @@ class MainActivity : AppCompatActivity() {
                         level = coreView.level,
                         totalKills = coreView.totalKills,
                         jetPlaneResId = coreView.jetPlaneResId,
-                        jetPlaneIndex = coreView.jetPlaneIndex,
-                        difficulty = settingsRepository.getDifficulty().persistedValue
+                        jetPlaneIndex = coreView.jetPlaneIndex
                     )
                 }
             }.onFailure {
@@ -430,7 +422,6 @@ class MainActivity : AppCompatActivity() {
                     totalKills = coreView.totalKills,
                     jetPlaneResId = coreView.jetPlaneResId,
                     jetPlaneIndex = coreView.jetPlaneIndex,
-                    difficulty = settingsRepository.getDifficulty().persistedValue,
                     playerName = heroName
                 )
                 finish()
@@ -488,8 +479,7 @@ class MainActivity : AppCompatActivity() {
                             level = coreView.level,
                             totalKills = coreView.totalKills,
                             jetPlaneResId = coreView.jetPlaneResId,
-                            jetPlaneIndex = coreView.jetPlaneIndex,
-                            difficulty = settingsRepository.getDifficulty().persistedValue
+                            jetPlaneIndex = coreView.jetPlaneIndex
                         )
                     }
                 }.onFailure {

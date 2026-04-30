@@ -1,6 +1,7 @@
 package com.young.aircraft.gui
 
 import android.content.Context
+import android.os.Looper
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -13,12 +14,11 @@ import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.providers.SettingsRepository
 import com.young.aircraft.ui.Aircraft
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
@@ -30,45 +30,51 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class LaunchActivityTest {
 
-    @get:Rule
-    val composeTestRule = createAndroidComposeRule<LaunchActivity>()
-
-    private lateinit var context: Context
     private lateinit var db: AppDatabase
 
-    @Before
-    fun setUp() {
-        context = ApplicationProvider.getApplicationContext()
+    @get:Rule(order = 0)
+    val dbSetupRule = object : ExternalResource() {
+        override fun before() {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("privacy_policy_accepted", true)
+                .putBoolean("onboarding_completed", true)
+                .putString(SettingsRepository.KEY_INSTALL_ID, "test-player-id")
+                .commit()
 
-        val settingsRepository = SettingsRepository(context)
-        settingsRepository.setPrivacyPolicyAccepted(true)
-        settingsRepository.setOnboardingCompleted(true)
-        context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(SettingsRepository.KEY_INSTALL_ID, "test-player-id")
-            .commit()
+            db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+                .allowMainThreadQueries()
+                .setQueryExecutor(Runnable::run)
+                .setTransactionExecutor(Runnable::run)
+                .build()
+            DatabaseProvider.setDatabase(db)
+        }
 
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
-            .allowMainThreadQueries()
-            .setQueryExecutor(Runnable::run)
-            .setTransactionExecutor(Runnable::run)
-            .build()
-        DatabaseProvider.setDatabase(db)
+        override fun after() {
+            db.close()
+            DatabaseProvider.setDatabase(null)
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit()
+        }
     }
 
-    @After
-    fun tearDown() {
-        db.close()
-        DatabaseProvider.setDatabase(null)
-
-        context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .clear()
-            .commit()
-    }
+    @get:Rule(order = 1)
+    val composeTestRule = createAndroidComposeRule<LaunchActivity>()
 
     private fun waitForAnimations() {
         composeTestRule.mainClock.advanceTimeBy(1000)
+        composeTestRule.waitForIdle()
+    }
+
+    private fun waitForCoroutines() {
+        shadowOf(Looper.getMainLooper()).idle()
+        composeTestRule.mainClock.advanceTimeBy(500)
+        composeTestRule.waitForIdle()
+        shadowOf(Looper.getMainLooper()).idle()
         composeTestRule.waitForIdle()
     }
 
@@ -77,7 +83,7 @@ class LaunchActivityTest {
         waitForAnimations()
 
         composeTestRule.onNodeWithTag("btn_start_mission").performClick()
-        composeTestRule.waitForIdle()
+        waitForCoroutines()
 
         val activity = composeTestRule.activity
         val shadowActivity = shadowOf(activity)
@@ -98,7 +104,7 @@ class LaunchActivityTest {
         waitForAnimations()
 
         composeTestRule.onNodeWithTag("btn_start_mission").performClick()
-        composeTestRule.waitForIdle()
+        waitForCoroutines()
 
         val activity = composeTestRule.activity
         val shadowActivity = shadowOf(activity)
@@ -124,11 +130,11 @@ class LaunchActivityTest {
         waitForAnimations()
 
         composeTestRule.onNodeWithTag("btn_start_mission").performClick()
-        composeTestRule.waitForIdle()
+        waitForCoroutines()
 
         composeTestRule.onNodeWithTag("saved_game_dialog").assertIsDisplayed()
         composeTestRule.onNodeWithTag("dialog_btn_continue").performClick()
-        composeTestRule.waitForIdle()
+        waitForCoroutines()
 
         val activity = composeTestRule.activity
         val shadowActivity = shadowOf(activity)
@@ -157,11 +163,11 @@ class LaunchActivityTest {
         waitForAnimations()
 
         composeTestRule.onNodeWithTag("btn_start_mission").performClick()
-        composeTestRule.waitForIdle()
+        waitForCoroutines()
 
         composeTestRule.onNodeWithTag("saved_game_dialog").assertIsDisplayed()
         composeTestRule.onNodeWithTag("dialog_btn_continue").performClick()
-        composeTestRule.waitForIdle()
+        waitForCoroutines()
 
         val activity = composeTestRule.activity
         val shadowActivity = shadowOf(activity)
