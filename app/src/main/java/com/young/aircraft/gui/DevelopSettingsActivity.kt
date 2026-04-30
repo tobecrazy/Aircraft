@@ -4,16 +4,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.databinding.ActivityDevelopSettingsBinding
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.viewmodel.DevelopSettingsViewModel
 
 class DevelopSettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDevelopSettingsBinding
-    private lateinit var settingsRepository: SettingsRepository
+    private lateinit var viewModel: DevelopSettingsViewModel
     private var clickCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,7 +27,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
         title = getString(R.string.develop_settings_title)
         binding = ActivityDevelopSettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        settingsRepository = SettingsRepository(this)
+        viewModel = ViewModelProvider(this, DevelopSettingsViewModel.Factory(this))[DevelopSettingsViewModel::class.java]
 
         binding.btnBack.setOnClickListener { finish() }
         binding.tvBuildBadge.text = getString(R.string.develop_settings_debug_badge)
@@ -51,13 +52,13 @@ class DevelopSettingsActivity : AppCompatActivity() {
     }
 
     private fun setupInvincibleMode() {
-        val isInvincible = settingsRepository.isInvincibleModeEnabled()
+        val isInvincible = viewModel.isInvincibleModeEnabled()
         GameStateManager.isInvincible = isInvincible
         binding.switchInvincible.isChecked = isInvincible
         updateInvincibleUi(isInvincible)
 
         binding.switchInvincible.setOnCheckedChangeListener { _, enabled ->
-            settingsRepository.setInvincibleModeEnabled(enabled)
+            viewModel.setInvincibleModeEnabled(enabled)
             GameStateManager.isInvincible = enabled
             updateInvincibleUi(enabled)
 

@@ -12,10 +12,11 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityPrivacyPolicyAcceptBinding
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.viewmodel.PrivacyPolicyViewModel
 import java.util.Locale
 
 /**
@@ -26,17 +27,18 @@ import java.util.Locale
  */
 class PrivacyPolicyAcceptActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPrivacyPolicyAcceptBinding
-    private lateinit var settingsRepository: SettingsRepository
+    private lateinit var viewModel: PrivacyPolicyViewModel
     private var acceptPulseAnimator: ObjectAnimator? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        settingsRepository = SettingsRepository(this)
+
+        viewModel = ViewModelProvider(this, PrivacyPolicyViewModel.Factory(this))[PrivacyPolicyViewModel::class.java]
 
         // Already accepted → route to onboarding gate (it handles its own skip)
-        if (settingsRepository.isPrivacyPolicyAccepted()) {
+        if (viewModel.isAlreadyAccepted()) {
             startActivity(Intent(this, OnboardingActivity::class.java))
             finish()
             return
@@ -115,7 +117,7 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
         binding.btnAccept.isEnabled = false
         binding.btnAccept.alpha = 0.3f
         binding.btnAccept.setOnClickListener {
-            settingsRepository.setPrivacyPolicyAccepted(true)
+            viewModel.acceptPolicy()
             startActivity(Intent(this, OnboardingActivity::class.java))
             finish()
         }

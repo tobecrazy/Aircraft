@@ -190,13 +190,14 @@
     <string name="qr_code_tool_camera_rationale_title">需要相机权限</string>
     <string name="qr_code_tool_camera_rationale_message">相机用于扫描二维码。请授予相机权限以使用此功能。</string>
     <string name="qr_code_tool_camera_rationale_ok">继续</string>
-    <string name="qr_code_tool_save_success">二维码已保存到相册</string>
+    <string name="qr_code_tool_save_success">二维码保存成功</string>
     <string name="qr_code_tool_save_failed">保存二维码失败</string>
     <string name="qr_code_tool_save_hint">长按二维码可保存到相册</string>
     <string name="qr_code_tool_pick_gallery">从相册选择</string>
     <string name="qr_code_tool_invalid_qr">所选图片不包含有效的二维码</string>
     <string name="qr_code_tool_pick_failed">无法加载所选图片</string>
     <string name="qr_code_tool_save_button">保存二维码</string>
+    <string name="qr_code_tool_share_button">分享二维码</string>
     <string name="develop_settings_title">开发设置</string>
     <string name="develop_settings_summary">仅限调试使用的工具和崩溃测试</string>
     <string name="develop_settings_banner_summary">用于验证运行时开关、编辑器界面和崩溃上报的内部工具。</string>

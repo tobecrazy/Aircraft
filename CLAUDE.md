@@ -145,6 +145,9 @@ Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent
 
 ## Key Gotchas
 
+### UI Consistency
+All UI interfaces must maintain a consistent style. When adding or modifying activities, match the existing patterns: standard 52dp header, color scheme (`#0F1118` background, `#161A26` header, `#00FF88` accent), monospace typography, `fitsSystemWindows="true"`, and the shared drawable/theme conventions. Never introduce novel layout structures or color values without checking how peer screens are built.
+
 ### Naming Collision
 Two files named `Aircraft.kt`: `data/PlayerAircraft.kt` (data class, renamed from Aircraft) and `ui/Aircraft.kt` (rendering class). Code disambiguates with `import com.young.aircraft.data.PlayerAircraft as AircraftData`.
 
@@ -159,7 +162,7 @@ All game object bitmaps must have `bitmap.density = screenDensity` set for corre
 - Activities needing a solid background **must** set `android:theme="@style/Theme.Aircraft.Common"` in the manifest
 
 ### Localization
-English (default) and Chinese (`values-zh/strings.xml`). A `StringResourceTest` verifies locale parity and usage coverage — when adding/removing strings, ensure both locales stay in sync to avoid test failures. Unused strings in `strings.xml` will also cause test failures; clean up orphans after refactors.
+English (default) and Chinese (`values-zh/strings.xml`). A `StringResourceTest` verifies locale parity and usage coverage — when adding/removing strings, ensure both locales stay in sync to avoid test failures. Unused strings in `strings.xml` will also cause test failures; clean up orphans after refactors. If there are any String changes, ensure that all Strings are i18n-compatible and properly referenced (no hardcoded text in layouts or code — always use `@string/` in XML and `getString(R.string.*)` in Kotlin).
 
 ### CI
 GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug lintDebug` on push/PR to `main`, using JDK 17 (temurin). Note: CI does **not** run unit tests — only compile and lint.
@@ -175,3 +178,9 @@ Generated QR codes use **white modules on dark background** (`#0F1118`) for the 
 
 ### Bottom Sheet Dialogs
 `BottomSheetDialog` with transparent background is used in `MainActivity` (hall of heroes) and `QRCodeToolActivity` (scan results). Each has a matching `ThemeOverlay` style in `themes.xml` and a custom layout in `res/layout/bottom_sheet_*.xml`. The pattern: create dialog with theme → inflate layout → `setContentView` → set `design_bottom_sheet` background to transparent in `setOnShowListener`.
+
+### Standard Activity Header Pattern
+Non-game activities share a consistent header: **52dp RelativeLayout** (`#161A26` background) with a 48dp back ImageButton (start-aligned) and a centered title TextView (`#00FF88`, 16sp, bold, monospace, letterSpacing 0.25). A 1dp green divider (`#4400FF88`) separates it from content. The root layout uses `android:fitsSystemWindows="true"` for status bar handling — do NOT use manual `WindowCompat.setDecorFitsSystemWindows(window, false)` + inset listeners in these activities.
+
+### FileProvider
+A `FileProvider` is registered in the manifest with authority `${applicationId}.fileprovider`. Path configuration in `res/xml/file_paths.xml` exposes `external-files-path` (Pictures/) and `cache-path`. The `FilePickerHelper` utility (utils/) provides `getUriForFile()`, `createQrImageFile()`, `copyUriToCache()`, and `queryFileInfo()`. Used by `QRCodeToolActivity` for sharing QR codes via `Intent.ACTION_SEND` with `FLAG_GRANT_READ_URI_PERMISSION`.
