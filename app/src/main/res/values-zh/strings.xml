@@ -50,7 +50,7 @@
     <string name="history_summary_with_top_pilot">当前最佳飞行员 %1$s 已闯到第 %2$d 关，暂列全队第一。</string>
     <string name="history_summary_record_count">%1$d 条记录</string>
     <string name="history_summary_best_score">最高 %1$s</string>
-    <string name="history_summary_best_score_empty">最高 --</string>
+    <string name="history_summary_best_score_empty">最高 —</string>
     <string name="history_section_records">战绩排行</string>
     <string name="history_empty_summary">先开始一局游戏，保存后的分数会出现在这里，方便回顾和清理。</string>
     <string name="hall_of_heroes_title">英雄殿堂</string>
@@ -58,9 +58,9 @@
     <string name="hall_of_heroes_badge">传奇通关</string>
     <string name="hall_of_heroes_prompt">请输入你的名字</string>
     <string name="hall_of_heroes_name_hint">输入名字</string>
-    <string name="hall_of_heroes_hint">留空则会以 Anonymous 记录。</string>
+    <string name="hall_of_heroes_hint">留空则会以"无名氏"记录。</string>
     <string name="hall_of_heroes_record_button">记录名字</string>
-    <string name="hall_of_heroes_anonymous">Anonymous</string>
+    <string name="hall_of_heroes_anonymous">无名氏</string>
     <string name="hall_of_heroes_medal_content_description">英雄殿堂奖章</string>
 
     <!-- Preference Titles -->
@@ -74,7 +74,7 @@
     <string name="privacy_policy_source_chip">本地文档</string>
     <string name="privacy_policy_language_en">ENGLISH</string>
     <string name="privacy_policy_language_zh">中文</string>
-    <string name="privacy_policy_loading">正在加载隐私政策...</string>
+    <string name="privacy_policy_loading">正在加载隐私政策…</string>
     <string name="privacy_policy_error_title">文档暂时不可用</string>
     <string name="privacy_policy_error_message">本地隐私政策加载失败，请重试以重新打开嵌入文档。</string>
     <string name="privacy_policy_retry">重试</string>
@@ -263,7 +263,7 @@
     <string name="device_info_fmt_disk_detail">已用 %.1fG / 可用 %.1fG\n共 %.1fG</string>
     <string name="device_info_net_wifi_detail_ext">%1$s %2$dMbps 信号:%3$ddBm [%4$d/4]</string>
     <string name="device_info_net_throughput">\u2193%1$s \u2191%2$s</string>
-    <string name="device_info_net_throughput_init">\u2193-- \u2191--</string>
+    <string name="device_info_net_throughput_init">\u2193— \u2191--</string>
     <string name="device_info_net_ip">IP: %s</string>
 
     <!-- Launch Screen -->

@@ -5,15 +5,17 @@ import android.text.Html
 import android.view.View
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.databinding.ActivityRichTextEditorBinding
 import com.young.aircraft.ui.RichTextEditorView
+import com.young.aircraft.viewmodel.RichTextEditorViewModel
 import androidx.core.graphics.toColorInt
 
 class RichTextEditorActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRichTextEditorBinding
-    private var isEditMode = true
+    private lateinit var viewModel: RichTextEditorViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,12 +24,18 @@ class RichTextEditorActivity : AppCompatActivity() {
             return
         }
 
+        viewModel = ViewModelProvider(this, RichTextEditorViewModel.Factory())[RichTextEditorViewModel::class.java]
+
         binding = ActivityRichTextEditorBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         binding.btnBack.setOnClickListener { finish() }
         setupModeToggle()
         setupWebView()
+
+        if (!viewModel.isEditMode) {
+            switchToPreviewMode()
+        }
     }
 
     private fun setupModeToggle() {
@@ -36,7 +44,7 @@ class RichTextEditorActivity : AppCompatActivity() {
     }
 
     private fun switchToEditMode() {
-        isEditMode = true
+        viewModel.switchToEditMode()
         binding.btnEditMode.setTextColor("#00FF88".toColorInt())
         binding.btnPreviewMode.setTextColor("#66FFFFFF".toColorInt())
         binding.richEditor.visibility = View.VISIBLE
@@ -46,7 +54,7 @@ class RichTextEditorActivity : AppCompatActivity() {
     private fun switchToPreviewMode() {
         val html = buildPreviewHtml()
 
-        isEditMode = false
+        viewModel.switchToPreviewMode()
         binding.btnEditMode.setTextColor("#66FFFFFF".toColorInt())
         binding.btnPreviewMode.setTextColor("#00FF88".toColorInt())
         binding.richEditor.visibility = View.GONE

@@ -32,6 +32,7 @@ import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
 import com.young.aircraft.databinding.ActivityMainBinding
 import com.young.aircraft.service.MusicService
+import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.utils.HallOfHeroesNameUtils
 import com.young.aircraft.viewmodel.GameViewModel
@@ -89,9 +90,9 @@ class MainActivity : AppCompatActivity() {
         })
         binding = ActivityMainBinding.inflate(layoutInflater)
         coreView = GameCoreView(this)
-        val startLevel = intent.getIntExtra("start_level", 1)
-        val jetPlaneRes = intent.getIntExtra("jet_plane_res", R.drawable.jet_plane_2)
-        val jetPlaneIndex = intent.getIntExtra("jet_plane_index", 0)
+        val startLevel = intent.getIntExtra(AircraftConstants.IntentExtras.START_LEVEL, 1)
+        val jetPlaneRes = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, R.drawable.jet_plane_2)
+        val jetPlaneIndex = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_INDEX, 0)
         coreView.level = startLevel
         coreView.jetPlaneResId = jetPlaneRes
         coreView.jetPlaneIndex = jetPlaneIndex

@@ -74,7 +74,7 @@
     <string name="privacy_policy_source_chip">LOCAL FILE</string>
     <string name="privacy_policy_language_en">ENGLISH</string>
     <string name="privacy_policy_language_zh">中文</string>
-    <string name="privacy_policy_loading">Loading privacy policy...</string>
+    <string name="privacy_policy_loading">Loading privacy policy…</string>
     <string name="privacy_policy_error_title">Document unavailable</string>
     <string name="privacy_policy_error_message">The local privacy policy could not be loaded. Retry to reopen the embedded document.</string>
     <string name="privacy_policy_retry">Retry</string>
