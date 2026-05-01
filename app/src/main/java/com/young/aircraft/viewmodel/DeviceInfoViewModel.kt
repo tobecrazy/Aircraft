@@ -33,7 +33,6 @@ class DeviceInfoViewModel(
     private val _uiState = MutableStateFlow(DeviceInfoUiState())
     val uiState: StateFlow<DeviceInfoUiState> = _uiState.asStateFlow()
 
-    private var useProcStat = false
     private val numCores = Runtime.getRuntime().availableProcessors()
     private var prevTotalLine: LongArray? = null
     private var prevCoreLines: List<LongArray>? = null
@@ -85,19 +84,11 @@ class DeviceInfoViewModel(
     fun initCpuSnapshot() {
         val snap = readProcStatSnapshot()
         if (snap != null) {
-            useProcStat = true
             prevTotalLine = snap.total
             prevCoreLines = snap.perCore
             return
         }
-        useProcStat = false
-        val maxes = LongArray(numCores)
-        for (i in 0 until numCores) {
-            maxes[i] = readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq")
-                ?: readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/scaling_max_freq")
-                ?: 0L
-        }
-        maxFreqs = maxes
+        maxFreqs = readMaxCpuFrequencies()
     }
 
     fun initTrafficSnapshot() {
@@ -145,25 +136,49 @@ class DeviceInfoViewModel(
     }
 
     private fun refreshCpuUsage(): CpuState {
-        return if (useProcStat) refreshCpuFromProcStat() else refreshCpuFromFreq()
+        val statState = refreshCpuFromProcStat()
+        if (statState != null) return statState
+
+        if (maxFreqs == null) {
+            maxFreqs = readMaxCpuFrequencies()
+        }
+        return refreshCpuFromFreq()
     }
 
-    private fun refreshCpuFromProcStat(): CpuState {
-        val snap = readProcStatSnapshot() ?: return _uiState.value.cpu
+    private fun refreshCpuFromProcStat(): CpuState? {
+        val snap = readProcStatSnapshot() ?: return null
         val prevTotal = prevTotalLine
         val prevCores = prevCoreLines
+        val previousCpu = _uiState.value.cpu
 
         val overallPct = if (prevTotal != null) {
-            calcUsagePercent(prevTotal, snap.total)
-        } else 0
+            DeviceResourceCalculators.calcCpuUsagePercent(prevTotal, snap.total) ?: previousCpu.overallPct
+        } else previousCpu.overallPct
 
         val coreUsages = if (prevCores != null) {
             snap.perCore.mapIndexed { i, core ->
-                val pct = if (i < prevCores.size) calcUsagePercent(prevCores[i], core) else 0
-                CoreUsage(index = i, pct = pct)
+                val previousCore = previousCpu.coreUsages.getOrNull(i)
+                val pct = if (i < prevCores.size) {
+                    DeviceResourceCalculators.calcCpuUsagePercent(prevCores[i], core) ?: previousCore?.pct ?: 0
+                } else {
+                    previousCore?.pct ?: 0
+                }
+                CoreUsage(
+                    index = i,
+                    pct = pct,
+                    freqMhz = readCurrentCpuFrequencyMhz(i),
+                    isOnline = isCpuCoreOnline(i)
+                )
             }
         } else {
-            snap.perCore.mapIndexed { i, _ -> CoreUsage(index = i, pct = 0) }
+            snap.perCore.mapIndexed { i, _ ->
+                CoreUsage(
+                    index = i,
+                    pct = previousCpu.coreUsages.getOrNull(i)?.pct ?: 0,
+                    freqMhz = readCurrentCpuFrequencyMhz(i),
+                    isOnline = isCpuCoreOnline(i)
+                )
+            }
         }
 
         prevTotalLine = snap.total
@@ -183,17 +198,15 @@ class DeviceInfoViewModel(
         var activeCount = 0
 
         for (i in 0 until numCores) {
-            val curFreq = readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/scaling_cur_freq")
-                ?: readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_cur_freq")
+            val curFreq = readCurrentCpuFrequency(i)
             val maxFreq = maxes[i]
             val pct = if (curFreq != null && maxFreq > 0) {
                 (curFreq * 100 / maxFreq).toInt().coerceIn(0, 100)
             } else {
-                val online = readSysFile("/sys/devices/system/cpu/cpu$i/online")
-                if (online == 0L) 0 else -1
+                if (isCpuCoreOnline(i)) -1 else 0
             }
 
-            if (pct >= 0) {
+            if (pct >= 0 && isCpuCoreOnline(i)) {
                 coreUsages.add(CoreUsage(
                     index = i,
                     pct = pct,
@@ -212,6 +225,29 @@ class DeviceInfoViewModel(
             coreUsages = coreUsages,
             temperature = readCpuTemperature()
         )
+    }
+
+    private fun readMaxCpuFrequencies(): LongArray {
+        val maxes = LongArray(numCores)
+        for (i in 0 until numCores) {
+            maxes[i] = readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq")
+                ?: readSysFile("/sys/devices/system/cpu/cpu$i/cpufreq/scaling_max_freq")
+                ?: 0L
+        }
+        return maxes
+    }
+
+    private fun readCurrentCpuFrequency(coreIndex: Int): Long? {
+        return readSysFile("/sys/devices/system/cpu/cpu$coreIndex/cpufreq/scaling_cur_freq")
+            ?: readSysFile("/sys/devices/system/cpu/cpu$coreIndex/cpufreq/cpuinfo_cur_freq")
+    }
+
+    private fun readCurrentCpuFrequencyMhz(coreIndex: Int): Int? {
+        return readCurrentCpuFrequency(coreIndex)?.let { (it / 1000).toInt() }
+    }
+
+    private fun isCpuCoreOnline(coreIndex: Int): Boolean {
+        return readSysFile("/sys/devices/system/cpu/cpu$coreIndex/online") != 0L
     }
 
     private fun readCpuTemperature(): Float? {
@@ -248,30 +284,13 @@ class DeviceInfoViewModel(
                 result
             }
             if (lines.isEmpty()) return null
-            val total = parseCpuLine(lines[0])
-            if (total.sum() == 0L) return null
-            val cores = lines.drop(1).map { parseCpuLine(it) }
+            val total = DeviceResourceCalculators.parseCpuStatLine(lines[0])
+            if (total == null || total.sum() == 0L) return null
+            val cores = lines.drop(1).mapNotNull { DeviceResourceCalculators.parseCpuStatLine(it) }
             CpuSnapshot(total, cores)
         } catch (_: Exception) {
             null
         }
-    }
-
-    private fun parseCpuLine(line: String): LongArray {
-        val parts = line.trim().split("\\s+".toRegex())
-        return LongArray(minOf(parts.size - 1, 8)) { i ->
-            parts.getOrNull(i + 1)?.toLongOrNull() ?: 0L
-        }
-    }
-
-    private fun calcUsagePercent(prev: LongArray, curr: LongArray): Int {
-        val prevIdle = prev.getOrElse(3) { 0L } + prev.getOrElse(4) { 0L }
-        val currIdle = curr.getOrElse(3) { 0L } + curr.getOrElse(4) { 0L }
-        val prevTotal = prev.sum()
-        val currTotal = curr.sum()
-        val diffTotal = currTotal - prevTotal
-        val diffIdle = currIdle - prevIdle
-        return if (diffTotal > 0) ((diffTotal - diffIdle) * 100 / diffTotal).toInt().coerceIn(0, 100) else 0
     }
 
     private fun readSysFile(path: String): Long? {
@@ -288,14 +307,19 @@ class DeviceInfoViewModel(
         val am = appContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val mi = ActivityManager.MemoryInfo()
         am.getMemoryInfo(mi)
-        val totalGB = mi.totalMem / (1024.0 * 1024.0 * 1024.0)
-        val availGB = mi.availMem / (1024.0 * 1024.0 * 1024.0)
-        val usedGB = totalGB - availGB
-        val pct = if (mi.totalMem > 0) ((mi.totalMem - mi.availMem) * 100 / mi.totalMem).toInt().coerceIn(0, 100) else 0
 
         val memInfo = readProcMemInfo()
-        val buffersGB = memInfo["Buffers"]?.let { it / (1024.0 * 1024.0) } ?: 0.0
-        val cachedGB = memInfo["Cached"]?.let { it / (1024.0 * 1024.0) } ?: 0.0
+        val totalBytes = memInfo["MemTotal"]?.times(BYTES_PER_KB) ?: mi.totalMem
+        val availableBytes = memInfo["MemAvailable"]?.times(BYTES_PER_KB) ?: mi.availMem
+        val usedBytes = (totalBytes - availableBytes).coerceAtLeast(0L)
+        val totalGB = totalBytes / BYTES_PER_GB
+        val availGB = availableBytes / BYTES_PER_GB
+        val usedGB = usedBytes / BYTES_PER_GB
+        val pct = if (totalBytes > 0) (usedBytes * 100 / totalBytes).toInt().coerceIn(0, 100) else 0
+
+        val buffersGB = memInfo["Buffers"]?.let { it / KB_PER_GB } ?: 0.0
+        val cachedKB = (memInfo["Cached"] ?: 0L) + (memInfo["SReclaimable"] ?: 0L) - (memInfo["Shmem"] ?: 0L)
+        val cachedGB = cachedKB.coerceAtLeast(0L) / KB_PER_GB
 
         return MemoryState(
             pct = pct,
@@ -305,6 +329,12 @@ class DeviceInfoViewModel(
             buffersGB = buffersGB,
             cachedGB = cachedGB
         )
+    }
+
+    companion object {
+        private const val BYTES_PER_KB = 1024L
+        private const val BYTES_PER_GB = 1024.0 * 1024.0 * 1024.0
+        private const val KB_PER_GB = 1024.0 * 1024.0
     }
 
     private fun readProcMemInfo(): Map<String, Long> {
@@ -490,4 +520,44 @@ class DeviceInfoViewModel(
             return DeviceInfoViewModel(appContext) as T
         }
     }
+}
+
+internal object DeviceResourceCalculators {
+    private val whitespace = "\\s+".toRegex()
+
+    fun parseCpuStatLine(line: String): LongArray? {
+        val parts = line.trim().split(whitespace)
+        if (parts.size < 5 || !parts[0].startsWith("cpu")) return null
+        return LongArray(minOf(parts.size - 1, CPU_STAT_FIELD_COUNT)) { i ->
+            parts.getOrNull(i + 1)?.toLongOrNull() ?: 0L
+        }
+    }
+
+    fun calcCpuUsagePercent(prev: LongArray, curr: LongArray): Int? {
+        val prevIdle = idleTicks(prev)
+        val currIdle = idleTicks(curr)
+        val prevTotal = totalTicks(prev)
+        val currTotal = totalTicks(curr)
+        val diffTotal = currTotal - prevTotal
+        val diffIdle = currIdle - prevIdle
+
+        if (diffTotal <= 0 || diffIdle < 0) return null
+        return ((diffTotal - diffIdle).coerceAtLeast(0L) * 100 / diffTotal)
+            .toInt()
+            .coerceIn(0, 100)
+    }
+
+    private fun idleTicks(values: LongArray): Long {
+        return values.getOrElse(3) { 0L } + values.getOrElse(4) { 0L }
+    }
+
+    private fun totalTicks(values: LongArray): Long {
+        var total = 0L
+        for (i in 0 until minOf(values.size, CPU_STAT_FIELD_COUNT)) {
+            total += values[i]
+        }
+        return total
+    }
+
+    private const val CPU_STAT_FIELD_COUNT = 8
 }
