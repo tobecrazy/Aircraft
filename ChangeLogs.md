@@ -6,9 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - MVVM architecture layer with 7 ViewModels: `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`
+- 5 additional ViewModels completing full MVVM coverage: `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`
+- `AircraftConstants` object (data/) centralizing HUD labels, HUD colors, intent extras, URLs, and privacy policy asset paths
+- `GameHudFormatter` object (ui/) extracting HUD data calculations (remaining time, health percent, score) from `DrawHeader`
 - `DevelopSettingsViewModel` and `DevelopSettingsViewModelTest` for invincible-mode toggle
 - `PrivacyPolicyViewModel`, `OnboardingViewModel`, `LaunchViewModel` with unit tests
 - `SettingsUiState` and `HistoryUiState` data classes for reactive UI state
+- `AboutAircraftUiState`, `DeviceInfoUiState`, `QRCodeToolUiState` data classes for new ViewModel screens
 - `ViewModelProvider.Factory` pattern on all ViewModels — each Factory accepts `Context` and creates its own dependencies internally
 - ViewModel layer section in `class_diagram.svg` and `project_diagram.svg`
 - `AboutMeActivityTest` to verify localized About Me labels, GitHub repo rendering, and back navigation under Robolectric
@@ -27,6 +31,13 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `DrawHeader` HUD reorganized to a two-row layout: mission/hull cards on top row, timer centered below, preventing overlap on narrow screens
+- HUD panel backgrounds changed to 15% opacity (`#26` alpha) for increased transparency — game background now visible through panels
+- Pause button repositioned below the HULL card (marginTop 84dp) to eliminate overlap with HUD elements; text color changed to accent green (`#00FF88`)
+- `DeviceInfoActivity` logic extracted to `DeviceInfoViewModel` with `DeviceInfoUiState` StateFlow
+- `QRCodeToolActivity` QR encode/decode logic extracted to `QRCodeToolViewModel`
+- `AboutAircraftActivity` and `AboutMeActivity` content logic moved to their respective ViewModels
+- `RichTextEditorActivity` edit/preview mode state moved to `RichTextEditorViewModel`
 - All Activities now follow MVVM: `SettingsRepository` and `DatabaseProvider` access moved from Activities into ViewModel Factories (View → ViewModel → Repository → SharedPreferences)
 - `MainActivity` no longer directly accesses `AppDatabase` or `SettingsRepository` — delegates to `GameViewModel`
 - `LaunchActivity` delegates saved-game logic to `LaunchViewModel`
@@ -123,9 +134,9 @@ The class and project architecture diagrams ([class_diagram.svg](class_diagram.s
 |-------|---------|-------------|
 | Common | `common/` | `AircraftApplication`, `GameStateManager` |
 | Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2030), `GameState` (enum), `GameDifficulty` (enum) |
-| Game Engine | `ui/` | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable) |
-| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel` |
-| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `StarFieldView` |
+| Game Engine | `ui/` | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable), `GameHudFormatter` |
+| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel` |
+| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `RichTextEditorActivity`, `StarFieldView` |
 | Service | `service/` | `MusicService` + `MusicBinder` |
 | Providers | `providers/` | `DatabaseProvider`, `SettingsRepository` |
 | Utilities | `utils/` | `ScreenUtils`, `BitmapUtils` |

@@ -1,5 +1,6 @@
 package com.young.aircraft.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -55,6 +56,7 @@ class DrawHeader(
     private val panelCorner = ScreenUtils.dpToPx(context, 16.0f).toFloat()
     private val smallCorner = ScreenUtils.dpToPx(context, 8.0f).toFloat()
 
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         val screenWidth = ScreenUtils.getScreenWidth(context).toFloat()
         val margin = ScreenUtils.dpToPx(context, 16.0f).toFloat()
@@ -66,17 +68,18 @@ class DrawHeader(
         val timerHeight = ScreenUtils.dpToPx(context, 42.0f).toFloat()
 
         val leftCard = RectF(margin, top, margin + leftCardWidth, top + cardHeight)
-        val timerCard = RectF(
-            (screenWidth - timerWidth) / 2f,
-            top + ScreenUtils.dpToPx(context, 4.0f),
-            (screenWidth + timerWidth) / 2f,
-            top + ScreenUtils.dpToPx(context, 4.0f) + timerHeight
-        )
         val rightCard = RectF(
             screenWidth - margin - rightCardWidth,
             top,
             screenWidth - margin,
             top + cardHeight
+        )
+        val timerTop = top + cardHeight + ScreenUtils.dpToPx(context, 8.0f)
+        val timerCard = RectF(
+            (screenWidth - timerWidth) / 2f,
+            timerTop,
+            (screenWidth + timerWidth) / 2f,
+            timerTop + timerHeight
         )
 
         drawPanel(canvas, leftCard, AircraftConstants.HudColors.PANEL_DARK)
@@ -183,7 +186,7 @@ class DrawHeader(
 
         val boss = gameView.bossEnemy.activeBoss
         if (boss != null && !boss.isDestroyed()) {
-            val bossBarTop = leftCard.bottom + ScreenUtils.dpToPx(context, 12.0f)
+            val bossBarTop = timerCard.bottom + ScreenUtils.dpToPx(context, 8.0f)
             val bossCard = RectF(
                 margin,
                 bossBarTop,

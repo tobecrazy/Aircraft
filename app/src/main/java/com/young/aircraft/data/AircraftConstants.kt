@@ -13,8 +13,8 @@ object AircraftConstants {
 
     object Urls {
         const val PROFILE_IMAGE = "https://images.cnblogs.com/cnblogs_com/tobecrazy/432338/o_250810143405_Card.png"
-        const val EXAMPLE_IMAGE = "https://example.com/image.png"
-        const val EXAMPLE_LINK = "https://example.com"
+        const val EXAMPLE_IMAGE = "https://images.cnblogs.com/cnblogs_com/tobecrazy/2504287/o_260501021321_unnamed.jpg"
+        const val EXAMPLE_LINK = "https://www.cnblogs.com/tobecrazy"
     }
 
     object PrivacyPolicy {
@@ -32,9 +32,9 @@ object AircraftConstants {
     }
 
     object HudColors {
-        const val PANEL_DARK = "#CC0D1A17"
-        const val PANEL_TIMER = "#D912201D"
-        const val PANEL_BOSS = "#D9101814"
+        const val PANEL_DARK = "#260D1A17"
+        const val PANEL_TIMER = "#2612201D"
+        const val PANEL_BOSS = "#26101814"
         const val STROKE_GREEN = "#4D00FF88"
         const val LABEL_GREEN = "#8C8FFFC0"
         const val VALUE_LIGHT = "#D8F7E9"

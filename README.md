@@ -17,13 +17,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
-| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty` | Data models, Room persistence, game state enums |
-| `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` | 30 FPS rendering, collision detection, level progression |
-| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel` | MVVM mediation between Views and Repositories/DAOs |
+| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty`, `AircraftConstants` | Data models, Room persistence, game state enums, HUD constants |
+| `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
+| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel` | MVVM mediation between Views and Repositories/DAOs |
 | `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
 | `providers/` | Gray | `DatabaseProvider`, `SettingsRepository` | Singleton DB provider, SharedPreferences wrapper |
-| `utils/` | Light green | `ScreenUtils`, `BitmapUtils` | Screen metrics, bitmap utilities |
+| `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, name formatting |
 
 ### Key Relationships
 
@@ -99,6 +99,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── ShieldState.kt                  # Shield pickup state
 │   ├── TimeFreezeState.kt              # Time-freeze pickup state
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
+│   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
 │   └── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
@@ -125,7 +126,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── GameCoreView.kt                 # Main game loop and collision orchestration
 │   ├── DrawBaseObject.kt               # Base drawable/update contract
 │   ├── DrawBackground.kt               # Mirrored seamless background renderer
-│   ├── DrawHeader.kt                   # HUD for level, HP, timer, kills, freeze state
+│   ├── DrawHeader.kt                   # Two-row HUD: mission/hull cards top, timer below
 │   ├── Aircraft.kt                     # Player sprite and bullet system
 │   ├── Enemies.kt                      # Enemy spawning, movement, and bullets
 │   ├── BossEnemy.kt                    # Boss AI, bombs, and scaling HP
@@ -133,7 +134,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── MedicalKits.kt                  # HP pickup spawning and lifetime rules
 │   ├── Shields.kt                      # Shield pickup spawning and lifetime rules
 │   ├── TimeFreezes.kt                  # Freeze pickup spawning and 5s freeze logic
-│   └── ExplosionEffect.kt              # Particle explosion effect
+│   ├── ExplosionEffect.kt              # Particle explosion effect
+│   └── GameHudFormatter.kt             # HUD data formatting (time, health %, score)
 ├── utils/
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
 │   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
@@ -147,7 +149,15 @@ app/src/main/java/com/young/aircraft/
     ├── HistoryUiState.kt               # UI state data class for history screen
     ├── OnboardingViewModel.kt          # Onboarding completion gate (OnboardingActivity)
     ├── PrivacyPolicyViewModel.kt       # Privacy acceptance gate (PrivacyPolicyAcceptActivity)
-    └── DevelopSettingsViewModel.kt     # Invincible mode toggle (DevelopSettingsActivity)
+    ├── DevelopSettingsViewModel.kt     # Invincible mode toggle (DevelopSettingsActivity)
+    ├── AboutAircraftViewModel.kt       # Project info StateFlow (AboutAircraftActivity)
+    ├── AboutAircraftUiState.kt         # UI state for about-aircraft screen
+    ├── AboutMeViewModel.kt             # Developer profile data (AboutMeActivity)
+    ├── DeviceInfoViewModel.kt          # CPU/memory/disk/network telemetry (DeviceInfoActivity)
+    ├── DeviceInfoUiState.kt            # UI state for device info screen
+    ├── QRCodeToolViewModel.kt          # QR encode/decode logic (QRCodeToolActivity)
+    ├── QRCodeToolUiState.kt            # UI state for QR tool screen
+    └── RichTextEditorViewModel.kt      # Edit/preview mode state (RichTextEditorActivity)
 ```
 
 ## Tests

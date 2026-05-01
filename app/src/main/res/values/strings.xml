@@ -50,7 +50,7 @@
     <string name="history_summary_with_top_pilot">Top pilot %1$s reached Level %2$d and leads the squad.</string>
     <string name="history_summary_record_count">%1$d RUNS</string>
     <string name="history_summary_best_score">BEST %1$s</string>
-    <string name="history_summary_best_score_empty">BEST --</string>
+    <string name="history_summary_best_score_empty">BEST —</string>
     <string name="history_section_records">RANKED FLIGHTS</string>
     <string name="history_empty_summary">Play a round and saved scores will appear here for quick review and cleanup.</string>
     <string name="hall_of_heroes_title">Hall of Heroes</string>
