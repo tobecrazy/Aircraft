@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
 import com.young.aircraft.R
 import com.young.aircraft.BuildConfig
+import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.databinding.ActivityPrivacyPolicyBinding
 import java.util.Locale
 
@@ -238,8 +239,8 @@ class PrivacyPolicyActivity : AppCompatActivity() {
     }
 
     private companion object {
-        const val POLICY_ZH = "privacy_policy.html"
-        const val POLICY_EN = "privacy_policy_en.html"
-        const val ASSET_PREFIX = "file:///android_asset/"
+        val POLICY_ZH = AircraftConstants.PrivacyPolicy.ASSET_ZH
+        val POLICY_EN = AircraftConstants.PrivacyPolicy.ASSET_EN
+        val ASSET_PREFIX = AircraftConstants.PrivacyPolicy.ASSET_PREFIX
     }
 }

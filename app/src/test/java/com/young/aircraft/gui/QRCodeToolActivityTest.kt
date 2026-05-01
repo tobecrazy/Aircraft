@@ -514,15 +514,13 @@ class QRCodeToolActivityTest {
             scenario.onActivity { activity ->
                 val nonQrBitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
 
-                val method = QRCodeToolActivity::class.java
-                    .getDeclaredMethod("decodeQrFromBitmap", Bitmap::class.java)
-                method.isAccessible = true
-                method.invoke(activity, nonQrBitmap)
+                val vmField = QRCodeToolActivity::class.java
+                    .getDeclaredField("viewModel")
+                vmField.isAccessible = true
+                val viewModel = vmField.get(activity) as com.young.aircraft.viewmodel.QRCodeToolViewModel
+                val result = viewModel.decodeQrFromBitmap(nonQrBitmap)
 
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_invalid_qr),
-                    ShadowToast.getTextOfLatestToast()
-                )
+                assertNull("Should return null for non-QR bitmap", result)
             }
         }
     }

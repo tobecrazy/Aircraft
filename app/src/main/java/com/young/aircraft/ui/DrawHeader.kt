@@ -1,5 +1,6 @@
 package com.young.aircraft.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -8,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import com.young.aircraft.R
+import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.utils.ScreenUtils
 import com.young.aircraft.data.PlayerAircraft as AircraftData
 
@@ -24,10 +26,10 @@ class DrawHeader(
     private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = ScreenUtils.dpToPx(context, 1.0f).toFloat()
-        color = Color.parseColor("#4D00FF88")
+        color = Color.parseColor(AircraftConstants.HudColors.STROKE_GREEN)
     }
     private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#8C8FFFC0")
+        color = Color.parseColor(AircraftConstants.HudColors.LABEL_GREEN)
         textSize = ScreenUtils.sp2px(context, 11.0f)
         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         letterSpacing = 0.08f
@@ -38,12 +40,12 @@ class DrawHeader(
         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
     }
     private val valuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#D8F7E9")
+        color = Color.parseColor(AircraftConstants.HudColors.VALUE_LIGHT)
         textSize = ScreenUtils.sp2px(context, 12.0f)
         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
     }
     private val emphasisPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#9BFFCB")
+        color = Color.parseColor(AircraftConstants.HudColors.EMPHASIS_GREEN)
         textSize = ScreenUtils.sp2px(context, 18.0f)
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
@@ -54,6 +56,7 @@ class DrawHeader(
     private val panelCorner = ScreenUtils.dpToPx(context, 16.0f).toFloat()
     private val smallCorner = ScreenUtils.dpToPx(context, 8.0f).toFloat()
 
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         val screenWidth = ScreenUtils.getScreenWidth(context).toFloat()
         val margin = ScreenUtils.dpToPx(context, 16.0f).toFloat()
@@ -65,22 +68,23 @@ class DrawHeader(
         val timerHeight = ScreenUtils.dpToPx(context, 42.0f).toFloat()
 
         val leftCard = RectF(margin, top, margin + leftCardWidth, top + cardHeight)
-        val timerCard = RectF(
-            (screenWidth - timerWidth) / 2f,
-            top + ScreenUtils.dpToPx(context, 4.0f),
-            (screenWidth + timerWidth) / 2f,
-            top + ScreenUtils.dpToPx(context, 4.0f) + timerHeight
-        )
         val rightCard = RectF(
             screenWidth - margin - rightCardWidth,
             top,
             screenWidth - margin,
             top + cardHeight
         )
+        val timerTop = top + cardHeight + ScreenUtils.dpToPx(context, 8.0f)
+        val timerCard = RectF(
+            (screenWidth - timerWidth) / 2f,
+            timerTop,
+            (screenWidth + timerWidth) / 2f,
+            timerTop + timerHeight
+        )
 
-        drawPanel(canvas, leftCard, "#CC0D1A17")
-        drawPanel(canvas, timerCard, "#D912201D")
-        drawPanel(canvas, rightCard, "#CC0D1A17")
+        drawPanel(canvas, leftCard, AircraftConstants.HudColors.PANEL_DARK)
+        drawPanel(canvas, timerCard, AircraftConstants.HudColors.PANEL_TIMER)
+        drawPanel(canvas, rightCard, AircraftConstants.HudColors.PANEL_DARK)
 
         val requiredKills = GameCoreView.getRequiredKills(gameView.level)
         val remainingSec = GameHudFormatter.calculateRemainingSeconds(
@@ -94,7 +98,7 @@ class DrawHeader(
         valuePaint.textAlign = Paint.Align.LEFT
 
         canvas.drawText(
-            "MISSION",
+            AircraftConstants.HudLabels.MISSION,
             leftCard.left + ScreenUtils.dpToPx(context, 12.0f),
             leftCard.top + ScreenUtils.dpToPx(context, 18.0f),
             labelPaint
@@ -106,8 +110,8 @@ class DrawHeader(
             titlePaint
         )
         valuePaint.color =
-            if (gameView.enemiesDestroyedThisLevel >= requiredKills) Color.parseColor("#9BFFCB")
-            else Color.parseColor("#D8F7E9")
+            if (gameView.enemiesDestroyedThisLevel >= requiredKills) Color.parseColor(AircraftConstants.HudColors.EMPHASIS_GREEN)
+            else Color.parseColor(AircraftConstants.HudColors.VALUE_LIGHT)
         canvas.drawText(
             context.getString(
                 R.string.kills_count,
@@ -121,12 +125,12 @@ class DrawHeader(
 
         labelPaint.textAlign = Paint.Align.CENTER
         emphasisPaint.color = when {
-            remainingSec <= 10 -> Color.parseColor("#4BFF9E")
-            remainingSec <= 30 -> Color.parseColor("#7DFFBB")
-            else -> Color.parseColor("#D9FFEC")
+            remainingSec <= 10 -> Color.parseColor(AircraftConstants.HudColors.TIME_CRITICAL)
+            remainingSec <= 30 -> Color.parseColor(AircraftConstants.HudColors.TIME_WARNING)
+            else -> Color.parseColor(AircraftConstants.HudColors.TIME_NORMAL)
         }
         canvas.drawText(
-            "TIME",
+            AircraftConstants.HudLabels.TIME,
             timerCard.centerX(),
             timerCard.top + ScreenUtils.dpToPx(context, 16.0f),
             labelPaint
@@ -142,14 +146,14 @@ class DrawHeader(
         titlePaint.textAlign = Paint.Align.LEFT
         valuePaint.textAlign = Paint.Align.RIGHT
         canvas.drawText(
-            "HULL",
+            AircraftConstants.HudLabels.HULL,
             rightCard.left + ScreenUtils.dpToPx(context, 12.0f),
             rightCard.top + ScreenUtils.dpToPx(context, 18.0f),
             labelPaint
         )
         titlePaint.color = when {
-            healthPercent <= 20 -> Color.parseColor("#59FFAB")
-            healthPercent <= 50 -> Color.parseColor("#8DFFC6")
+            healthPercent <= 20 -> Color.parseColor(AircraftConstants.HudColors.HULL_LOW)
+            healthPercent <= 50 -> Color.parseColor(AircraftConstants.HudColors.HULL_MID)
             else -> Color.WHITE
         }
         canvas.drawText(
@@ -158,7 +162,7 @@ class DrawHeader(
             rightCard.top + ScreenUtils.dpToPx(context, 38.0f),
             titlePaint
         )
-        valuePaint.color = Color.parseColor("#D8F7E9")
+        valuePaint.color = Color.parseColor(AircraftConstants.HudColors.SCORE_VALUE)
         canvas.drawText(
             "${GameHudFormatter.calculateScore(gameView.totalKills)}",
             rightCard.right - ScreenUtils.dpToPx(context, 12.0f),
@@ -173,31 +177,31 @@ class DrawHeader(
             rightCard.top + ScreenUtils.dpToPx(context, 54.0f)
         )
         drawProgressBar(canvas, healthBarBg, healthPercent / 100f, when {
-            healthPercent <= 20 -> "#1BD772"
-            healthPercent <= 50 -> "#38EC8B"
-            else -> "#7DFFBB"
+            healthPercent <= 20 -> AircraftConstants.HudColors.HEALTH_LOW
+            healthPercent <= 50 -> AircraftConstants.HudColors.HEALTH_MID
+            else -> AircraftConstants.HudColors.HEALTH_HIGH
         })
 
         titlePaint.color = Color.WHITE
 
         val boss = gameView.bossEnemy.activeBoss
         if (boss != null && !boss.isDestroyed()) {
-            val bossBarTop = leftCard.bottom + ScreenUtils.dpToPx(context, 12.0f)
+            val bossBarTop = timerCard.bottom + ScreenUtils.dpToPx(context, 8.0f)
             val bossCard = RectF(
                 margin,
                 bossBarTop,
                 screenWidth - margin,
                 bossBarTop + ScreenUtils.dpToPx(context, 28.0f)
             )
-            drawPanel(canvas, bossCard, "#D9101814")
-            labelPaint.color = Color.parseColor("#8C8FFFC0")
+            drawPanel(canvas, bossCard, AircraftConstants.HudColors.PANEL_BOSS)
+            labelPaint.color = Color.parseColor(AircraftConstants.HudColors.LABEL_GREEN)
             canvas.drawText(
-                "BOSS",
+                AircraftConstants.HudLabels.BOSS,
                 bossCard.left + ScreenUtils.dpToPx(context, 12.0f),
                 bossCard.top + ScreenUtils.dpToPx(context, 18.0f),
                 labelPaint
             )
-            labelPaint.color = Color.parseColor("#8C8FFFC0")
+            labelPaint.color = Color.parseColor(AircraftConstants.HudColors.LABEL_GREEN)
             val bossBarRect = RectF(
                 bossCard.left + ScreenUtils.dpToPx(context, 52.0f),
                 bossCard.top + ScreenUtils.dpToPx(context, 10.0f),
@@ -208,7 +212,7 @@ class DrawHeader(
                 canvas,
                 bossBarRect,
                 (boss.hitPoints / boss.maxHitPoints).coerceIn(0f, 1f),
-                "#59FFAB"
+                AircraftConstants.HudColors.BOSS_BAR
             )
         }
     }
@@ -221,7 +225,7 @@ class DrawHeader(
     }
 
     private fun drawProgressBar(canvas: Canvas, rect: RectF, progress: Float, fillColor: String) {
-        barPaint.color = Color.parseColor("#26FFFFFF")
+        barPaint.color = Color.parseColor(AircraftConstants.HudColors.PROGRESS_BAR_BG)
         canvas.drawRoundRect(rect, smallCorner, smallCorner, barPaint)
 
         val progressRect = RectF(rect.left, rect.top, rect.left + rect.width() * progress, rect.bottom)

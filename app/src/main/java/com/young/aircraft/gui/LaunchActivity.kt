@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import com.young.aircraft.R
+import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.Aircraft
 import com.young.aircraft.viewmodel.LaunchViewModel
 import kotlinx.coroutines.delay
@@ -110,10 +111,10 @@ class LaunchActivity : AppCompatActivity() {
 
     internal fun launchGame(level: Int? = null, jetRes: Int, jetIndex: Int) {
         val intent = Intent(this, MainActivity::class.java)
-            .putExtra("jet_plane_res", jetRes)
-            .putExtra("jet_plane_index", jetIndex)
+            .putExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, jetRes)
+            .putExtra(AircraftConstants.IntentExtras.JET_PLANE_INDEX, jetIndex)
         if (level != null) {
-            intent.putExtra("start_level", level)
+            intent.putExtra(AircraftConstants.IntentExtras.START_LEVEL, level)
         }
         startActivity(intent)
     }

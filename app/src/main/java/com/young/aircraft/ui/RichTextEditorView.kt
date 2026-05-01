@@ -19,6 +19,7 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import com.young.aircraft.R
+import com.young.aircraft.data.AircraftConstants
 
 class RichTextEditorView @JvmOverloads constructor(
     context: Context,
@@ -187,8 +188,8 @@ class RichTextEditorView @JvmOverloads constructor(
         popup.menu.add(0, 2, 2, context.getString(R.string.rich_text_html_heading))
         popup.setOnMenuItemClickListener { item ->
             val snippet = when (item.itemId) {
-                0 -> "<img src=\"https://example.com/image.png\" width=\"200\" />"
-                1 -> "<a href=\"https://example.com\">Link Text</a>"
+                0 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE}\" width=\"200\" />"
+                1 -> "<a href=\"${AircraftConstants.Urls.EXAMPLE_LINK}\">Link Text</a>"
                 2 -> "<h2>Heading</h2>"
                 else -> ""
             }

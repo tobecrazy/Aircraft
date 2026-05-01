@@ -9,7 +9,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.ImageFormat
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCaptureSession
@@ -34,26 +33,25 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
-import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatReader
-import com.google.zxing.MultiFormatWriter
 import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
-import com.google.zxing.RGBLuminanceSource
-import com.google.zxing.WriterException
-import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
 import com.young.aircraft.utils.FilePickerHelper
-import androidx.core.graphics.toColorInt
-import androidx.core.graphics.createBitmap
+import com.young.aircraft.viewmodel.QRCodeToolViewModel
+import com.young.aircraft.viewmodel.QRCodeToolUiState
+import com.young.aircraft.viewmodel.QrToolMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,30 +60,28 @@ import java.io.FileOutputStream
 class QRCodeToolActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityQrCodeToolBinding
+    private lateinit var viewModel: QRCodeToolViewModel
 
     private var cameraDevice: CameraDevice? = null
     private var captureSession: CameraCaptureSession? = null
     private var imageReader: ImageReader? = null
     private var backgroundThread: HandlerThread? = null
     private var backgroundHandler: Handler? = null
-    private var isScanning = false
     private var isCameraOpening = false
     private var frameCounter = 0
-    private var generatedBitmap: Bitmap? = null
-    private var savedFileUri: Uri? = null
     private var scanLineAnimator: ObjectAnimator? = null
 
     private val createDocumentLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("image/png")
     ) { uri ->
         if (uri == null) return@registerForActivityResult
-        val bitmap = generatedBitmap ?: return@registerForActivityResult
+        val bitmap = viewModel.uiState.value.generatedBitmap ?: return@registerForActivityResult
         val saved = contentResolver.openOutputStream(uri)?.use { stream ->
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         } ?: false
         if (saved) {
             Toast.makeText(this, R.string.qr_code_tool_save_success, Toast.LENGTH_SHORT).show()
-            savedFileUri = uri
+            viewModel.onSaveSuccess(uri)
             binding.btnShareQr.visibility = View.VISIBLE
         } else {
             Toast.makeText(this, R.string.qr_code_tool_save_failed, Toast.LENGTH_SHORT).show()
@@ -101,7 +97,7 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     private val scanSurfaceCallback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) {
-            if (isScanning) openCamera()
+            if (viewModel.uiState.value.isScanning) openCamera()
         }
 
         override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) = Unit
@@ -129,6 +125,8 @@ class QRCodeToolActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
+
+        viewModel = ViewModelProvider(this, QRCodeToolViewModel.Factory())[QRCodeToolViewModel::class.java]
 
         binding = ActivityQrCodeToolBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -180,7 +178,7 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     private fun setupScanButton() {
         binding.btnScanQr.setOnClickListener {
-            if (isScanning) {
+            if (viewModel.uiState.value.isScanning) {
                 stopScanning()
             } else {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -207,7 +205,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun startScanning() {
-        isScanning = true
+        viewModel.startScanning()
         frameCounter = 0
         renderScanningState()
         startBackgroundThread()
@@ -232,7 +230,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun stopScanning() {
-        isScanning = false
+        viewModel.stopScanning()
         scanLineAnimator?.cancel()
         scanLineAnimator = null
         binding.scanLine.visibility = View.GONE
@@ -477,7 +475,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun renderContentState() {
-        val hasQrPreview = binding.ivQrCode.drawable != null
+        val hasQrPreview = viewModel.uiState.value.generatedBitmap != null
         if (binding.cameraContainer.visibility == View.VISIBLE) {
             binding.cameraContainer.animate().alpha(0f).setDuration(200).withEndAction {
                 binding.cameraContainer.visibility = View.GONE
@@ -515,10 +513,11 @@ class QRCodeToolActivity : AppCompatActivity() {
         binding.qrPreviewContainer.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
         binding.tvQrPlaceholder.visibility = if (hasQrPreview) View.GONE else View.VISIBLE
         binding.btnSaveQr.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
-        binding.btnShareQr.visibility = if (hasQrPreview && savedFileUri != null) View.VISIBLE else View.GONE
+        binding.btnShareQr.visibility = if (hasQrPreview && viewModel.uiState.value.savedFileUri != null) View.VISIBLE else View.GONE
     }
 
     private fun updateScanButton() {
+        val isScanning = viewModel.uiState.value.isScanning
         binding.btnScanQr.text = getString(
             if (isScanning) R.string.qr_code_tool_stop_scan else R.string.qr_code_tool_scan_button
         )
@@ -534,7 +533,7 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     private fun setupQrLongPress() {
         binding.ivQrCode.setOnLongClickListener {
-            if (generatedBitmap != null) {
+            if (viewModel.uiState.value.generatedBitmap != null) {
                 saveQrToGallery()
                 true
             } else false
@@ -542,7 +541,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun saveQrToGallery() {
-        if (generatedBitmap == null) return
+        if (viewModel.uiState.value.generatedBitmap == null) return
         createDocumentLauncher.launch("QRCode_${System.currentTimeMillis()}.png")
     }
 
@@ -553,7 +552,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun shareQrCode() {
-        val bitmap = generatedBitmap ?: return
+        val bitmap = viewModel.uiState.value.generatedBitmap ?: return
         lifecycleScope.launch {
             try {
                 val file = withContext(Dispatchers.IO) {
@@ -623,7 +622,12 @@ class QRCodeToolActivity : AppCompatActivity() {
                     ).show()
                     return@launch
                 }
-                decodeQrFromBitmap(bitmap)
+                val result = viewModel.decodeQrFromBitmap(bitmap)
+                if (result != null) {
+                    onScanResult(result)
+                } else {
+                    Toast.makeText(this@QRCodeToolActivity, R.string.qr_code_tool_invalid_qr, Toast.LENGTH_SHORT).show()
+                }
             } catch (_: Exception) {
                 Toast.makeText(
                     this@QRCodeToolActivity,
@@ -632,66 +636,6 @@ class QRCodeToolActivity : AppCompatActivity() {
                 ).show()
             }
         }
-    }
-
-    private fun decodeQrFromBitmap(bitmap: Bitmap) {
-        val hints = mapOf(
-            DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
-            DecodeHintType.CHARACTER_SET to "UTF-8",
-            DecodeHintType.TRY_HARDER to true
-        )
-        val scaled800 = scaleBitmapDown(bitmap, 800)
-        val scaled400 = scaleBitmapDown(bitmap, 400)
-        val result = tryDecodeBitmap(bitmap, hints)
-            ?: tryDecodeBitmap(scaled800, hints)
-            ?: tryDecodeBitmap(scaled400, hints)
-            ?: tryDecodeBitmap(cropCenter(bitmap, 0.6f), hints)
-            ?: tryDecodeBitmap(cropCenter(scaled800, 0.6f), hints)
-        if (result != null) {
-            onScanResult(result)
-        } else {
-            Toast.makeText(this, R.string.qr_code_tool_invalid_qr, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun tryDecodeBitmap(bitmap: Bitmap, hints: Map<DecodeHintType, Any>): String? {
-        val width = bitmap.width
-        val height = bitmap.height
-        val pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        val source = RGBLuminanceSource(width, height, pixels)
-        val reader = MultiFormatReader()
-        try {
-            return reader.decode(BinaryBitmap(HybridBinarizer(source)), hints).text
-        } catch (_: NotFoundException) {}
-        try {
-            return reader.decode(BinaryBitmap(HybridBinarizer(source.invert())), hints).text
-        } catch (_: NotFoundException) {}
-        try {
-            return reader.decode(BinaryBitmap(GlobalHistogramBinarizer(source)), hints).text
-        } catch (_: NotFoundException) {}
-        try {
-            return reader.decode(BinaryBitmap(GlobalHistogramBinarizer(source.invert())), hints).text
-        } catch (_: NotFoundException) {}
-        return null
-    }
-
-    private fun scaleBitmapDown(bitmap: Bitmap, maxDimension: Int): Bitmap {
-        val width = bitmap.width
-        val height = bitmap.height
-        if (width <= maxDimension && height <= maxDimension) return bitmap
-        val scale = maxDimension.toFloat() / maxOf(width, height)
-        return Bitmap.createScaledBitmap(
-            bitmap, (width * scale).toInt(), (height * scale).toInt(), true
-        )
-    }
-
-    private fun cropCenter(bitmap: Bitmap, ratio: Float): Bitmap {
-        val cropW = (bitmap.width * ratio).toInt()
-        val cropH = (bitmap.height * ratio).toInt()
-        val x = (bitmap.width - cropW) / 2
-        val y = (bitmap.height - cropH) / 2
-        return Bitmap.createBitmap(bitmap, x, y, cropW, cropH)
     }
 
     // ── Generate QR Code ───────────────────────────────────
@@ -708,30 +652,11 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     private fun generateQrCode(content: String) {
-        try {
-            val hints = mapOf(
-                EncodeHintType.CHARACTER_SET to "UTF-8",
-                EncodeHintType.MARGIN to 2
-            )
-            val bitMatrix = MultiFormatWriter().encode(
-                content, BarcodeFormat.QR_CODE, 512, 512, hints
-            )
-            val width = bitMatrix.width
-            val height = bitMatrix.height
-            val pixels = IntArray(width * height)
-            val bgColor = "#0F1118".toColorInt()
-            for (y in 0 until height) {
-                for (x in 0 until width) {
-                    pixels[y * width + x] = if (bitMatrix[x, y]) Color.WHITE else bgColor
-                }
-            }
-            val bitmap = createBitmap(width, height)
-            bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
-            generatedBitmap = bitmap
-
+        val bitmap = viewModel.generateQrCode(content)
+        if (bitmap != null) {
             binding.ivQrCode.setImageBitmap(bitmap)
             renderContentState()
-        } catch (_: WriterException) {
+        } else {
             Toast.makeText(this, R.string.qr_code_tool_content_too_long, Toast.LENGTH_SHORT).show()
         }
     }
@@ -740,7 +665,7 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        if (isScanning) stopScanning()
+        if (viewModel.uiState.value.isScanning) stopScanning()
     }
 
     override fun onDestroy() {

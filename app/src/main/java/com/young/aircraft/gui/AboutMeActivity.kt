@@ -43,7 +43,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,11 +61,16 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.ViewModelProvider
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.young.aircraft.R
+import com.young.aircraft.data.AircraftConstants
+import com.young.aircraft.viewmodel.AboutMeViewModel
 
 class AboutMeActivity : AppCompatActivity() {
+
+    private lateinit var viewModel: AboutMeViewModel
 
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,15 +85,21 @@ class AboutMeActivity : AppCompatActivity() {
             isAppearanceLightNavigationBars = false
         }
 
+        viewModel = ViewModelProvider(this, AboutMeViewModel.Factory(this))[AboutMeViewModel::class.java]
+
         setContent {
             MaterialTheme {
                 AboutMeScreen(
+                    repoUrl = viewModel.repoUrl,
+                    repoLine = viewModel.repoLine,
+                    developerParagraphs = viewModel.developerParagraphs,
+                    projectParagraphs = viewModel.projectParagraphs,
                     onBack = { finish() },
                     onOpenRepo = {
                         startActivity(
                             Intent(
                                 Intent.ACTION_VIEW,
-                                getString(R.string.about_me_project_repo_url).toUri()
+                                viewModel.repoUrl.toUri()
                             )
                         )
                     }
@@ -99,8 +109,7 @@ class AboutMeActivity : AppCompatActivity() {
     }
 }
 
-private const val PROFILE_IMAGE_URL =
-    "https://images.cnblogs.com/cnblogs_com/tobecrazy/432338/o_250810143405_Card.png"
+private val PROFILE_IMAGE_URL = AircraftConstants.Urls.PROFILE_IMAGE
 
 private val BackgroundDark = Color(0xFF0F1118)
 private val HeaderBackground = Color(0xFF161A26)
@@ -116,21 +125,13 @@ private val HeroPanelBackground = Color(0x1AFFFFFF)
 
 @Composable
 private fun AboutMeScreen(
+    repoUrl: String,
+    repoLine: String,
+    developerParagraphs: List<String>,
+    projectParagraphs: List<String>,
     onBack: () -> Unit,
     onOpenRepo: () -> Unit
 ) {
-    val repoUrl = stringResource(R.string.about_me_project_repo_url)
-    val repoLine = stringResource(
-        R.string.about_me_project_repo_line,
-        stringResource(R.string.about_github_label),
-        repoUrl
-    )
-    val developerContent = stringResource(R.string.about_me_content)
-    val projectContent = stringResource(R.string.about_me_project_content, repoLine)
-
-    val developerParagraphs = remember(developerContent) { developerContent.toParagraphs() }
-    val projectParagraphs = remember(projectContent) { projectContent.toParagraphs() }
-
     Scaffold(
         containerColor = BackgroundDark,
         contentWindowInsets = WindowInsets.safeDrawing.only(
@@ -515,8 +516,3 @@ private fun ProjectNarrativeCard(
     }
 }
 
-private fun String.toParagraphs(): List<String> {
-    return split("\n\n")
-        .map(String::trim)
-        .filter(String::isNotEmpty)
-}

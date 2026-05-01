@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
+import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.databinding.ActivityPrivacyPolicyAcceptBinding
 import com.young.aircraft.viewmodel.PrivacyPolicyViewModel
 import java.util.Locale
@@ -102,8 +103,8 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
                 }
             }
 
-            val page = if (Locale.getDefault().language == "zh") "privacy_policy.html" else "privacy_policy_en.html"
-            loadUrl("file:///android_asset/$page")
+            val page = if (Locale.getDefault().language == AircraftConstants.PrivacyPolicy.LANG_ZH) AircraftConstants.PrivacyPolicy.ASSET_ZH else AircraftConstants.PrivacyPolicy.ASSET_EN
+            loadUrl("${AircraftConstants.PrivacyPolicy.ASSET_PREFIX}$page")
         }
 
         // Reject button is always enabled
