@@ -6,9 +6,9 @@ import android.view.View
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.young.aircraft.BuildConfig
 import com.young.aircraft.databinding.ActivityRichTextEditorBinding
 import com.young.aircraft.ui.RichTextEditorView
+import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.RichTextEditorViewModel
 import androidx.core.graphics.toColorInt
 
@@ -19,7 +19,7 @@ class RichTextEditorActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!BuildConfig.DEBUG) {
+        if (!DebugTools.isEnabled) {
             finish()
             return
         }

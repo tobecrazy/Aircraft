@@ -1,5 +1,6 @@
 package com.young.aircraft.gui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
@@ -8,12 +9,12 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.view.Gravity
-import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -60,8 +61,8 @@ class SupperBannerView @JvmOverloads constructor(
         clipToOutline = true
         background = GradientDrawable().apply {
             cornerRadius = dp(8).toFloat()
-            setColor(Color.parseColor("#151A24"))
-            setStroke(dp(1), Color.parseColor("#2AFFFFFF"))
+            setColor("#151A24".toColorInt())
+            setStroke(dp(1), "#2AFFFFFF".toColorInt())
         }
 
         viewPager.adapter = adapter
@@ -136,7 +137,7 @@ class SupperBannerView @JvmOverloads constructor(
         infoPanel.setPadding(dp(14), dp(24), dp(14), dp(14))
         infoPanel.background = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(Color.TRANSPARENT, Color.parseColor("#CC050812"))
+            intArrayOf(Color.TRANSPARENT, "#CC050812".toColorInt())
         )
         infoPanel.layoutParams = LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -149,7 +150,7 @@ class SupperBannerView @JvmOverloads constructor(
         titleView.typeface = Typeface.MONOSPACE
         titleView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD)
 
-        descriptionView.setTextColor(Color.parseColor("#CBD5E8"))
+        descriptionView.setTextColor("#CBD5E8".toColorInt())
         descriptionView.textSize = 11f
         descriptionView.typeface = Typeface.MONOSPACE
         descriptionView.setPadding(0, dp(4), 0, 0)
@@ -230,6 +231,7 @@ class SupperBannerView @JvmOverloads constructor(
 
         private val items = mutableListOf<SupperBannerItem>()
 
+        @SuppressLint("NotifyDataSetChanged")
         fun submitItems(newItems: List<SupperBannerItem>) {
             items.clear()
             items.addAll(newItems)

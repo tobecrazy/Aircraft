@@ -13,6 +13,7 @@ import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.databinding.ActivityDevelopSettingsBinding
+import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.DevelopSettingsViewModel
 
 class DevelopSettingsActivity : AppCompatActivity() {
@@ -23,7 +24,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!BuildConfig.DEBUG) {
+        if (!DebugTools.isEnabled) {
             finish()
             return
         }
