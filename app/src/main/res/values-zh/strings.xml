@@ -285,7 +285,7 @@
     <string name="device_info_fmt_disk_detail">已用 %.1fG / 可用 %.1fG\n共 %.1fG</string>
     <string name="device_info_net_wifi_detail_ext">%1$s %2$dMbps 信号:%3$ddBm [%4$d/4]</string>
     <string name="device_info_net_throughput">\u2193%1$s \u2191%2$s</string>
-    <string name="device_info_net_throughput_init">\u2193— \u2191--</string>
+    <string name="device_info_net_throughput_init">\u2193— \u2191—</string>
     <string name="device_info_net_ip">IP: %s</string>
 
     <!-- Launch Screen -->
