@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
+import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.databinding.ActivityDevelopSettingsBinding
 import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.DevelopSettingsViewModel
@@ -85,9 +86,14 @@ class DevelopSettingsActivity : AppCompatActivity() {
                 image = SupperBannerImage.Local(R.drawable.background_4)
             ),
             SupperBannerItem(
-                name = "network_background",
+                name = "network_TianQi",
                 description = getString(R.string.develop_settings_supper_banner_network_description),
-                image = SupperBannerImage.Network("https://picsum.photos/960/540?aircraft-background")
+                image = SupperBannerImage.Network(AircraftConstants.Urls.EXAMPLE_IMAGE)
+            ),
+            SupperBannerItem(
+                name = "network_ContactUs",
+                description = getString(R.string.develop_settings_supper_banner_network_description),
+                image = SupperBannerImage.Network(AircraftConstants.Urls.CONTACT_US_QR_CODE)
             )
         )
 

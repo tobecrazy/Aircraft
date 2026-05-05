@@ -1,5 +1,6 @@
 package com.young.aircraft.viewmodel
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -25,7 +26,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 
 class BannerDetailsViewModel(
-    private val context: Context,
+    @SuppressLint("StaticFieldLeak") private val context: Context,
     initialDetails: BannerDetails,
     private val httpClient: OkHttpClient = OkHttpClient()
 ) : ViewModel() {
