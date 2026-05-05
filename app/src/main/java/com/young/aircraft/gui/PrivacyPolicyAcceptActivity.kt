@@ -13,10 +13,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.databinding.ActivityPrivacyPolicyAcceptBinding
+import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.PrivacyPolicyViewModel
 import java.util.Locale
 
@@ -56,9 +56,7 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
         binding.starField.startAnimation()
 
         // Configure WebView
-        if (BuildConfig.DEBUG) {
-            WebView.setWebContentsDebuggingEnabled(true)
-        }
+        DebugTools.enableWebViewDebugging()
         binding.webView.apply {
             setBackgroundColor(0x000F1118)
             settings.allowFileAccess = true

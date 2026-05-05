@@ -3,9 +3,9 @@ package com.young.aircraft.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.young.aircraft.BuildConfig
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.utils.DebugTools
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,7 +49,7 @@ class SettingsViewModel(
             combatSoundEnabled = combatSound,
             hitShakeEnabled = hitShake,
             enabledSoundCount = enabledCount,
-            showDevelopSettings = BuildConfig.DEBUG
+            showDevelopSettings = DebugTools.isEnabled
         )
     }
 

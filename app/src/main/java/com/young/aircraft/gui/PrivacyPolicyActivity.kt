@@ -18,9 +18,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
 import com.young.aircraft.R
-import com.young.aircraft.BuildConfig
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.databinding.ActivityPrivacyPolicyBinding
+import com.young.aircraft.utils.DebugTools
 import java.util.Locale
 
 class PrivacyPolicyActivity : AppCompatActivity() {
@@ -89,9 +89,7 @@ class PrivacyPolicyActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebView() {
-        if (BuildConfig.DEBUG) {
-            WebView.setWebContentsDebuggingEnabled(true)
-        }
+        DebugTools.enableWebViewDebugging()
 
         binding.webView.apply {
             setBackgroundColor(Color.TRANSPARENT)

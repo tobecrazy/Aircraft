@@ -202,6 +202,7 @@
     <string name="develop_settings_summary">仅限调试使用的工具和崩溃测试</string>
     <string name="develop_settings_banner_summary">用于验证运行时开关、编辑器界面和崩溃上报的内部工具。</string>
     <string name="develop_settings_section_gameplay">玩法覆盖</string>
+    <string name="develop_settings_section_supper_banner">SupperBanner</string>
     <string name="develop_settings_section_tools">内部工具</string>
     <string name="develop_settings_section_danger">危险区域</string>
     <string name="develop_settings_debug_badge">调试构建</string>
@@ -213,6 +214,27 @@
     <string name="develop_settings_invincible_runtime_off">当前仍会正常受到伤害并触发碰撞损失。</string>
     <string name="develop_settings_invincible_status_on">已启用</string>
     <string name="develop_settings_invincible_status_off">未启用</string>
+    <string name="develop_settings_supper_banner_badge">VIEWPAGER2</string>
+    <string name="develop_settings_supper_banner_title">背景图轮播</string>
+    <string name="develop_settings_supper_banner_summary">预览本地和网络背景图，支持配置自动播放、切换时间、信息展示、点击回调和自定义指示器。</string>
+    <string name="develop_settings_supper_banner_auto_play">自动播放</string>
+    <string name="develop_settings_supper_banner_show_info">显示信息</string>
+    <string name="develop_settings_supper_banner_show_indicator">指示器</string>
+    <string name="develop_settings_supper_banner_transition_hint">切换毫秒</string>
+    <string name="develop_settings_supper_banner_transition_applied">轮播间隔：%1$d 毫秒</string>
+    <string name="develop_settings_supper_banner_local_description">本地 drawable 资源</string>
+    <string name="develop_settings_supper_banner_network_description">直接网络图片</string>
+    <string name="banner_details_title">Details</string>
+    <string name="banner_details_menu">菜单</string>
+    <string name="banner_details_saving">保存中</string>
+    <string name="banner_details_download">下载</string>
+    <string name="banner_details_source_label">来源</string>
+    <string name="banner_details_source_local">本地资源</string>
+    <string name="banner_details_source_network">网络图片</string>
+    <string name="banner_details_filename_label">文件名</string>
+    <string name="banner_details_save_success">图片已保存</string>
+    <string name="banner_details_save_failed">无法保存图片</string>
+    <string name="banner_details_image_failed">图片不可用</string>
     <string name="develop_settings_danger_badge">高风险</string>
     <string name="develop_settings_crash_title">崩溃上报验证</string>
     <string name="develop_settings_crash_summary">仅在开发版本中使用，用于验证崩溃采集和恢复流程。</string>
@@ -263,7 +285,7 @@
     <string name="device_info_fmt_disk_detail">已用 %.1fG / 可用 %.1fG\n共 %.1fG</string>
     <string name="device_info_net_wifi_detail_ext">%1$s %2$dMbps 信号:%3$ddBm [%4$d/4]</string>
     <string name="device_info_net_throughput">\u2193%1$s \u2191%2$s</string>
-    <string name="device_info_net_throughput_init">\u2193— \u2191--</string>
+    <string name="device_info_net_throughput_init">\u2193— \u2191—</string>
     <string name="device_info_net_ip">IP: %s</string>
 
     <!-- Launch Screen -->
