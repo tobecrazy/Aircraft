@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import com.young.aircraft.R
+import com.young.aircraft.data.ImageDetailsIntentContract
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -99,14 +100,14 @@ class AboutAircraftActivityTest {
                 val intent = shadowActivity.nextStartedActivity
                 assertNotNull(intent)
 
-                val name = intent.getStringExtra("extra_banner_name")
-                val description = intent.getStringExtra("extra_banner_description")
-                val sourceType = intent.getStringExtra("extra_banner_source_type")
-                val url = intent.getStringExtra("extra_banner_url")
+                val name = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_NAME)
+                val description = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION)
+                val sourceType = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE)
+                val url = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_URL)
 
                 assertNotNull(name)
                 assertNotNull(description)
-                assertEquals("network", sourceType)
+                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, sourceType)
                 assertNotNull(url)
             }
         }
@@ -121,8 +122,8 @@ class AboutAircraftActivityTest {
 
                 val shadowActivity = shadowOf(activity)
                 val intent = shadowActivity.nextStartedActivity
-                assertEquals("network", intent.getStringExtra("extra_banner_source_type"))
-                assertNull(intent.getIntExtra("extra_banner_res_id", -1).takeIf { it != -1 })
+                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, intent.getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE))
+                assertNull(intent.getIntExtra(ImageDetailsIntentContract.EXTRA_RES_ID, -1).takeIf { it != -1 })
             }
         }
     }
