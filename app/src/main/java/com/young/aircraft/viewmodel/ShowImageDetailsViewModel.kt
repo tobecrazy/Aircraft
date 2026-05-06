@@ -9,9 +9,9 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.young.aircraft.data.BannerDetails
-import com.young.aircraft.data.BannerDetailsIntentContract
-import com.young.aircraft.data.BannerDetailsSource
+import com.young.aircraft.data.ImageDetails
+import com.young.aircraft.data.ImageDetailsIntentContract
+import com.young.aircraft.data.ImageDetailsSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,22 +25,22 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
-class BannerDetailsViewModel(
+class ShowImageDetailsViewModel(
     @SuppressLint("StaticFieldLeak") private val context: Context,
-    initialDetails: BannerDetails,
+    initialDetails: ImageDetails,
     private val httpClient: OkHttpClient = OkHttpClient()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        BannerDetailsUiState(
+        ShowImageDetailsUiState(
             details = initialDetails,
             imageModel = initialDetails.toImageModel(context)
         )
     )
-    val uiState: StateFlow<BannerDetailsUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<ShowImageDetailsUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<BannerDetailsEvent>()
-    val events: SharedFlow<BannerDetailsEvent> = _events.asSharedFlow()
+    private val _events = MutableSharedFlow<ImageDetailsEvent>()
+    val events: SharedFlow<ImageDetailsEvent> = _events.asSharedFlow()
 
     fun saveImage(uri: Uri) {
         if (_uiState.value.isSaving) return
@@ -50,11 +50,11 @@ class BannerDetailsViewModel(
                 runCatching {
                     context.contentResolver.openOutputStream(uri)?.use { output ->
                         when (val source = _uiState.value.details.source) {
-                            is BannerDetailsSource.Local -> {
+                            is ImageDetailsSource.Local -> {
                                 val bitmap = BitmapFactory.decodeResource(context.resources, source.resId)
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 95, output)
                             }
-                            is BannerDetailsSource.Network -> {
+                            is ImageDetailsSource.Network -> {
                                 val request = Request.Builder().url(source.url).build()
                                 httpClient.newCall(request).execute().use { response ->
                                     if (!response.isSuccessful) return@use false
@@ -68,7 +68,7 @@ class BannerDetailsViewModel(
             }
 
             _uiState.update { it.copy(isSaving = false) }
-            _events.emit(BannerDetailsEvent.SaveCompleted(saved))
+            _events.emit(ImageDetailsEvent.SaveCompleted(saved))
         }
     }
 
@@ -80,19 +80,19 @@ class BannerDetailsViewModel(
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val details = BannerDetailsIntentContract.fromIntent(intent)
+            val details = ImageDetailsIntentContract.fromIntent(intent)
                 ?: throw IllegalArgumentException("Missing banner details")
-            return BannerDetailsViewModel(appContext, details) as T
+            return ShowImageDetailsViewModel(appContext, details) as T
         }
     }
 }
 
-data class BannerDetailsUiState(
-    val details: BannerDetails,
+data class ShowImageDetailsUiState(
+    val details: ImageDetails,
     val imageModel: Any,
     val isSaving: Boolean = false
 )
 
-sealed class BannerDetailsEvent {
-    data class SaveCompleted(val saved: Boolean) : BannerDetailsEvent()
+sealed class ImageDetailsEvent {
+    data class SaveCompleted(val saved: Boolean) : ImageDetailsEvent()
 }

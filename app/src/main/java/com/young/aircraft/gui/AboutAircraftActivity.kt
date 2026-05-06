@@ -60,6 +60,7 @@ class AboutAircraftActivity : AppCompatActivity() {
 
         setupGithubLink()
         loadProjectImage()
+        setupProjectImageClick()
         observeState()
     }
 
@@ -110,7 +111,7 @@ class AboutAircraftActivity : AppCompatActivity() {
     }
 
     private fun loadProjectImage() {
-        binding.ivProject.load(AircraftConstants.Urls.PROFILE_IMAGE) {
+        binding.ivProject.load(AircraftConstants.Urls.CONTACT_US_QR_CODE) {
             crossfade(true)
             placeholder(R.drawable.ic_placeholder)
             error(R.drawable.ic_placeholder)
@@ -119,6 +120,17 @@ class AboutAircraftActivity : AppCompatActivity() {
                 onSuccess = { _, _ -> viewModel.onImageLoadSuccess() },
                 onError = { _, _ -> viewModel.onImageLoadError() }
             )
+        }
+    }
+
+    private fun setupProjectImageClick() {
+        binding.ivProject.setOnClickListener {
+            val projectImage = SupperBannerItem(
+                name = getString(R.string.about_aircraft_title),
+                description = getString(R.string.about_banner_summary),
+                image = SupperBannerImage.Network(AircraftConstants.Urls.CONTACT_US_QR_CODE)
+            )
+            startActivity(ShowImageDetailsActivity.createIntent(this, projectImage))
         }
     }
 }

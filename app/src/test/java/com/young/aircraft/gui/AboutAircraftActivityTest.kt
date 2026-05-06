@@ -72,4 +72,58 @@ class AboutAircraftActivityTest {
             }
         }
     }
+
+    @Test
+    fun `clicking project image launches ShowImageDetailsActivity`() {
+        ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val projectImage = activity.findViewById<View>(R.id.iv_project)
+                projectImage.performClick()
+
+                val shadowActivity = shadowOf(activity)
+                val intent = shadowActivity.nextStartedActivity
+                assertNotNull(intent)
+                assertEquals(ShowImageDetailsActivity::class.java.name, intent.component?.className)
+            }
+        }
+    }
+
+    @Test
+    fun `project image intent contains correct banner details`() {
+        ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val projectImage = activity.findViewById<View>(R.id.iv_project)
+                projectImage.performClick()
+
+                val shadowActivity = shadowOf(activity)
+                val intent = shadowActivity.nextStartedActivity
+                assertNotNull(intent)
+
+                val name = intent.getStringExtra("extra_banner_name")
+                val description = intent.getStringExtra("extra_banner_description")
+                val sourceType = intent.getStringExtra("extra_banner_source_type")
+                val url = intent.getStringExtra("extra_banner_url")
+
+                assertNotNull(name)
+                assertNotNull(description)
+                assertEquals("network", sourceType)
+                assertNotNull(url)
+            }
+        }
+    }
+
+    @Test
+    fun `project image intent source is network type`() {
+        ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val projectImage = activity.findViewById<View>(R.id.iv_project)
+                projectImage.performClick()
+
+                val shadowActivity = shadowOf(activity)
+                val intent = shadowActivity.nextStartedActivity
+                assertEquals("network", intent.getStringExtra("extra_banner_source_type"))
+                assertNull(intent.getIntExtra("extra_banner_res_id", -1).takeIf { it != -1 })
+            }
+        }
+    }
 }

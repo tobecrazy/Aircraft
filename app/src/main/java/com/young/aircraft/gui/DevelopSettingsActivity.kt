@@ -107,7 +107,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
                     ?: SupperBannerConfig.DEFAULT_TRANSITION_TIME_MS
             )
             setOnBannerClickListener { item, _ ->
-                startActivity(BannerDetailsActivity.createIntent(this@DevelopSettingsActivity, item))
+                startActivity(ShowImageDetailsActivity.createIntent(this@DevelopSettingsActivity, item))
             }
             setIndicatorCustomizer { indicator, selected, _ ->
                 indicator.typeface = Typeface.MONOSPACE

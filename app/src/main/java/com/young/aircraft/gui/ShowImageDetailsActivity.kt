@@ -70,16 +70,16 @@ import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.young.aircraft.R
-import com.young.aircraft.data.BannerDetailsIntentContract
-import com.young.aircraft.data.BannerDetailsSource
-import com.young.aircraft.viewmodel.BannerDetailsEvent
-import com.young.aircraft.viewmodel.BannerDetailsUiState
-import com.young.aircraft.viewmodel.BannerDetailsViewModel
+import com.young.aircraft.data.ImageDetailsIntentContract
+import com.young.aircraft.data.ImageDetailsSource
+import com.young.aircraft.viewmodel.ImageDetailsEvent
+import com.young.aircraft.viewmodel.ShowImageDetailsUiState
+import com.young.aircraft.viewmodel.ShowImageDetailsViewModel
 import kotlinx.coroutines.launch
 
-class BannerDetailsActivity : AppCompatActivity() {
+class ShowImageDetailsActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: BannerDetailsViewModel
+    private lateinit var viewModel: ShowImageDetailsViewModel
 
     private val createDocumentLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("image/jpeg")
@@ -92,14 +92,14 @@ class BannerDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
 
-        if (BannerDetailsIntentContract.fromIntent(intent) == null) {
+        if (ImageDetailsIntentContract.fromIntent(intent) == null) {
             finish()
             return
         }
         viewModel = ViewModelProvider(
             this,
-            BannerDetailsViewModel.Factory(this, intent)
-        )[BannerDetailsViewModel::class.java]
+            ShowImageDetailsViewModel.Factory(this, intent)
+        )[ShowImageDetailsViewModel::class.java]
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.statusBarColor = android.graphics.Color.TRANSPARENT
@@ -112,7 +112,7 @@ class BannerDetailsActivity : AppCompatActivity() {
         setContent {
             MaterialTheme {
                 val uiState by viewModel.uiState.collectAsState()
-                BannerDetailsScreen(
+                ImageDetailsScreen(
                     uiState = uiState,
                     onBack = { finish() },
                     onDownload = { createDocumentLauncher.launch(uiState.details.downloadFileName) }
@@ -123,9 +123,9 @@ class BannerDetailsActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.events.collect { event ->
                     when (event) {
-                        is BannerDetailsEvent.SaveCompleted -> {
+                        is ImageDetailsEvent.SaveCompleted -> {
                             Toast.makeText(
-                                this@BannerDetailsActivity,
+                                this@ShowImageDetailsActivity,
                                 if (event.saved) R.string.banner_details_save_success else R.string.banner_details_save_failed,
                                 Toast.LENGTH_SHORT
                             ).show()
@@ -138,17 +138,17 @@ class BannerDetailsActivity : AppCompatActivity() {
 
     companion object {
         fun createIntent(context: Context, item: SupperBannerItem): Intent =
-            Intent(context, BannerDetailsActivity::class.java).apply {
-                putExtra(BannerDetailsIntentContract.EXTRA_NAME, item.name)
-                putExtra(BannerDetailsIntentContract.EXTRA_DESCRIPTION, item.description)
+            Intent(context, ShowImageDetailsActivity::class.java).apply {
+                putExtra(ImageDetailsIntentContract.EXTRA_NAME, item.name)
+                putExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION, item.description)
                 when (val image = item.image) {
                     is SupperBannerImage.Local -> {
-                        putExtra(BannerDetailsIntentContract.EXTRA_SOURCE_TYPE, BannerDetailsIntentContract.SOURCE_LOCAL)
-                        putExtra(BannerDetailsIntentContract.EXTRA_RES_ID, image.resId)
+                        putExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE, ImageDetailsIntentContract.SOURCE_LOCAL)
+                        putExtra(ImageDetailsIntentContract.EXTRA_RES_ID, image.resId)
                     }
                     is SupperBannerImage.Network -> {
-                        putExtra(BannerDetailsIntentContract.EXTRA_SOURCE_TYPE, BannerDetailsIntentContract.SOURCE_NETWORK)
-                        putExtra(BannerDetailsIntentContract.EXTRA_URL, image.url)
+                        putExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE, ImageDetailsIntentContract.SOURCE_NETWORK)
+                        putExtra(ImageDetailsIntentContract.EXTRA_URL, image.url)
                     }
                 }
             }
@@ -158,7 +158,6 @@ class BannerDetailsActivity : AppCompatActivity() {
 private val DetailsBackground = Color(0xFF0F1118)
 private val DetailsHeader = Color(0xFF161A26)
 private val DetailsAccent = Color(0xFF00FF88)
-private val DetailsPanel = Color(0x20252A3A)
 private val DetailsPanelStrong = Color(0xFF171D29)
 private val DetailsText = Color(0xFFD8E0EF)
 private val DetailsSubText = Color(0xFFAAB4C8)
@@ -166,8 +165,8 @@ private val DetailsBorder = Color(0x3300FF88)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BannerDetailsScreen(
-    uiState: BannerDetailsUiState,
+private fun ImageDetailsScreen(
+    uiState: ShowImageDetailsUiState,
     onBack: () -> Unit,
     onDownload: () -> Unit
 ) {
@@ -314,7 +313,7 @@ private fun FullImagePanel(
 
 @Composable
 private fun DetailsSummaryPanel(
-    uiState: BannerDetailsUiState,
+    uiState: ShowImageDetailsUiState,
     onDownload: () -> Unit
 ) {
     Surface(
@@ -373,14 +372,14 @@ private fun DetailsSummaryPanel(
 }
 
 @Composable
-private fun MetadataRow(uiState: BannerDetailsUiState) {
+private fun MetadataRow(uiState: ShowImageDetailsUiState) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         DetailChip(
             label = stringResource(R.string.banner_details_source_label),
             value = stringResource(
                 when (uiState.details.source) {
-                    is BannerDetailsSource.Local -> R.string.banner_details_source_local
-                    is BannerDetailsSource.Network -> R.string.banner_details_source_network
+                    is ImageDetailsSource.Local -> R.string.banner_details_source_local
+                    is ImageDetailsSource.Network -> R.string.banner_details_source_network
                 }
             )
         )

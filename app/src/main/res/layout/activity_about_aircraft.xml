@@ -167,7 +167,7 @@
 
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="220dp"
+                    android:layout_height="400dp"
                     android:layout_marginTop="12dp"
                     android:background="@drawable/device_info_card_bg"
                     android:padding="2dp">
