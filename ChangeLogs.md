@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `ShowImageDetailsActivity` — Common UI for viewing image details (renames `BannerDetailsActivity`) with support for local drawables and network URLs
+- Image details support with Coil image loading, download functionality via `CreateDocument` intent, and proper intent contract (`ImageDetailsIntentContract`)
+- `ShowImageDetailsViewModel` with factory pattern for creating `ShowImageDetailsActivity` intents
+- `ImageDetails` and `ImageDetailsSource` data classes for structured image presentation
+- Project image click handler in `AboutAircraftActivity` that launches `ShowImageDetailsActivity` with project details
+- `SupperBannerItem` data model for banner/image carousel items with flexible image sources
+- 24 comprehensive tests covering:
+  - `ShowImageDetailsActivityTest` (7 tests) — activity launch, intent validation, filename handling
+  - `ShowImageDetailsViewModelTest` (14 tests) — ViewModel creation, image model resolution, state management
+  - `AboutAircraftActivityTest` enhancements (3 tests) — project image click behavior and intent extras
+- File download dialog using `CreateDocument` ActivityResultContract with editable filename
 - MVVM architecture layer with 7 ViewModels: `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`
 - 5 additional ViewModels completing full MVVM coverage: `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`
 - `AircraftConstants` object (data/) centralizing HUD labels, HUD colors, intent extras, URLs, and privacy policy asset paths
@@ -31,6 +42,10 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `BannerDetailsActivity` renamed to `ShowImageDetailsActivity` to reflect its broader role as a common image details viewer
+- `AndroidManifest.xml` updated to reference `.gui.ShowImageDetailsActivity` instead of `.gui.BannerDetailsActivity`
+- `AboutAircraftActivity` enhanced with project image click handler using `ShowImageDetailsActivity.createIntent()` factory
+- `DevelopSettingsActivity` updated to use `ShowImageDetailsActivity.createIntent()` for image preview
 - `DrawHeader` HUD reorganized to a two-row layout: mission/hull cards on top row, timer centered below, preventing overlap on narrow screens
 - HUD panel backgrounds changed to 15% opacity (`#26` alpha) for increased transparency — game background now visible through panels
 - Pause button repositioned below the HULL card (marginTop 84dp) to eliminate overlap with HUD elements; text color changed to accent green (`#00FF88`)

@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import com.young.aircraft.R
+import com.young.aircraft.data.ImageDetailsIntentContract
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -69,6 +70,60 @@ class AboutAircraftActivityTest {
                 val btnBack = activity.findViewById<View>(R.id.btn_back)
                 btnBack.performClick()
                 assertTrue(activity.isFinishing)
+            }
+        }
+    }
+
+    @Test
+    fun `clicking project image launches ShowImageDetailsActivity`() {
+        ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val projectImage = activity.findViewById<View>(R.id.iv_project)
+                projectImage.performClick()
+
+                val shadowActivity = shadowOf(activity)
+                val intent = shadowActivity.nextStartedActivity
+                assertNotNull(intent)
+                assertEquals(ShowImageDetailsActivity::class.java.name, intent.component?.className)
+            }
+        }
+    }
+
+    @Test
+    fun `project image intent contains correct banner details`() {
+        ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val projectImage = activity.findViewById<View>(R.id.iv_project)
+                projectImage.performClick()
+
+                val shadowActivity = shadowOf(activity)
+                val intent = shadowActivity.nextStartedActivity
+                assertNotNull(intent)
+
+                val name = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_NAME)
+                val description = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION)
+                val sourceType = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE)
+                val url = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_URL)
+
+                assertNotNull(name)
+                assertNotNull(description)
+                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, sourceType)
+                assertNotNull(url)
+            }
+        }
+    }
+
+    @Test
+    fun `project image intent source is network type`() {
+        ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val projectImage = activity.findViewById<View>(R.id.iv_project)
+                projectImage.performClick()
+
+                val shadowActivity = shadowOf(activity)
+                val intent = shadowActivity.nextStartedActivity
+                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, intent.getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE))
+                assertNull(intent.getIntExtra(ImageDetailsIntentContract.EXTRA_RES_ID, -1).takeIf { it != -1 })
             }
         }
     }

@@ -17,10 +17,10 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
-| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty`, `AircraftConstants` | Data models, Room persistence, game state enums, HUD constants |
+| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource` | Data models, Room persistence, game state enums, HUD constants, image details contracts |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
-| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel` | MVVM mediation between Views and Repositories/DAOs |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
+| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
 | `providers/` | Gray | `DatabaseProvider`, `SettingsRepository` | Singleton DB provider, SharedPreferences wrapper |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, name formatting |
@@ -50,7 +50,8 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - History screen with Chinese ink-painting background (`launch_background.jpeg`)
 - Compose-powered About Me and Onboarding screens with localized copy and smooth transition animations
 - Coil-based network image loading with crossfade animations (`AsyncImage` for Compose, `ImageView.load()` for Views)
-- Utility screens for history, QR code scanning/generation/save-to-device, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
+- Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
+- Utility screens for history, QR code scanning/generation/save-to-device, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
 
@@ -100,7 +101,9 @@ app/src/main/java/com/young/aircraft/
 │   ├── TimeFreezeState.kt              # Time-freeze pickup state
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
-│   └── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
+│   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
+│   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
+│   └── ImageDetailsSource.kt           # Sealed class for image source types (Local, Network)
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
 │   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
@@ -111,9 +114,10 @@ app/src/main/java/com/young/aircraft/
 │   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
 │   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
+│   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools
 │   ├── DeviceInfoActivity.kt           # Live system monitor
-│   ├── AboutAircraftActivity.kt        # Project overview and GitHub link
+│   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer
 │   └── StarFieldView.kt                # Animated cinematic background
@@ -157,7 +161,9 @@ app/src/main/java/com/young/aircraft/
     ├── DeviceInfoUiState.kt            # UI state for device info screen
     ├── QRCodeToolViewModel.kt          # QR encode/decode logic (QRCodeToolActivity)
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
-    └── RichTextEditorViewModel.kt      # Edit/preview mode state (RichTextEditorActivity)
+    ├── RichTextEditorViewModel.kt      # Edit/preview mode state (RichTextEditorActivity)
+    ├── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
+    └── ShowImageDetailsUiState.kt      # UI state for image details screen
 ```
 
 ## Tests

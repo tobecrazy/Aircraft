@@ -52,7 +52,7 @@
             android:label="@string/develop_settings_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
-            android:name=".gui.BannerDetailsActivity"
+            android:name=".gui.ShowImageDetailsActivity"
             android:exported="false"
             android:label="@string/banner_details_title"
             android:theme="@style/Theme.Aircraft.Common" />
