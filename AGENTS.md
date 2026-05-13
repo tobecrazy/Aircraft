@@ -21,5 +21,13 @@ Write JUnit 4 tests in `app/src/test` and use Robolectric when Android framework
 
 After any code change, first update or add the relevant unit tests, then run the full unit test suite with `./gradlew test` to ensure there are no regression issues. If the tests cannot be run, explicitly report the blocker and the affected coverage.
 
+## Change Synchronization Rules
+When a change adds or removes files, you must also:
+
+- Add or update relevant tests under `app/src/test` and/or `app/src/androidTest`.
+- Update `README.md` to reflect the new or removed files and behavior.
+- Update `ChangeLogs.md` with the corresponding added/removed change notes.
+- Update architecture diagrams `class_diagram.svg` and `project_diagram.svg` so they remain consistent with the current file/module structure.
+
 ## Commit & Pull Request Guidelines
 Recent history uses short, imperative subjects such as `Implement timer`, `Fix reject Button Issue`, and `fix background reset issue`. Keep commit titles brief, action-oriented, and without trailing punctuation. For pull requests, include a concise summary, linked issue or ticket, the Gradle commands you ran, and screenshots or a short recording for gameplay or UI changes.
