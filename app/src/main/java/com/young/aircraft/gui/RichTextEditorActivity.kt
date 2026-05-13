@@ -75,6 +75,10 @@ class RichTextEditorActivity : AppCompatActivity() {
             @Deprecated("Deprecated in Java")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 url?.let {
+                    if (RichTextEditorView.isImageTapUrl(it)) {
+                        openImageDetails(it)
+                        return true
+                    }
                     val intent = android.content.Intent(
                         android.content.Intent.ACTION_VIEW, android.net.Uri.parse(it)
                     )
@@ -106,6 +110,7 @@ class RichTextEditorActivity : AppCompatActivity() {
     }
 
     private fun wrapHtml(body: String): String {
+        val clickableBody = RichTextEditorView.makeImagesClickable(body)
         return """
             <!DOCTYPE html>
             <html>
@@ -161,8 +166,19 @@ class RichTextEditorActivity : AppCompatActivity() {
                 b, strong { color: #FFFFFF; }
             </style>
             </head>
-            <body>$body</body>
+            <body>$clickableBody</body>
             </html>
         """.trimIndent()
+    }
+
+    private fun openImageDetails(imageTapUrl: String) {
+        val src = RichTextEditorView.extractImageSrcFromTapUrl(imageTapUrl) ?: return
+        val name = src.substringAfterLast('/').substringBefore('?').takeIf { it.isNotBlank() } ?: "image"
+        val item = SupperBannerItem(
+            name = name,
+            description = src,
+            image = SupperBannerImage.Network(src)
+        )
+        startActivity(ShowImageDetailsActivity.createIntent(this, item))
     }
 }

@@ -189,4 +189,12 @@ class RichTextMarkdownTest {
         assertTrue(result.contains("<img src=\"pic.png\""))
         assertTrue(result.contains("<a href=\"url\""))
     }
+
+    @Test
+    fun `image tag is wrapped with tap link`() {
+        val html = "<p><img src=\"https://example.com/pic.png\" /></p>"
+        val result = RichTextEditorView.makeImagesClickable(html)
+        assertTrue(result.contains("<a href=\"aircraft-image://open?src=https%3A%2F%2Fexample.com%2Fpic.png\">"))
+        assertTrue(result.contains("<img src=\"https://example.com/pic.png\" />"))
+    }
 }

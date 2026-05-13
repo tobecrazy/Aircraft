@@ -20,6 +20,10 @@ import android.widget.TextView
 import android.widget.Toast
 import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
+import androidx.core.graphics.toColorInt
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class RichTextEditorView @JvmOverloads constructor(
     context: Context,
@@ -79,12 +83,7 @@ class RichTextEditorView @JvmOverloads constructor(
         lp.height = heightPx
         editor.layoutParams = lp
     }
-
-    fun setToolbarVisible(visible: Boolean) {
-        val vis = if (visible) VISIBLE else GONE
-        toolbarScroll.visibility = vis
-        toolbarDivider.visibility = vis
-    }
+    
 
     // ── Formatting ─────────────────────────────────────────
 
@@ -175,7 +174,7 @@ class RichTextEditorView @JvmOverloads constructor(
     private fun toggleMarkdownMode() {
         isMarkdownMode = !isMarkdownMode
         (btnMarkdown as? TextView)?.setTextColor(
-            if (isMarkdownMode) Color.parseColor("#00FF88") else Color.parseColor("#66FFFFFF")
+            if (isMarkdownMode) "#00FF88".toColorInt() else "#66FFFFFF".toColorInt()
         )
         val msg = if (isMarkdownMode) R.string.rich_text_md_on else R.string.rich_text_md_off
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -183,14 +182,16 @@ class RichTextEditorView @JvmOverloads constructor(
 
     private fun insertHtmlSnippet() {
         val popup = PopupMenu(context, btnHtml)
-        popup.menu.add(0, 0, 0, context.getString(R.string.rich_text_html_image))
-        popup.menu.add(0, 1, 1, context.getString(R.string.rich_text_html_link))
+        popup.menu.add(0, 0, 0, context.getString(R.string.rich_text_html_image,"png"))
+        popup.menu.add(0, 1, 1, context.getString(R.string.rich_text_html_image,"gif"))
         popup.menu.add(0, 2, 2, context.getString(R.string.rich_text_html_heading))
+        popup.menu.add(0, 3, 3, context.getString(R.string.rich_text_html_link))
         popup.setOnMenuItemClickListener { item ->
             val snippet = when (item.itemId) {
-                0 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE}\" width=\"200\" />"
-                1 -> "<a href=\"${AircraftConstants.Urls.EXAMPLE_LINK}\">Link Text</a>"
-                2 -> "<h2>Heading</h2>"
+                0 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE_PNG}\" width=\"200\" />"
+                1 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE_GIF}\" width=\"200\" />"
+                2 -> "<h3>Heading</h3>"
+                3 -> "<a href=\"${AircraftConstants.Urls.EXAMPLE_LINK}\">Link Text</a>"
                 else -> ""
             }
             val pos = editor.selectionStart
@@ -201,6 +202,8 @@ class RichTextEditorView @JvmOverloads constructor(
     }
 
     companion object {
+        private const val IMAGE_TAP_SCHEME = "aircraft-image"
+
         fun processMarkdown(input: String): String {
             var result = input
 
@@ -236,5 +239,29 @@ class RichTextEditorView @JvmOverloads constructor(
 
             return result
         }
+
+        fun makeImagesClickable(html: String): String {
+            val imageTagRegex = Regex("<img\\b[^>]*\\bsrc\\s*=\\s*\"([^\"]+)\"[^>]*>", RegexOption.IGNORE_CASE)
+            return imageTagRegex.replace(html) { match ->
+                val imageTag = match.value
+                val src = match.groupValues[1]
+                val link = "$IMAGE_TAP_SCHEME://open?src=${encodeUrl(src)}"
+                "<a href=\"$link\">$imageTag</a>"
+            }
+        }
+
+        fun buildImageTapUrl(src: String): String = "$IMAGE_TAP_SCHEME://open?src=${encodeUrl(src)}"
+        fun isImageTapUrl(url: String): Boolean = url.startsWith("$IMAGE_TAP_SCHEME://")
+        fun extractImageSrcFromTapUrl(url: String): String? {
+            val query = url.substringAfter('?', "")
+            if (query.isEmpty()) return null
+            val srcParam = query.split('&').firstOrNull { it.startsWith("src=") } ?: return null
+            val encodedSrc = srcParam.substringAfter('=', "")
+            if (encodedSrc.isEmpty()) return null
+            return URLDecoder.decode(encodedSrc, StandardCharsets.UTF_8.name())
+        }
+
+        private fun encodeUrl(input: String): String =
+            URLEncoder.encode(input, StandardCharsets.UTF_8.name())
     }
 }
