@@ -2,6 +2,7 @@ package com.young.aircraft.gui
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -68,6 +69,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.SubcomposeAsyncImage
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.decode.SvgDecoder
+import coil.imageLoader
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.young.aircraft.R
 import com.young.aircraft.data.ImageDetailsIntentContract
@@ -262,6 +268,20 @@ private fun FullImagePanel(
     contentDescription: String
 ) {
     val context = LocalContext.current
+    val resolvedImageModel = resolveImageDetailsModel(imageModel)
+    val imageLoader = remember(context) {
+        context.imageLoader.newBuilder()
+            .components {
+                add(SvgDecoder.Factory())
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    add(ImageDecoderDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
+            }
+            .build()
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -270,9 +290,12 @@ private fun FullImagePanel(
         shape = RoundedCornerShape(8.dp)
     ) {
         SubcomposeAsyncImage(
+            imageLoader = imageLoader,
             model = ImageRequest.Builder(context)
-                .data(imageModel)
+                .data(resolvedImageModel)
                 .crossfade(true)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED)
                 .build(),
             contentDescription = contentDescription,
             modifier = Modifier
@@ -309,6 +332,28 @@ private fun FullImagePanel(
             }
         )
     }
+}
+
+internal fun resolveImageDetailsModel(model: Any): Any {
+    if (model !is String) return model
+    return normalizeGithubBlobImageUrl(model)
+}
+
+internal fun normalizeGithubBlobImageUrl(url: String): String {
+    val githubBlobPrefix = "https://github.com/"
+    val marker = "/blob/"
+    if (!url.startsWith(githubBlobPrefix) || !url.contains(marker)) return url
+
+    val path = url.removePrefix(githubBlobPrefix)
+    val ownerAndRepo = path.substringBefore(marker)
+    val remainder = path.substringAfter(marker)
+    val branch = remainder.substringBefore('/')
+    val filePath = remainder.substringAfter('/', "")
+    if (ownerAndRepo.isBlank() || branch.isBlank() || filePath.isBlank()) return url
+
+    val query = url.substringAfter('?', "")
+    val suffix = if (query.isBlank()) "" else "?$query"
+    return "https://raw.githubusercontent.com/$ownerAndRepo/$branch/$filePath$suffix"
 }
 
 @Composable

@@ -184,14 +184,16 @@ class RichTextEditorView @JvmOverloads constructor(
         val popup = PopupMenu(context, btnHtml)
         popup.menu.add(0, 0, 0, context.getString(R.string.rich_text_html_image,"png"))
         popup.menu.add(0, 1, 1, context.getString(R.string.rich_text_html_image,"gif"))
-        popup.menu.add(0, 2, 2, context.getString(R.string.rich_text_html_heading))
-        popup.menu.add(0, 3, 3, context.getString(R.string.rich_text_html_link))
+        popup.menu.add(0, 2, 2, context.getString(R.string.rich_text_html_image,"svg"))
+        popup.menu.add(0, 3, 3, context.getString(R.string.rich_text_html_heading))
+        popup.menu.add(0, 4, 4, context.getString(R.string.rich_text_html_link))
         popup.setOnMenuItemClickListener { item ->
             val snippet = when (item.itemId) {
                 0 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE_PNG}\" width=\"200\" />"
                 1 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE_GIF}\" width=\"200\" />"
-                2 -> "<h3>Heading</h3>"
-                3 -> "<a href=\"${AircraftConstants.Urls.EXAMPLE_LINK}\">Link Text</a>"
+                2 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE_SVG}\" width=\"200\" />"
+                3 -> "<h3>Heading</h3>"
+                4 -> "<a href=\"${AircraftConstants.Urls.EXAMPLE_LINK}\">Link Text</a>"
                 else -> ""
             }
             val pos = editor.selectionStart
@@ -203,6 +205,10 @@ class RichTextEditorView @JvmOverloads constructor(
 
     companion object {
         private const val IMAGE_TAP_SCHEME = "aircraft-image"
+        private val SUPPORTED_IMAGE_EXTENSIONS = setOf(
+            // Keep this list conservative for WebView <img> preview reliability.
+            "jpg", "jpeg", "png", "gif", "webp", "svg"
+        )
 
         fun processMarkdown(input: String): String {
             var result = input
@@ -252,6 +258,16 @@ class RichTextEditorView @JvmOverloads constructor(
 
         fun buildImageTapUrl(src: String): String = "$IMAGE_TAP_SCHEME://open?src=${encodeUrl(src)}"
         fun isImageTapUrl(url: String): Boolean = url.startsWith("$IMAGE_TAP_SCHEME://")
+        fun isImageFormatSupportedForPreview(fileNameOrExtension: String): Boolean {
+            val normalized = fileNameOrExtension
+                .substringAfterLast('/')
+                .substringBefore('?')
+                .substringAfterLast('.')
+                .trim()
+                .lowercase()
+            return normalized in SUPPORTED_IMAGE_EXTENSIONS
+        }
+
         fun extractImageSrcFromTapUrl(url: String): String? {
             val query = url.substringAfter('?', "")
             if (query.isEmpty()) return null

@@ -197,4 +197,49 @@ class RichTextMarkdownTest {
         assertTrue(result.contains("<a href=\"aircraft-image://open?src=https%3A%2F%2Fexample.com%2Fpic.png\">"))
         assertTrue(result.contains("<img src=\"https://example.com/pic.png\" />"))
     }
+
+    @Test
+    fun `image format support matches rich text preview capability`() {
+        // 摄影照片: JPG / HEIC (HEIC is not reliably previewable in Android WebView)
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("photo.jpg"))
+        assertFalse(RichTextEditorView.isImageFormatSupportedForPreview("photo.heic"))
+
+        // Logo: SVG / PNG
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("logo.svg"))
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("logo.png"))
+
+        // UI 图标: SVG / PNG
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("icon.svg"))
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("icon.png"))
+
+        // 动图: GIF / WebP
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("anim.gif"))
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("anim.webp"))
+
+        // 网站图片: WebP / AVIF (AVIF may vary by WebView/Chromium version; treated unsupported here)
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("site.webp"))
+        assertFalse(RichTextEditorView.isImageFormatSupportedForPreview("site.avif"))
+
+        // 印刷: TIFF
+        assertFalse(RichTextEditorView.isImageFormatSupportedForPreview("print.tiff"))
+
+        // 游戏贴图: PNG / DDS
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("texture.png"))
+        assertFalse(RichTextEditorView.isImageFormatSupportedForPreview("texture.dds"))
+
+        // Android 开发: WebP / PNG
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("android.webp"))
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("android.png"))
+
+        // iOS 开发: HEIC / PNG (HEIC unsupported for this preview)
+        assertFalse(RichTextEditorView.isImageFormatSupportedForPreview("ios.heic"))
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("ios.png"))
+    }
+
+    @Test
+    fun `image format support is case insensitive and accepts url with query`() {
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("PHOTO.JPEG"))
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("https://example.com/asset/hero.WEBP?size=lg"))
+        assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("https://example.com/logo.SVG?v=1"))
+    }
 }
