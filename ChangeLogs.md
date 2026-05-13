@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Rich-text preview image click navigation: tapping `<img>` content in `RichTextEditorActivity` now opens `ShowImageDetailsActivity` with network image details
+- Rich-text image tap helpers in `RichTextEditorView` (`makeImagesClickable`, `buildImageTapUrl`, `isImageTapUrl`, `extractImageSrcFromTapUrl`)
+- Robolectric coverage for rich-text preview image click navigation to image details and markdown image wrapping behavior
 - `ShowImageDetailsActivity` — Common UI for viewing image details (renames `BannerDetailsActivity`) with support for local drawables and network URLs
 - Image details support with Coil image loading, download functionality via `CreateDocument` intent, and proper intent contract (`ImageDetailsIntentContract`)
 - `ShowImageDetailsViewModel` with factory pattern for creating `ShowImageDetailsActivity` intents
@@ -42,6 +45,7 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `RichTextEditorActivity` WebView preview now rewrites image tags into app-handled tap links and routes those taps to `ShowImageDetailsActivity`
 - `BannerDetailsActivity` renamed to `ShowImageDetailsActivity` to reflect its broader role as a common image details viewer
 - `AndroidManifest.xml` updated to reference `.gui.ShowImageDetailsActivity` instead of `.gui.BannerDetailsActivity`
 - `AboutAircraftActivity` enhanced with project image click handler using `ShowImageDetailsActivity.createIntent()` factory

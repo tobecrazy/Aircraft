@@ -51,6 +51,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Compose-powered About Me and Onboarding screens with localized copy and smooth transition animations
 - Coil-based network image loading with crossfade animations (`AsyncImage` for Compose, `ImageView.load()` for Views)
 - Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
+- Rich-text preview image tap support: clicking an image in `RichTextEditorActivity` opens `ShowImageDetailsActivity`
 - Utility screens for history, QR code scanning/generation/save-to-device, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
@@ -114,6 +115,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
 │   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
+│   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with WebView preview; preview image taps open ShowImageDetailsActivity
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools
 │   ├── DeviceInfoActivity.kt           # Live system monitor

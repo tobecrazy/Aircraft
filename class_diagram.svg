@@ -1233,7 +1233,8 @@
     <text x="10" y="128" font-size="10" fill="#333">+ size popup (12/16/22/30)</text>
     <text x="10" y="141" font-size="10" fill="#333">+ color popup (green/red/blue/yellow)</text>
     <text x="10" y="154" font-size="10" fill="#333">+ markdown processing / HTML insertion</text>
-    <text x="10" y="169" font-size="9" fill="#888">DEBUG-only, WebView preview, Spannable</text>
+    <text x="10" y="167" font-size="10" fill="#333">+ image tap in preview → ShowImageDetailsActivity</text>
+    <text x="10" y="179" font-size="9" fill="#888">DEBUG-only, WebView preview, Spannable</text>
   </g>
 
   <!-- ===== ADDITIONAL NAVIGATION ARROWS ===== -->
@@ -1241,6 +1242,10 @@
   <!-- DevelopSettingsActivity -> RichTextEditorActivity navigation -->
   <line x1="735" y1="2175" x2="740" y2="2200" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="745" y="2192" font-size="9" fill="#888">navigates</text>
+
+  <!-- RichTextEditorActivity -> ShowImageDetailsActivity (image tap in preview) -->
+  <line x1="760" y1="2200" x2="760" y2="2122" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="766" y="2160" font-size="9" fill="#888">image tap</text>
 
   <!-- ===== AircraftConstants (data/) ===== -->
   <g transform="translate(30, 2500)" filter="url(#shadow)">

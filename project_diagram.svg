@@ -173,6 +173,7 @@
   <text x="1275" y="289" text-anchor="middle" fill="#7c3aed" font-size="7.8">Image Details · Device Info · About Aircraft</text>
   <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Me (Coil) · Privacy Policy</text>
   <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">Develop settings · Rich Text Editor (DEBUG)</text>
+  <text x="1275" y="331" text-anchor="middle" fill="#7c3aed" font-size="7.4">Rich-text preview image tap → Image Details</text>
 
   <!-- OnboardingActivity → LaunchActivity arrow -->
   <path d="M395,198 L395,208 L130,208 L130,222" stroke="#8b5cf6" stroke-width="1.5" fill="none" marker-end="url(#arr-purple)"/>
