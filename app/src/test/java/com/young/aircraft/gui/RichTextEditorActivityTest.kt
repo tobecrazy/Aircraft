@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.EditText
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.R
 import com.young.aircraft.ui.RichTextEditorView
 import org.junit.Assert.*
@@ -18,6 +19,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.Shadows
 import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
@@ -239,6 +241,30 @@ class RichTextEditorActivityTest {
                     RichTextEditorActivity::class.java.name,
                     intent.component?.className
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `clicking image in preview opens ShowImageDetailsActivity`() {
+        ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val webView = activity.findViewById<android.webkit.WebView>(R.id.wv_preview)
+                val url = RichTextEditorView.buildImageTapUrl("https://example.com/pic.png")
+
+                val handled = Shadows.shadowOf(webView).webViewClient.shouldOverrideUrlLoading(webView, url)
+                val intent = shadowOf(activity).nextStartedActivity
+
+                assertTrue(handled)
+                assertNotNull(intent)
+                assertEquals(
+                    ShowImageDetailsActivity::class.java.name,
+                    intent.component?.className
+                )
+                assertEquals("pic.png", intent.getStringExtra(ImageDetailsIntentContract.EXTRA_NAME))
+                assertEquals("https://example.com/pic.png", intent.getStringExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION))
+                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, intent.getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE))
+                assertEquals("https://example.com/pic.png", intent.getStringExtra(ImageDetailsIntentContract.EXTRA_URL))
             }
         }
     }

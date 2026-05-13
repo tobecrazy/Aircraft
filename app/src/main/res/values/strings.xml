@@ -335,7 +335,7 @@
     <string name="rich_text_color_white">White</string>
     <string name="rich_text_md_on">Markdown mode enabled</string>
     <string name="rich_text_md_off">Markdown mode disabled</string>
-    <string name="rich_text_html_image">Image tag</string>
+    <string name="rich_text_html_image">Image tag %s</string>
     <string name="rich_text_html_link">Hyperlink tag</string>
     <string name="rich_text_html_heading">Heading tag</string>
 </resources>

@@ -335,7 +335,7 @@
     <string name="rich_text_color_white">白色</string>
     <string name="rich_text_md_on">Markdown 模式已开启</string>
     <string name="rich_text_md_off">Markdown 模式已关闭</string>
-    <string name="rich_text_html_image">图片标签</string>
+    <string name="rich_text_html_image">图片标签 %s</string>
     <string name="rich_text_html_link">超链接标签</string>
     <string name="rich_text_html_heading">标题标签</string>
 </resources>

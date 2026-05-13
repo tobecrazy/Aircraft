@@ -88,7 +88,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
             SupperBannerItem(
                 name = "network_TianQi",
                 description = getString(R.string.develop_settings_supper_banner_network_description),
-                image = SupperBannerImage.Network(AircraftConstants.Urls.EXAMPLE_IMAGE)
+                image = SupperBannerImage.Network(AircraftConstants.Urls.EXAMPLE_IMAGE_PNG)
             ),
             SupperBannerItem(
                 name = "network_ContactUs",
