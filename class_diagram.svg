@@ -1468,4 +1468,5 @@
   <!-- Update gui/ boundary box height -->
   <rect x="20" y="1680" width="1420" height="940" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <!-- 2026-05-14 update: Added puzzle progression layer (PuzzleActivity, GameMode, mode-aware save fields). -->
+  <!-- 2026-05-17 update: PuzzleActivity gains PuzzleHeader composable (standard 52dp tactical header with back-and-save), gridSizeForDifficulty switched to explicit when mapping (EASY=3, NORMAL=4, HARD=5 → 9/16/25 pieces), and statusBarsPadding applied to PuzzleScreen/PuzzleLoadingScreen to fix status-bar overlap under enableEdgeToEdge(). -->
 </svg>

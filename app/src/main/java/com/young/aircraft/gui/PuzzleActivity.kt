@@ -699,8 +699,8 @@ private fun PuzzleStatCard(label: String, value: String, modifier: Modifier = Mo
 internal data class MoveResult(val tiles: List<Int>, val moved: Boolean)
 
 internal fun gridSizeForDifficulty(difficulty: GameDifficulty): Int = when (difficulty) {
-    GameDifficulty.EASY -> 2
-    GameDifficulty.NORMAL -> 3
+    GameDifficulty.EASY -> 3
+    GameDifficulty.NORMAL -> 4
     GameDifficulty.HARD -> 5
 }
 

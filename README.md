@@ -43,7 +43,8 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - First-launch privacy acceptance flow with cinematic `StarFieldView`
 - Compose-powered two-page onboarding carousel with animated entrance effects
 - 10 combat levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
-- Puzzle-gate flow: after clearing combat levels 1-9, players must clear the same-numbered puzzle level before entering the next combat level
+- Puzzle-gate flow: after clearing combat levels 1-9, players must clear the same-numbered puzzle level before entering the next combat level (Easy = 3×3, Normal = 4×4, Hard = 5×5)
+- Compose-based `PuzzleActivity` shell with the standard tactical 52dp header (back button saves progress) and status-bar inset handling
 - Four power-up systems: red envelopes/rockets, medical kits, shields, and time freezes
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
@@ -60,6 +61,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 ## Gameplay
 
 - **Progression**: 10 combat levels with timers decreasing from 300s to 120s, plus 9 puzzle levels gated between combat levels
+- **Puzzle difficulty**: piece count is fixed per difficulty preset — Easy `3×3` (9 pieces), Normal `4×4` (16 pieces), Hard `5×5` (25 pieces)
 - **Boss fights**: every level ends with a boss that scales from 1,000 HP to 1,900 HP
 - **Controls**: drag the plane to move; bullets auto-fire during play
 - **Power-ups**:
