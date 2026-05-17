@@ -272,7 +272,7 @@ private fun PuzzleLoadingScreen(
         ) {
             CircularProgressIndicator(color = PuzzleAccent)
             Text(
-                text = if (isLoading) "Loading puzzle image..." else "Failed to load puzzle image.",
+                text = if (isLoading) stringResource(R.string.puzzle_loading) else stringResource(R.string.puzzle_load_failed),
                 modifier = Modifier.padding(top = 16.dp),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White
@@ -282,7 +282,7 @@ private fun PuzzleLoadingScreen(
                     onClick = onRetry,
                     modifier = Modifier.padding(top = 12.dp)
                 ) {
-                    Text("Retry")
+                    Text(stringResource(R.string.puzzle_retry))
                 }
             }
         }
@@ -377,7 +377,7 @@ private fun PuzzleScreen(
 
             AsyncImage(
                 model = puzzleImageUrl,
-                contentDescription = "Puzzle image preview",
+                contentDescription = stringResource(R.string.puzzle_image_preview_desc),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
@@ -429,7 +429,7 @@ private fun PuzzleScreen(
 
                             AsyncImage(
                                 model = puzzleImageUrl,
-                                contentDescription = "Puzzle tile $tile",
+                                contentDescription = stringResource(R.string.puzzle_tile_desc, tile),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -460,7 +460,7 @@ private fun PuzzleScreen(
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 FilledTonalButton(onClick = { onSaveAndExit(level, score) }, modifier = Modifier.weight(1f)) {
-                    Text("Save")
+                    Text(stringResource(R.string.puzzle_save))
                 }
                 Button(
                     enabled = hintsRemaining > 0 && hintVisible == 0 && solvedState == 0,
@@ -470,7 +470,7 @@ private fun PuzzleScreen(
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Hint ($hintsRemaining)")
+                    Text(stringResource(R.string.puzzle_hint_button, hintsRemaining))
                 }
             }
         }
@@ -490,7 +490,7 @@ private fun PuzzleScreen(
                 ) {
                     AsyncImage(
                         model = puzzleImageUrl,
-                        contentDescription = "Puzzle hint image",
+                        contentDescription = stringResource(R.string.puzzle_hint_image_desc),
                         modifier = Modifier
                             .size(240.dp)
                             .clip(RoundedCornerShape(16.dp))
@@ -499,7 +499,7 @@ private fun PuzzleScreen(
                     )
                 }
                 Text(
-                    text = "Hint active",
+                    text = stringResource(R.string.puzzle_hint_active),
                     color = Color.White,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
@@ -515,13 +515,13 @@ private fun PuzzleScreen(
                 title = {
                     Text(
                         if (level >= maxPuzzleLevel) stringResource(R.string.hall_of_heroes_title)
-                        else "Puzzle Cleared"
+                        else stringResource(R.string.puzzle_cleared_title)
                     )
                 },
                 text = {
                     Text(
                         if (level >= maxPuzzleLevel) stringResource(R.string.hall_of_heroes_message)
-                        else "Moves: $moves  Time: ${formatTime(elapsedSec)}"
+                        else stringResource(R.string.puzzle_cleared_message, moves, formatTime(elapsedSec))
                     )
                 },
                 confirmButton = {
@@ -543,12 +543,12 @@ private fun PuzzleScreen(
                             }
                         }
                     ) {
-                        Text(if (level >= maxPuzzleLevel) stringResource(R.string.hall_of_heroes_record_button) else "Continue")
+                        Text(if (level >= maxPuzzleLevel) stringResource(R.string.hall_of_heroes_record_button) else stringResource(R.string.puzzle_continue))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { onSaveAndExit(level, score) }) {
-                        Text("Save")
+                        Text(stringResource(R.string.puzzle_save))
                     }
                 }
             )
@@ -557,8 +557,8 @@ private fun PuzzleScreen(
         if (solvedState == -1) {
             AlertDialog(
                 onDismissRequest = {},
-                title = { Text("Time up") },
-                text = { Text("Retry this puzzle level") },
+                title = { Text(stringResource(R.string.puzzle_time_up_title)) },
+                text = { Text(stringResource(R.string.puzzle_time_up_message)) },
                 confirmButton = {
                     TextButton(onClick = {
                         moves = 0
@@ -568,12 +568,12 @@ private fun PuzzleScreen(
                         solvedState = 0
                         tiles = shuffleTiles(solvedTiles, gridSize, level)
                     }) {
-                        Text("Retry")
+                        Text(stringResource(R.string.puzzle_retry))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { onSaveAndExit(level, score) }) {
-                        Text("Save & Exit")
+                        Text(stringResource(R.string.puzzle_save_and_exit))
                     }
                 }
             )
@@ -650,12 +650,12 @@ private fun PuzzleTopBar(
             ) {
                 Column {
                     Text(
-                        text = "Puzzle Mission",
+                        text = stringResource(R.string.puzzle_top_bar_title),
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.White
                     )
                     Text(
-                        text = "Level $level of $maxLevel",
+                        text = stringResource(R.string.puzzle_level_progress, level, maxLevel),
                         style = MaterialTheme.typography.bodySmall,
                         color = PuzzleTextSecondary
                     )
@@ -672,8 +672,8 @@ private fun PuzzleTopBar(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                PuzzleStatCard("Moves", moves.toString(), Modifier.weight(1f))
-                PuzzleStatCard("Score", score.toString(), Modifier.weight(1f))
+                PuzzleStatCard(stringResource(R.string.puzzle_stat_moves), moves.toString(), Modifier.weight(1f))
+                PuzzleStatCard(stringResource(R.string.puzzle_stat_score), score.toString(), Modifier.weight(1f))
             }
         }
     }
