@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `PuzzleActivity` (Compose) with 9 puzzle levels, per-level countdown timer, difficulty-scaled target steps, and explicit puzzle-progress save support
+- New save-state metadata in `PlayerGameData`: `air_battle_level`, `puzzle_level`, `game_mode`, `puzzle_score`, `total_kills`
+- `GameMode` enum and intent extras for mode-aware launch/resume (`TOTAL_KILLS`, `PUZZLE_SCORE`, `PUZZLE_LEVEL`, `GAME_MODE`)
 - Rich-text preview image click navigation: tapping `<img>` content in `RichTextEditorActivity` now opens `ShowImageDetailsActivity` with network image details
 - Rich-text image tap helpers in `RichTextEditorView` (`makeImagesClickable`, `buildImageTapUrl`, `isImageTapUrl`, `extractImageSrcFromTapUrl`)
 - Robolectric coverage for rich-text preview image click navigation to image details and markdown image wrapping behavior
@@ -45,6 +48,10 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- Progression flow now enforces puzzle gates after combat levels 1-9; only level 10 keeps the original direct clear/congratulations flow
+- Total score now includes puzzle score in addition to combat kill score
+- Resume behavior is mode-aware: air-battle saves open `MainActivity`, puzzle saves open `PuzzleActivity` first and continue to the next combat level after puzzle clear
+- Room schema bumped to v2031 with migration `MIGRATION_2030_2031`
 - `RichTextEditorActivity` WebView preview now rewrites image tags into app-handled tap links and routes those taps to `ShowImageDetailsActivity`
 - `BannerDetailsActivity` renamed to `ShowImageDetailsActivity` to reflect its broader role as a common image details viewer
 - `AndroidManifest.xml` updated to reference `.gui.ShowImageDetailsActivity` instead of `.gui.BannerDetailsActivity`

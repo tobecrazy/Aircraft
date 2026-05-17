@@ -198,6 +198,8 @@
     <string name="qr_code_tool_pick_failed">Failed to load selected image</string>
     <string name="qr_code_tool_save_button">Save QR Code</string>
     <string name="qr_code_tool_share_button">Share QR Code</string>
+    <string name="puzzle_game_title">Puzzle Game</string>
+    <string name="puzzle_game_summary">Standalone 9-level puzzle mode with save progress</string>
     <string name="develop_settings_title">Develop Settings</string>
     <string name="develop_settings_summary">Debug-only tools and crash testing</string>
     <string name="develop_settings_banner_summary">Internal tools for validating runtime flags, editor surfaces, and crash reporting.</string>

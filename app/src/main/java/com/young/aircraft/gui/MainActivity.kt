@@ -93,6 +93,7 @@ class MainActivity : AppCompatActivity() {
         val startLevel = intent.getIntExtra(AircraftConstants.IntentExtras.START_LEVEL, 1)
         val jetPlaneRes = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, R.drawable.jet_plane_2)
         val jetPlaneIndex = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_INDEX, 0)
+        val startKills = intent.getIntExtra(AircraftConstants.IntentExtras.TOTAL_KILLS, 0)
         coreView.level = startLevel
         coreView.jetPlaneResId = jetPlaneRes
         coreView.jetPlaneIndex = jetPlaneIndex
@@ -105,6 +106,7 @@ class MainActivity : AppCompatActivity() {
             )
         )
         configureOverlayUi(startLevel = startLevel, jetPlaneIndex = jetPlaneIndex)
+        coreView.totalKills = startKills
         coreView.onGameOver = {
             val score = viewModel.calculateScore(coreView.totalKills)
             showGameDialog(
@@ -121,7 +123,7 @@ class MainActivity : AppCompatActivity() {
                 stat2Value = score.toString(),
                 onPositive = {
                     lifecycleScope.launch {
-                        viewModel.saveGameData(
+                        viewModel.saveAirBattleData(
                             level = coreView.level,
                             totalKills = coreView.totalKills,
                             jetPlaneResId = coreView.jetPlaneResId,
@@ -152,7 +154,7 @@ class MainActivity : AppCompatActivity() {
                 stat2Value = score.toString(),
                 onPositive = {
                     lifecycleScope.launch {
-                        viewModel.saveGameData(
+                        viewModel.saveAirBattleData(
                             level = completedLevel + 1,
                             totalKills = coreView.totalKills,
                             jetPlaneResId = coreView.jetPlaneResId,
@@ -269,7 +271,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             runCatching {
                 if (viewModel.shouldAutoSaveOnExit(coreView.level, coreView.totalKills)) {
-                    viewModel.saveGameData(
+                    viewModel.saveAirBattleData(
                         level = coreView.level,
                         totalKills = coreView.totalKills,
                         jetPlaneResId = coreView.jetPlaneResId,
@@ -418,7 +420,7 @@ class MainActivity : AppCompatActivity() {
             )
             dialog.dismiss()
             lifecycleScope.launch {
-                viewModel.saveGameData(
+                viewModel.saveAirBattleData(
                     level = coreView.level,
                     totalKills = coreView.totalKills,
                     jetPlaneResId = coreView.jetPlaneResId,
@@ -476,7 +478,7 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 runCatching {
                     if (viewModel.shouldAutoSaveOnExit(coreView.level, coreView.totalKills)) {
-                        viewModel.saveGameData(
+                        viewModel.saveAirBattleData(
                             level = coreView.level,
                             totalKills = coreView.totalKills,
                             jetPlaneResId = coreView.jetPlaneResId,

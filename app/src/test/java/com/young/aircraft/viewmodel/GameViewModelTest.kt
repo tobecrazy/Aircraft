@@ -1,6 +1,7 @@
 package com.young.aircraft.viewmodel
 
 import com.young.aircraft.data.GameDifficulty
+import com.young.aircraft.data.GameMode
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.data.PlayerGameDataDao
 import com.young.aircraft.providers.SettingsRepository
@@ -78,6 +79,9 @@ class GameViewModelTest {
         viewModel.saveGameData(
             level = 3,
             totalKills = 25,
+            puzzleScore = 200,
+            puzzleLevel = 2,
+            gameMode = GameMode.AIR_BATTLE,
             jetPlaneResId = 123,
             jetPlaneIndex = 1
         )
@@ -89,7 +93,12 @@ class GameViewModelTest {
         val inserted = captor.firstValue
         assertEquals("test-player", inserted.playerId)
         assertEquals(3, inserted.level)
+        assertEquals(3, inserted.airBattleLevel)
+        assertEquals(2, inserted.puzzleLevel)
+        assertEquals(GameMode.AIR_BATTLE.name, inserted.gameMode)
         assertEquals(2500L, inserted.score)
+        assertEquals(200L, inserted.puzzleScore)
+        assertEquals(25, inserted.totalKills)
         assertEquals(123, inserted.jetPlaneRes)
         assertEquals(1, inserted.jetPlaneIndex)
         assertEquals("1.0", inserted.difficulty)
@@ -106,6 +115,9 @@ class GameViewModelTest {
         viewModel.saveGameData(
             level = 5,
             totalKills = 10,
+            puzzleScore = 0,
+            puzzleLevel = 5,
+            gameMode = GameMode.AIR_BATTLE,
             jetPlaneResId = 0,
             jetPlaneIndex = 0
         )
@@ -126,6 +138,9 @@ class GameViewModelTest {
         viewModel.saveGameData(
             level = 10,
             totalKills = 100,
+            puzzleScore = 500,
+            puzzleLevel = 9,
+            gameMode = GameMode.PUZZLE,
             jetPlaneResId = 0,
             jetPlaneIndex = 0,
             playerName = "NewHero"
@@ -144,6 +159,9 @@ class GameViewModelTest {
         viewModel.saveGameData(
             level = 1,
             totalKills = 10,
+            puzzleScore = 90,
+            puzzleLevel = 1,
+            gameMode = GameMode.AIR_BATTLE,
             jetPlaneResId = 0,
             jetPlaneIndex = 0
         )
@@ -151,6 +169,7 @@ class GameViewModelTest {
         val captor = argumentCaptor<PlayerGameData>()
         verify(dao).insert(captor.capture())
         assertEquals("0.8", captor.firstValue.difficulty)
+        assertEquals(1000L, captor.firstValue.score)
     }
 
     @Test

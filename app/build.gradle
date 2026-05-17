@@ -31,8 +31,8 @@ android {
         //noinspection EditedTargetSdkVersion,OldTargetApi
         targetSdk 36
         //noinspection OldTargetApi
-        versionCode 1
-        versionName "1.2.6"
+        versionCode 2
+        versionName "1.2.7"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
@@ -83,7 +83,7 @@ dependencies {
 
     implementation 'androidx.core:core-ktx:1.18.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'com.google.android.material:material:1.14.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.viewpager2:viewpager2:1.1.0'
     implementation 'androidx.media:media:1.8.0'

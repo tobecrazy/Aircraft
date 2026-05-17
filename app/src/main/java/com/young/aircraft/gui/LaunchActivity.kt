@@ -77,12 +77,17 @@ private val DividerGreen = Color(0x4400FF88)
 private val TextHint = Color(0x88FFFFFF.toInt())
 private val ButtonTextDark = Color(0xFF0F1118)
 private val ButtonSecondaryBg = Color(0x16FFFFFF)
-private val ButtonSecondaryStroke = Color(0x6600FF88.toInt())
+private val ButtonSecondaryStroke = Color(0x6600FF88)
 private val DialogGradientTop = Color(0xFF1C2432)
 private val DialogGradientBottom = Color(0xFF141D26)
 private val DialogTextBody = Color(0xFFD8E0EF)
 
-data class SavedGameInfo(val level: Int, val jetIndex: Int, val jetRes: Int)
+data class SavedGameInfo(
+    val level: Int,
+    val jetIndex: Int,
+    val jetRes: Int,
+    val totalKills: Int = 0
+)
 
 @SuppressLint("CustomSplashScreen")
 class LaunchActivity : AppCompatActivity() {
@@ -109,8 +114,9 @@ class LaunchActivity : AppCompatActivity() {
         return viewModel.checkForSavedGame()
     }
 
-    internal fun launchGame(level: Int? = null, jetRes: Int, jetIndex: Int) {
+    internal fun launchGame(level: Int? = null, jetRes: Int, jetIndex: Int, saved: SavedGameInfo? = null) {
         val intent = Intent(this, MainActivity::class.java)
+            .putExtra(AircraftConstants.IntentExtras.TOTAL_KILLS, saved?.totalKills ?: 0)
             .putExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, jetRes)
             .putExtra(AircraftConstants.IntentExtras.JET_PLANE_INDEX, jetIndex)
         if (level != null) {
@@ -242,7 +248,8 @@ private fun LaunchScreen(
                 activity.launchGame(
                     level = info.level,
                     jetRes = info.jetRes,
-                    jetIndex = info.jetIndex
+                    jetIndex = info.jetIndex,
+                    saved = info
                 )
             },
             onNewGame = {

@@ -642,4 +642,5 @@
   <text x="968" y="1222" fill="#64748b" font-size="9">Utilities</text>
 
   <text x="1350" y="1222" text-anchor="end" fill="#94a3b8" font-size="8.5">Kotlin · Android SDK 37 · AGP 9.1.1</text>
+  <!-- 2026-05-14 update: Added PuzzleActivity branch and mode-aware save/resume path (AIR_BATTLE/PUZZLE). -->
 </svg>

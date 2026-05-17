@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.data.PlayerGameDataDao
+import com.young.aircraft.data.GameMode
 import com.young.aircraft.gui.SavedGameInfo
 import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.providers.SettingsRepository
@@ -29,7 +30,12 @@ class LaunchViewModel(
                 if (foundIndex != -1) foundIndex else 0
             }
             val savedJetRes = Aircraft.JET_PLANES[savedJetIndex]
-            return SavedGameInfo(data.level, savedJetIndex, savedJetRes)
+            return SavedGameInfo(
+                level = data.airBattleLevel,
+                jetIndex = savedJetIndex,
+                jetRes = savedJetRes,
+                totalKills = data.totalKills
+            )
         }
         return null
     }
@@ -42,7 +48,7 @@ class LaunchViewModel(
     }
 
     private fun shouldOfferSavedGame(data: PlayerGameData): Boolean {
-        return data.level > 1 || data.score > 0L
+        return (data.level > 1 || data.score > 0L) && data.gameMode == GameMode.AIR_BATTLE.name
     }
 
     class Factory(context: Context) : ViewModelProvider.Factory {

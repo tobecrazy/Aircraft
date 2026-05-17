@@ -14,8 +14,18 @@ data class PlayerGameData(
     val playerName: String? = null,
     @ColumnInfo(name = "level")
     val level: Int,
+    @ColumnInfo(name = "air_battle_level")
+    val airBattleLevel: Int = level,
+    @ColumnInfo(name = "puzzle_level")
+    val puzzleLevel: Int = airBattleLevel,
+    @ColumnInfo(name = "game_mode")
+    val gameMode: String = GameMode.AIR_BATTLE.name,
     @ColumnInfo(name = "score")
     val score: Long,
+    @ColumnInfo(name = "puzzle_score")
+    val puzzleScore: Long = 0L,
+    @ColumnInfo(name = "total_kills")
+    val totalKills: Int = 0,
     @ColumnInfo(name = "jet_plane_res")
     val jetPlaneRes: Int = 0,
     @ColumnInfo(name = "jet_plane_index")

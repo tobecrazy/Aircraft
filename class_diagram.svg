@@ -1467,4 +1467,5 @@
 
   <!-- Update gui/ boundary box height -->
   <rect x="20" y="1680" width="1420" height="940" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <!-- 2026-05-14 update: Added puzzle progression layer (PuzzleActivity, GameMode, mode-aware save fields). -->
 </svg>
