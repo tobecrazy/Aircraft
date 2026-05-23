@@ -23,9 +23,9 @@ class ExampleUnitTest {
 
     @Test
     fun `grid size follows difficulty coefficients`() {
-        assertEquals(2, gridSizeForDifficulty(GameDifficulty.EASY))
-        assertEquals(3, gridSizeForDifficulty(GameDifficulty.NORMAL))
-        assertEquals(4, gridSizeForDifficulty(GameDifficulty.HARD))
+        assertEquals(3, gridSizeForDifficulty(GameDifficulty.EASY))
+        assertEquals(4, gridSizeForDifficulty(GameDifficulty.NORMAL))
+        assertEquals(5, gridSizeForDifficulty(GameDifficulty.HARD))
     }
 
     @Test
