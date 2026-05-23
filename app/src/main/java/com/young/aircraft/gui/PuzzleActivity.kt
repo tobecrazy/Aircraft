@@ -16,11 +16,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -33,13 +38,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -251,6 +260,7 @@ private val PuzzleTextSecondary = Color(0xFFAAB4C8)
 private val PuzzleTileBg = Color(0xFF263142)
 private val PuzzleEmptyTileBg = Color(0xFF1A2331)
 private val PuzzleDivider = Color(0x4400FF88)
+private val PuzzleButtonBg = Color(0xFF1F2636)
 
 @Composable
 private fun PuzzleLoadingScreen(
@@ -354,126 +364,145 @@ private fun PuzzleScreen(
         modifier = Modifier.fillMaxSize(),
         color = PuzzlePageBg
     ) {
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .statusBarsPadding()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            PuzzleHeader(onBack = { onSaveAndExit(level, score) })
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            PuzzleTopBar(
-                level = level,
-                maxLevel = maxPuzzleLevel,
-                score = score,
-                remainingSec = remainingSec,
-                moves = moves
-            )
+        Scaffold(
+            containerColor = PuzzlePageBg,
+            contentWindowInsets = WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+            ),
+            topBar = { PuzzleTopBarHeader(onBack = { onSaveAndExit(level, score) }) }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 14.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                PuzzleTopBar(
+                    level = level,
+                    maxLevel = maxPuzzleLevel,
+                    score = score,
+                    remainingSec = remainingSec,
+                    moves = moves
+                )
 
             AsyncImage(
                 model = puzzleImageUrl,
                 contentDescription = stringResource(R.string.puzzle_image_preview_desc),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(1.dp, PuzzleDivider, RoundedCornerShape(16.dp)),
+                    .height(136.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp)),
                 contentScale = ContentScale.Crop
             )
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(gridSize),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                items(tiles) { tile ->
-                    val isEmpty = tile == 0
-                    BoxWithConstraints(
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    colors = CardDefaults.cardColors(containerColor = PuzzlePanelBg),
+                    border = BorderStroke(1.dp, PuzzleDivider),
+                    shape = RoundedCornerShape(18.dp)
+                ) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(gridSize),
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (isEmpty) PuzzleEmptyTileBg else PuzzleTileBg
-                            )
-                            .border(
-                                1.dp,
-                                if (isEmpty) PuzzleDivider else PuzzleAccent.copy(alpha = 0.4f),
-                                RoundedCornerShape(12.dp)
-                            )
-                            .clickable(enabled = !isEmpty && solvedState == 0) {
-                                val result = moveTile(tiles, tile, gridSize)
-                                if (result.moved) {
-                                    tiles = result.tiles
-                                    moves += 1
-                                    score += 10L * level
-                                }
-                                if (isSolved(tiles)) {
-                                    solvedState = 1
-                                }
-                            },
-                        contentAlignment = Alignment.Center
+                            .fillMaxSize()
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        if (!isEmpty) {
-                            val tileIndex = tile - 1
-                            val tileRow = tileIndex / gridSize
-                            val tileCol = tileIndex % gridSize
-
-                            AsyncImage(
-                                model = puzzleImageUrl,
-                                contentDescription = stringResource(R.string.puzzle_tile_desc, tile),
-                                contentScale = ContentScale.Crop,
+                        items(tiles) { tile ->
+                            val isEmpty = tile == 0
+                            BoxWithConstraints(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .graphicsLayer {
-                                        transformOrigin = TransformOrigin(0f, 0f)
-                                        scaleX = gridSize.toFloat()
-                                        scaleY = gridSize.toFloat()
-                                        translationX = -size.width * tileCol
-                                        translationY = -size.height * tileRow
-                                    }
-                                    .drawWithContent {
-                                        drawContent()
-                                    }
-                            )
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isEmpty) PuzzleEmptyTileBg else PuzzleTileBg)
+                                    .border(
+                                        1.dp,
+                                        if (isEmpty) PuzzleDivider else PuzzleAccent.copy(alpha = 0.4f),
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .clickable(enabled = !isEmpty && solvedState == 0) {
+                                        val result = moveTile(tiles, tile, gridSize)
+                                        if (result.moved) {
+                                            tiles = result.tiles
+                                            moves += 1
+                                            score += 10L * level
+                                        }
+                                        if (isSolved(tiles)) {
+                                            solvedState = 1
+                                        }
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (!isEmpty) {
+                                    val tileIndex = tile - 1
+                                    val tileRow = tileIndex / gridSize
+                                    val tileCol = tileIndex % gridSize
 
-                            Text(
-                                text = tile.toString(),
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier
-                                    .align(Alignment.TopStart)
-                                    .padding(8.dp)
-                            )
+                                    AsyncImage(
+                                        model = puzzleImageUrl,
+                                        contentDescription = stringResource(R.string.puzzle_tile_desc, tile),
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .graphicsLayer {
+                                                transformOrigin = TransformOrigin(0f, 0f)
+                                                scaleX = gridSize.toFloat()
+                                                scaleY = gridSize.toFloat()
+                                                translationX = -size.width * tileCol
+                                                translationY = -size.height * tileRow
+                                            }
+                                            .drawWithContent { drawContent() }
+                                    )
+
+                                    Text(
+                                        text = tile.toString(),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier
+                                            .align(Alignment.TopStart)
+                                            .padding(8.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                FilledTonalButton(onClick = { onSaveAndExit(level, score) }, modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.puzzle_save))
-                }
-                Button(
-                    enabled = hintsRemaining > 0 && hintVisible == 0 && solvedState == 0,
-                    onClick = {
-                        hintsRemaining -= 1
-                        hintVisible = 1
-                    },
-                    modifier = Modifier.weight(1f)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(stringResource(R.string.puzzle_hint_button, hintsRemaining))
+                    FilledTonalButton(
+                        onClick = { onSaveAndExit(level, score) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.puzzle_save))
+                    }
+                    Button(
+                        enabled = hintsRemaining > 0 && hintVisible == 0 && solvedState == 0,
+                        onClick = {
+                            hintsRemaining -= 1
+                            hintVisible = 1
+                        },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = PuzzleButtonBg,
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.puzzle_hint_button, hintsRemaining))
+                    }
                 }
             }
-        }
         }
 
         if (hintVisible == 1) {
@@ -579,50 +608,38 @@ private fun PuzzleScreen(
             )
         }
     }
-    }
 }
 
 @Composable
-private fun PuzzleHeader(onBack: () -> Unit) {
-    Column {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .background(PuzzlePanelBg)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .align(Alignment.CenterStart)
-                    .padding(start = 4.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .clickable(onClick = onBack),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.arrow_back_black_24dp),
-                    contentDescription = stringResource(R.string.history_back),
-                    tint = PuzzleAccent
-                )
-            }
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+private fun PuzzleTopBarHeader(onBack: () -> Unit) {
+    CenterAlignedTopAppBar(
+        title = {
             Text(
                 text = stringResource(R.string.puzzle_game_title),
                 color = PuzzleAccent,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
-                letterSpacing = 0.25.sp,
-                modifier = Modifier.align(Alignment.Center)
+                letterSpacing = 0.25.sp
             )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(PuzzleDivider)
-        )
-    }
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_header_back),
+                    contentDescription = stringResource(R.string.history_back),
+                    tint = PuzzleAccent
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = PuzzlePanelBg,
+            titleContentColor = PuzzleAccent,
+            navigationIconContentColor = PuzzleAccent
+        ),
+        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top)
+    )
 }
 
 @Composable
