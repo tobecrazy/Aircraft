@@ -9,7 +9,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -94,6 +94,7 @@ class SettingsActivityTest {
         ActivityScenario.launch(SettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val rowDeviceInfo = activity.findViewById<LinearLayout>(R.id.row_device_info)
+                val rowPuzzleGame = activity.findViewById<LinearLayout>(R.id.row_puzzle_game)
                 val rowAbout = activity.findViewById<LinearLayout>(R.id.row_about_aircraft)
                 val rowPrivacy = activity.findViewById<LinearLayout>(R.id.row_privacy_policy)
 
@@ -101,6 +102,9 @@ class SettingsActivityTest {
 
                 rowDeviceInfo.performClick()
                 assertEquals(DeviceInfoActivity::class.java.name, shadowActivity.nextStartedActivity.component?.className)
+
+                rowPuzzleGame.performClick()
+                assertEquals(PuzzleActivity::class.java.name, shadowActivity.nextStartedActivity.component?.className)
 
                 rowAbout.performClick()
                 assertEquals(AboutAircraftActivity::class.java.name, shadowActivity.nextStartedActivity.component?.className)

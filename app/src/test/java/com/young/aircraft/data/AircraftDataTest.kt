@@ -6,6 +6,48 @@ import org.junit.Test
 class AircraftDataTest {
 
     @Test
+    fun `extractPuzzleImageUrlsFromPeapixFeed returns ordered image urls`() {
+        val feedJson = """
+            [
+              {"imageUrl":"https://img.peapix.com/a.jpg","date":"2026-05-15"},
+              {"imageUrl":"https://img.peapix.com/b.jpg","date":"2026-05-14"},
+              {"imageUrl":"https://img.peapix.com/c.jpg","date":"2026-05-13"}
+            ]
+        """.trimIndent()
+
+        val urls = AircraftConstants.Urls.extractPuzzleImageUrlsFromPeapixFeed(feedJson)
+
+        assertEquals(
+            listOf(
+                "https://img.peapix.com/a.jpg",
+                "https://img.peapix.com/b.jpg",
+                "https://img.peapix.com/c.jpg"
+            ),
+            urls
+        )
+    }
+
+    @Test
+    fun `extractLatestPuzzleImageUrlFromPeapixFeed returns first image url`() {
+        val feedJson = """
+            [
+              {"imageUrl":"https://img.peapix.com/latest.jpg","date":"2026-05-15"},
+              {"imageUrl":"https://img.peapix.com/older.jpg","date":"2026-05-14"}
+            ]
+        """.trimIndent()
+
+        val latestUrl = AircraftConstants.Urls.extractLatestPuzzleImageUrlFromPeapixFeed(feedJson)
+
+        assertEquals("https://img.peapix.com/latest.jpg", latestUrl)
+    }
+
+    @Test
+    fun `extractPuzzleImageUrlsFromPeapixFeed returns empty list on invalid json`() {
+        val urls = AircraftConstants.Urls.extractPuzzleImageUrlsFromPeapixFeed("invalid")
+        assertTrue(urls.isEmpty())
+    }
+
+    @Test
     fun `isAlive returns true when healthPoints is positive`() {
         val aircraft = PlayerAircraft(name = "Test", health_points = 50f)
         assertTrue(aircraft.isAlive())

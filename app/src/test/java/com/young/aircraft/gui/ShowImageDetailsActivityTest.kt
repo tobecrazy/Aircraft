@@ -138,4 +138,30 @@ class ShowImageDetailsActivityTest {
 
         assertEquals("image_with_extension.png", intent.getStringExtra(ImageDetailsIntentContract.EXTRA_NAME))
     }
+
+    @Test
+    fun `github blob image url is converted to raw url`() {
+        val blobUrl = "https://github.com/tobecrazy/Aircraft/blob/main/class_diagram.svg"
+        val converted = normalizeGithubBlobImageUrl(blobUrl)
+        assertEquals(
+            "https://raw.githubusercontent.com/tobecrazy/Aircraft/main/class_diagram.svg",
+            converted
+        )
+    }
+
+    @Test
+    fun `non github blob url remains unchanged`() {
+        val networkUrl = "https://example.com/assets/pic.webp"
+        assertEquals(networkUrl, normalizeGithubBlobImageUrl(networkUrl))
+    }
+
+    @Test
+    fun `resolve image details model converts github blob string only`() {
+        val blobUrl = "https://github.com/tobecrazy/Aircraft/blob/main/class_diagram.svg"
+        assertEquals(
+            "https://raw.githubusercontent.com/tobecrazy/Aircraft/main/class_diagram.svg",
+            resolveImageDetailsModel(blobUrl)
+        )
+        assertEquals(42, resolveImageDetailsModel(42))
+    }
 }

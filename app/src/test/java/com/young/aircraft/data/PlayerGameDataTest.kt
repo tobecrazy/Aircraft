@@ -11,7 +11,12 @@ class PlayerGameDataTest {
         assertEquals("test123", data.playerId)
         assertNull(data.playerName)
         assertEquals(1, data.level)
+        assertEquals(1, data.airBattleLevel)
+        assertEquals(1, data.puzzleLevel)
+        assertEquals(GameMode.AIR_BATTLE.name, data.gameMode)
         assertEquals(0L, data.score)
+        assertEquals(0L, data.puzzleScore)
+        assertEquals(0, data.totalKills)
         assertEquals(0, data.jetPlaneRes)
         assertEquals(0, data.jetPlaneIndex)
         assertEquals("1.0", data.difficulty)
@@ -26,7 +31,12 @@ class PlayerGameDataTest {
             playerId = "player1",
             playerName = "Ace",
             level = 5,
+            airBattleLevel = 5,
+            puzzleLevel = 4,
+            gameMode = GameMode.PUZZLE.name,
             score = 10000L,
+            puzzleScore = 700L,
+            totalKills = 93,
             jetPlaneRes = 123,
             jetPlaneIndex = 2,
             difficulty = "0.8",
@@ -36,7 +46,12 @@ class PlayerGameDataTest {
         assertEquals("player1", data.playerId)
         assertEquals("Ace", data.playerName)
         assertEquals(5, data.level)
+        assertEquals(5, data.airBattleLevel)
+        assertEquals(4, data.puzzleLevel)
+        assertEquals(GameMode.PUZZLE.name, data.gameMode)
         assertEquals(10000L, data.score)
+        assertEquals(700L, data.puzzleScore)
+        assertEquals(93, data.totalKills)
         assertEquals(123, data.jetPlaneRes)
         assertEquals(2, data.jetPlaneIndex)
         assertEquals("0.8", data.difficulty)

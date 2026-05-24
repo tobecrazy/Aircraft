@@ -11,7 +11,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.data.AppDatabase
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.providers.DatabaseProvider
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.ui.Aircraft
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals

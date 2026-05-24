@@ -3,7 +3,7 @@ package com.young.aircraft.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 
 class DevelopSettingsViewModel(
     private val repository: SettingsRepository

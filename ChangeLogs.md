@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `app/src/main/res/xml/file_paths.xml` now includes `Download/` via `external-path` for `FileProvider` URI sharing
+- Puzzle grid sizes rebalanced across all difficulties: Easy `3×3` (9 pieces), Normal `4×4` (16 pieces), Hard `5×5` (25 pieces)
+- `PuzzleHeader` composable in `PuzzleActivity` providing the standard tactical 52dp header (`#161A26`), 48dp back button, centered `#00FF88` monospace title, and 1dp `#4400FF88` divider — back press auto-saves puzzle progress before exit
+- `PuzzleActivity` (Compose) with 9 puzzle levels, per-level countdown timer, difficulty-scaled target steps, and explicit puzzle-progress save support
+- New save-state metadata in `PlayerGameData`: `air_battle_level`, `puzzle_level`, `game_mode`, `puzzle_score`, `total_kills`
+- `GameMode` enum and intent extras for mode-aware launch/resume (`TOTAL_KILLS`, `PUZZLE_SCORE`, `PUZZLE_LEVEL`, `GAME_MODE`)
+- Rich-text preview image click navigation: tapping `<img>` content in `RichTextEditorActivity` now opens `ShowImageDetailsActivity` with network image details
+- Rich-text image tap helpers in `RichTextEditorView` (`makeImagesClickable`, `buildImageTapUrl`, `isImageTapUrl`, `extractImageSrcFromTapUrl`)
+- Robolectric coverage for rich-text preview image click navigation to image details and markdown image wrapping behavior
 - `ShowImageDetailsActivity` — Common UI for viewing image details (renames `BannerDetailsActivity`) with support for local drawables and network URLs
 - Image details support with Coil image loading, download functionality via `CreateDocument` intent, and proper intent contract (`ImageDetailsIntentContract`)
 - `ShowImageDetailsViewModel` with factory pattern for creating `ShowImageDetailsActivity` intents
@@ -42,6 +51,13 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `PuzzleActivity` `gridSizeForDifficulty` switched from a float coefficient calculation to an explicit `when` mapping (`EASY → 3`, `NORMAL → 4`, `HARD → 5`) for predictable puzzle sizes
+- `PuzzleScreen` and `PuzzleLoadingScreen` now apply `Modifier.statusBarsPadding()` so the new header is no longer covered by the system status bar under `enableEdgeToEdge()`
+- Progression flow now enforces puzzle gates after combat levels 1-9; only level 10 keeps the original direct clear/congratulations flow
+- Total score now includes puzzle score in addition to combat kill score
+- Resume behavior is mode-aware: air-battle saves open `MainActivity`, puzzle saves open `PuzzleActivity` first and continue to the next combat level after puzzle clear
+- Room schema bumped to v2031 with migration `MIGRATION_2030_2031`
+- `RichTextEditorActivity` WebView preview now rewrites image tags into app-handled tap links and routes those taps to `ShowImageDetailsActivity`
 - `BannerDetailsActivity` renamed to `ShowImageDetailsActivity` to reflect its broader role as a common image details viewer
 - `AndroidManifest.xml` updated to reference `.gui.ShowImageDetailsActivity` instead of `.gui.BannerDetailsActivity`
 - `AboutAircraftActivity` enhanced with project image click handler using `ShowImageDetailsActivity.createIntent()` factory
@@ -86,6 +102,9 @@ All notable changes to this project will be documented in this file.
 - `OnboardingFragments.kt` (Controls + Power-ups fragments replaced by Compose pages)
 - `activity_onboarding.xml`, `fragment_onboarding_controls.xml`, `fragment_onboarding_powerups.xml` (XML layouts replaced by composables)
 - `indicator_dot.xml` (page indicator drawable replaced by Compose dot composables)
+
+### Fixed
+- Puzzle screen header was covered by the system status bar when `enableEdgeToEdge()` was active; corrected by wrapping `PuzzleScreen` and `PuzzleLoadingScreen` content in `Modifier.statusBarsPadding()`
 
 ## [1.2.3] - 2026-04-02
 

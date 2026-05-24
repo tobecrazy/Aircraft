@@ -10,7 +10,7 @@ import android.media.SoundPool
 import android.os.Binder
 import android.os.IBinder
 import com.young.aircraft.R
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 /**
  * Create by Young
  * 2026/3/10

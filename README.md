@@ -1,6 +1,6 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, boss fights, collectible power-ups, a QR code scan/generate utility, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, 9 interleaved puzzle gates (one after each non-final combat stage), boss fights, collectible power-ups, a QR code scan/generate utility, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Project Architecture
 
@@ -20,7 +20,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource` | Data models, Room persistence, game state enums, HUD constants, image details contracts |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
 | `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
 | `providers/` | Gray | `DatabaseProvider`, `SettingsRepository` | Singleton DB provider, SharedPreferences wrapper |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, name formatting |
@@ -42,7 +42,9 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Green tactical in-game shell for `MainActivity` with a mission-briefing card, pause overlay, and themed end-of-run dialogs
 - First-launch privacy acceptance flow with cinematic `StarFieldView`
 - Compose-powered two-page onboarding carousel with animated entrance effects
-- 10 levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
+- 10 combat levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
+- Puzzle-gate flow: after clearing combat levels 1-9, players must clear the same-numbered puzzle level before entering the next combat level (Easy = 3×3, Normal = 4×4, Hard = 5×5)
+- Compose-based `PuzzleActivity` shell with the standard tactical 52dp header (back button saves progress) and status-bar inset handling
 - Four power-up systems: red envelopes/rockets, medical kits, shields, and time freezes
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
@@ -51,13 +53,16 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Compose-powered About Me and Onboarding screens with localized copy and smooth transition animations
 - Coil-based network image loading with crossfade animations (`AsyncImage` for Compose, `ImageView.load()` for Views)
 - Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
+- `FileProvider` paths include `Pictures/`, `Download/`, and app cache, enabling shared file URIs for exported/generated assets
+- Rich-text preview image tap support: clicking an image in `RichTextEditorActivity` opens `ShowImageDetailsActivity`
 - Utility screens for history, QR code scanning/generation/save-to-device, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
 
 ## Gameplay
 
-- **Progression**: 10 levels with timers decreasing from 300s to 120s
+- **Progression**: 10 combat levels with timers decreasing from 300s to 120s, plus 9 puzzle levels gated between combat levels
+- **Puzzle difficulty**: piece count is fixed per difficulty preset — Easy `3×3` (9 pieces), Normal `4×4` (16 pieces), Hard `5×5` (25 pieces)
 - **Boss fights**: every level ends with a boss that scales from 1,000 HP to 1,900 HP
 - **Controls**: drag the plane to move; bullets auto-fire during play
 - **Power-ups**:
@@ -65,7 +70,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
   - Medical kits restore the player to full HP
   - Shields grant temporary invincibility with a blink indicator
   - Time freezes can freeze enemies or the player for 5 seconds depending on who collects them
-- **Progress persistence**: if a run ends after level 1, the player can save and later continue from the stored level
+- **Progress persistence**: saves now persist mode-aware progress (`AIR_BATTLE` or `PUZZLE`) and resume into the matching mode with puzzle score included in total score
 - **Debug flow**: debug builds expose Developer Settings, test-crash tooling, and a hidden invincible-mode toggle
 
 ## Features
@@ -114,6 +119,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
 │   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
+│   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with WebView preview; preview image taps open ShowImageDetailsActivity
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools
 │   ├── DeviceInfoActivity.kt           # Live system monitor

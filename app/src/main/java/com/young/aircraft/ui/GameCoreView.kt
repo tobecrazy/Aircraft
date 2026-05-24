@@ -20,7 +20,7 @@ import android.view.SurfaceView
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.service.MusicService
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.utils.ScreenUtils
 import kotlin.math.min
 import kotlin.math.sin

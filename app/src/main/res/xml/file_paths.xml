@@ -3,6 +3,9 @@
     <external-files-path
         name="qr_images"
         path="Pictures/" />
+    <external-path
+        name="download"
+        path="Download/" />
     <cache-path
         name="cache"
         path="." />
