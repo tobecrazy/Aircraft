@@ -1,7 +1,7 @@
 package com.young.aircraft.viewmodel
 
 import com.young.aircraft.data.GameDifficulty
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

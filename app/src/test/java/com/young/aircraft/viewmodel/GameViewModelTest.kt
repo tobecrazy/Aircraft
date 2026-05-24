@@ -4,7 +4,7 @@ import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameMode
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.data.PlayerGameDataDao
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

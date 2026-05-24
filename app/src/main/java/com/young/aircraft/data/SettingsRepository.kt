@@ -1,10 +1,9 @@
-package com.young.aircraft.providers
+package com.young.aircraft.data
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import com.young.aircraft.data.GameDifficulty
 import java.util.UUID
 
 class SettingsRepository(context: Context) {

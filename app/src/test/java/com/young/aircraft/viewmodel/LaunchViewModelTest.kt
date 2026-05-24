@@ -3,7 +3,7 @@ package com.young.aircraft.viewmodel
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.data.PlayerGameDataDao
 import com.young.aircraft.gui.SavedGameInfo
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.ui.Aircraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

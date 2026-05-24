@@ -9,7 +9,7 @@ import com.young.aircraft.data.PlayerGameDataDao
 import com.young.aircraft.data.GameMode
 import com.young.aircraft.gui.SavedGameInfo
 import com.young.aircraft.providers.DatabaseProvider
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.ui.Aircraft
 import kotlinx.coroutines.launch
 

@@ -32,7 +32,7 @@ android {
         targetSdk 36
         //noinspection OldTargetApi
         versionCode 2
-        versionName "1.2.7"
+        versionName "1.2.8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
@@ -63,7 +63,7 @@ buildFeatures {
         compose true
     }
     namespace 'com.young.aircraft'
-    buildToolsVersion '36.0.0'
+    buildToolsVersion '37.0.0'
     testOptions {
         unitTests.includeAndroidResources = true
     }
@@ -98,7 +98,7 @@ dependencies {
     implementation("io.coil-kt:coil-svg:2.7.0")
 
     // Compose
-    def composeBom = platform('androidx.compose:compose-bom:2026.05.00')
+    def composeBom = platform('androidx.compose:compose-bom:2026.05.01')
     implementation composeBom
     testImplementation composeBom
     implementation 'androidx.compose.ui:ui'

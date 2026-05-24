@@ -9,7 +9,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test

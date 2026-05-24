@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `app/src/main/res/xml/file_paths.xml` now includes `Download/` via `external-path` for `FileProvider` URI sharing
 - Puzzle grid sizes rebalanced across all difficulties: Easy `3×3` (9 pieces), Normal `4×4` (16 pieces), Hard `5×5` (25 pieces)
 - `PuzzleHeader` composable in `PuzzleActivity` providing the standard tactical 52dp header (`#161A26`), 48dp back button, centered `#00FF88` monospace title, and 1dp `#4400FF88` divider — back press auto-saves puzzle progress before exit
 - `PuzzleActivity` (Compose) with 9 puzzle levels, per-level countdown timer, difficulty-scaled target steps, and explicit puzzle-progress save support

@@ -8,7 +8,7 @@ import com.young.aircraft.data.GameMode
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.data.PlayerGameDataDao
 import com.young.aircraft.providers.DatabaseProvider
-import com.young.aircraft.providers.SettingsRepository
+import com.young.aircraft.data.SettingsRepository
 
 class GameViewModel(
     private val dao: PlayerGameDataDao,
