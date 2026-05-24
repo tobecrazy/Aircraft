@@ -17,12 +17,12 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
-| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `GameState`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource` | Data models, Room persistence, game state enums, HUD constants, image details contracts |
+| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
 | `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
 | `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
-| `providers/` | Gray | `DatabaseProvider`, `SettingsRepository` | Singleton DB provider, SharedPreferences wrapper |
+| `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, name formatting |
 
 ### Key Relationships
@@ -106,6 +106,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── TimeFreezeState.kt              # Time-freeze pickup state
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
+│   ├── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/install-id store
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 │   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
 │   └── ImageDetailsSource.kt           # Sealed class for image source types (Local, Network)
@@ -128,8 +129,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer
 │   └── StarFieldView.kt                # Animated cinematic background
 ├── providers/
-│   ├── DatabaseProvider.kt             # Singleton Room provider
-│   └── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/install-id store
+│   └── DatabaseProvider.kt             # Singleton Room provider
 ├── service/
 │   └── MusicService.kt                 # Bound BGM + SFX playback service
 ├── ui/
