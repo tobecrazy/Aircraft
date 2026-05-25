@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `AndroidDevAssistantToolsActivity` with a dedicated tools details page for Android Developer Assistant modules
+- `AndroidDevAssistantToolsActivity` now includes functional module toggles and tool actions for system info, quick settings launcher, installed-apps browser, and activity monitor entry
+- New Develop Settings button: `Android Developer Assistant Tools`, navigating to the tools details page
+- Localized Android Dev Assistant strings in both English and Chinese resources
+- Robolectric coverage in `DevelopSettingsActivityTest` for Android Developer Assistant tools-page button navigation
 - `app/src/main/res/xml/file_paths.xml` now includes `Download/` via `external-path` for `FileProvider` URI sharing
 - Puzzle grid sizes rebalanced across all difficulties: Easy `3×3` (9 pieces), Normal `4×4` (16 pieces), Hard `5×5` (25 pieces)
 - `PuzzleHeader` composable in `PuzzleActivity` providing the standard tactical 52dp header (`#161A26`), 48dp back button, centered `#00FF88` monospace title, and 1dp `#4400FF88` divider — back press auto-saves puzzle progress before exit
@@ -51,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `DevelopSettingsActivity` keeps only a single Android Developer Assistant entry button; assistant feature controls/actions are implemented in `AndroidDevAssistantToolsActivity`
 - `PuzzleActivity` `gridSizeForDifficulty` switched from a float coefficient calculation to an explicit `when` mapping (`EASY → 3`, `NORMAL → 4`, `HARD → 5`) for predictable puzzle sizes
 - `PuzzleScreen` and `PuzzleLoadingScreen` now apply `Modifier.statusBarsPadding()` so the new header is no longer covered by the system status bar under `enableEdgeToEdge()`
 - Progression flow now enforces puzzle gates after combat levels 1-9; only level 10 keeps the original direct clear/congratulations flow

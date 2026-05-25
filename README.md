@@ -71,7 +71,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
   - Shields grant temporary invincibility with a blink indicator
   - Time freezes can freeze enemies or the player for 5 seconds depending on who collects them
 - **Progress persistence**: saves now persist mode-aware progress (`AIR_BATTLE` or `PUZZLE`) and resume into the matching mode with puzzle score included in total score
-- **Debug flow**: debug builds expose Developer Settings, test-crash tooling, and a hidden invincible-mode toggle
+- **Debug flow**: debug builds expose Developer Settings, test-crash tooling, hidden invincible-mode toggle, and an Android Dev Assistant tools hub (`AndroidDevAssistantToolsActivity`)
 
 ## Features
 
@@ -122,7 +122,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
 │   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with WebView preview; preview image taps open ShowImageDetailsActivity
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
-│   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools
+│   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools + Android Dev Assistant tools page entry
+│   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
 │   ├── DeviceInfoActivity.kt           # Live system monitor
 │   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen

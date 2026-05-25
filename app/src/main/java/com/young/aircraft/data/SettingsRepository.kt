@@ -61,6 +61,12 @@ class SettingsRepository(context: Context) {
         prefs.edit { putBoolean(KEY_ONBOARDING_COMPLETED, completed) }
     }
 
+    fun isPuzzleGuideCompleted(): Boolean = prefs.getBoolean(KEY_PUZZLE_GUIDE_COMPLETED, false)
+
+    fun setPuzzleGuideCompleted(completed: Boolean) {
+        prefs.edit { putBoolean(KEY_PUZZLE_GUIDE_COMPLETED, completed) }
+    }
+
     fun getOrCreateInstallId(): String {
         prefs.getString(KEY_INSTALL_ID, null)?.let { return it }
         val generatedId = UUID.randomUUID().toString()
@@ -113,6 +119,7 @@ class SettingsRepository(context: Context) {
         const val KEY_INVINCIBLE_MODE = "invincible_mode"
         const val KEY_PRIVACY_POLICY_ACCEPTED = "privacy_policy_accepted"
         const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        const val KEY_PUZZLE_GUIDE_COMPLETED = "puzzle_guide_completed"
         const val KEY_INSTALL_ID = "install_id"
         private const val KEY_LEGACY_SETTINGS_MIGRATED = "legacy_settings_migrated"
     }
