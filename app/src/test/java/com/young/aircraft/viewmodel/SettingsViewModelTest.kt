@@ -1,7 +1,9 @@
 package com.young.aircraft.viewmodel
 
 import com.young.aircraft.data.GameDifficulty
+import com.young.aircraft.data.PlayerGameDataDao
 import com.young.aircraft.data.SettingsRepository
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -14,18 +16,20 @@ import org.mockito.kotlin.whenever
 class SettingsViewModelTest {
 
     private lateinit var repository: SettingsRepository
+    private lateinit var gameDataDao: PlayerGameDataDao
     private lateinit var viewModel: SettingsViewModel
 
     @Before
     fun setUp() {
         repository = mock()
+        gameDataDao = mock()
         whenever(repository.getDifficulty()).thenReturn(GameDifficulty.NORMAL)
         whenever(repository.isBackgroundSoundEnabled()).thenReturn(true)
         whenever(repository.isCombatSoundEnabled()).thenReturn(true)
         whenever(repository.isHitShakeEffectEnabled()).thenReturn(true)
     }
 
-    private fun createViewModel(): SettingsViewModel = SettingsViewModel(repository)
+    private fun createViewModel(): SettingsViewModel = SettingsViewModel(repository, gameDataDao)
 
     @Test
     fun `initial state reflects repository values`() {
@@ -99,5 +103,24 @@ class SettingsViewModelTest {
 
         verify(repository).setHitShakeEffectEnabled(false)
         assertFalse(viewModel.uiState.value.hitShakeEnabled)
+    }
+
+    @Test
+    fun `clearCachedGameData deletes saved records and cached files`() = runTest {
+        viewModel = createViewModel()
+
+        viewModel.clearCachedGameData()
+
+        verify(gameDataDao).deleteAll()
+        verify(repository).clearCachedGameData()
+    }
+
+    @Test
+    fun `getCachedGameDataSizeBytes returns repository size`() = runTest {
+        whenever(repository.getCachedGameDataSizeBytes()).thenReturn(2048L)
+        viewModel = createViewModel()
+
+        assertEquals(2048L, viewModel.getCachedGameDataSizeBytes())
+        verify(repository).getCachedGameDataSizeBytes()
     }
 }

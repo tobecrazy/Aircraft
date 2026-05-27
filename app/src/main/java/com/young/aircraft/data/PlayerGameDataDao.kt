@@ -24,4 +24,7 @@ interface PlayerGameDataDao {
 
     @Query("DELETE FROM player_game_data WHERE player_id = :playerId")
     suspend fun deleteByPlayerId(playerId: String)
+
+    @Query("DELETE FROM player_game_data")
+    suspend fun deleteAll()
 }
