@@ -81,6 +81,7 @@ import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameMode
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.viewmodel.GameViewModel
 import kotlinx.coroutines.withContext
@@ -105,15 +106,19 @@ class PuzzleActivity : ComponentActivity() {
     private var totalKills: Int = 0
     private var jetPlaneRes: Int = R.drawable.jet_plane_2
     private var jetPlaneIndex: Int = 0
+    private lateinit var settingsRepository: SettingsRepository
 
     private var puzzleImageModel by mutableStateOf<Any?>(null)
     private var isImageLoading by mutableStateOf(true)
     private var imageLoadFailed by mutableStateOf(false)
+    private var shouldShowGuide by mutableStateOf(false)
     private val httpClient: OkHttpClient = OkHttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        settingsRepository = SettingsRepository(this)
+        shouldShowGuide = !settingsRepository.isPuzzleGuideCompleted()
         puzzleLevel = intent.getIntExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, 1).coerceIn(1, MAX_PUZZLE_LEVEL)
         puzzleScore = intent.getLongExtra(AircraftConstants.IntentExtras.PUZZLE_SCORE, 0L)
         totalKills = intent.getIntExtra(AircraftConstants.IntentExtras.TOTAL_KILLS, 0)
@@ -134,7 +139,12 @@ class PuzzleActivity : ComponentActivity() {
                             savePuzzleProgress(level, score, finishAfterSave = true)
                         },
                         onProgressSaved = { level, score -> persistPuzzleProgress(level, score) },
-                        onAllLevelsCleared = { score -> showPuzzleCongratsAndFinish(score) }
+                        onAllLevelsCleared = { score -> showPuzzleCongratsAndFinish(score) },
+                        showGuide = shouldShowGuide,
+                        onGuideDismiss = {
+                            shouldShowGuide = false
+                            settingsRepository.setPuzzleGuideCompleted(true)
+                        }
                     )
                 } else {
                     PuzzleLoadingScreen(
@@ -307,7 +317,9 @@ private fun PuzzleScreen(
     puzzleImageUrl: String,
     onSaveAndExit: (Int, Long) -> Unit,
     onProgressSaved: (Int, Long) -> Unit,
-    onAllLevelsCleared: (Long) -> Unit
+    onAllLevelsCleared: (Long) -> Unit,
+    showGuide: Boolean,
+    onGuideDismiss: () -> Unit
 ) {
     val maxPuzzleLevel = 10
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -603,6 +615,19 @@ private fun PuzzleScreen(
                 dismissButton = {
                     TextButton(onClick = { onSaveAndExit(level, score) }) {
                         Text(stringResource(R.string.puzzle_save_and_exit))
+                    }
+                }
+            )
+        }
+
+        if (showGuide) {
+            AlertDialog(
+                onDismissRequest = onGuideDismiss,
+                title = { Text(stringResource(R.string.puzzle_guide_title)) },
+                text = { Text(stringResource(R.string.puzzle_guide_message)) },
+                confirmButton = {
+                    TextButton(onClick = onGuideDismiss) {
+                        Text(stringResource(R.string.puzzle_guide_confirm))
                     }
                 }
             )

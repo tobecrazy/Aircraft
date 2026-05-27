@@ -1,6 +1,7 @@
 package com.young.aircraft.gui
 
 import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -85,6 +86,43 @@ class DevelopSettingsActivityTest {
                 val btnBack = activity.findViewById<android.view.View>(R.id.btn_back)
                 btnBack.performClick()
                 assertTrue(activity.isFinishing)
+            }
+        }
+    }
+
+    @Test
+    fun `android developer assistant tools button opens details activity`() {
+        ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val button = activity.findViewById<android.view.View>(R.id.btn_android_dev_assistant_tools)
+                button.performClick()
+
+                val startedIntent: Intent? = shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>()).nextStartedActivity
+                assertNotNull(startedIntent)
+                assertEquals(
+                    AndroidDevAssistantToolsActivity::class.java.name,
+                    startedIntent!!.component?.className
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `android dev assistant system info action opens device info activity`() {
+        val prefs = context.getSharedPreferences("android_dev_assistant_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("module_system_info", true).apply()
+
+        ActivityScenario.launch(AndroidDevAssistantToolsActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val button = activity.findViewById<android.view.View>(R.id.btn_assistant_open_system_info)
+                button.performClick()
+
+                val startedIntent: Intent? = shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>()).nextStartedActivity
+                assertNotNull(startedIntent)
+                assertEquals(
+                    DeviceInfoActivity::class.java.name,
+                    startedIntent!!.component?.className
+                )
             }
         }
     }

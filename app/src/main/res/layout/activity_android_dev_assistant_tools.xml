@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#0F1118"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="#161A26"
+            android:gravity="center_vertical">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/history_cancel"
+                android:src="?attr/homeAsUpIndicator" />
+
+            <TextView
+                android:id="@+id/tv_header_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toEndOf="@id/btn_back"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="12dp"
+                android:gravity="center"
+                android:letterSpacing="0.25"
+                android:text="@string/android_dev_assistant_tools_title"
+                android:textColor="#00FF88"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:typeface="monospace" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#4400FF88" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/develop_settings_panel_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/device_info_gauge_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="@string/develop_settings_assistant_badge"
+                        android:textColor="#8CC6FF"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="3dp"
+                        android:text="@string/android_dev_assistant_tools_summary"
+                        android:textColor="#D8E0EF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/develop_settings_panel_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_assistant_system_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="@string/develop_settings_assistant_module_system_info"
+                        android:textColor="#D8E0EF"
+                        android:textSize="12sp"
+                        android:thumb="@drawable/switch_thumb"
+                        android:track="@drawable/switch_track"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/android_dev_assistant_tools_system_info"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+
+                    <Button
+                        android:id="@+id/btn_assistant_open_system_info"
+                        style="@style/TacticalButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/develop_settings_assistant_action_system_info" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_assistant_quick_settings"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:checked="true"
+                        android:text="@string/develop_settings_assistant_module_quick_settings"
+                        android:textColor="#D8E0EF"
+                        android:textSize="12sp"
+                        android:thumb="@drawable/switch_thumb"
+                        android:track="@drawable/switch_track"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/android_dev_assistant_tools_quick_settings"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+
+                    <Button
+                        android:id="@+id/btn_assistant_open_quick_settings"
+                        style="@style/TacticalButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/develop_settings_assistant_action_quick_settings" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_assistant_app_browser"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:checked="true"
+                        android:text="@string/develop_settings_assistant_module_app_browser"
+                        android:textColor="#D8E0EF"
+                        android:textSize="12sp"
+                        android:thumb="@drawable/switch_thumb"
+                        android:track="@drawable/switch_track"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/android_dev_assistant_tools_app_browser"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+
+                    <Button
+                        android:id="@+id/btn_assistant_open_app_browser"
+                        style="@style/TacticalButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/develop_settings_assistant_action_app_browser" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switch_assistant_activity_monitor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:checked="true"
+                        android:text="@string/develop_settings_assistant_module_activity_monitor"
+                        android:textColor="#D8E0EF"
+                        android:textSize="12sp"
+                        android:thumb="@drawable/switch_thumb"
+                        android:track="@drawable/switch_track"
+                        android:typeface="monospace" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/android_dev_assistant_tools_activity_monitor"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:typeface="monospace" />
+
+                    <Button
+                        android:id="@+id/btn_assistant_open_activity_monitor"
+                        style="@style/TacticalButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/develop_settings_assistant_action_activity_monitor" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</layout>

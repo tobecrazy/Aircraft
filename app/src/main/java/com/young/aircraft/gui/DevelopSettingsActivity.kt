@@ -56,6 +56,9 @@ class DevelopSettingsActivity : AppCompatActivity() {
         binding.btnTestRichText.setOnClickListener {
             startActivity(Intent(this, RichTextEditorActivity::class.java))
         }
+        binding.btnAndroidDevAssistantTools.setOnClickListener {
+            startActivity(Intent(this, AndroidDevAssistantToolsActivity::class.java))
+        }
     }
 
     private fun setupSupperBanner() {

@@ -87,4 +87,17 @@ class SettingsRepositoryTest {
         repository.setHitShakeEffectEnabled(true)
         assertTrue(repository.isHitShakeEffectEnabled())
     }
+
+    @Test
+    fun `puzzle guide completion flag can be toggled and persists`() {
+        val repository = SettingsRepository(context)
+
+        assertFalse(repository.isPuzzleGuideCompleted())
+
+        repository.setPuzzleGuideCompleted(true)
+        assertTrue(repository.isPuzzleGuideCompleted())
+
+        repository.setPuzzleGuideCompleted(false)
+        assertFalse(repository.isPuzzleGuideCompleted())
+    }
 }

@@ -470,6 +470,14 @@
                         android:layout_width="match_parent"
                         android:layout_marginTop="14dp"
                         android:text="@string/test_rich_text_editor" />
+
+                    <Button
+                        android:id="@+id/btn_android_dev_assistant_tools"
+                        style="@style/TacticalButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="10dp"
+                        android:textColor="@color/design_default_color_error"
+                        android:text="@string/develop_settings_assistant_tools_button" />
                 </LinearLayout>
 
                 <LinearLayout
