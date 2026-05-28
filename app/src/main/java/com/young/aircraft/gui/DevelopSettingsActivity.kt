@@ -1,14 +1,24 @@
 package com.young.aircraft.gui
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
@@ -22,6 +32,16 @@ class DevelopSettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDevelopSettingsBinding
     private lateinit var viewModel: DevelopSettingsViewModel
     private var clickCount = 0
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            showQrToolNotification()
+        } else {
+            Toast.makeText(this, R.string.develop_settings_notification_permission_denied, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +79,69 @@ class DevelopSettingsActivity : AppCompatActivity() {
         binding.btnAndroidDevAssistantTools.setOnClickListener {
             startActivity(Intent(this, AndroidDevAssistantToolsActivity::class.java))
         }
+        binding.btnNotification.setOnClickListener {
+            showNotificationConfirmationDialog()
+        }
+    }
+
+    private fun showNotificationConfirmationDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.develop_settings_notification_dialog_title)
+            .setMessage(R.string.develop_settings_notification_dialog_message)
+            .setPositiveButton(R.string.develop_settings_notification_dialog_ok) { _, _ ->
+                createQrToolNotification()
+            }
+            .setNegativeButton(R.string.history_cancel, null)
+            .show()
+    }
+
+    private fun createQrToolNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return
+        }
+
+        showQrToolNotification()
+    }
+
+    private fun showQrToolNotification() {
+        val appName = getString(R.string.app_name)
+        val message = getString(R.string.develop_settings_notification_message, appName)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            QR_TOOL_NOTIFICATION_REQUEST_CODE,
+            Intent(this, QRCodeToolActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notificationManager = getSystemService(NotificationManager::class.java)
+
+        createNotificationChannel(notificationManager)
+
+        val notification = NotificationCompat.Builder(this, QR_TOOL_NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(getString(R.string.develop_settings_notification_title))
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        notificationManager.notify(QR_TOOL_NOTIFICATION_ID, notification)
+    }
+
+    private fun createNotificationChannel(notificationManager: NotificationManager) {
+        val channel = NotificationChannel(
+            QR_TOOL_NOTIFICATION_CHANNEL_ID,
+            getString(R.string.develop_settings_notification_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = getString(R.string.develop_settings_notification_channel_description)
+        }
+        notificationManager.createNotificationChannel(channel)
     }
 
     private fun setupSupperBanner() {
@@ -185,5 +268,11 @@ class DevelopSettingsActivity : AppCompatActivity() {
             if (enabled) R.string.develop_settings_invincible_runtime_on
             else R.string.develop_settings_invincible_runtime_off
         )
+    }
+
+    private companion object {
+        const val QR_TOOL_NOTIFICATION_CHANNEL_ID = "qr_tool_test_notifications"
+        const val QR_TOOL_NOTIFICATION_ID = 1010
+        const val QR_TOOL_NOTIFICATION_REQUEST_CODE = 1011
     }
 }
