@@ -24,6 +24,7 @@ class SettingsRepositoryTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        context.cacheDir.listFiles()?.forEach { it.deleteRecursively() }
         context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .clear()
@@ -99,5 +100,37 @@ class SettingsRepositoryTest {
 
         repository.setPuzzleGuideCompleted(false)
         assertFalse(repository.isPuzzleGuideCompleted())
+    }
+
+    @Test
+    fun `clearCachedGameData removes cache files without resetting settings`() {
+        val repository = SettingsRepository(context)
+        repository.setDifficulty(GameDifficulty.HARD)
+        context.getSharedPreferences("puzzle_image_cache", Context.MODE_PRIVATE)
+            .edit()
+            .putString("cached_image_file", "puzzle_cached_image.jpg")
+            .commit()
+        val cacheFile = context.cacheDir.resolve("puzzle_cached_image.jpg")
+        cacheFile.writeText("cached image")
+
+        repository.clearCachedGameData()
+
+        assertFalse(cacheFile.exists())
+        assertFalse(
+            context.getSharedPreferences("puzzle_image_cache", Context.MODE_PRIVATE)
+                .contains("cached_image_file")
+        )
+        assertEquals(GameDifficulty.HARD, repository.getDifficulty())
+    }
+
+    @Test
+    fun `getCachedGameDataSizeBytes returns recursive cache size`() {
+        val repository = SettingsRepository(context)
+        val nestedCacheDir = context.cacheDir.resolve("nested")
+        nestedCacheDir.mkdirs()
+        context.cacheDir.resolve("first.cache").writeBytes(ByteArray(12))
+        nestedCacheDir.resolve("second.cache").writeBytes(ByteArray(8))
+
+        assertEquals(20L, repository.getCachedGameDataSizeBytes())
     }
 }

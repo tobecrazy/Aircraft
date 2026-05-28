@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import java.io.File
 import java.util.UUID
 
 class SettingsRepository(context: Context) {
@@ -74,6 +75,21 @@ class SettingsRepository(context: Context) {
         return generatedId
     }
 
+    fun clearCachedGameData() {
+        appContext.getSharedPreferences(PUZZLE_IMAGE_CACHE_PREFS, Context.MODE_PRIVATE)
+            .edit {
+                clear()
+            }
+
+        appContext.cacheDir.listFiles()?.forEach { file ->
+            runCatching { file.deleteRecursively() }
+        }
+    }
+
+    fun getCachedGameDataSizeBytes(): Long {
+        return appContext.cacheDir.sizeInBytes() + databaseFilesSizeBytes()
+    }
+
     fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
     }
@@ -110,6 +126,20 @@ class SettingsRepository(context: Context) {
         }
     }
 
+    private fun databaseFilesSizeBytes(): Long {
+        return listOf(
+            appContext.getDatabasePath(DATABASE_NAME),
+            appContext.getDatabasePath("$DATABASE_NAME-wal"),
+            appContext.getDatabasePath("$DATABASE_NAME-shm")
+        ).sumOf { it.sizeInBytes() }
+    }
+
+    private fun File.sizeInBytes(): Long {
+        if (!exists()) return 0L
+        if (isFile) return length()
+        return listFiles()?.sumOf { it.sizeInBytes() } ?: 0L
+    }
+
     companion object {
         const val PREFS_NAME = "aircraft_prefs"
         const val KEY_DIFFICULTY = "difficulty"
@@ -121,6 +151,8 @@ class SettingsRepository(context: Context) {
         const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         const val KEY_PUZZLE_GUIDE_COMPLETED = "puzzle_guide_completed"
         const val KEY_INSTALL_ID = "install_id"
+        private const val PUZZLE_IMAGE_CACHE_PREFS = "puzzle_image_cache"
+        private const val DATABASE_NAME = "aircraft_game.db"
         private const val KEY_LEGACY_SETTINGS_MIGRATED = "legacy_settings_migrated"
     }
 }

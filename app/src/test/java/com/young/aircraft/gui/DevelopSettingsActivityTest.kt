@@ -1,7 +1,13 @@
 package com.young.aircraft.gui
 
+import android.Manifest
+import android.app.Application
+import android.app.Notification
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.os.Looper
+import android.widget.TextView
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -15,6 +21,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowDialog
 import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
@@ -101,6 +108,47 @@ class DevelopSettingsActivityTest {
                 assertNotNull(startedIntent)
                 assertEquals(
                     AndroidDevAssistantToolsActivity::class.java.name,
+                    startedIntent!!.component?.className
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `notification button confirms then posts QR tool notification`() {
+        ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                shadowOf(activity).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+                val notificationManager = activity.getSystemService(NotificationManager::class.java)
+                shadowOf(notificationManager).setNotificationsEnabled(true)
+                val button = activity.findViewById<android.view.View>(R.id.btn_notification)
+                button.performClick()
+
+                val dialog = ShadowDialog.getLatestDialog() as? androidx.appcompat.app.AlertDialog
+                assertNotNull(dialog)
+                assertEquals(
+                    activity.getString(R.string.develop_settings_notification_dialog_message),
+                    dialog!!.findViewById<TextView>(android.R.id.message)?.text
+                )
+
+                shadowOf(dialog).clickOn(android.R.id.button1)
+                shadowOf(Looper.getMainLooper()).idle()
+
+                val notification = shadowOf(notificationManager).getNotification(1010)
+                val expectedMessage = activity.getString(
+                    R.string.develop_settings_notification_message,
+                    activity.getString(R.string.app_name)
+                )
+
+                assertNotNull(notification)
+                assertEquals(expectedMessage, notification.extras.getCharSequence(Notification.EXTRA_TEXT))
+
+                notification.contentIntent.send()
+                val startedIntent: Intent? =
+                    shadowOf(ApplicationProvider.getApplicationContext<Application>()).nextStartedActivity
+                assertNotNull(startedIntent)
+                assertEquals(
+                    QRCodeToolActivity::class.java.name,
                     startedIntent!!.component?.className
                 )
             }

@@ -8,8 +8,10 @@ All notable changes to this project will be documented in this file.
 - `AndroidDevAssistantToolsActivity` with a dedicated tools details page for Android Developer Assistant modules
 - `AndroidDevAssistantToolsActivity` now includes functional module toggles and tool actions for system info, quick settings launcher, installed-apps browser, and activity monitor entry
 - New Develop Settings button: `Android Developer Assistant Tools`, navigating to the tools details page
+- New Develop Settings notification test that confirms before posting a notification whose tap action opens `QRCodeToolActivity`
 - Localized Android Dev Assistant strings in both English and Chinese resources
 - Robolectric coverage in `DevelopSettingsActivityTest` for Android Developer Assistant tools-page button navigation
+- Robolectric coverage in `DevelopSettingsActivityTest` for QR Tool notification creation and tap navigation
 - `app/src/main/res/xml/file_paths.xml` now includes `Download/` via `external-path` for `FileProvider` URI sharing
 - Puzzle grid sizes rebalanced across all difficulties: Easy `3×3` (9 pieces), Normal `4×4` (16 pieces), Hard `5×5` (25 pieces)
 - `PuzzleHeader` composable in `PuzzleActivity` providing the standard tactical 52dp header (`#161A26`), 48dp back button, centered `#00FF88` monospace title, and 1dp `#4400FF88` divider — back press auto-saves puzzle progress before exit
