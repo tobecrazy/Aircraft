@@ -476,7 +476,7 @@
                         style="@style/TacticalButton"
                         android:layout_width="match_parent"
                         android:layout_marginTop="10dp"
-                        android:textColor="@color/design_default_color_error"
+                        android:textColor="@color/green"
                         android:text="@string/develop_settings_assistant_tools_button" />
 
                     <Button
@@ -484,7 +484,7 @@
                         style="@style/TacticalButton"
                         android:layout_width="match_parent"
                         android:layout_marginTop="10dp"
-                        android:textColor="@color/design_default_color_error"
+                        android:textColor="@color/green"
                         android:text="@string/develop_settings_notification_button" />
 
                     <Button
