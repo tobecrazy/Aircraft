@@ -222,6 +222,17 @@
     <string name="flashlight_brightness_multilevel">MULTI-LEVEL</string>
     <string name="flashlight_percent">%1$d%%</string>
     <string name="flashlight_android_13_note">Multi-level brightness requires Android 13+</string>
+    <!-- Foreground service -->
+    <string name="flashlight_notification_channel">Flashlight</string>
+    <string name="flashlight_notification_channel_description">Keeps the torch alive while screen is off</string>
+    <string name="flashlight_notification_torch_on">Torch is on</string>
+    <string name="flashlight_notification_sos_on">SOS pattern broadcasting</string>
+    <string name="flashlight_notification_action_off">Turn off</string>
+    <!-- Battery optimization prompt -->
+    <string name="flashlight_battery_prompt_title">Keep the torch alive</string>
+    <string name="flashlight_battery_prompt_message">Some Android skins (MIUI, EMUI, ColorOS) may shut the torch down when the screen is off. Whitelist this app from battery optimization to keep it running.</string>
+    <string name="flashlight_battery_prompt_open">Open settings</string>
+    <string name="flashlight_battery_prompt_dismiss">Not now</string>
     <string name="puzzle_game_title">Puzzle Game</string>
     <string name="puzzle_game_summary">Standalone 9-level puzzle mode with save progress</string>
     <string name="clear_cache_title">Clear Cache</string>

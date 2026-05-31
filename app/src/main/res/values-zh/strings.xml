@@ -222,6 +222,17 @@
     <string name="flashlight_brightness_multilevel">多级亮度</string>
     <string name="flashlight_percent">%1$d%%</string>
     <string name="flashlight_android_13_note">多级亮度需要 Android 13+</string>
+    <!-- Foreground service -->
+    <string name="flashlight_notification_channel">手电筒</string>
+    <string name="flashlight_notification_channel_description">屏幕关闭时保持手电筒运行</string>
+    <string name="flashlight_notification_torch_on">手电筒已开启</string>
+    <string name="flashlight_notification_sos_on">正在发送 SOS 信号</string>
+    <string name="flashlight_notification_action_off">关闭</string>
+    <!-- Battery optimization prompt -->
+    <string name="flashlight_battery_prompt_title">保持手电筒常亮</string>
+    <string name="flashlight_battery_prompt_message">部分系统（MIUI、EMUI、ColorOS 等）会在屏幕关闭后清理后台进程。请将本应用加入电池优化白名单，以确保手电筒持续工作。</string>
+    <string name="flashlight_battery_prompt_open">打开设置</string>
+    <string name="flashlight_battery_prompt_dismiss">暂不设置</string>
     <string name="puzzle_game_title">拼图游戏</string>
     <string name="puzzle_game_summary">独立的 9 关拼图模式，支持进度保存</string>
     <string name="clear_cache_title">清除缓存</string>

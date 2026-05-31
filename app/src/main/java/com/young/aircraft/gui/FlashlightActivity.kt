@@ -1,9 +1,14 @@
 package com.young.aircraft.gui
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -44,6 +49,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -89,6 +95,7 @@ class FlashlightActivity : AppCompatActivity() {
 
     private lateinit var viewModel: FlashlightViewModel
     private var hasCameraPermission by mutableStateOf(false)
+    private var showBatteryPrompt by mutableStateOf(false)
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -123,6 +130,14 @@ class FlashlightActivity : AppCompatActivity() {
                         viewModel.clearError()
                     }
                 }
+                // Best moment to ask for the battery whitelist: right after the first
+                // successful torch-on. The justification ("keep this running") is at its
+                // strongest, and the user is most likely to accept.
+                LaunchedEffect(uiState.isOn) {
+                    if (uiState.isOn && shouldOfferBatteryWhitelist()) {
+                        showBatteryPrompt = true
+                    }
+                }
                 FlashlightScreen(
                     uiState = uiState,
                     hasCameraPermission = hasCameraPermission,
@@ -133,6 +148,19 @@ class FlashlightActivity : AppCompatActivity() {
                     onBrightnessChange = viewModel::setBrightness,
                     onRequestPermission = ::requestCameraPermissionIfNeeded
                 )
+                if (showBatteryPrompt) {
+                    BatteryOptimizationDialog(
+                        onOpenSettings = {
+                            markBatteryWhitelistAsked()
+                            showBatteryPrompt = false
+                            openBatteryOptimizationSettings()
+                        },
+                        onDismiss = {
+                            markBatteryWhitelistAsked()
+                            showBatteryPrompt = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -145,6 +173,43 @@ class FlashlightActivity : AppCompatActivity() {
 
     private fun hasCameraPermission(): Boolean =
         ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+
+    /** Skip if already asked once, or if the OS already considers us ignored. */
+    private fun shouldOfferBatteryWhitelist(): Boolean {
+        val prefs = getSharedPreferences(BATTERY_PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_BATTERY_PROMPT_SHOWN, false)) return false
+        val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return false
+        return !pm.isIgnoringBatteryOptimizations(packageName)
+    }
+
+    private fun markBatteryWhitelistAsked() {
+        getSharedPreferences(BATTERY_PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_BATTERY_PROMPT_SHOWN, true)
+            .apply()
+    }
+
+    private fun openBatteryOptimizationSettings() {
+        // Try the per-app screen first (lands directly on this app); fall back to the
+        // global list if the per-app screen isn't supported on this OEM/ROM.
+        val perApp = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val list = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        runCatching { startActivity(list) }
+            .recoverCatching { startActivity(perApp) }
+            .onFailure {
+                Toast.makeText(this, it.message ?: "Settings unavailable", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    companion object {
+        private const val BATTERY_PREFS = "flashlight_prefs"
+        private const val KEY_BATTERY_PROMPT_SHOWN = "battery_prompt_shown"
+    }
 }
 
 private val FlashAccent = Color(0xFF00FF88)
@@ -206,7 +271,13 @@ private fun FlashlightScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = FlashHeader),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = FlashHeader,
+                    scrolledContainerColor = Color.Unspecified,
+                    navigationIconContentColor = Color.Unspecified,
+                    titleContentColor = Color.Unspecified,
+                    actionIconContentColor = Color.Unspecified
+                ),
                 windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top)
             )
         }
@@ -482,12 +553,13 @@ private fun ToggleCard(
                 .padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f).padding(end = 6.dp)) {
                 Text(
                     text = stringResource(R.string.flashlight_summary),
                     color = FlashText,
                     fontSize = 13.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 3
                 )
             }
             Switch(
@@ -521,13 +593,14 @@ private fun SosCard(
                 .padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f).padding(end = 6.dp)) {
                 Text(
                     text = stringResource(R.string.flashlight_sos_summary),
                     color = FlashSubText,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 4.dp),
+                    maxLines = 3
                 )
             }
             OutlinedButton(
@@ -662,4 +735,58 @@ private fun ControlCard(
         )
     }
     HorizontalDivider(color = Color.Transparent)
+}
+
+@Composable
+private fun BatteryOptimizationDialog(
+    onOpenSettings: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = FlashSurfaceHigh,
+        titleContentColor = FlashAccent,
+        textContentColor = FlashText,
+        title = {
+            Text(
+                text = stringResource(R.string.flashlight_battery_prompt_title),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.flashlight_battery_prompt_message),
+                fontSize = 13.sp,
+                fontFamily = FontFamily.Monospace
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onOpenSettings,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = FlashAccent,
+                    contentColor = Color(0xFF07120D)
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.flashlight_battery_prompt_open),
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                border = BorderStroke(1.dp, FlashBorder),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = FlashSubText)
+            ) {
+                Text(
+                    text = stringResource(R.string.flashlight_battery_prompt_dismiss),
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+    )
 }
