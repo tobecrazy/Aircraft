@@ -4,7 +4,9 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Demo
 
-![Aircraft Gameplay Demo](demo.gif)
+<p align="center">
+  <img src="demo.gif" alt="Aircraft Gameplay Demo" />
+</p>
 
 The demo above walks through the end-to-end player experience on a real device:
 
