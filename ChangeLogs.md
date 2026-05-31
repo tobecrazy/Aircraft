@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `FlashlightService` foreground service (`foregroundServiceType="camera"`) that owns the Camera2 torch on behalf of `FlashlightViewModel`, keeping the torch alive when the screen is off or the activity is paused
+- Persistent low-importance notification with a "Turn off" action that fires `ACTION_TORCH_OFF` — gives users a one-tap escape so they don't reach for force-stop
+- `PARTIAL_WAKE_LOCK` (`Aircraft::FlashlightSos`, 10-min safety timeout) acquired only while SOS mode is active, keeping CPU running so coroutine `delay()` pacing stays accurate with the screen off
+- Battery-optimization whitelist prompt that fires once after the first successful torch-on (best acceptance moment per Chinese-ROM persistence guidance), guarded by `PowerManager.isIgnoringBatteryOptimizations` and a one-shot SharedPreferences flag; "Open settings" lands on `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` with `ACTION_APPLICATION_DETAILS_SETTINGS` fallback for OEMs that don't expose the list
+- `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_CAMERA`, `WAKE_LOCK` permissions in the manifest; `FlashlightService` declaration with `foregroundServiceType="camera"`
+- `ic_notification_flashlight.xml` white-on-transparent vector drawable for the foreground notification status-bar icon
+- Localized notification channel, content, action, and battery-prompt strings in both English and Chinese resources
+- `FlashlightActivity` Compose utility launched from Settings below QR Code Tool, with Camera2 torch on/off, SOS blink mode, Android 13+ brightness control, and permission handling
+- `FlashlightViewModel` with `FlashlightUiState`, CameraManager torch callback synchronization, SOS coroutine cleanup, and testable brightness/SOS helpers
+- Localized flashlight strings in English and Chinese resources
+- Robolectric Settings navigation coverage for the new Flashlight entry plus `FlashlightViewModelTest` coverage for SOS timing and brightness mapping
 - `AndroidDevAssistantToolsActivity` with a dedicated tools details page for Android Developer Assistant modules
 - `AndroidDevAssistantToolsActivity` now includes functional module toggles and tool actions for system info, quick settings launcher, installed-apps browser, and activity monitor entry
 - New Develop Settings button: `Android Developer Assistant Tools`, navigating to the tools details page
@@ -58,6 +69,9 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `FlashlightViewModel` refactored to delegate all torch and SOS work to `FlashlightService` via intent commands (`ACTION_TORCH_ON/OFF`, `ACTION_SOS_ON/OFF` with `EXTRA_BRIGHTNESS` and `EXTRA_SOS_UNIT_MS`); torch on/off state still syncs through `CameraManager.TorchCallback`, and SOS state is now observed from `FlashlightService.isSosRunning` `StateFlow` instead of running a coroutine in the ViewModel — public companion API (`SOS_PATTERN`, `brightnessToStrengthLevel`, `SOS_MIN_UNIT_MS`/`MAX`/`STEPS`) preserved verbatim
+- `FlashlightActivity` migrated from deprecated `WindowCompat.setDecorFitsSystemWindows` + manual `statusBarColor`/`navigationBarColor` to `enableEdgeToEdge(SystemBarStyle.dark(...))`; torch hero label now uses opaque `FlashSurfaceHigh` background and the canvas beam stops at `size.height * 0.86f` to prevent the green beam from bleeding through the bottom label pill; `StatusPill` adds `TextOverflow.Ellipsis` for narrow-screen safety; `TorchHero` Surface gains `shadowElevation = 4.dp` + `tonalElevation = 2.dp` for depth
+- Documentation refresh: `README.md`, `class_diagram.svg`, and `project_diagram.svg` now reflect app version `1.2.8`, Room schema `2031`, current save-state fields, current source files, and the five bundled scrolling backgrounds.
 - `DevelopSettingsActivity` keeps only a single Android Developer Assistant entry button; assistant feature controls/actions are implemented in `AndroidDevAssistantToolsActivity`
 - `PuzzleActivity` `gridSizeForDifficulty` switched from a float coefficient calculation to an explicit `when` mapping (`EASY → 3`, `NORMAL → 4`, `HARD → 5`) for predictable puzzle sizes
 - `PuzzleScreen` and `PuzzleLoadingScreen` now apply `Modifier.statusBarsPadding()` so the new header is no longer covered by the system status bar under `enableEdgeToEdge()`
@@ -96,7 +110,7 @@ All notable changes to this project will be documented in this file.
 - `AboutAircraftActivity` image loading replaced with Coil `ImageView.load()` with `crossfade(true)` and listener callbacks for progress/error visibility
 - `HistoryActivity` layout background changed from solid dark color (`#0F1118`) to `launch_background.jpeg` (Chinese ink painting)
 - `README.md`, `project_diagram.svg`, and `class_diagram.svg` updated for the Compose onboarding migration
-- `README.md` project structure now lists `GameDifficulty.kt` and corrects `AppDatabase` version to v2030
+- `README.md` project structure now lists `GameDifficulty.kt` and corrects `AppDatabase` version to v2031
 - Architecture diagram summary added with packages, threading model, and first-launch gate chain
 - `QRCodeToolActivity` now uses a hero-card layout, framed output panel, full-height camera scan state, and persistent bottom scan action instead of the previous flat stacked layout
 - QR tool state handling now renders idle/scanning/generated preview text explicitly and reuses a single `SurfaceHolder.Callback`
@@ -166,22 +180,22 @@ All notable changes to this project will be documented in this file.
 - Background reset issue when transitioning between levels
 - Reject button behavior in the privacy-policy acceptance screen
 
-## Architecture Diagrams (v1.2.3)
+## Architecture Diagrams (v1.2.8)
 
-The class and project architecture diagrams ([class_diagram.svg](class_diagram.svg), [project_diagram.svg](project_diagram.svg)) document the following structure as of version 1.2.3:
+The class and project architecture diagrams ([class_diagram.svg](class_diagram.svg), [project_diagram.svg](project_diagram.svg)) document the following structure as of version 1.2.8:
 
 ### Packages & Layers
 
 | Layer | Package | Key Classes |
 |-------|---------|-------------|
 | Common | `common/` | `AircraftApplication`, `GameStateManager` |
-| Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2030), `GameState` (enum), `GameDifficulty` (enum) |
+| Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2031), `GameState` (enum), `GameMode` (enum), `GameDifficulty` (enum), `ImageDetails`, `BannerDetails` |
 | Game Engine | `ui/` | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable), `GameHudFormatter` |
-| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel` |
-| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `RichTextEditorActivity`, `StarFieldView` |
+| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` |
+| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `RichTextEditorActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` |
 | Service | `service/` | `MusicService` + `MusicBinder` |
-| Providers | `providers/` | `DatabaseProvider`, `SettingsRepository` |
-| Utilities | `utils/` | `ScreenUtils`, `BitmapUtils` |
+| Providers | `providers/` | `DatabaseProvider` |
+| Utilities | `utils/` | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` |
 
 ### Threading Model
 

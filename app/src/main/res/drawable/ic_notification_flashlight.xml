@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Status-bar notification icon for FlashlightService.
+  Must be white on transparent: Android tints status-bar icons to a single
+  color regardless of the source color.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7,2 L17,2 L17,6 L7,6 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7,7 L17,7 L15.5,10 L8.5,10 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M9,11 L15,11 L15,22 L9,22 Z M11,14 L13,14 L13,16 L11,16 Z" />
+</vector>

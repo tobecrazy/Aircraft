@@ -67,6 +67,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowQrCodeTool.setOnClickListener {
             startActivity(Intent(this, QRCodeToolActivity::class.java))
         }
+        binding.rowFlashlight.setOnClickListener {
+            startActivity(Intent(this, FlashlightActivity::class.java))
+        }
         binding.rowPuzzleGame.setOnClickListener {
             startActivity(Intent(this, PuzzleActivity::class.java))
         }

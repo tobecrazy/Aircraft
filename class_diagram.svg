@@ -298,20 +298,24 @@
 
   <!-- PlayerGameData -->
   <g transform="translate(30, 365)" filter="url(#shadow)">
-    <rect width="230" height="165" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="230" height="190" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#ff9800"/>
     <rect y="16" width="230" height="6" fill="#ff9800"/>
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«entity» PlayerGameData</text>
     <text x="10" y="38" font-size="10" fill="#555">@Entity("player_game_data")</text>
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- id: Long (PK, autoGenerate)</text>
-    <text x="10" y="70" font-size="10" fill="#333">- playerId: String</text>
-    <text x="10" y="83" font-size="10" fill="#333">- playerName: String? = null</text>
-    <text x="10" y="96" font-size="10" fill="#333">- level: Int</text>
-    <text x="10" y="109" font-size="10" fill="#333">- score: Long</text>
-    <text x="10" y="122" font-size="10" fill="#333">- jetPlaneRes / jetPlaneIndex: Int</text>
-    <text x="10" y="135" font-size="10" fill="#333">- difficulty: String = "1.0"</text>
-    <text x="10" y="148" font-size="10" fill="#333">- timestamp: Long = now()</text>
+    <text x="10" y="56" font-size="9" fill="#333">- id: Long (PK, autoGenerate)</text>
+    <text x="10" y="67" font-size="9" fill="#333">- playerId: String</text>
+    <text x="10" y="78" font-size="9" fill="#333">- playerName: String? = null</text>
+    <text x="10" y="89" font-size="9" fill="#333">- level: Int</text>
+    <text x="10" y="100" font-size="9" fill="#333">- airBattleLevel: Int</text>
+    <text x="10" y="111" font-size="9" fill="#333">- puzzleLevel: Int</text>
+    <text x="10" y="122" font-size="9" fill="#333">- gameMode: String = AIR_BATTLE</text>
+    <text x="10" y="133" font-size="9" fill="#333">- score / puzzleScore: Long</text>
+    <text x="10" y="144" font-size="9" fill="#333">- totalKills: Int</text>
+    <text x="10" y="155" font-size="9" fill="#333">- jetPlaneRes / jetPlaneIndex: Int</text>
+    <text x="10" y="166" font-size="9" fill="#333">- difficulty: String = "1.0"</text>
+    <text x="10" y="177" font-size="9" fill="#333">- timestamp: Long = now()</text>
   </g>
 
   <!-- PlayerGameDataDao -->
@@ -336,13 +340,13 @@
     <rect width="250" height="22" rx="6" fill="#7986cb"/>
     <rect y="16" width="250" height="6" fill="#7986cb"/>
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«abstract» AppDatabase</text>
-    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2030)</text>
+    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2031)</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- MIGRATION_2027_2028 / 2028_2029</text>
-    <text x="10" y="70" font-size="10" fill="#333">- MIGRATION_2029_2030</text>
+    <text x="10" y="70" font-size="10" fill="#333">- MIGRATION_2029_2030 / 2030_2031</text>
     <line x1="5" y1="76" x2="245" y2="76" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="89" font-size="10" fill="#333">+ playerGameDataDao(): Dao</text>
-    <text x="10" y="105" font-size="9" fill="#888">Schema 2030 adds player_name</text>
+    <text x="10" y="105" font-size="9" fill="#888">Schema 2031 adds mode-aware progress</text>
   </g>
 
   <!-- DatabaseProvider -->
@@ -379,12 +383,12 @@
     <rect width="230" height="22" rx="6" fill="#00acc1"/>
     <rect y="16" width="230" height="6" fill="#00acc1"/>
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">SettingsRepository</text>
-    <text x="10" y="38" font-size="10" fill="#555">providers/SettingsRepository.kt</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/SettingsRepository.kt</text>
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- prefs / legacyPrefs: SharedPreferences</text>
     <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ 8 keys: difficulty, sounds, shake, invincible,</text>
-    <text x="10" y="90" font-size="10" fill="#333">  privacy, onboarding, install-id</text>
+    <text x="10" y="77" font-size="10" fill="#333">+ 9 keys: difficulty, sounds, shake, invincible,</text>
+    <text x="10" y="90" font-size="10" fill="#333">  privacy, onboarding, puzzle guide, install-id</text>
     <text x="10" y="103" font-size="9" fill="#888">Legacy migration from androidx.preference</text>
   </g>
 
@@ -825,6 +829,31 @@
   <line x1="690" y1="1400" x2="860" y2="1370" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="770" y="1375" font-size="9" fill="#888">musicService</text>
 
+  <!-- FlashlightService -->
+  <g transform="translate(860, 1480)" filter="url(#shadow)">
+    <rect width="320" height="200" rx="6" fill="url(#grad-service)" stroke="#e91e63" stroke-width="1.2"/>
+    <rect width="320" height="22" rx="6" fill="#e91e63"/>
+    <rect y="16" width="320" height="6" fill="#e91e63"/>
+    <text x="160" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">FlashlightService</text>
+    <text x="10" y="38" font-size="10" fill="#555">service/ — extends Service (foreground · camera)</text>
+    <line x1="5" y1="44" x2="315" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- cameraManager: CameraManager</text>
+    <text x="10" y="70" font-size="10" fill="#333">- cameraId: String?</text>
+    <text x="10" y="83" font-size="10" fill="#333">- wakeLock: PowerManager.WakeLock?</text>
+    <text x="10" y="96" font-size="10" fill="#333">- sosJob: Job?  · scope: CoroutineScope</text>
+    <text x="10" y="109" font-size="10" fill="#333">- currentBrightness · currentSosUnitMs</text>
+    <line x1="5" y1="115" x2="315" y2="115" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="128" font-size="10" fill="#333">+ onStartCommand(intent, flags, id): Int</text>
+    <text x="10" y="141" font-size="10" fill="#333">- startSos() / stopSosInternal()</text>
+    <text x="10" y="154" font-size="10" fill="#333">- setTorch(enabled, brightness)</text>
+    <text x="10" y="167" font-size="10" fill="#333">- acquireWakeLock() / releaseWakeLock()</text>
+    <text x="10" y="183" font-size="9" fill="#888">START_STICKY · persistent notification + Off action</text>
+    <text x="10" y="195" font-size="9" fill="#888">PARTIAL_WAKE_LOCK while SOS · isSosRunning StateFlow</text>
+  </g>
+
+  <!-- FlashlightViewModel -> FlashlightService association -->
+  <text x="565" y="1582" font-size="9" fill="#888">drives via Intent</text>
+
   <!-- ===== GUI LAYER ===== -->
   <!-- LaunchActivity -->
   <g transform="translate(30, 1700)" filter="url(#shadow)">
@@ -988,6 +1017,25 @@
   <!-- SettingsActivity -> QRCodeToolActivity navigation -->
   <line x1="280" y1="1900" x2="310" y2="1900" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="283" y="1892" font-size="9" fill="#888">navigates</text>
+
+  <!-- FlashlightActivity -->
+  <g transform="translate(640, 1860)" filter="url(#shadow)">
+    <rect width="260" height="115" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="260" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="260" height="6" fill="#9c27b0"/>
+    <text x="130" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">FlashlightActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <line x1="5" y1="44" x2="255" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- viewModel: FlashlightViewModel</text>
+    <text x="10" y="70" font-size="10" fill="#333">- cameraPermissionLauncher</text>
+    <line x1="5" y1="76" x2="255" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ setContent { FlashlightScreen(...) }</text>
+    <text x="10" y="106" font-size="9" fill="#888">Compose UI: torch, SOS, brightness</text>
+  </g>
+
+  <!-- SettingsActivity -> FlashlightActivity navigation -->
+  <line x1="280" y1="1925" x2="640" y2="1925" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="435" y="1917" font-size="9" fill="#888">navigates</text>
 
   <!-- ShowImageDetailsActivity -->
   <g transform="translate(640, 2005)" filter="url(#shadow)">
@@ -1466,8 +1514,25 @@
     <text x="10" y="96" font-size="9" fill="#888">Used by: ShowImageDetailsActivity</text>
   </g>
 
+  <!-- FlashlightViewModel -->
+  <g transform="translate(1260, 2800)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="9" font-weight="bold" fill="white">FlashlightViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ FlashlightUiState</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="9" fill="#333">+ toggleFlashlight() / SOS</text>
+    <text x="10" y="70" font-size="9" fill="#333">+ setBrightness() / callback</text>
+    <text x="10" y="83" font-size="8" fill="#888">drives FlashlightService via Intent</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: FlashlightActivity</text>
+  </g>
+
   <!-- Update gui/ boundary box height -->
   <rect x="20" y="1680" width="1420" height="940" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <!-- 2026-05-14 update: Added puzzle progression layer (PuzzleActivity, GameMode, mode-aware save fields). -->
   <!-- 2026-05-17 update: PuzzleActivity gains PuzzleHeader composable (standard 52dp tactical header with back-and-save), gridSizeForDifficulty switched to explicit when mapping (EASY=3, NORMAL=4, HARD=5 → 9/16/25 pieces), and statusBarsPadding applied to PuzzleScreen/PuzzleLoadingScreen to fix status-bar overlap under enableEdgeToEdge(). -->
+  <!-- 2026-05-31 update: Refreshed Room schema to 2031, PlayerGameData mode-aware fields, SettingsRepository location/keys, and current image-details ViewModel inventory. -->
+  <!-- 2026-05-31 update: Added FlashlightActivity and FlashlightViewModel for Camera2 torch, SOS blink, brightness, and settings navigation. -->
+  <!-- 2026-05-31 update: Added FlashlightService (foreground · camera) — START_STICKY service that owns the torch, runs the SOS coroutine on Dispatchers.Default, and holds a PARTIAL_WAKE_LOCK while SOS is active. FlashlightViewModel now drives it via Intent commands; torch state syncs via CameraManager.TorchCallback, SOS state via FlashlightService.isSosRunning. -->
 </svg>

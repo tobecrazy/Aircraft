@@ -112,6 +112,7 @@ class SettingsActivityTest {
         ActivityScenario.launch(SettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val rowDeviceInfo = activity.findViewById<LinearLayout>(R.id.row_device_info)
+                val rowFlashlight = activity.findViewById<LinearLayout>(R.id.row_flashlight)
                 val rowPuzzleGame = activity.findViewById<LinearLayout>(R.id.row_puzzle_game)
                 val rowAbout = activity.findViewById<LinearLayout>(R.id.row_about_aircraft)
                 val rowPrivacy = activity.findViewById<LinearLayout>(R.id.row_privacy_policy)
@@ -120,6 +121,9 @@ class SettingsActivityTest {
 
                 rowDeviceInfo.performClick()
                 assertEquals(DeviceInfoActivity::class.java.name, shadowActivity.nextStartedActivity.component?.className)
+
+                rowFlashlight.performClick()
+                assertEquals(FlashlightActivity::class.java.name, shadowActivity.nextStartedActivity.component?.className)
 
                 rowPuzzleGame.performClick()
                 assertEquals(PuzzleActivity::class.java.name, shadowActivity.nextStartedActivity.component?.className)
