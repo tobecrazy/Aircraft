@@ -2,6 +2,20 @@
 
 Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, 9 interleaved puzzle gates (one after each non-final combat stage), boss fights, collectible power-ups, QR code and flashlight utilities, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
+## Demo
+
+![Aircraft Gameplay Demo](demo.gif)
+
+The demo above walks through the end-to-end player experience on a real device:
+
+- **First-launch flow** — cinematic privacy gate over the animated `StarFieldView`, followed by the two-page Compose onboarding carousel that introduces controls and power-ups.
+- **Launch hub** — jet selection, continue/new-game dialog when a saved run exists, and entry points to History, Settings, and the QR/Flashlight utilities.
+- **Combat gameplay** — 30 FPS `SurfaceView` rendering with drag-to-move controls, auto-firing bullets, scrolling backgrounds, the two-row tactical HUD (mission/hull cards + countdown timer), and screen-shake/damage-flash feedback.
+- **Power-ups in action** — red envelopes detonating into AoE rockets, medical kits restoring HP, shields granting blink-indicated invincibility, and time freezes locking enemies in place.
+- **Boss fight** — end-of-level boss with bomb attacks, scaling HP, and the multi-phase particle explosion on defeat.
+- **Puzzle gate** — Compose-based sliding puzzle that gates progression between combat levels (3×3 / 4×4 / 5×5 by difficulty).
+- **Utility screens** — QR code scan/generate, flashlight with SOS and brightness control, device info telemetry, and the localized About / History screens.
+
 ## Project Architecture
 
 ![Project Architecture](project_diagram.svg)
