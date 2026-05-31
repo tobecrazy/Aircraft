@@ -6,7 +6,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ![Project Architecture](project_diagram.svg)
 
-> For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [CHANGELOG.md](CHANGELOG.md) or the compatibility alias [ChangeLogs.md](ChangeLogs.md).
+> For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
 
 ## Class Diagram
 
@@ -17,13 +17,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
-| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
+| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource`, `BannerDetails`, `BannerDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
-| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
+| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
-| `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, name formatting |
+| `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, file URI/cache helpers, name formatting |
 
 ### Key Relationships
 
@@ -93,7 +93,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
-│   ├── AppDatabase.kt                  # Room database (v2030) + migrations
+│   ├── AppDatabase.kt                  # Room database (v2031) + migrations
 │   ├── PlayerGameData.kt               # Saved run entity
 │   ├── PlayerGameDataDao.kt            # Leaderboard/save DAO
 │   ├── PlayerAircraft.kt               # Player HP and damage model
@@ -104,17 +104,19 @@ app/src/main/java/com/young/aircraft/
 │   ├── MedicalKitState.kt              # Medical kit pickup state
 │   ├── ShieldState.kt                  # Shield pickup state
 │   ├── TimeFreezeState.kt              # Time-freeze pickup state
+│   ├── GameMode.kt                     # AIR_BATTLE / PUZZLE mode enum for save/resume routing
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
-│   ├── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/install-id store
+│   ├── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/puzzle-guide/install-id store
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 │   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
-│   └── ImageDetailsSource.kt           # Sealed class for image source types (Local, Network)
+│   └── BannerDetails.kt                # Legacy banner details contract kept in source
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
 │   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host, tactical overlay shell, pause flow, dialogs, and DB save flow
+│   ├── PuzzleActivity.kt               # Compose puzzle gate levels and progress saves
 │   ├── HistoryActivity.kt              # History screen container
 │   ├── HistoryFragment.kt              # Leaderboard fragment
 │   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
@@ -122,8 +124,12 @@ app/src/main/java/com/young/aircraft/
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
 │   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with WebView preview; preview image taps open ShowImageDetailsActivity
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
+│   ├── BannerDetailsActivity.kt        # Legacy banner details viewer retained in source
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, Android Dev Assistant entry, and QR Tool notification test
 │   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
+│   ├── SupperBannerConfig.kt           # Banner carousel timing bounds
+│   ├── SupperBannerItem.kt             # Banner carousel data model
+│   ├── SupperBannerView.kt             # Banner carousel custom view
 │   ├── DeviceInfoActivity.kt           # Live system monitor
 │   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
@@ -149,6 +155,7 @@ app/src/main/java/com/young/aircraft/
 │   └── GameHudFormatter.kt             # HUD data formatting (time, health %, score)
 ├── utils/
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
+│   ├── FilePickerHelper.kt             # FileProvider URI and cache helpers for QR image export/import
 │   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
 │   └── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
 └── viewmodel/
@@ -170,7 +177,7 @@ app/src/main/java/com/young/aircraft/
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
     ├── RichTextEditorViewModel.kt      # Edit/preview mode state (RichTextEditorActivity)
     ├── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
-    └── ShowImageDetailsUiState.kt      # UI state for image details screen
+    └── BannerDetailsViewModel.kt       # Legacy banner details display logic
 ```
 
 ## Tests
@@ -206,7 +213,7 @@ Instrumented tests belong in `app/src/androidTest`.
 | Shields | 3 | `shield_1.png`, `shield_2.png`, `shield_3.png` |
 | Time freezes | 3 | `timer_1.png`, `timer_2.png`, `timer_3.png` |
 | Rocket | 1 | `rocket.png` |
-| Backgrounds | 3 | `background.jpg`, `background_1.jpg`, `background_2.jpg` |
+| Backgrounds | 5 | `background.jpg`, `background_1.jpg` to `background_4.jpg` |
 | Audio | 6 | 2 BGM tracks + fire/hit/enemy-hit/game-over SFX |
 | Localization | 2 | English (`values/`) + Chinese (`values-zh/`) |
 
@@ -227,7 +234,7 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.2.3`
+- **Version**: `1.2.8`
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `30`

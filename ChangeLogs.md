@@ -58,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- Documentation refresh: `README.md`, `class_diagram.svg`, and `project_diagram.svg` now reflect app version `1.2.8`, Room schema `2031`, current save-state fields, current source files, and the five bundled scrolling backgrounds.
 - `DevelopSettingsActivity` keeps only a single Android Developer Assistant entry button; assistant feature controls/actions are implemented in `AndroidDevAssistantToolsActivity`
 - `PuzzleActivity` `gridSizeForDifficulty` switched from a float coefficient calculation to an explicit `when` mapping (`EASY → 3`, `NORMAL → 4`, `HARD → 5`) for predictable puzzle sizes
 - `PuzzleScreen` and `PuzzleLoadingScreen` now apply `Modifier.statusBarsPadding()` so the new header is no longer covered by the system status bar under `enableEdgeToEdge()`
@@ -96,7 +97,7 @@ All notable changes to this project will be documented in this file.
 - `AboutAircraftActivity` image loading replaced with Coil `ImageView.load()` with `crossfade(true)` and listener callbacks for progress/error visibility
 - `HistoryActivity` layout background changed from solid dark color (`#0F1118`) to `launch_background.jpeg` (Chinese ink painting)
 - `README.md`, `project_diagram.svg`, and `class_diagram.svg` updated for the Compose onboarding migration
-- `README.md` project structure now lists `GameDifficulty.kt` and corrects `AppDatabase` version to v2030
+- `README.md` project structure now lists `GameDifficulty.kt` and corrects `AppDatabase` version to v2031
 - Architecture diagram summary added with packages, threading model, and first-launch gate chain
 - `QRCodeToolActivity` now uses a hero-card layout, framed output panel, full-height camera scan state, and persistent bottom scan action instead of the previous flat stacked layout
 - QR tool state handling now renders idle/scanning/generated preview text explicitly and reuses a single `SurfaceHolder.Callback`
@@ -166,22 +167,22 @@ All notable changes to this project will be documented in this file.
 - Background reset issue when transitioning between levels
 - Reject button behavior in the privacy-policy acceptance screen
 
-## Architecture Diagrams (v1.2.3)
+## Architecture Diagrams (v1.2.8)
 
-The class and project architecture diagrams ([class_diagram.svg](class_diagram.svg), [project_diagram.svg](project_diagram.svg)) document the following structure as of version 1.2.3:
+The class and project architecture diagrams ([class_diagram.svg](class_diagram.svg), [project_diagram.svg](project_diagram.svg)) document the following structure as of version 1.2.8:
 
 ### Packages & Layers
 
 | Layer | Package | Key Classes |
 |-------|---------|-------------|
 | Common | `common/` | `AircraftApplication`, `GameStateManager` |
-| Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2030), `GameState` (enum), `GameDifficulty` (enum) |
+| Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2031), `GameState` (enum), `GameMode` (enum), `GameDifficulty` (enum), `ImageDetails`, `BannerDetails` |
 | Game Engine | `ui/` | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable), `GameHudFormatter` |
-| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel` |
-| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `RichTextEditorActivity`, `StarFieldView` |
+| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` |
+| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `RichTextEditorActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` |
 | Service | `service/` | `MusicService` + `MusicBinder` |
-| Providers | `providers/` | `DatabaseProvider`, `SettingsRepository` |
-| Utilities | `utils/` | `ScreenUtils`, `BitmapUtils` |
+| Providers | `providers/` | `DatabaseProvider` |
+| Utilities | `utils/` | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` |
 
 ### Threading Model
 
