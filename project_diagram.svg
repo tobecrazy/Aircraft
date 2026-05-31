@@ -170,7 +170,7 @@
   <rect x="1190" y="238" width="170" height="8" fill="#c084fc"/>
   <text x="1275" y="240" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Utility Screens</text>
   <text x="1275" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">SETTINGS DESTINATIONS</text>
-  <text x="1275" y="275" text-anchor="middle" fill="#7c3aed" font-size="7.8">QR Code Tool (scan/generate/save)</text>
+  <text x="1275" y="275" text-anchor="middle" fill="#7c3aed" font-size="7.8">QR Code Tool · Flashlight (torch/SOS)</text>
   <text x="1275" y="289" text-anchor="middle" fill="#7c3aed" font-size="7.8">Image Details · Device Info · About Aircraft</text>
   <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Me (Coil) · Privacy Policy</text>
   <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">Develop settings · Rich Text Editor (DEBUG)</text>
@@ -249,9 +249,9 @@
   <rect x="1135" y="376" width="130" height="56" rx="7" fill="#ffffff" stroke="#00897b" stroke-width="1.2" filter="url(#shadow-sm)"/>
   <rect x="1135" y="376" width="130" height="19" rx="7" fill="#00897b"/>
   <rect x="1135" y="388" width="130" height="7" fill="#00897b"/>
-  <text x="1200" y="390" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">+7 more VMs</text>
+  <text x="1200" y="390" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">+8 more VMs</text>
   <text x="1200" y="410" text-anchor="middle" fill="#00695c" font-size="8">AboutAircraft, AboutMe</text>
-  <text x="1200" y="424" text-anchor="middle" fill="#00695c" font-size="8">DeviceInfo, QR, RichText, Image</text>
+  <text x="1200" y="424" text-anchor="middle" fill="#00695c" font-size="8">DeviceInfo, QR, Flashlight, Image</text>
 
   <!-- ==================== GAME ENGINE LAYER ==================== -->
   <rect x="20" y="460" width="1360" height="430" rx="10" fill="url(#g-engine)" stroke="#38bdf8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
@@ -650,4 +650,5 @@
   <!-- 2026-05-14 update: Added PuzzleActivity branch and mode-aware save/resume path (AIR_BATTLE/PUZZLE). -->
   <!-- 2026-05-17 update: Puzzle screen now uses the standard tactical 52dp header (PuzzleHeader composable, back saves progress), difficulty grids set to Easy 3×3 / Normal 4×4 / Hard 5×5, and statusBarsPadding restores correct inset behavior under enableEdgeToEdge(). -->
   <!-- 2026-05-31 update: Refreshed Room schema to 2031, utility inventory with FilePickerHelper, Image/Banner detail ViewModels, and five background assets. -->
+  <!-- 2026-05-31 update: Added FlashlightActivity settings destination and FlashlightViewModel for Camera2 torch, SOS, and brightness control. -->
 </svg>

@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `FlashlightActivity` Compose utility launched from Settings below QR Code Tool, with Camera2 torch on/off, SOS blink mode, Android 13+ brightness control, and permission handling
+- `FlashlightViewModel` with `FlashlightUiState`, CameraManager torch callback synchronization, SOS coroutine cleanup, and testable brightness/SOS helpers
+- Localized flashlight strings in English and Chinese resources
+- Robolectric Settings navigation coverage for the new Flashlight entry plus `FlashlightViewModelTest` coverage for SOS timing and brightness mapping
 - `AndroidDevAssistantToolsActivity` with a dedicated tools details page for Android Developer Assistant modules
 - `AndroidDevAssistantToolsActivity` now includes functional module toggles and tool actions for system info, quick settings launcher, installed-apps browser, and activity monitor entry
 - New Develop Settings button: `Android Developer Assistant Tools`, navigating to the tools details page
@@ -178,8 +182,8 @@ The class and project architecture diagrams ([class_diagram.svg](class_diagram.s
 | Common | `common/` | `AircraftApplication`, `GameStateManager` |
 | Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2031), `GameState` (enum), `GameMode` (enum), `GameDifficulty` (enum), `ImageDetails`, `BannerDetails` |
 | Game Engine | `ui/` | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable), `GameHudFormatter` |
-| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` |
-| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `RichTextEditorActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` |
+| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` |
+| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `RichTextEditorActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` |
 | Service | `service/` | `MusicService` + `MusicBinder` |
 | Providers | `providers/` | `DatabaseProvider` |
 | Utilities | `utils/` | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` |

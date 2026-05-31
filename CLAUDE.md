@@ -25,7 +25,7 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 
 - **Gradle:** 9.4.1, AGP 9.1.1 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.1.20-1.0.32
 - **Build files:** Groovy DSL (`build.gradle`, not `.gradle.kts`)
-- **SDK:** compileSdk 37, minSdk 30, targetSdk 36, buildToolsVersion 36.0.0
+- **SDK:** compileSdk 37, minSdk 30, targetSdk 36, buildToolsVersion 37.0.0
 - **Java:** 17
 - **Room:** 2.8.4
 - **Compose BOM:** 2026.04.01 (material3, foundation, activity-compose 1.13.0)
@@ -110,10 +110,20 @@ LaunchActivity (Theme.AppCompat.NoActionBar)
   ├─→ QRCodeToolActivity (Theme.Aircraft.Common) → QR scan/generate utility
   └─→ SettingsActivity (Theme.Aircraft.Common)
        ├─→ DeviceInfoActivity (device hardware/software info)
+       ├─→ QRCodeToolActivity
+       ├─→ FlashlightActivity (camera-flash torch utility)
+       ├─→ PuzzleActivity (sliding-puzzle minigame)
        ├─→ AboutAircraftActivity
+       │     └─→ ShowImageDetailsActivity (project image viewer)
        ├─→ AboutMeActivity (Compose-based developer profile)
        ├─→ PrivacyPolicyActivity (WebView)
        └─→ DevelopSettingsActivity (debug builds only — crash testing, invincible-mode toggle)
+             ├─→ RichTextEditorActivity
+             └─→ AndroidDevAssistantToolsActivity (tools hub)
+                   ├─→ DeviceInfoActivity
+                   └─→ HistoryActivity
+
+BannerDetailsActivity is launched from in-app banners (see SupperBannerView) rather than the main flow.
 ```
 
 ### Game State Broadcasting
@@ -142,6 +152,10 @@ User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Norm
 ### Compose UI Layer
 
 Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent`) with Material3. There is no shared Compose theme — each uses hardcoded color constants matching the XML tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing.
+
+### MVVM (non-game activities)
+
+Most non-game activities follow MVVM with a `ViewModel` in `viewmodel/` (e.g. `SettingsViewModel`, `LaunchViewModel`, `FlashlightViewModel`, `BannerDetailsViewModel`, `QRCodeToolViewModel`). UI state is typically a dedicated `*UiState` data class exposed via `StateFlow`/`LiveData`; one-shot effects use `SharedFlow` events (see `BannerDetailsEvent`). The Activity observes state and forwards user actions to the ViewModel — DB and SharedPreferences access goes through `providers/` (e.g. `SettingsRepository`, `DatabaseProvider`), not the Activity directly. The **game core (`GameCoreView` and its `DrawBaseObject` hierarchy) does NOT use this pattern** — it owns its own state on the render thread. When adding a new utility activity, mirror the existing ViewModel/UiState/Repository structure rather than putting logic in the Activity.
 
 ## Key Gotchas
 

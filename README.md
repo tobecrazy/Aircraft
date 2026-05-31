@@ -1,6 +1,6 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, 9 interleaved puzzle gates (one after each non-final combat stage), boss fights, collectible power-ups, a QR code scan/generate utility, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, 9 interleaved puzzle gates (one after each non-final combat stage), boss fights, collectible power-ups, QR code and flashlight utilities, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Project Architecture
 
@@ -19,8 +19,8 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource`, `BannerDetails`, `BannerDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
-| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
+| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, file URI/cache helpers, name formatting |
@@ -55,7 +55,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
 - `FileProvider` paths include `Pictures/`, `Download/`, and app cache, enabling shared file URIs for exported/generated assets
 - Rich-text preview image tap support: clicking an image in `RichTextEditorActivity` opens `ShowImageDetailsActivity`
-- Utility screens for history, QR code scanning/generation/save-to-device, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
+- Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
 
@@ -82,6 +82,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Background music via `MediaPlayer` and combat SFX via `SoundPool`
 - Jet selection with 4 playable plane sprites and saved `jet_plane_index`
 - QR code utility with live camera scan, gallery image import, rich-text encoding input, framed preview output, and long-press save to device
+- Flashlight utility with Camera2 torch on/off, SOS blinking, Android 13+ brightness levels, and permission-aware Compose UI
 - Device information screen with CPU, memory, disk, battery, and network telemetry
 - Robolectric coverage for onboarding, privacy gate, QR tool flows, About Me Compose UI wiring, leaderboard styling, string parity, and gameplay formulas
 
@@ -122,6 +123,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
 │   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
+│   ├── FlashlightActivity.kt           # Compose flashlight utility with torch, SOS, and brightness controls
 │   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with WebView preview; preview image taps open ShowImageDetailsActivity
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── BannerDetailsActivity.kt        # Legacy banner details viewer retained in source
@@ -175,6 +177,7 @@ app/src/main/java/com/young/aircraft/
     ├── DeviceInfoUiState.kt            # UI state for device info screen
     ├── QRCodeToolViewModel.kt          # QR encode/decode logic (QRCodeToolActivity)
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
+    ├── FlashlightViewModel.kt          # Camera2 torch, SOS timing, and brightness state
     ├── RichTextEditorViewModel.kt      # Edit/preview mode state (RichTextEditorActivity)
     ├── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
     └── BannerDetailsViewModel.kt       # Legacy banner details display logic
@@ -188,6 +191,7 @@ app/src/main/java/com/young/aircraft/
 - `GameCoreViewFormulaTest` for level duration and kill-target math
 - `HistoryAdapterTest` for first-place badge visibility and gold score styling
 - `QRCodeToolActivityTest` for scan/generate screen state, bottom-sheet result dialog, save-to-device flow, gallery pick button, and Settings navigation
+- `FlashlightViewModelTest` for SOS timing pattern and brightness-strength mapping
 - `AboutMeActivityTest` for localized About Me copy, repo URL rendering, and back navigation
 - `MainActivityTest` for tactical overlay behavior, mission-briefing chips, and low-memory pause handling
 - `DrawBackgroundTest` for seamless mirrored tile coverage
