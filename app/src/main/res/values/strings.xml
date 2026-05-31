@@ -250,6 +250,7 @@
     <string name="clear_cache_failed">Unable to clear game data</string>
     <string name="puzzle_loading">Loading puzzle image…</string>
     <string name="puzzle_load_failed">Failed to load puzzle image.</string>
+    <string name="puzzle_load_failed_hint">Check your network connection and try again.</string>
     <string name="puzzle_retry">Retry</string>
     <string name="puzzle_image_preview_desc">Puzzle image preview</string>
     <string name="puzzle_tile_desc">Puzzle tile %1$d</string>

@@ -3,6 +3,7 @@ package com.young.aircraft.gui
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -91,6 +92,7 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 class PuzzleActivity : ComponentActivity() {
     companion object {
@@ -98,6 +100,8 @@ class PuzzleActivity : ComponentActivity() {
         private const val CACHE_PREFS = "puzzle_image_cache"
         private const val KEY_CACHE_FILE = "cached_image_file"
         private const val CACHE_FILE_NAME = "puzzle_cached_image.jpg"
+        private const val TAG = "PuzzleActivity"
+        private const val USER_AGENT = "AircraftPuzzle/1.0 (Android)"
     }
 
     private val viewModel: GameViewModel by viewModels { GameViewModel.Factory(this) }
@@ -111,8 +115,15 @@ class PuzzleActivity : ComponentActivity() {
     private var puzzleImageModel by mutableStateOf<Any?>(null)
     private var isImageLoading by mutableStateOf(true)
     private var imageLoadFailed by mutableStateOf(false)
+    private var imageLoadErrorDetail by mutableStateOf<String?>(null)
     private var shouldShowGuide by mutableStateOf(false)
-    private val httpClient: OkHttpClient = OkHttpClient()
+    private val httpClient: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(20, TimeUnit.SECONDS)
+        .callTimeout(30, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,8 +161,10 @@ class PuzzleActivity : ComponentActivity() {
                     PuzzleLoadingScreen(
                         isLoading = isImageLoading,
                         hasError = imageLoadFailed,
+                        errorDetail = imageLoadErrorDetail,
                         onRetry = {
                             imageLoadFailed = false
+                            imageLoadErrorDetail = null
                             isImageLoading = true
                             loadPuzzleImageWithCache()
                         }
@@ -198,6 +211,7 @@ class PuzzleActivity : ComponentActivity() {
 
     private fun loadPuzzleImageWithCache() {
         lifecycleScope.launch(Dispatchers.IO) {
+            var failureReason: String? = null
             val loadedModel = runCatching {
                 val prefs = getSharedPreferences(CACHE_PREFS, MODE_PRIVATE)
                 val cachedFileName = prefs.getString(KEY_CACHE_FILE, null)
@@ -206,32 +220,79 @@ class PuzzleActivity : ComponentActivity() {
                     return@runCatching Uri.fromFile(cachedFile)
                 }
 
-                val request = Request.Builder().url(AircraftConstants.Urls.PEAPIX_BING_CN_FEED).build()
-                val response = httpClient.newCall(request).execute()
-                if (!response.isSuccessful) return@runCatching null
-                val body = response.body?.string().orEmpty()
-                val latestUrl = AircraftConstants.Urls.extractLatestPuzzleImageUrlFromPeapixFeed(body) ?: return@runCatching null
+                val feedRequest = Request.Builder()
+                    .url(AircraftConstants.Urls.PEAPIX_BING_CN_FEED)
+                    .header("User-Agent", USER_AGENT)
+                    .header("Accept", "application/json")
+                    .build()
+                val feedBody = httpClient.newCall(feedRequest).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        failureReason = "Feed HTTP ${response.code}"
+                        return@runCatching null
+                    }
+                    response.body?.string().orEmpty()
+                }
 
-                val imageRequest = Request.Builder().url(latestUrl).build()
-                val imageResponse = httpClient.newCall(imageRequest).execute()
-                if (!imageResponse.isSuccessful) return@runCatching null
-                val imageBytes = imageResponse.body?.bytes() ?: return@runCatching null
-                if (imageBytes.isEmpty()) return@runCatching null
+                val candidates = AircraftConstants.Urls.extractLatestPuzzleImageCandidatesFromPeapixFeed(feedBody)
+                if (candidates.isEmpty()) {
+                    failureReason = "No image URL in feed"
+                    return@runCatching null
+                }
+
+                // Try thumbUrl first (~150 KB), then imageUrl, then fullUrl. Most failures
+                // were 3.4 MB downloads stalling within OkHttp's default timeouts.
+                var imageBytes: ByteArray? = null
+                for (candidate in candidates) {
+                    val attempt = runCatching {
+                        val imageRequest = Request.Builder()
+                            .url(candidate)
+                            .header("User-Agent", USER_AGENT)
+                            .header("Accept", "image/jpeg,image/*;q=0.8")
+                            .build()
+                        httpClient.newCall(imageRequest).execute().use { response ->
+                            if (!response.isSuccessful) {
+                                throw java.io.IOException("HTTP ${response.code}")
+                            }
+                            response.body?.bytes()
+                        }
+                    }
+                    val bytes = attempt.getOrNull()
+                    if (bytes != null && bytes.isNotEmpty()) {
+                        imageBytes = bytes
+                        Log.d(TAG, "Loaded puzzle image from $candidate (${bytes.size} bytes)")
+                        break
+                    }
+                    val cause = attempt.exceptionOrNull()
+                    Log.w(TAG, "Failed to fetch $candidate: ${cause?.javaClass?.simpleName}: ${cause?.message}")
+                    failureReason = cause?.let { "${it.javaClass.simpleName}: ${it.message}" } ?: "Empty response"
+                }
+
+                if (imageBytes == null) {
+                    return@runCatching null
+                }
 
                 val file = File(cacheDir, CACHE_FILE_NAME)
                 file.outputStream().use { it.write(imageBytes) }
                 prefs.edit().putString(KEY_CACHE_FILE, CACHE_FILE_NAME).apply()
+                failureReason = null
                 Uri.fromFile(file)
             }
+                .onFailure { throwable ->
+                    Log.w(TAG, "Puzzle image load threw", throwable)
+                    failureReason = "${throwable.javaClass.simpleName}: ${throwable.message}"
+                }
                 .getOrNull()
 
             withContext(Dispatchers.Main) {
                 if (loadedModel != null) {
                     puzzleImageModel = loadedModel
                     isImageLoading = false
+                    imageLoadFailed = false
+                    imageLoadErrorDetail = null
                 } else {
                     imageLoadFailed = true
                     isImageLoading = false
+                    imageLoadErrorDetail = failureReason
                 }
             }
         }
@@ -276,6 +337,7 @@ private val PuzzleButtonBg = Color(0xFF1F2636)
 private fun PuzzleLoadingScreen(
     isLoading: Boolean,
     hasError: Boolean,
+    errorDetail: String?,
     onRetry: () -> Unit
 ) {
     Surface(
@@ -290,20 +352,52 @@ private fun PuzzleLoadingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            CircularProgressIndicator(color = PuzzleAccent)
-            Text(
-                text = if (isLoading) stringResource(R.string.puzzle_loading) else stringResource(R.string.puzzle_load_failed),
-                modifier = Modifier.padding(top = 16.dp),
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.White
-            )
             if (hasError) {
+                Text(
+                    text = "⚠",
+                    color = PuzzleAccent,
+                    fontSize = 56.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.puzzle_load_failed),
+                    modifier = Modifier.padding(top = 12.dp),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+                Text(
+                    text = stringResource(R.string.puzzle_load_failed_hint),
+                    modifier = Modifier.padding(top = 6.dp, start = 16.dp, end = 16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = PuzzleTextSecondary
+                )
+                if (!errorDetail.isNullOrBlank()) {
+                    Text(
+                        text = errorDetail,
+                        modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = PuzzleTextSecondary,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
                 Button(
                     onClick = onRetry,
-                    modifier = Modifier.padding(top = 12.dp)
+                    modifier = Modifier.padding(top = 20.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = PuzzleButtonBg,
+                        contentColor = PuzzleAccent
+                    )
                 ) {
                     Text(stringResource(R.string.puzzle_retry))
                 }
+            } else if (isLoading) {
+                CircularProgressIndicator(color = PuzzleAccent)
+                Text(
+                    text = stringResource(R.string.puzzle_loading),
+                    modifier = Modifier.padding(top = 16.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+                )
             }
         }
     }

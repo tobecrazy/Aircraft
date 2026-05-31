@@ -250,6 +250,7 @@
     <string name="clear_cache_failed">无法清除游戏数据</string>
     <string name="puzzle_loading">正在加载拼图图片…</string>
     <string name="puzzle_load_failed">拼图图片加载失败。</string>
+    <string name="puzzle_load_failed_hint">请检查网络连接后重试。</string>
     <string name="puzzle_retry">重试</string>
     <string name="puzzle_image_preview_desc">拼图图片预览</string>
     <string name="puzzle_tile_desc">拼图块 %1$d</string>

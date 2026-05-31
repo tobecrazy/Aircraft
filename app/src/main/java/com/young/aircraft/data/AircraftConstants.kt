@@ -24,6 +24,8 @@ object AircraftConstants {
         const val EXAMPLE_LINK = "https://www.cnblogs.com/tobecrazy"
         const val CONTACT_US_QR_CODE = "https://images.cnblogs.com/cnblogs_com/tobecrazy/432338/o_250810143315_qrcode_123.jpg"
         private val IMAGE_URL_PATTERN = Regex("\"imageUrl\"\\s*:\\s*\"([^\"]+)\"")
+        private val THUMB_URL_PATTERN = Regex("\"thumbUrl\"\\s*:\\s*\"([^\"]+)\"")
+        private val FULL_URL_PATTERN = Regex("\"fullUrl\"\\s*:\\s*\"([^\"]+)\"")
 
         fun extractPuzzleImageUrlsFromPeapixFeed(feedJson: String): List<String> {
             if (feedJson.isBlank()) return emptyList()
@@ -35,6 +37,19 @@ object AircraftConstants {
 
         fun extractLatestPuzzleImageUrlFromPeapixFeed(feedJson: String): String? {
             return extractPuzzleImageUrlsFromPeapixFeed(feedJson).firstOrNull()
+        }
+
+        /**
+         * Returns candidate image URLs for the latest entry in priority order:
+         * thumbUrl (~150 KB, fastest), imageUrl, fullUrl. Used as fallbacks when
+         * one URL fails to download (e.g. timeout on a 1920px JPG).
+         */
+        fun extractLatestPuzzleImageCandidatesFromPeapixFeed(feedJson: String): List<String> {
+            if (feedJson.isBlank()) return emptyList()
+            val thumb = THUMB_URL_PATTERN.find(feedJson)?.groupValues?.getOrNull(1)?.trim().orEmpty()
+            val image = IMAGE_URL_PATTERN.find(feedJson)?.groupValues?.getOrNull(1)?.trim().orEmpty()
+            val full = FULL_URL_PATTERN.find(feedJson)?.groupValues?.getOrNull(1)?.trim().orEmpty()
+            return listOf(thumb, image, full).filter { it.isNotEmpty() }.distinct()
         }
     }
 
