@@ -21,7 +21,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
 | `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
 | `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
-| `service/` | Pink | `MusicService`, `MusicBinder` | BGM (MediaPlayer) + SFX (SoundPool) bound service |
+| `service/` | Pink | `MusicService`, `MusicBinder`, `FlashlightService` | BGM/SFX bound service + camera-torch foreground service with wakelock-backed SOS |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, file URI/cache helpers, name formatting |
 
@@ -82,7 +82,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 - Background music via `MediaPlayer` and combat SFX via `SoundPool`
 - Jet selection with 4 playable plane sprites and saved `jet_plane_index`
 - QR code utility with live camera scan, gallery image import, rich-text encoding input, framed preview output, and long-press save to device
-- Flashlight utility with Camera2 torch on/off, SOS blinking, Android 13+ brightness levels, and permission-aware Compose UI
+- Flashlight utility backed by a camera-type foreground service (`FlashlightService`): Camera2 torch on/off, SOS blink mode with `PARTIAL_WAKE_LOCK` for accurate pacing when the screen is off, Android 13+ brightness levels, persistent notification with a "Turn off" action, and a one-shot battery-optimization whitelist prompt that fires after the first successful torch-on
 - Device information screen with CPU, memory, disk, battery, and network telemetry
 - Robolectric coverage for onboarding, privacy gate, QR tool flows, About Me Compose UI wiring, leaderboard styling, string parity, and gameplay formulas
 
@@ -140,7 +140,8 @@ app/src/main/java/com/young/aircraft/
 ├── providers/
 │   └── DatabaseProvider.kt             # Singleton Room provider
 ├── service/
-│   └── MusicService.kt                 # Bound BGM + SFX playback service
+│   ├── MusicService.kt                 # Bound BGM + SFX playback service
+│   └── FlashlightService.kt            # Foreground service (foregroundServiceType=camera) owning the torch + SOS coroutine + PARTIAL_WAKE_LOCK
 ├── ui/
 │   ├── GameCoreView.kt                 # Main game loop and collision orchestration
 │   ├── DrawBaseObject.kt               # Base drawable/update contract
@@ -177,7 +178,7 @@ app/src/main/java/com/young/aircraft/
     ├── DeviceInfoUiState.kt            # UI state for device info screen
     ├── QRCodeToolViewModel.kt          # QR encode/decode logic (QRCodeToolActivity)
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
-    ├── FlashlightViewModel.kt          # Camera2 torch, SOS timing, and brightness state
+    ├── FlashlightViewModel.kt          # Drives FlashlightService via intents; observes torch state via TorchCallback and SOS state via FlashlightService.isSosRunning
     ├── RichTextEditorViewModel.kt      # Edit/preview mode state (RichTextEditorActivity)
     ├── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
     └── BannerDetailsViewModel.kt       # Legacy banner details display logic

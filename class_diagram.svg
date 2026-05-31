@@ -829,6 +829,31 @@
   <line x1="690" y1="1400" x2="860" y2="1370" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="770" y="1375" font-size="9" fill="#888">musicService</text>
 
+  <!-- FlashlightService -->
+  <g transform="translate(860, 1480)" filter="url(#shadow)">
+    <rect width="320" height="200" rx="6" fill="url(#grad-service)" stroke="#e91e63" stroke-width="1.2"/>
+    <rect width="320" height="22" rx="6" fill="#e91e63"/>
+    <rect y="16" width="320" height="6" fill="#e91e63"/>
+    <text x="160" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">FlashlightService</text>
+    <text x="10" y="38" font-size="10" fill="#555">service/ — extends Service (foreground · camera)</text>
+    <line x1="5" y1="44" x2="315" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- cameraManager: CameraManager</text>
+    <text x="10" y="70" font-size="10" fill="#333">- cameraId: String?</text>
+    <text x="10" y="83" font-size="10" fill="#333">- wakeLock: PowerManager.WakeLock?</text>
+    <text x="10" y="96" font-size="10" fill="#333">- sosJob: Job?  · scope: CoroutineScope</text>
+    <text x="10" y="109" font-size="10" fill="#333">- currentBrightness · currentSosUnitMs</text>
+    <line x1="5" y1="115" x2="315" y2="115" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="128" font-size="10" fill="#333">+ onStartCommand(intent, flags, id): Int</text>
+    <text x="10" y="141" font-size="10" fill="#333">- startSos() / stopSosInternal()</text>
+    <text x="10" y="154" font-size="10" fill="#333">- setTorch(enabled, brightness)</text>
+    <text x="10" y="167" font-size="10" fill="#333">- acquireWakeLock() / releaseWakeLock()</text>
+    <text x="10" y="183" font-size="9" fill="#888">START_STICKY · persistent notification + Off action</text>
+    <text x="10" y="195" font-size="9" fill="#888">PARTIAL_WAKE_LOCK while SOS · isSosRunning StateFlow</text>
+  </g>
+
+  <!-- FlashlightViewModel -> FlashlightService association -->
+  <text x="565" y="1582" font-size="9" fill="#888">drives via Intent</text>
+
   <!-- ===== GUI LAYER ===== -->
   <!-- LaunchActivity -->
   <g transform="translate(30, 1700)" filter="url(#shadow)">
@@ -1499,6 +1524,7 @@
     <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="9" fill="#333">+ toggleFlashlight() / SOS</text>
     <text x="10" y="70" font-size="9" fill="#333">+ setBrightness() / callback</text>
+    <text x="10" y="83" font-size="8" fill="#888">drives FlashlightService via Intent</text>
     <text x="10" y="96" font-size="9" fill="#888">Used by: FlashlightActivity</text>
   </g>
 
@@ -1508,4 +1534,5 @@
   <!-- 2026-05-17 update: PuzzleActivity gains PuzzleHeader composable (standard 52dp tactical header with back-and-save), gridSizeForDifficulty switched to explicit when mapping (EASY=3, NORMAL=4, HARD=5 → 9/16/25 pieces), and statusBarsPadding applied to PuzzleScreen/PuzzleLoadingScreen to fix status-bar overlap under enableEdgeToEdge(). -->
   <!-- 2026-05-31 update: Refreshed Room schema to 2031, PlayerGameData mode-aware fields, SettingsRepository location/keys, and current image-details ViewModel inventory. -->
   <!-- 2026-05-31 update: Added FlashlightActivity and FlashlightViewModel for Camera2 torch, SOS blink, brightness, and settings navigation. -->
+  <!-- 2026-05-31 update: Added FlashlightService (foreground · camera) — START_STICKY service that owns the torch, runs the SOS coroutine on Dispatchers.Default, and holds a PARTIAL_WAKE_LOCK while SOS is active. FlashlightViewModel now drives it via Intent commands; torch state syncs via CameraManager.TorchCallback, SOS state via FlashlightService.isSosRunning. -->
 </svg>

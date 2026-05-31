@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `FlashlightService` foreground service (`foregroundServiceType="camera"`) that owns the Camera2 torch on behalf of `FlashlightViewModel`, keeping the torch alive when the screen is off or the activity is paused
+- Persistent low-importance notification with a "Turn off" action that fires `ACTION_TORCH_OFF` — gives users a one-tap escape so they don't reach for force-stop
+- `PARTIAL_WAKE_LOCK` (`Aircraft::FlashlightSos`, 10-min safety timeout) acquired only while SOS mode is active, keeping CPU running so coroutine `delay()` pacing stays accurate with the screen off
+- Battery-optimization whitelist prompt that fires once after the first successful torch-on (best acceptance moment per Chinese-ROM persistence guidance), guarded by `PowerManager.isIgnoringBatteryOptimizations` and a one-shot SharedPreferences flag; "Open settings" lands on `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` with `ACTION_APPLICATION_DETAILS_SETTINGS` fallback for OEMs that don't expose the list
+- `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_CAMERA`, `WAKE_LOCK` permissions in the manifest; `FlashlightService` declaration with `foregroundServiceType="camera"`
+- `ic_notification_flashlight.xml` white-on-transparent vector drawable for the foreground notification status-bar icon
+- Localized notification channel, content, action, and battery-prompt strings in both English and Chinese resources
 - `FlashlightActivity` Compose utility launched from Settings below QR Code Tool, with Camera2 torch on/off, SOS blink mode, Android 13+ brightness control, and permission handling
 - `FlashlightViewModel` with `FlashlightUiState`, CameraManager torch callback synchronization, SOS coroutine cleanup, and testable brightness/SOS helpers
 - Localized flashlight strings in English and Chinese resources
@@ -62,6 +69,8 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `FlashlightViewModel` refactored to delegate all torch and SOS work to `FlashlightService` via intent commands (`ACTION_TORCH_ON/OFF`, `ACTION_SOS_ON/OFF` with `EXTRA_BRIGHTNESS` and `EXTRA_SOS_UNIT_MS`); torch on/off state still syncs through `CameraManager.TorchCallback`, and SOS state is now observed from `FlashlightService.isSosRunning` `StateFlow` instead of running a coroutine in the ViewModel — public companion API (`SOS_PATTERN`, `brightnessToStrengthLevel`, `SOS_MIN_UNIT_MS`/`MAX`/`STEPS`) preserved verbatim
+- `FlashlightActivity` migrated from deprecated `WindowCompat.setDecorFitsSystemWindows` + manual `statusBarColor`/`navigationBarColor` to `enableEdgeToEdge(SystemBarStyle.dark(...))`; torch hero label now uses opaque `FlashSurfaceHigh` background and the canvas beam stops at `size.height * 0.86f` to prevent the green beam from bleeding through the bottom label pill; `StatusPill` adds `TextOverflow.Ellipsis` for narrow-screen safety; `TorchHero` Surface gains `shadowElevation = 4.dp` + `tonalElevation = 2.dp` for depth
 - Documentation refresh: `README.md`, `class_diagram.svg`, and `project_diagram.svg` now reflect app version `1.2.8`, Room schema `2031`, current save-state fields, current source files, and the five bundled scrolling backgrounds.
 - `DevelopSettingsActivity` keeps only a single Android Developer Assistant entry button; assistant feature controls/actions are implemented in `AndroidDevAssistantToolsActivity`
 - `PuzzleActivity` `gridSizeForDifficulty` switched from a float coefficient calculation to an explicit `when` mapping (`EASY → 3`, `NORMAL → 4`, `HARD → 5`) for predictable puzzle sizes
