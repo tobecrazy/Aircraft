@@ -90,7 +90,7 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0"
     //firebase
-    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.14.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("io.coil-kt:coil-compose:2.7.0")
