@@ -257,6 +257,7 @@
     <string name="puzzle_hint_image_desc">拼图提示图</string>
     <string name="puzzle_save">保存</string>
     <string name="puzzle_save_and_exit">保存并退出</string>
+    <string name="puzzle_undo_button">撤销</string>
     <string name="puzzle_hint_button">提示 (%1$d)</string>
     <string name="puzzle_hint_active">提示已激活</string>
     <string name="puzzle_cleared_title">拼图通关</string>
@@ -269,7 +270,7 @@
     <string name="puzzle_stat_moves">步数</string>
     <string name="puzzle_stat_score">得分</string>
     <string name="puzzle_guide_title">拼图引导</string>
-    <string name="puzzle_guide_message">点击与空白格相邻的拼图块即可移动。在倒计时结束前还原完整图片。卡住时可使用提示，退出前可保存进度。</string>
+    <string name="puzzle_guide_message">拖动拼图块到对应的图片位置。接近正确位置时会自动吸附，可用双指缩放棋盘，提示可预览完整图片，撤销可回退上一次放置。</string>
     <string name="puzzle_guide_confirm">开始</string>
     <string name="develop_settings_title">开发设置</string>
     <string name="develop_settings_summary">仅限调试使用的工具和崩溃测试</string>

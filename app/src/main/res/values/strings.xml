@@ -257,6 +257,7 @@
     <string name="puzzle_hint_image_desc">Puzzle hint image</string>
     <string name="puzzle_save">Save</string>
     <string name="puzzle_save_and_exit">Save &amp; Exit</string>
+    <string name="puzzle_undo_button">Undo</string>
     <string name="puzzle_hint_button">Hint (%1$d)</string>
     <string name="puzzle_hint_active">Hint active</string>
     <string name="puzzle_cleared_title">Puzzle Cleared</string>
@@ -269,7 +270,7 @@
     <string name="puzzle_stat_moves">Moves</string>
     <string name="puzzle_stat_score">Score</string>
     <string name="puzzle_guide_title">Puzzle Guide</string>
-    <string name="puzzle_guide_message">Tap a tile next to the empty slot to move it. Rebuild the full image before time runs out. Use Hint when stuck, and Save to keep your progress.</string>
+    <string name="puzzle_guide_message">Drag pieces into their matching picture positions. Pieces snap into place when close, pinch with two fingers to zoom the board, use Hint to preview the full image, and Undo to revert the last drop.</string>
     <string name="puzzle_guide_confirm">Start</string>
     <string name="develop_settings_title">Develop Settings</string>
     <string name="develop_settings_summary">Debug-only tools and crash testing</string>

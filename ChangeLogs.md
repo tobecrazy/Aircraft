@@ -69,6 +69,7 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `PuzzleActivity` core gameplay redesigned from tap-to-slide tiles into a drag-and-drop picture puzzle with freeform pieces, two-finger board zoom, auto-snapping, hint preview, and undo support
 - `FlashlightViewModel` refactored to delegate all torch and SOS work to `FlashlightService` via intent commands (`ACTION_TORCH_ON/OFF`, `ACTION_SOS_ON/OFF` with `EXTRA_BRIGHTNESS` and `EXTRA_SOS_UNIT_MS`); torch on/off state still syncs through `CameraManager.TorchCallback`, and SOS state is now observed from `FlashlightService.isSosRunning` `StateFlow` instead of running a coroutine in the ViewModel — public companion API (`SOS_PATTERN`, `brightnessToStrengthLevel`, `SOS_MIN_UNIT_MS`/`MAX`/`STEPS`) preserved verbatim
 - `FlashlightActivity` torch hero now toggles the flashlight on tap, matching the dedicated switch behavior while staying disabled when camera permission or flash hardware is unavailable
 - `FlashlightActivity` UI refined with the shared tactical Material color scheme, higher-contrast panels, improved status hierarchy, stronger hero glow treatment, and clearer disabled switch/slider/button states while preserving existing torch/SOS behavior

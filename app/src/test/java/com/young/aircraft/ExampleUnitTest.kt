@@ -1,11 +1,16 @@
 package com.young.aircraft
 
 import com.young.aircraft.data.GameDifficulty
-import com.young.aircraft.gui.createSolvedTiles
+import androidx.compose.ui.geometry.Offset
+import com.young.aircraft.gui.PuzzleMove
+import com.young.aircraft.gui.PuzzlePieceState
+import com.young.aircraft.gui.createPuzzlePieces
+import com.young.aircraft.gui.dragPuzzlePiece
 import com.young.aircraft.gui.formatTime
 import com.young.aircraft.gui.gridSizeForDifficulty
-import com.young.aircraft.gui.isSolved
-import com.young.aircraft.gui.moveTile
+import com.young.aircraft.gui.hasPieceMoved
+import com.young.aircraft.gui.restorePuzzleMove
+import com.young.aircraft.gui.snapPuzzlePiece
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -29,16 +34,56 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun `move tile slides only adjacent tile into blank`() {
-        val tiles = listOf(1, 2, 3, 4, 5, 6, 7, 0, 8)
-        val moved = moveTile(tiles, tileValue = 8, gridSize = 3)
-        assertTrue(moved.moved)
-        assertEquals(listOf(1, 2, 3, 4, 5, 6, 7, 8, 0), moved.tiles)
+    fun `drag puzzle piece clamps inside board`() {
+        val pieces = listOf(PuzzlePieceState(id = 1, row = 0, col = 0, x = 10f, y = 10f))
+
+        val dragged = dragPuzzlePiece(
+            pieces = pieces,
+            pieceId = 1,
+            delta = Offset(-100f, 500f),
+            boardSizePx = 300f,
+            gridSize = 3
+        )
+
+        assertEquals(0f, dragged.first().x, 0.01f)
+        assertEquals(200f, dragged.first().y, 0.01f)
     }
 
     @Test
-    fun `solved board detection and time formatting`() {
-        assertTrue(isSolved(createSolvedTiles(3)))
+    fun `snap puzzle piece locks it to target when close`() {
+        val pieces = listOf(PuzzlePieceState(id = 5, row = 1, col = 1, x = 105f, y = 94f))
+
+        val result = snapPuzzlePiece(
+            pieces = pieces,
+            pieceId = 5,
+            gridSize = 3,
+            boardSizePx = 300f
+        )
+
+        assertTrue(result.snapped)
+        assertTrue(result.pieces.first().snapped)
+        assertEquals(100f, result.pieces.first().x, 0.01f)
+        assertEquals(100f, result.pieces.first().y, 0.01f)
+    }
+
+    @Test
+    fun `restore puzzle move returns piece to previous position`() {
+        val previous = PuzzlePieceState(id = 2, row = 0, col = 1, x = 48f, y = 12f)
+        val current = previous.copy(x = 100f, y = 0f, snapped = true)
+
+        val restored = restorePuzzleMove(listOf(current), PuzzleMove(pieceId = 2, previous = previous))
+
+        assertEquals(previous, restored.first())
+        assertTrue(hasPieceMoved(previous, current))
+    }
+
+    @Test
+    fun `piece creation and time formatting are stable`() {
+        val pieces = createPuzzlePieces(gridSize = 3, boardSizePx = 300f, level = 1)
+
+        assertEquals(9, pieces.size)
+        assertEquals((1..9).toList(), pieces.map { it.id })
+        assertTrue(pieces.any { it.x != it.col * 100f || it.y != it.row * 100f })
         assertEquals("02:05", formatTime(125))
     }
 }

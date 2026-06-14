@@ -15,7 +15,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - **Combat gameplay** — 30 FPS `SurfaceView` rendering with drag-to-move controls, auto-firing bullets, scrolling backgrounds, the two-row tactical HUD (mission/hull cards + countdown timer), and screen-shake/damage-flash feedback.
 - **Power-ups in action** — red envelopes detonating into AoE rockets, medical kits restoring HP, shields granting blink-indicated invincibility, and time freezes locking enemies in place.
 - **Boss fight** — end-of-level boss with bomb attacks, scaling HP, and the multi-phase particle explosion on defeat.
-- **Puzzle gate** — Compose-based sliding puzzle that gates progression between combat levels (3×3 / 4×4 / 5×5 by difficulty).
+- **Puzzle gate** — Compose-based drag-and-drop picture puzzle with pinch zoom, auto-snapping, hints, and undo, gating progression between combat levels (3×3 / 4×4 / 5×5 by difficulty).
 - **Utility screens** — QR code scan/generate, flashlight with SOS and brightness control, device info telemetry, and the localized About / History screens.
 
 ## Project Architecture
@@ -60,7 +60,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Compose-powered two-page onboarding carousel with animated entrance effects
 - 10 combat levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
 - Puzzle-gate flow: after clearing combat levels 1-9, players must clear the same-numbered puzzle level before entering the next combat level (Easy = 3×3, Normal = 4×4, Hard = 5×5)
-- Compose-based `PuzzleActivity` shell with the standard tactical 52dp header (back button saves progress) and status-bar inset handling
+- Compose-based `PuzzleActivity` shell with drag-and-drop pieces, two-finger zoom, auto-snapping, hint preview, undo, the standard tactical 52dp header (back button saves progress), and status-bar inset handling
 - Four power-up systems: red envelopes/rockets, medical kits, shields, and time freezes
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty

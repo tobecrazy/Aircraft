@@ -8,15 +8,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
@@ -24,15 +28,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
@@ -67,13 +68,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
@@ -92,6 +97,8 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import java.util.concurrent.TimeUnit
 
 class PuzzleActivity : ComponentActivity() {
@@ -329,9 +336,9 @@ private val PuzzlePanelBg = Color(0xFF161A26)
 private val PuzzleAccent = Color(0xFF00FF88)
 private val PuzzleTextSecondary = Color(0xFFAAB4C8)
 private val PuzzleTileBg = Color(0xFF263142)
-private val PuzzleEmptyTileBg = Color(0xFF1A2331)
 private val PuzzleDivider = Color(0x4400FF88)
 private val PuzzleButtonBg = Color(0xFF1F2636)
+private val PuzzleTargetBg = Color(0xFF1A2331)
 
 @Composable
 private fun PuzzleLoadingScreen(
@@ -440,8 +447,9 @@ private fun PuzzleScreen(
     var solvedState by remember(level) { mutableIntStateOf(0) }
 
     val gridSize = remember(difficulty) { gridSizeForDifficulty(difficulty) }
-    val solvedTiles = remember(gridSize) { createSolvedTiles(gridSize) }
-    var tiles by remember(level, gridSize) { mutableStateOf(shuffleTiles(solvedTiles, gridSize, level)) }
+    var boardResetToken by remember(level, gridSize) { mutableIntStateOf(level * 100 + gridSize) }
+    var undoRequested by remember(level, gridSize) { mutableIntStateOf(0) }
+    var canUndo by remember(level, gridSize) { mutableStateOf(false) }
 
     val totalSec = remember(level) { (GameCoreView.getLevelDurationMs(level) / 1000L).toInt() }
     val remainingSec = (totalSec - elapsedSec).coerceAtLeast(0)
@@ -512,73 +520,23 @@ private fun PuzzleScreen(
                     border = BorderStroke(1.dp, PuzzleDivider),
                     shape = RoundedCornerShape(18.dp)
                 ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(gridSize),
+                    PuzzleBoard(
+                        imageModel = puzzleImageUrl,
+                        gridSize = gridSize,
+                        level = level,
+                        enabled = solvedState == 0,
+                        resetToken = boardResetToken,
+                        undoRequest = undoRequested,
+                        onUndoAvailabilityChanged = { canUndo = it },
+                        onPieceDropped = {
+                            moves += 1
+                            score += 10L * level
+                        },
+                        onSolved = { solvedState = 1 },
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        items(tiles) { tile ->
-                            val isEmpty = tile == 0
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (isEmpty) PuzzleEmptyTileBg else PuzzleTileBg)
-                                    .border(
-                                        1.dp,
-                                        if (isEmpty) PuzzleDivider else PuzzleAccent.copy(alpha = 0.4f),
-                                        RoundedCornerShape(12.dp)
-                                    )
-                                    .clickable(enabled = !isEmpty && solvedState == 0) {
-                                        val result = moveTile(tiles, tile, gridSize)
-                                        if (result.moved) {
-                                            tiles = result.tiles
-                                            moves += 1
-                                            score += 10L * level
-                                        }
-                                        if (isSolved(tiles)) {
-                                            solvedState = 1
-                                        }
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (!isEmpty) {
-                                    val tileIndex = tile - 1
-                                    val tileRow = tileIndex / gridSize
-                                    val tileCol = tileIndex % gridSize
-
-                                    AsyncImage(
-                                        model = puzzleImageUrl,
-                                        contentDescription = stringResource(R.string.puzzle_tile_desc, tile),
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .graphicsLayer {
-                                                transformOrigin = TransformOrigin(0f, 0f)
-                                                scaleX = gridSize.toFloat()
-                                                scaleY = gridSize.toFloat()
-                                                translationX = -size.width * tileCol
-                                                translationY = -size.height * tileRow
-                                            }
-                                            .drawWithContent { drawContent() }
-                                    )
-
-                                    Text(
-                                        text = tile.toString(),
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier
-                                            .align(Alignment.TopStart)
-                                            .padding(8.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
+                            .padding(10.dp)
+                    )
                 }
 
                 Row(
@@ -592,6 +550,14 @@ private fun PuzzleScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(stringResource(R.string.puzzle_save))
+                    }
+                    FilledTonalButton(
+                        enabled = canUndo && solvedState == 0,
+                        onClick = { undoRequested += 1 },
+                        contentPadding = PaddingValues(horizontal = 10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.puzzle_undo_button))
                     }
                     Button(
                         enabled = hintsRemaining > 0 && hintVisible == 0 && solvedState == 0,
@@ -673,7 +639,7 @@ private fun PuzzleScreen(
                                 hintsRemaining = 3
                                 hintVisible = 0
                                 solvedState = 0
-                                tiles = shuffleTiles(solvedTiles, gridSize, level)
+                                boardResetToken += 1
                                 onProgressSaved(level, score)
                             }
                         }
@@ -701,7 +667,7 @@ private fun PuzzleScreen(
                         hintsRemaining = 3
                         hintVisible = 0
                         solvedState = 0
-                        tiles = shuffleTiles(solvedTiles, gridSize, level)
+                        boardResetToken += 1
                     }) {
                         Text(stringResource(R.string.puzzle_retry))
                     }
@@ -726,6 +692,206 @@ private fun PuzzleScreen(
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun PuzzleBoard(
+    imageModel: Any,
+    gridSize: Int,
+    level: Int,
+    enabled: Boolean,
+    resetToken: Int,
+    undoRequest: Int,
+    onUndoAvailabilityChanged: (Boolean) -> Unit,
+    onPieceDropped: () -> Unit,
+    onSolved: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var boardSizePx by remember { mutableIntStateOf(0) }
+    var boardScale by remember(resetToken) { mutableStateOf(1f) }
+    var pieces by remember(resetToken) { mutableStateOf(emptyList<PuzzlePieceState>()) }
+    var undoStack by remember(resetToken) { mutableStateOf(emptyList<PuzzleMove>()) }
+    var activeMoveStart by remember(resetToken) { mutableStateOf<PuzzlePieceState?>(null) }
+    val density = LocalDensity.current
+    val spacingPx = with(density) { 4.dp.toPx() }
+
+    LaunchedEffect(gridSize, level, boardSizePx, resetToken) {
+        if (boardSizePx > 0) {
+            pieces = createPuzzlePieces(gridSize, boardSizePx.toFloat(), level)
+            undoStack = emptyList()
+            boardScale = 1f
+        }
+    }
+
+    LaunchedEffect(undoRequest) {
+        if (undoRequest > 0 && undoStack.isNotEmpty()) {
+            val move = undoStack.last()
+            pieces = restorePuzzleMove(pieces, move)
+            undoStack = undoStack.dropLast(1)
+        }
+    }
+
+    LaunchedEffect(undoStack) {
+        onUndoAvailabilityChanged(undoStack.isNotEmpty())
+    }
+
+    BoxWithConstraints(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        val boardSize = if (maxWidth < maxHeight) maxWidth else maxHeight
+        val pieceSize = boardSize / gridSize
+
+        Box(
+            modifier = Modifier
+                .size(boardSize)
+                .clip(RoundedCornerShape(14.dp))
+                .background(PuzzleTargetBg)
+                .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp))
+                .onSizeChanged { boardSizePx = minOf(it.width, it.height) }
+                .graphicsLayer {
+                    scaleX = boardScale
+                    scaleY = boardScale
+                }
+                .pointerInput(enabled) {
+                    if (enabled) {
+                        detectTransformGestures { _, _, zoom, _ ->
+                            boardScale = (boardScale * zoom).coerceIn(0.8f, 2.4f)
+                        }
+                    }
+                }
+        ) {
+            if (pieces.isEmpty()) {
+                CircularProgressIndicator(
+                    color = PuzzleAccent,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            for (row in 0 until gridSize) {
+                for (col in 0 until gridSize) {
+                    Box(
+                        modifier = Modifier
+                            .offset {
+                                IntOffset(
+                                    (col * (boardSizePx.toFloat() / gridSize)).roundToInt(),
+                                    (row * (boardSizePx.toFloat() / gridSize)).roundToInt()
+                                )
+                            }
+                            .size(pieceSize)
+                            .padding(2.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .border(
+                                1.dp,
+                                PuzzleDivider.copy(alpha = 0.55f),
+                                RoundedCornerShape(8.dp)
+                            )
+                    )
+                }
+            }
+
+            pieces.forEach { piece ->
+                PuzzlePiece(
+                    piece = piece,
+                    imageModel = imageModel,
+                    gridSize = gridSize,
+                    pieceSize = pieceSize,
+                    enabled = enabled && !piece.snapped,
+                    spacingPx = spacingPx,
+                    boardScale = boardScale,
+                    onDragStart = {
+                        activeMoveStart = piece
+                        pieces = bringPuzzlePieceToFront(pieces, piece.id)
+                    },
+                    onDrag = { dragAmount ->
+                        pieces = dragPuzzlePiece(
+                            pieces = pieces,
+                            pieceId = piece.id,
+                            delta = dragAmount / boardScale,
+                            boardSizePx = boardSizePx.toFloat(),
+                            gridSize = gridSize
+                        )
+                    },
+                    onDragEnd = {
+                        val before = activeMoveStart
+                        val result = snapPuzzlePiece(
+                            pieces = pieces,
+                            pieceId = piece.id,
+                            gridSize = gridSize,
+                            boardSizePx = boardSizePx.toFloat()
+                        )
+                        pieces = result.pieces
+                        val after = result.pieces.firstOrNull { it.id == piece.id }
+                        if (before != null && after != null && hasPieceMoved(before, after)) {
+                            undoStack = undoStack + PuzzleMove(piece.id, before)
+                            onPieceDropped()
+                        }
+                        activeMoveStart = null
+                        if (result.pieces.isNotEmpty() && result.pieces.all { it.snapped }) {
+                            onSolved()
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PuzzlePiece(
+    piece: PuzzlePieceState,
+    imageModel: Any,
+    gridSize: Int,
+    pieceSize: androidx.compose.ui.unit.Dp,
+    enabled: Boolean,
+    spacingPx: Float,
+    boardScale: Float,
+    onDragStart: () -> Unit,
+    onDrag: (Offset) -> Unit,
+    onDragEnd: () -> Unit
+) {
+    val targetTint = if (piece.snapped) PuzzleAccent.copy(alpha = 0.72f) else PuzzleAccent.copy(alpha = 0.4f)
+
+    Box(
+        modifier = Modifier
+            .offset { IntOffset(piece.x.roundToInt(), piece.y.roundToInt()) }
+            .size(pieceSize)
+            .padding(2.dp)
+            .graphicsLayer { this.scaleX = if (enabled) 1f else 0.99f }
+            .clip(RoundedCornerShape(8.dp))
+            .background(PuzzleTileBg)
+            .border(1.dp, targetTint, RoundedCornerShape(8.dp))
+            .pointerInput(piece.id, enabled, boardScale) {
+                if (enabled) {
+                    detectDragGestures(
+                        onDragStart = { onDragStart() },
+                        onDragCancel = onDragEnd,
+                        onDragEnd = onDragEnd,
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            onDrag(dragAmount)
+                        }
+                    )
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        AsyncImage(
+            model = imageModel,
+            contentDescription = stringResource(R.string.puzzle_tile_desc, piece.id),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    transformOrigin = TransformOrigin(0f, 0f)
+                    scaleX = gridSize.toFloat()
+                    scaleY = gridSize.toFloat()
+                    translationX = -size.width * piece.col - spacingPx * piece.col
+                    translationY = -size.height * piece.row - spacingPx * piece.row
+                }
+        )
+
     }
 }
 
@@ -832,7 +998,20 @@ private fun PuzzleStatCard(label: String, value: String, modifier: Modifier = Mo
     }
 }
 
-internal data class MoveResult(val tiles: List<Int>, val moved: Boolean)
+internal data class PuzzlePieceState(
+    val id: Int,
+    val row: Int,
+    val col: Int,
+    val x: Float,
+    val y: Float,
+    val snapped: Boolean = false,
+    val zIndex: Int = id
+)
+
+internal data class PuzzleMove(
+    val pieceId: Int,
+    val previous: PuzzlePieceState
+)
 
 internal fun gridSizeForDifficulty(difficulty: GameDifficulty): Int = when (difficulty) {
     GameDifficulty.EASY -> 3
@@ -840,62 +1019,113 @@ internal fun gridSizeForDifficulty(difficulty: GameDifficulty): Int = when (diff
     GameDifficulty.HARD -> 5
 }
 
-internal fun createSolvedTiles(gridSize: Int): List<Int> {
-    val list = MutableList(gridSize * gridSize) { it + 1 }
-    list[list.lastIndex] = 0
-    return list
-}
-
-internal fun shuffleTiles(solved: List<Int>, gridSize: Int, level: Int): List<Int> {
-    var board = solved
-    repeat(gridSize * gridSize * 12 + level * 4) {
-        val emptyIndex = board.indexOf(0)
-        val neighbors = neighborsOf(emptyIndex, gridSize)
-        val swapIndex = neighbors.random()
-        board = swap(board, emptyIndex, swapIndex)
+internal fun createPuzzlePieces(gridSize: Int, boardSizePx: Float, level: Int): List<PuzzlePieceState> {
+    val pieceSize = boardSizePx / gridSize
+    val maxOffset = (pieceSize * 0.42f).coerceAtLeast(16f)
+    return List(gridSize * gridSize) { index ->
+        val row = index / gridSize
+        val col = index % gridSize
+        val targetX = col * pieceSize
+        val targetY = row * pieceSize
+        val horizontalDirection = if ((index + level) % 2 == 0) -1f else 1f
+        val verticalDirection = if ((index + level / 2) % 2 == 0) 1f else -1f
+        val offsetX = horizontalDirection * (((index % gridSize) + 1) / gridSize.toFloat()) * maxOffset
+        val offsetY = verticalDirection * ((((index / gridSize) + 1) / gridSize.toFloat()) * maxOffset)
+        PuzzlePieceState(
+            id = index + 1,
+            row = row,
+            col = col,
+            x = (targetX + offsetX).coerceIn(0f, boardSizePx - pieceSize),
+            y = (targetY + offsetY).coerceIn(0f, boardSizePx - pieceSize),
+            snapped = false,
+            zIndex = index
+        )
+    }.let { pieces ->
+        if (pieces.all { it.isNearTarget(gridSize, boardSizePx) }) {
+            pieces.mapIndexed { index, piece ->
+                if (index == pieces.lastIndex) piece.copy(x = 0f, y = 0f) else piece
+            }
+        } else {
+            pieces
+        }
     }
-    if (isSolved(board)) {
-        val emptyIndex = board.indexOf(0)
-        val swapIndex = neighborsOf(emptyIndex, gridSize).first()
-        board = swap(board, emptyIndex, swapIndex)
+}
+
+internal fun dragPuzzlePiece(
+    pieces: List<PuzzlePieceState>,
+    pieceId: Int,
+    delta: Offset,
+    boardSizePx: Float,
+    gridSize: Int
+): List<PuzzlePieceState> {
+    val pieceSize = boardSizePx / gridSize
+    return pieces.map { piece ->
+        if (piece.id == pieceId && !piece.snapped) {
+            piece.copy(
+                x = (piece.x + delta.x).coerceIn(0f, boardSizePx - pieceSize),
+                y = (piece.y + delta.y).coerceIn(0f, boardSizePx - pieceSize)
+            )
+        } else {
+            piece
+        }
     }
-    return board
 }
 
-internal fun moveTile(tiles: List<Int>, tileValue: Int, gridSize: Int): MoveResult {
-    val tileIndex = tiles.indexOf(tileValue)
-    val emptyIndex = tiles.indexOf(0)
-    if (tileIndex == -1 || emptyIndex == -1) return MoveResult(tiles, false)
-    if (tileIndex !in neighborsOf(emptyIndex, gridSize)) return MoveResult(tiles, false)
-    return MoveResult(swap(tiles, tileIndex, emptyIndex), true)
-}
+internal data class SnapResult(
+    val pieces: List<PuzzlePieceState>,
+    val snapped: Boolean
+)
 
-private fun neighborsOf(index: Int, gridSize: Int): List<Int> {
-    val row = index / gridSize
-    val col = index % gridSize
-    val result = mutableListOf<Int>()
-    if (row > 0) result += index - gridSize
-    if (row < gridSize - 1) result += index + gridSize
-    if (col > 0) result += index - 1
-    if (col < gridSize - 1) result += index + 1
-    return result
-}
-
-private fun swap(tiles: List<Int>, i: Int, j: Int): List<Int> {
-    val mutable = tiles.toMutableList()
-    val temp = mutable[i]
-    mutable[i] = mutable[j]
-    mutable[j] = temp
-    return mutable
-}
-
-internal fun isSolved(tiles: List<Int>): Boolean {
-    if (tiles.isEmpty()) return false
-    for (i in 0 until tiles.lastIndex) {
-        if (tiles[i] != i + 1) return false
+internal fun snapPuzzlePiece(
+    pieces: List<PuzzlePieceState>,
+    pieceId: Int,
+    gridSize: Int,
+    boardSizePx: Float
+): SnapResult {
+    var didSnap = false
+    val updated = pieces.map { piece ->
+        if (piece.id == pieceId && !piece.snapped && piece.isNearTarget(gridSize, boardSizePx)) {
+            didSnap = true
+            val pieceSize = boardSizePx / gridSize
+            piece.copy(
+                x = piece.col * pieceSize,
+                y = piece.row * pieceSize,
+                snapped = true
+            )
+        } else {
+            piece
+        }
     }
-    return tiles.last() == 0
+    return SnapResult(updated, didSnap)
 }
+
+internal fun restorePuzzleMove(pieces: List<PuzzlePieceState>, move: PuzzleMove): List<PuzzlePieceState> {
+    return pieces.map { piece ->
+        if (piece.id == move.pieceId) move.previous else piece
+    }
+}
+
+internal fun bringPuzzlePieceToFront(pieces: List<PuzzlePieceState>, pieceId: Int): List<PuzzlePieceState> {
+    val nextZ = (pieces.maxOfOrNull { it.zIndex } ?: 0) + 1
+    return pieces.map { piece ->
+        if (piece.id == pieceId) piece.copy(zIndex = nextZ) else piece
+    }.sortedBy { it.zIndex }
+}
+
+internal fun hasPieceMoved(before: PuzzlePieceState, after: PuzzlePieceState): Boolean {
+    return abs(before.x - after.x) > 0.5f ||
+        abs(before.y - after.y) > 0.5f ||
+        before.snapped != after.snapped
+}
+
+private fun PuzzlePieceState.isNearTarget(gridSize: Int, boardSizePx: Float): Boolean {
+    val pieceSize = boardSizePx / gridSize
+    val snapThreshold = pieceSize * 0.24f
+    return abs(x - col * pieceSize) <= snapThreshold &&
+        abs(y - row * pieceSize) <= snapThreshold
+}
+
+private operator fun Offset.div(value: Float): Offset = Offset(x / value, y / value)
 
 internal fun formatTime(seconds: Int): String {
     val safe = seconds.coerceAtLeast(0)
