@@ -1113,6 +1113,61 @@ private fun PuzzleTopBar(
 }
 
 @Composable
+private fun PuzzleLevelImageStatus(
+    isLoading: Boolean,
+    hasError: Boolean,
+    errorDetail: String?,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(PuzzleTargetBg)
+            .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (hasError) {
+                Text(
+                    text = stringResource(R.string.puzzle_load_failed),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
+                )
+                if (!errorDetail.isNullOrBlank()) {
+                    Text(
+                        text = errorDetail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = PuzzleTextSecondary,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+                Button(
+                    onClick = onRetry,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = PuzzleButtonBg,
+                        contentColor = PuzzleAccent
+                    )
+                ) {
+                    Text(stringResource(R.string.puzzle_retry))
+                }
+            } else if (isLoading) {
+                CircularProgressIndicator(color = PuzzleAccent)
+                Text(
+                    text = stringResource(R.string.puzzle_loading),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = PuzzleTextSecondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun PuzzleStatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
@@ -1148,6 +1203,20 @@ internal fun gridSizeForDifficulty(difficulty: GameDifficulty): Int = when (diff
     GameDifficulty.EASY -> 3
     GameDifficulty.NORMAL -> 4
     GameDifficulty.HARD -> 5
+}
+
+/**
+ * Picks the candidate URL group (thumbUrl / imageUrl / fullUrl in priority order) for a
+ * given puzzle level so each level shows a distinct feed image when enough are available.
+ * Levels beyond the number of feed entries wrap around via modulo.
+ */
+internal fun puzzleImageCandidatesForLevel(
+    candidateGroups: List<List<String>>,
+    level: Int
+): List<String> {
+    if (candidateGroups.isEmpty()) return emptyList()
+    val index = ((level - 1) % candidateGroups.size + candidateGroups.size) % candidateGroups.size
+    return candidateGroups[index]
 }
 
 internal fun createPuzzlePieces(

@@ -27,6 +27,7 @@ class SettingsViewModelTest {
         whenever(repository.isBackgroundSoundEnabled()).thenReturn(true)
         whenever(repository.isCombatSoundEnabled()).thenReturn(true)
         whenever(repository.isHitShakeEffectEnabled()).thenReturn(true)
+        whenever(repository.getBgmFormat()).thenReturn(SettingsRepository.BGM_FORMAT_MP3)
     }
 
     private fun createViewModel(): SettingsViewModel = SettingsViewModel(repository, gameDataDao)
