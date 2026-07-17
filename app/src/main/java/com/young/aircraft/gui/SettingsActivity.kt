@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.databinding.SettingsActivityBinding
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.viewmodel.SettingsUiState
@@ -59,6 +60,13 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowHitShake.setOnClickListener { binding.switchHitShake.toggle() }
         binding.switchHitShake.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setHitShakeEnabled(isChecked)
+        }
+
+        binding.optionBgmMp3.setOnClickListener {
+            viewModel.setBgmFormat(SettingsRepository.BGM_FORMAT_MP3)
+        }
+        binding.optionBgmOgg.setOnClickListener {
+            viewModel.setBgmFormat(SettingsRepository.BGM_FORMAT_OGG)
         }
 
         binding.rowDeviceInfo.setOnClickListener {
@@ -194,7 +202,25 @@ class SettingsActivity : AppCompatActivity() {
         renderDifficulty(state.difficulty)
         renderSoundToggles(state)
         renderSoundOverview(state.enabledSoundCount)
+        renderBgmFormat(state.bgmFormat, state.bgSoundEnabled)
         binding.rowDevelopSettings.visibility = if (state.showDevelopSettings) View.VISIBLE else View.GONE
+    }
+
+    private fun renderBgmFormat(format: String, bgSoundEnabled: Boolean) {
+        val isOgg = format == SettingsRepository.BGM_FORMAT_OGG
+        binding.optionBgmMp3.isSelected = !isOgg
+        binding.optionBgmOgg.isSelected = isOgg
+        binding.optionBgmMp3.isEnabled = bgSoundEnabled
+        binding.optionBgmOgg.isEnabled = bgSoundEnabled
+        binding.tvBgmFormatChip.text = getString(
+            if (isOgg) R.string.bgm_format_ogg else R.string.bgm_format_mp3
+        )
+        binding.tvBgmFormatChip.setBackgroundResource(
+            if (bgSoundEnabled) R.drawable.settings_chip_active_bg else R.drawable.settings_chip_bg
+        )
+        val alpha = if (bgSoundEnabled) 1f else 0.5f
+        binding.optionBgmMp3.alpha = alpha
+        binding.optionBgmOgg.alpha = alpha
     }
 
     private fun renderDifficulty(difficulty: GameDifficulty) {

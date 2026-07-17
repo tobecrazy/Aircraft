@@ -42,16 +42,17 @@ class ExampleUnitTest {
             pieceId = 1,
             delta = Offset(-100f, 500f),
             boardSizePx = 300f,
-            gridSize = 3
+            gridSize = 3,
+            playAreaHeightPx = 500f
         )
 
         assertEquals(0f, dragged.first().x, 0.01f)
-        assertEquals(200f, dragged.first().y, 0.01f)
+        assertEquals(400f, dragged.first().y, 0.01f)
     }
 
     @Test
     fun `snap puzzle piece locks it to target when close`() {
-        val pieces = listOf(PuzzlePieceState(id = 5, row = 1, col = 1, x = 105f, y = 94f))
+        val pieces = listOf(PuzzlePieceState(id = 5, row = 1, col = 1, x = 135f, y = 132f))
 
         val result = snapPuzzlePiece(
             pieces = pieces,
@@ -67,6 +68,23 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun `snap puzzle piece ignores far drops`() {
+        val pieces = listOf(PuzzlePieceState(id = 5, row = 1, col = 1, x = 160f, y = 160f))
+
+        val result = snapPuzzlePiece(
+            pieces = pieces,
+            pieceId = 5,
+            gridSize = 3,
+            boardSizePx = 300f
+        )
+
+        assertFalse(result.snapped)
+        assertFalse(result.pieces.first().snapped)
+        assertEquals(160f, result.pieces.first().x, 0.01f)
+        assertEquals(160f, result.pieces.first().y, 0.01f)
+    }
+
+    @Test
     fun `restore puzzle move returns piece to previous position`() {
         val previous = PuzzlePieceState(id = 2, row = 0, col = 1, x = 48f, y = 12f)
         val current = previous.copy(x = 100f, y = 0f, snapped = true)
@@ -79,11 +97,11 @@ class ExampleUnitTest {
 
     @Test
     fun `piece creation and time formatting are stable`() {
-        val pieces = createPuzzlePieces(gridSize = 3, boardSizePx = 300f, level = 1)
+        val pieces = createPuzzlePieces(gridSize = 3, boardSizePx = 300f, level = 1, playAreaHeightPx = 500f)
 
         assertEquals(9, pieces.size)
         assertEquals((1..9).toList(), pieces.map { it.id })
-        assertTrue(pieces.any { it.x != it.col * 100f || it.y != it.row * 100f })
+        assertTrue(pieces.all { it.y >= 300f })
         assertEquals("02:05", formatTime(125))
     }
 }

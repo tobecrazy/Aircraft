@@ -29,10 +29,10 @@ android {
         applicationId "com.young.aircraft"
         minSdk 30
         //noinspection EditedTargetSdkVersion,OldTargetApi
-        targetSdk 36
+        targetSdk 37
         //noinspection OldTargetApi
-        versionCode 2
-        versionName "1.2.8"
+        versionCode 3
+        versionName "1.2.9"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
@@ -75,22 +75,22 @@ dependencies {
     implementation 'com.google.zxing:core:3.5.4'
     //retrofit
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("com.squareup.okhttp3:okhttp:5.4.0")
     def room_version = "2.8.4"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     ksp "androidx.room:room-compiler:$room_version"
 
-    implementation 'androidx.core:core-ktx:1.18.0'
+    implementation 'androidx.core:core-ktx:1.19.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.14.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.viewpager2:viewpager2:1.1.0'
     implementation 'androidx.media:media:1.8.0'
     implementation 'androidx.preference:preference-ktx:1.2.1'
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.11.0"
     //firebase
-    implementation(platform("com.google.firebase:firebase-bom:34.14.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("io.coil-kt:coil-compose:2.7.0")
@@ -98,7 +98,7 @@ dependencies {
     implementation("io.coil-kt:coil-svg:2.7.0")
 
     // Compose
-    def composeBom = platform('androidx.compose:compose-bom:2026.05.01')
+    def composeBom = platform('androidx.compose:compose-bom:2026.06.00')
     implementation composeBom
     testImplementation composeBom
     implementation 'androidx.compose.ui:ui'

@@ -42,6 +42,11 @@ class SettingsViewModel(
         _uiState.value = computeState()
     }
 
+    fun setBgmFormat(value: String) {
+        repository.setBgmFormat(value)
+        _uiState.value = computeState()
+    }
+
     suspend fun clearCachedGameData() = withContext(Dispatchers.IO) {
         gameDataDao?.deleteAll()
         repository.clearCachedGameData()
@@ -63,7 +68,8 @@ class SettingsViewModel(
             combatSoundEnabled = combatSound,
             hitShakeEnabled = hitShake,
             enabledSoundCount = enabledCount,
-            showDevelopSettings = DebugTools.isEnabled
+            showDevelopSettings = DebugTools.isEnabled,
+            bgmFormat = repository.getBgmFormat()
         )
     }
 

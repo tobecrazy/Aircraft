@@ -144,6 +144,10 @@
     <string name="background_sound_title">Background Music</string>
     <string name="background_sound_summary_on">Background music is on</string>
     <string name="background_sound_summary_off">Background music is off</string>
+    <string name="bgm_format_title">Music Format</string>
+    <string name="bgm_format_summary">Choose between MP3 and OGG background tracks</string>
+    <string name="bgm_format_mp3">MP3</string>
+    <string name="bgm_format_ogg">OGG</string>
     <string name="combat_sound_title">Combat Sound Effects</string>
     <string name="combat_sound_summary_on">Combat sound effects are on</string>
     <string name="combat_sound_summary_off">Combat sound effects are off</string>

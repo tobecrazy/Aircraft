@@ -144,6 +144,10 @@
     <string name="background_sound_title">背景音乐</string>
     <string name="background_sound_summary_on">背景音乐已开启</string>
     <string name="background_sound_summary_off">背景音乐已关闭</string>
+    <string name="bgm_format_title">音乐格式</string>
+    <string name="bgm_format_summary">在 MP3 与 OGG 背景音轨之间切换</string>
+    <string name="bgm_format_mp3">MP3</string>
+    <string name="bgm_format_ogg">OGG</string>
     <string name="combat_sound_title">战斗音效</string>
     <string name="combat_sound_summary_on">战斗音效已开启</string>
     <string name="combat_sound_summary_off">战斗音效已关闭</string>
