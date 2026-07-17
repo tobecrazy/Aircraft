@@ -66,6 +66,12 @@ class RichTextEditorView @JvmOverloads constructor(
         btnMarkdown = findViewById(R.id.rich_btn_markdown)
         btnHtml = findViewById(R.id.rich_btn_html)
 
+        // The editor can hold very large content (e.g. HTML with embedded base64 images).
+        // EditText freezes its full text into the saved-state Bundle by default, which crosses
+        // Binder and throws TransactionTooLargeException on rotation. Opt out of state saving;
+        // the hosting screen restores content explicitly.
+        editor.isSaveEnabled = false
+
         setupUnderlineButton()
         setupFormatting()
     }
@@ -244,6 +250,36 @@ class RichTextEditorView @JvmOverloads constructor(
             result = result.replace("\n", "<br>\n")
 
             return result
+        }
+
+        /**
+         * Converts untrusted plain text into safe HTML for the preview WebView.
+         *
+         * Unlike [processMarkdown] (which produces tags) and the raw-HTML path (which trusts
+         * embedded tags), this escapes every HTML metacharacter first, so text containing `<`,
+         * `>`, `&` or `"` is shown literally and cannot inject markup. Blank lines start a new
+         * `<p>` paragraph; single newlines become `<br>`. Bare http/https URLs are auto-linked
+         * (after escaping, so the link text is already safe).
+         */
+        fun plainTextToHtml(input: String): String {
+            if (input.isEmpty()) return ""
+            val escaped = input
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+
+            val urlRegex = Regex("(https?://[^\\s<]+)")
+            return escaped
+                .split(Regex("\r?\n[ \t]*\r?\n"))          // blank line separates paragraphs
+                .filter { it.isNotBlank() }
+                .joinToString("\n") { paragraph ->
+                    val linked = paragraph.replace(urlRegex) { match ->
+                        val url = match.value
+                        "<a href=\"$url\" style=\"color:#55AAFF;\">$url</a>"
+                    }
+                    "<p>${linked.replace(Regex("\r?\n"), "<br>")}</p>"
+                }
         }
 
         fun makeImagesClickable(html: String): String {

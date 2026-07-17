@@ -42,13 +42,15 @@ class RichTextEditorActivityTest {
     // ── Activity lifecycle ───────────────────────────────────
 
     @Test
-    fun `activity launches in edit mode`() {
+    fun `activity launches in preview mode with seeded content`() {
+        // The bundled sample is large (embedded base64 image) and preview-only, so the activity
+        // opens in preview with the editor hidden.
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editorView = findRichEditor(activity)
                 val preview = activity.findViewById<View>(R.id.wv_preview)
-                assertEquals(View.VISIBLE, editorView.visibility)
-                assertEquals(View.GONE, preview.visibility)
+                assertEquals(View.GONE, editorView.visibility)
+                assertEquals(View.VISIBLE, preview.visibility)
             }
         }
     }
@@ -78,14 +80,19 @@ class RichTextEditorActivityTest {
     }
 
     @Test
-    fun `clicking edit after preview restores editor`() {
+    fun `clicking edit on preview-only content keeps preview and shows toast`() {
+        // Seeded content is preview-only; the edit toggle must refuse and keep the editor hidden
+        // rather than laying out the huge content and risking an OOM.
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_preview_mode).performClick()
                 activity.findViewById<View>(R.id.btn_edit_mode).performClick()
 
-                assertEquals(View.VISIBLE, findRichEditor(activity).visibility)
-                assertEquals(View.GONE, activity.findViewById<View>(R.id.wv_preview).visibility)
+                assertEquals(View.GONE, findRichEditor(activity).visibility)
+                assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.wv_preview).visibility)
+                assertEquals(
+                    context.getString(R.string.rich_text_preview_only),
+                    ShadowToast.getTextOfLatestToast()
+                )
             }
         }
     }

@@ -80,8 +80,10 @@ import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.data.ImageDetailsSource
 import com.young.aircraft.viewmodel.ImageDetailsEvent
 import com.young.aircraft.viewmodel.ShowImageDetailsUiState
+import com.young.aircraft.utils.DataUriUtils
 import com.young.aircraft.viewmodel.ShowImageDetailsViewModel
 import kotlinx.coroutines.launch
+import java.nio.ByteBuffer
 
 class ShowImageDetailsActivity : AppCompatActivity() {
 
@@ -146,7 +148,10 @@ class ShowImageDetailsActivity : AppCompatActivity() {
         fun createIntent(context: Context, item: SupperBannerItem): Intent =
             Intent(context, ShowImageDetailsActivity::class.java).apply {
                 putExtra(ImageDetailsIntentContract.EXTRA_NAME, item.name)
-                putExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION, item.description)
+                putExtra(
+                    ImageDetailsIntentContract.EXTRA_DESCRIPTION,
+                    ImageDetailsIntentContract.toIntentExtra(item.description)
+                )
                 when (val image = item.image) {
                     is SupperBannerImage.Local -> {
                         putExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE, ImageDetailsIntentContract.SOURCE_LOCAL)
@@ -154,7 +159,10 @@ class ShowImageDetailsActivity : AppCompatActivity() {
                     }
                     is SupperBannerImage.Network -> {
                         putExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE, ImageDetailsIntentContract.SOURCE_NETWORK)
-                        putExtra(ImageDetailsIntentContract.EXTRA_URL, image.url)
+                        putExtra(
+                            ImageDetailsIntentContract.EXTRA_URL,
+                            ImageDetailsIntentContract.toIntentExtra(image.url)
+                        )
                     }
                 }
             }
@@ -168,6 +176,10 @@ private val DetailsPanelStrong = Color(0xFF171D29)
 private val DetailsText = Color(0xFFD8E0EF)
 private val DetailsSubText = Color(0xFFAAB4C8)
 private val DetailsBorder = Color(0x3300FF88)
+
+// Upper bound on the longest edge of the decoded preview bitmap. Coil downsamples larger
+// sources to fit, keeping memory bounded (2048px ARGB_8888 ≈ 16 MB worst case).
+private const val MAX_DECODE_DIMENSION_PX = 2048
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -294,6 +306,9 @@ private fun FullImagePanel(
             model = ImageRequest.Builder(context)
                 .data(resolvedImageModel)
                 .crossfade(true)
+                // Cap decoded dimensions so an oversized source (e.g. a large embedded base64
+                // image) downsamples instead of allocating a huge bitmap and risking OOM.
+                .size(MAX_DECODE_DIMENSION_PX)
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .build(),
@@ -336,6 +351,10 @@ private fun FullImagePanel(
 
 internal fun resolveImageDetailsModel(model: Any): Any {
     if (model !is String) return model
+    if (DataUriUtils.isBase64DataUri(model)) {
+        val bytes = DataUriUtils.decodeBytes(model)
+        if (bytes != null) return ByteBuffer.wrap(bytes)
+    }
     return normalizeGithubBlobImageUrl(model)
 }
 

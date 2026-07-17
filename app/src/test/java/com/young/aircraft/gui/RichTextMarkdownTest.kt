@@ -242,4 +242,45 @@ class RichTextMarkdownTest {
         assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("https://example.com/asset/hero.WEBP?size=lg"))
         assertTrue(RichTextEditorView.isImageFormatSupportedForPreview("https://example.com/logo.SVG?v=1"))
     }
+
+    // ── Plain text to HTML ───────────────────────────────────
+
+    @Test
+    fun `plain text escapes html metacharacters`() {
+        val result = RichTextEditorView.plainTextToHtml("a < b & c > d \"e\"")
+        assertTrue(result.contains("a &lt; b &amp; c &gt; d &quot;e&quot;"))
+        // No live tags leaked through.
+        assertFalse(result.contains("<b>"))
+    }
+
+    @Test
+    fun `plain text does not execute injected script tag`() {
+        val result = RichTextEditorView.plainTextToHtml("<script>alert(1)</script>")
+        assertFalse(result.contains("<script>"))
+        assertTrue(result.contains("&lt;script&gt;"))
+    }
+
+    @Test
+    fun `single newline becomes br and blank line becomes new paragraph`() {
+        val result = RichTextEditorView.plainTextToHtml("line1\nline2\n\npara2")
+        assertTrue(result.contains("<p>line1<br>line2</p>"))
+        assertTrue(result.contains("<p>para2</p>"))
+    }
+
+    @Test
+    fun `bare url is auto-linked`() {
+        val result = RichTextEditorView.plainTextToHtml("see https://example.com now")
+        assertTrue(result.contains("<a href=\"https://example.com\""))
+        assertTrue(result.contains(">https://example.com</a>"))
+    }
+
+    @Test
+    fun `empty input yields empty string`() {
+        assertEquals("", RichTextEditorView.plainTextToHtml(""))
+    }
+
+    @Test
+    fun `whitespace-only input yields no paragraphs`() {
+        assertEquals("", RichTextEditorView.plainTextToHtml("   \n\n   "))
+    }
 }

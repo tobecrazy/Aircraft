@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.young.aircraft.data.ImageDetails
 import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.data.ImageDetailsSource
+import com.young.aircraft.utils.DataUriUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,11 +56,17 @@ class ShowImageDetailsViewModel(
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 95, output)
                             }
                             is ImageDetailsSource.Network -> {
-                                val request = Request.Builder().url(source.url).build()
-                                httpClient.newCall(request).execute().use { response ->
-                                    if (!response.isSuccessful) return@use false
-                                    response.body.byteStream().copyTo(output)
+                                val dataUriBytes = DataUriUtils.decodeBytes(source.url)
+                                if (dataUriBytes != null) {
+                                    output.write(dataUriBytes)
                                     true
+                                } else {
+                                    val request = Request.Builder().url(source.url).build()
+                                    httpClient.newCall(request).execute().use { response ->
+                                        if (!response.isSuccessful) return@use false
+                                        response.body.byteStream().copyTo(output)
+                                        true
+                                    }
                                 }
                             }
                         }

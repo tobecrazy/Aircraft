@@ -444,4 +444,5 @@
     <string name="rich_text_html_image">Image tag %s</string>
     <string name="rich_text_html_link">Hyperlink tag</string>
     <string name="rich_text_html_heading">Heading tag</string>
+    <string name="rich_text_preview_only">Content too large to edit — showing preview only</string>
 </resources>
