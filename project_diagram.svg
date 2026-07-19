@@ -654,4 +654,5 @@
   <!-- 2026-05-31 update: Refreshed Room schema to 2031, utility inventory with FilePickerHelper, Image/Banner detail ViewModels, and five background assets. -->
   <!-- 2026-05-31 update: Added FlashlightActivity settings destination and FlashlightViewModel for Camera2 torch, SOS, and brightness control. -->
   <!-- 2026-05-31 update: Added FlashlightService foreground service (camera) — torch + SOS coroutine + PARTIAL_WAKE_LOCK with persistent notification, Off action, and post-first-torch battery-optimization whitelist prompt. -->
+  <!-- 2026-07-19 update: Moved example.json into app/src/main/assets and added RichTextEditorActivity JSON sample loading. -->
 </svg>

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `app/src/main/assets/example.json` rich-text sample plus a `RichTextEditorActivity` JSON load action that imports `sectDesc` as editable HTML while omitting embedded base64 image tags
 - `FlashlightService` foreground service (`foregroundServiceType="camera"`) that owns the Camera2 torch on behalf of `FlashlightViewModel`, keeping the torch alive when the screen is off or the activity is paused
 - Persistent low-importance notification with a "Turn off" action that fires `ACTION_TORCH_OFF` — gives users a one-tap escape so they don't reach for force-stop
 - `PARTIAL_WAKE_LOCK` (`Aircraft::FlashlightSos`, 10-min safety timeout) acquired only while SOS mode is active, keeping CPU running so coroutine `delay()` pacing stays accurate with the screen off

@@ -42,15 +42,17 @@ class RichTextEditorActivityTest {
     // ── Activity lifecycle ───────────────────────────────────
 
     @Test
-    fun `activity launches in preview mode with seeded content`() {
-        // The bundled sample is large (embedded base64 image) and preview-only, so the activity
-        // opens in preview with the editor hidden.
+    fun `activity launches in edit mode with editable rich text input`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editorView = findRichEditor(activity)
+                val editor = findEditor(activity)
                 val preview = activity.findViewById<View>(R.id.wv_preview)
-                assertEquals(View.GONE, editorView.visibility)
-                assertEquals(View.VISIBLE, preview.visibility)
+                assertEquals(View.VISIBLE, editorView.visibility)
+                assertEquals(View.GONE, preview.visibility)
+                assertTrue(editor.isEnabled)
+                assertTrue(editor.isFocusable)
+                assertNotNull(editor.keyListener)
             }
         }
     }
@@ -80,21 +82,48 @@ class RichTextEditorActivityTest {
     }
 
     @Test
-    fun `clicking edit on preview-only content keeps preview and shows toast`() {
-        // Seeded content is preview-only; the edit toggle must refuse and keep the editor hidden
-        // rather than laying out the huge content and risking an OOM.
+    fun `clicking edit after preview shows editable rich text input`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
+                activity.findViewById<View>(R.id.btn_preview_mode).performClick()
                 activity.findViewById<View>(R.id.btn_edit_mode).performClick()
 
-                assertEquals(View.GONE, findRichEditor(activity).visibility)
-                assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.wv_preview).visibility)
+                val editor = findEditor(activity)
+                assertEquals(View.VISIBLE, findRichEditor(activity).visibility)
+                assertEquals(View.GONE, activity.findViewById<View>(R.id.wv_preview).visibility)
+                assertTrue(editor.isEnabled)
+                assertNotNull(editor.keyListener)
+            }
+        }
+    }
+
+    @Test
+    fun `clicking json loads editable example content`() {
+        ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                activity.findViewById<View>(R.id.btn_load_example_json).performClick()
+
+                val editor = findEditor(activity)
+                val content = editor.text.toString()
+                assertEquals(View.VISIBLE, findRichEditor(activity).visibility)
+                assertTrue(content.contains("a good day"))
+                assertTrue(content.contains("https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"))
+                assertFalse(content.contains("data:image/png;base64"))
                 assertEquals(
-                    context.getString(R.string.rich_text_preview_only),
+                    context.getString(R.string.rich_text_example_json_loaded),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
         }
+    }
+
+    @Test
+    fun `makeHtmlEditable omits embedded data image tags`() {
+        val html = "<p><img src=\"data:image/png;base64,abc123\" /></p><p>keep</p>"
+
+        val editable = RichTextEditorActivity.makeHtmlEditable(html)
+
+        assertEquals("<p><span>[embedded image omitted]</span></p><p>keep</p>", editable)
     }
 
     // ── Formatting without selection shows toast ─────────────

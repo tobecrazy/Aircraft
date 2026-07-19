@@ -87,6 +87,21 @@
                 android:typeface="monospace" />
 
             <TextView
+                android:id="@+id/btn_load_example_json"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/device_info_gauge_bg"
+                android:gravity="center"
+                android:text="@string/rich_text_load_example_json"
+                android:textColor="#66FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:typeface="monospace" />
+
+            <TextView
                 android:id="@+id/btn_preview_mode"
                 android:layout_width="0dp"
                 android:layout_height="36dp"

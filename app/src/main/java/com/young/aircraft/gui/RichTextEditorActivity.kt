@@ -7,6 +7,7 @@ import android.view.View
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityRichTextEditorBinding
@@ -14,19 +15,12 @@ import com.young.aircraft.ui.RichTextEditorView
 import com.young.aircraft.utils.DataUriUtils
 import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.RichTextEditorViewModel
-import androidx.core.graphics.toColorInt
+import org.json.JSONObject
 
 class RichTextEditorActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRichTextEditorBinding
     private lateinit var viewModel: RichTextEditorViewModel
-
-    /**
-     * Raw HTML that is too large to edit safely (a huge unbreakable base64 token would make the
-     * EditText's native text layout allocate gigabytes and get OOM-killed). When set, the content
-     * is preview-only: it is rendered by the WebView and never placed in the EditText.
-     */
-    private var previewOnlyHtml: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,17 +40,16 @@ class RichTextEditorActivity : AppCompatActivity() {
 
         loadDefaultContent()
 
-        // Preview-only content must never reach the EditText; otherwise open in the saved mode.
-        if (previewOnlyHtml != null || !viewModel.isEditMode) {
+        if (viewModel.isEditMode) {
+            switchToEditMode()
+        } else {
             switchToPreviewMode()
         }
     }
 
     /**
-     * Seeds the sample rich-text (HTML with an embedded base64 image). Content larger than
-     * [MAX_EDITABLE_LENGTH] is held as [previewOnlyHtml] and never placed in the EditText, since a
-     * single unbreakable base64 token would blow up the text layout engine. Smaller content is
-     * loaded into the editor as before.
+     * Seeds sample rich text only when it is small enough for native EditText layout. Oversized
+     * samples are skipped so the screen still opens as an editable rich-text surface.
      */
     private fun loadDefaultContent() {
         if (binding.richEditor.text?.isNotEmpty() == true) return
@@ -65,23 +58,36 @@ class RichTextEditorActivity : AppCompatActivity() {
         }.getOrNull()
         if (default.isNullOrEmpty()) return
         if (default.length > MAX_EDITABLE_LENGTH) {
-            previewOnlyHtml = default
-        } else {
-            binding.richEditor.editor.setText(default)
+            return
         }
+        binding.richEditor.editor.setText(default)
     }
 
     private fun setupModeToggle() {
         binding.btnEditMode.setOnClickListener { switchToEditMode() }
         binding.btnPreviewMode.setOnClickListener { switchToPreviewMode() }
+        binding.btnLoadExampleJson.setOnClickListener { loadExampleJson() }
+    }
+
+    private fun loadExampleJson() {
+        val loaded = runCatching {
+            val rawJson = assets.open(EXAMPLE_JSON_ASSET).bufferedReader().use { it.readText() }
+            val html = JSONObject(rawJson).optString(EXAMPLE_JSON_HTML_KEY)
+            if (html.isBlank()) return@runCatching false
+            binding.richEditor.editor.setText(makeHtmlEditable(html))
+            binding.richEditor.editor.setSelection(binding.richEditor.editor.text?.length ?: 0)
+            switchToEditMode()
+            true
+        }.getOrDefault(false)
+
+        Toast.makeText(
+            this,
+            if (loaded) R.string.rich_text_example_json_loaded else R.string.rich_text_example_json_failed,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun switchToEditMode() {
-        // Large preview-only content cannot be edited safely — keep it in preview.
-        if (previewOnlyHtml != null) {
-            Toast.makeText(this, R.string.rich_text_preview_only, Toast.LENGTH_SHORT).show()
-            return
-        }
         viewModel.switchToEditMode()
         binding.btnEditMode.setTextColor("#00FF88".toColorInt())
         binding.btnPreviewMode.setTextColor("#66FFFFFF".toColorInt())
@@ -128,9 +134,6 @@ class RichTextEditorActivity : AppCompatActivity() {
     }
 
     private fun buildPreviewHtml(): String {
-        // Preview-only content is treated as raw HTML (it never passed through the editor).
-        previewOnlyHtml?.let { return wrapHtml(it) }
-
         val editable = binding.richEditor.text ?: return wrapHtml("")
 
         if (binding.richEditor.isMarkdownMode) {
@@ -239,14 +242,24 @@ class RichTextEditorActivity : AppCompatActivity() {
 
     companion object {
         private const val DEFAULT_CONTENT_ASSET = "rich_text_default.html"
+        private const val EXAMPLE_JSON_ASSET = "example.json"
+        private const val EXAMPLE_JSON_HTML_KEY = "sectDesc"
 
-        // Content above this length is rendered preview-only. Editing very large content (e.g. a
-        // long unbreakable base64 image token) in an EditText makes native text layout allocate
-        // enormous buffers and the process gets OOM-killed.
+        // Content above this length is not seeded into the editor. Editing very large content
+        // (e.g. a long unbreakable base64 image token) in an EditText makes native text layout
+        // allocate enormous buffers and the process gets OOM-killed.
         private const val MAX_EDITABLE_LENGTH = 100_000
 
         // Heuristic: does the text contain an HTML tag (e.g. <b>, <img ...>)? If so, treat it as
         // authored HTML; otherwise escape it as plain text.
         private val CONTAINS_HTML_TAG = Regex("<[a-zA-Z/][^>]*>")
+        private val DATA_IMAGE_TAG = Regex(
+            pattern = "<img\\b[^>]*\\bsrc\\s*=\\s*([\"'])data:image/[^\"']+\\1[^>]*>",
+            options = setOf(RegexOption.IGNORE_CASE)
+        )
+
+        fun makeHtmlEditable(html: String): String {
+            return DATA_IMAGE_TAG.replace(html, "<span>[embedded image omitted]</span>")
+        }
     }
 }

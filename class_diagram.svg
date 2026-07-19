@@ -1282,8 +1282,8 @@
     <text x="10" y="128" font-size="10" fill="#333">+ size popup (12/16/22/30)</text>
     <text x="10" y="141" font-size="10" fill="#333">+ color popup (green/red/blue/yellow)</text>
     <text x="10" y="154" font-size="10" fill="#333">+ markdown processing / HTML insertion</text>
-    <text x="10" y="167" font-size="10" fill="#333">+ image tap in preview → ShowImageDetailsActivity</text>
-    <text x="10" y="179" font-size="9" fill="#888">DEBUG-only, WebView preview, Spannable</text>
+    <text x="10" y="167" font-size="10" fill="#333">+ load example.json sectDesc into editor</text>
+    <text x="10" y="179" font-size="9" fill="#888">DEBUG-only, WebView preview, image taps</text>
   </g>
 
   <!-- ===== ADDITIONAL NAVIGATION ARROWS ===== -->

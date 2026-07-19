@@ -426,6 +426,7 @@
     <string name="rich_text_editor_title">Rich Text Editor</string>
     <string name="rich_text_mode_edit">EDIT</string>
     <string name="rich_text_mode_preview">PREVIEW</string>
+    <string name="rich_text_load_example_json">JSON</string>
     <string name="rich_text_hint">Type here\u2026 Use toolbar for formatting, toggle MD for Markdown mode.</string>
     <string name="rich_text_btn_size">SIZE</string>
     <string name="rich_text_btn_color">COLOR</string>
@@ -444,5 +445,6 @@
     <string name="rich_text_html_image">Image tag %s</string>
     <string name="rich_text_html_link">Hyperlink tag</string>
     <string name="rich_text_html_heading">Heading tag</string>
-    <string name="rich_text_preview_only">Content too large to edit — showing preview only</string>
+    <string name="rich_text_example_json_loaded">Example JSON loaded</string>
+    <string name="rich_text_example_json_failed">Could not load example JSON</string>
 </resources>

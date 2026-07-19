@@ -70,7 +70,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Coil-based network image loading with crossfade animations (`AsyncImage` for Compose, `ImageView.load()` for Views)
 - Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
 - `FileProvider` paths include `Pictures/`, `Download/`, and app cache, enabling shared file URIs for exported/generated assets
-- Rich-text preview image tap support: clicking an image in `RichTextEditorActivity` opens `ShowImageDetailsActivity`
+- Rich-text editor JSON sample loading from `app/src/main/assets/example.json`, plus preview image tap support that opens `ShowImageDetailsActivity`
 - Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
@@ -140,7 +140,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
 │   ├── FlashlightActivity.kt           # Compose flashlight utility with torch, SOS, and brightness controls
-│   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with WebView preview; preview image taps open ShowImageDetailsActivity
+│   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with example JSON loading, WebView preview, and image details navigation
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── BannerDetailsActivity.kt        # Legacy banner details viewer retained in source
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, Android Dev Assistant entry, and QR Tool notification test
