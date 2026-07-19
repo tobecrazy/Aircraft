@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rich_text_hint">Type here\u2026 Use toolbar for formatting, toggle MD for Markdown mode.</string>
+    <string name="rich_text_btn_size">SIZE</string>
+    <string name="rich_text_btn_color">COLOR</string>
+    <string name="rich_text_select_text">Select text first</string>
+    <string name="rich_text_size_small">Small (12sp)</string>
+    <string name="rich_text_size_medium">Medium (16sp)</string>
+    <string name="rich_text_size_large">Large (22sp)</string>
+    <string name="rich_text_size_xlarge">X-Large (30sp)</string>
+    <string name="rich_text_color_green">Green</string>
+    <string name="rich_text_color_red">Red</string>
+    <string name="rich_text_color_blue">Blue</string>
+    <string name="rich_text_color_yellow">Yellow</string>
+    <string name="rich_text_color_white">White</string>
+    <string name="rich_text_md_on">Markdown mode enabled</string>
+    <string name="rich_text_md_off">Markdown mode disabled</string>
+    <string name="rich_text_html_image">Image tag %s</string>
+    <string name="rich_text_html_link">Hyperlink tag</string>
+    <string name="rich_text_html_heading">Heading tag</string>
+</resources>

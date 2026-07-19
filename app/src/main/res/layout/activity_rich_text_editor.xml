@@ -44,7 +44,7 @@
             android:background="#4400FF88" />
 
         <!-- Rich Text Editor (toolbar + EditText) -->
-        <com.young.aircraft.ui.RichTextEditorView
+        <com.young.richtext.RichTextEditorView
             android:id="@+id/rich_editor"
             android:layout_width="match_parent"
             android:layout_height="0dp"

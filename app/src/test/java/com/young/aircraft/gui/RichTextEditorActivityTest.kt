@@ -11,7 +11,8 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.R
-import com.young.aircraft.ui.RichTextEditorView
+import com.young.richtext.RichTextEditorView
+import com.young.richtext.R as RichTextR
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -136,7 +137,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello")
                 editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.rich_btn_bold).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_bold).performClick()
                 assertEquals(
                     context.getString(R.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
@@ -153,7 +154,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello")
                 editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.rich_btn_italic).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_italic).performClick()
                 assertEquals(
                     context.getString(R.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
@@ -170,7 +171,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello")
                 editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.rich_btn_underline).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_underline).performClick()
                 assertEquals(
                     context.getString(R.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
@@ -189,7 +190,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello world")
                 editor.setSelection(0, 5)
 
-                activity.findViewById<View>(R.id.rich_btn_bold).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_bold).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(0, 5, StyleSpan::class.java)
@@ -207,7 +208,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello world")
                 editor.setSelection(6, 11)
 
-                activity.findViewById<View>(R.id.rich_btn_italic).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_italic).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(6, 11, StyleSpan::class.java)
@@ -225,7 +226,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello world")
                 editor.setSelection(0, 5)
 
-                activity.findViewById<View>(R.id.rich_btn_underline).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_underline).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(0, 5, UnderlineSpan::class.java)
@@ -240,7 +241,7 @@ class RichTextEditorActivityTest {
     fun `markdown toggle shows enabled toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.rich_btn_markdown).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_markdown).performClick()
                 assertEquals(
                     context.getString(R.string.rich_text_md_on),
                     ShadowToast.getTextOfLatestToast()
@@ -253,7 +254,7 @@ class RichTextEditorActivityTest {
     fun `markdown double toggle shows disabled toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btn = activity.findViewById<View>(R.id.rich_btn_markdown)
+                val btn = activity.findViewById<View>(RichTextR.id.rich_btn_markdown)
                 btn.performClick() // ON
                 btn.performClick() // OFF
                 assertEquals(

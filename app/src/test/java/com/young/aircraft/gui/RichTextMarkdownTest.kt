@@ -1,6 +1,6 @@
 package com.young.aircraft.gui
 
-import com.young.aircraft.ui.RichTextEditorView
+import com.young.richtext.RichTextEditorView
 import org.junit.Assert.*
 import org.junit.Test
 

@@ -71,6 +71,8 @@ buildFeatures {
 }
 
 dependencies {
+    implementation project(':richtexteditor')
+
     // ZXing for QR code generation and decoding
     implementation 'com.google.zxing:core:3.5.4'
     //retrofit

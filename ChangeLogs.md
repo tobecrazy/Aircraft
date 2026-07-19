@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `:richtexteditor` Android library module that packages `com.young.richtext.RichTextEditorView` as a reusable AAR, including its layout, localized editor strings, Markdown/plain-text HTML helpers, image tap URL helpers, and focused JVM tests
+- `docs/rich-text-editor-aar-usage.md` with build commands, AAR integration steps, XML/Kotlin usage examples, preview WebView guidance, and public API notes
 - `app/src/main/assets/example.json` rich-text sample plus a `RichTextEditorActivity` JSON load action that imports `sectDesc` as editable HTML while omitting embedded base64 image tags
 - `FlashlightService` foreground service (`foregroundServiceType="camera"`) that owns the Camera2 torch on behalf of `FlashlightViewModel`, keeping the torch alive when the screen is off or the activity is paused
 - Persistent low-importance notification with a "Turn off" action that fires `ACTION_TORCH_OFF` — gives users a one-tap escape so they don't reach for force-stop
@@ -70,6 +72,7 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `RichTextEditorActivity` and `QRCodeToolActivity` now consume `RichTextEditorView` from the `:richtexteditor` library module instead of `app/src/main/java/com/young/aircraft/ui`
 - `PuzzleActivity` core gameplay redesigned from tap-to-slide tiles into a drag-and-drop picture puzzle with freeform pieces, two-finger board zoom, auto-snapping, hint preview, and undo support
 - `PuzzleActivity` keeps the 3×3 / 4×4 / 5×5 difficulty split while improving interaction: pieces use a larger invisible touch target, active drags scale the selected piece for better visibility, and snap tolerance is wider so players do not need pixel-perfect drops
 - `FlashlightViewModel` refactored to delegate all torch and SOS work to `FlashlightService` via intent commands (`ACTION_TORCH_ON/OFF`, `ACTION_SOS_ON/OFF` with `EXTRA_BRIGHTNESS` and `EXTRA_SOS_UNIT_MS`); torch on/off state still syncs through `CameraManager.TorchCallback`, and SOS state is now observed from `FlashlightService.isSosRunning` `StateFlow` instead of running a coroutine in the ViewModel — public companion API (`SOS_PATTERN`, `brightnessToStrengthLevel`, `SOS_MIN_UNIT_MS`/`MAX`/`STEPS`) preserved verbatim

@@ -11,10 +11,10 @@ import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityRichTextEditorBinding
-import com.young.aircraft.ui.RichTextEditorView
 import com.young.aircraft.utils.DataUriUtils
 import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.RichTextEditorViewModel
+import com.young.richtext.RichTextEditorView
 import org.json.JSONObject
 
 class RichTextEditorActivity : AppCompatActivity() {
