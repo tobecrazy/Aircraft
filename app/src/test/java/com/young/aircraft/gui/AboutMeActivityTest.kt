@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
@@ -92,7 +93,7 @@ class AboutMeActivityTest {
         val toggledValues = mutableListOf<Boolean>()
 
         composeRule.activity.setContent {
-            var torchOn by mutableStateOf(false)
+            var torchOn by remember { mutableStateOf(false) }
 
             MaterialTheme {
                 TorchHero(
