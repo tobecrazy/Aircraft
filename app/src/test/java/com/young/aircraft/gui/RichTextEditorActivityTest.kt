@@ -139,7 +139,7 @@ class RichTextEditorActivityTest {
 
                 activity.findViewById<View>(RichTextR.id.rich_btn_bold).performClick()
                 assertEquals(
-                    context.getString(R.string.rich_text_select_text),
+                    context.getString(RichTextR.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
@@ -156,7 +156,7 @@ class RichTextEditorActivityTest {
 
                 activity.findViewById<View>(RichTextR.id.rich_btn_italic).performClick()
                 assertEquals(
-                    context.getString(R.string.rich_text_select_text),
+                    context.getString(RichTextR.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
@@ -173,7 +173,7 @@ class RichTextEditorActivityTest {
 
                 activity.findViewById<View>(RichTextR.id.rich_btn_underline).performClick()
                 assertEquals(
-                    context.getString(R.string.rich_text_select_text),
+                    context.getString(RichTextR.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
@@ -243,7 +243,7 @@ class RichTextEditorActivityTest {
             scenario.onActivity { activity ->
                 activity.findViewById<View>(RichTextR.id.rich_btn_markdown).performClick()
                 assertEquals(
-                    context.getString(R.string.rich_text_md_on),
+                    context.getString(RichTextR.string.rich_text_md_on),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
@@ -258,7 +258,7 @@ class RichTextEditorActivityTest {
                 btn.performClick() // ON
                 btn.performClick() // OFF
                 assertEquals(
-                    context.getString(R.string.rich_text_md_off),
+                    context.getString(RichTextR.string.rich_text_md_off),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
