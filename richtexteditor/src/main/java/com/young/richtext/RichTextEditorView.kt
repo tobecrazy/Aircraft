@@ -1,4 +1,4 @@
-package com.young.aircraft.ui
+package com.young.richtext
 
 import android.content.Context
 import android.graphics.Color
@@ -18,8 +18,6 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
-import com.young.aircraft.R
-import com.young.aircraft.data.AircraftConstants
 import androidx.core.graphics.toColorInt
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -66,6 +64,9 @@ class RichTextEditorView @JvmOverloads constructor(
         btnMarkdown = findViewById(R.id.rich_btn_markdown)
         btnHtml = findViewById(R.id.rich_btn_html)
 
+        // Large HTML/base64 payloads should be restored by the host, not through the view state Bundle.
+        editor.isSaveEnabled = false
+
         setupUnderlineButton()
         setupFormatting()
     }
@@ -83,9 +84,6 @@ class RichTextEditorView @JvmOverloads constructor(
         lp.height = heightPx
         editor.layoutParams = lp
     }
-    
-
-    // ── Formatting ─────────────────────────────────────────
 
     private fun setupUnderlineButton() {
         val label = SpannableStringBuilder("U")
@@ -135,11 +133,18 @@ class RichTextEditorView @JvmOverloads constructor(
         popup.menu.add(0, 3, 3, context.getString(R.string.rich_text_size_xlarge))
         popup.setOnMenuItemClickListener { item ->
             val sizeSp = when (item.itemId) {
-                0 -> 12; 1 -> 16; 2 -> 22; 3 -> 30; else -> 16
+                0 -> 12
+                1 -> 16
+                2 -> 22
+                3 -> 30
+                else -> 16
             }
             val spannable = editor.text as SpannableStringBuilder
             spannable.setSpan(
-                AbsoluteSizeSpan(sizeSp, true), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                AbsoluteSizeSpan(sizeSp, true),
+                start,
+                end,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             true
         }
@@ -164,7 +169,9 @@ class RichTextEditorView @JvmOverloads constructor(
             val spannable = editor.text as SpannableStringBuilder
             spannable.setSpan(
                 ForegroundColorSpan(Color.parseColor(colorHex)),
-                start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                start,
+                end,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             true
         }
@@ -182,18 +189,18 @@ class RichTextEditorView @JvmOverloads constructor(
 
     private fun insertHtmlSnippet() {
         val popup = PopupMenu(context, btnHtml)
-        popup.menu.add(0, 0, 0, context.getString(R.string.rich_text_html_image,"png"))
-        popup.menu.add(0, 1, 1, context.getString(R.string.rich_text_html_image,"gif"))
-        popup.menu.add(0, 2, 2, context.getString(R.string.rich_text_html_image,"svg"))
+        popup.menu.add(0, 0, 0, context.getString(R.string.rich_text_html_image, "png"))
+        popup.menu.add(0, 1, 1, context.getString(R.string.rich_text_html_image, "gif"))
+        popup.menu.add(0, 2, 2, context.getString(R.string.rich_text_html_image, "svg"))
         popup.menu.add(0, 3, 3, context.getString(R.string.rich_text_html_heading))
         popup.menu.add(0, 4, 4, context.getString(R.string.rich_text_html_link))
         popup.setOnMenuItemClickListener { item ->
             val snippet = when (item.itemId) {
-                0 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE_PNG}\" width=\"200\" />"
-                1 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE_GIF}\" width=\"200\" />"
-                2 -> "<img src=\"${AircraftConstants.Urls.EXAMPLE_IMAGE_SVG}\" width=\"200\" />"
+                0 -> "<img src=\"$EXAMPLE_IMAGE_PNG\" width=\"200\" />"
+                1 -> "<img src=\"$EXAMPLE_IMAGE_GIF\" width=\"200\" />"
+                2 -> "<img src=\"$EXAMPLE_IMAGE_SVG\" width=\"200\" />"
                 3 -> "<h3>Heading</h3>"
-                4 -> "<a href=\"${AircraftConstants.Urls.EXAMPLE_LINK}\">Link Text</a>"
+                4 -> "<a href=\"$EXAMPLE_LINK\">Link Text</a>"
                 else -> ""
             }
             val pos = editor.selectionStart
@@ -204,9 +211,16 @@ class RichTextEditorView @JvmOverloads constructor(
     }
 
     companion object {
+        const val EXAMPLE_IMAGE_PNG =
+            "https://images.cnblogs.com/cnblogs_com/tobecrazy/2504287/o_260505005950_ChatGPT%20Image%20May%204,%202026,%2009_28_05%20PM.png"
+        const val EXAMPLE_IMAGE_GIF =
+            "https://images.cnblogs.com/cnblogs_com/tobecrazy/2505855/o_260513081240_789.gif"
+        const val EXAMPLE_IMAGE_SVG =
+            "https://github.com/tobecrazy/Aircraft/blob/main/class_diagram.svg?raw=1"
+        const val EXAMPLE_LINK = "https://www.cnblogs.com/tobecrazy"
+
         private const val IMAGE_TAP_SCHEME = "aircraft-image"
         private val SUPPORTED_IMAGE_EXTENSIONS = setOf(
-            // Keep this list conservative for WebView <img> preview reliability.
             "jpg", "jpeg", "png", "gif", "webp", "svg"
         )
 
@@ -246,8 +260,32 @@ class RichTextEditorView @JvmOverloads constructor(
             return result
         }
 
+        fun plainTextToHtml(input: String): String {
+            if (input.isEmpty()) return ""
+            val escaped = input
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+
+            val urlRegex = Regex("(https?://[^\\s<]+)")
+            return escaped
+                .split(Regex("\r?\n[ \t]*\r?\n"))
+                .filter { it.isNotBlank() }
+                .joinToString("\n") { paragraph ->
+                    val linked = paragraph.replace(urlRegex) { match ->
+                        val url = match.value
+                        "<a href=\"$url\" style=\"color:#55AAFF;\">$url</a>"
+                    }
+                    "<p>${linked.replace(Regex("\r?\n"), "<br>")}</p>"
+                }
+        }
+
         fun makeImagesClickable(html: String): String {
-            val imageTagRegex = Regex("<img\\b[^>]*\\bsrc\\s*=\\s*\"([^\"]+)\"[^>]*>", RegexOption.IGNORE_CASE)
+            val imageTagRegex = Regex(
+                "<img\\b[^>]*\\bsrc\\s*=\\s*\"([^\"]+)\"[^>]*>",
+                RegexOption.IGNORE_CASE
+            )
             return imageTagRegex.replace(html) { match ->
                 val imageTag = match.value
                 val src = match.groupValues[1]
@@ -257,7 +295,9 @@ class RichTextEditorView @JvmOverloads constructor(
         }
 
         fun buildImageTapUrl(src: String): String = "$IMAGE_TAP_SCHEME://open?src=${encodeUrl(src)}"
+
         fun isImageTapUrl(url: String): Boolean = url.startsWith("$IMAGE_TAP_SCHEME://")
+
         fun isImageFormatSupportedForPreview(fileNameOrExtension: String): Boolean {
             val normalized = fileNameOrExtension
                 .substringAfterLast('/')

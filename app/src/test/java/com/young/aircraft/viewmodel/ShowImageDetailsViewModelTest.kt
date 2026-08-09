@@ -147,6 +147,35 @@ class ShowImageDetailsViewModelTest {
     }
 
     @Test
+    fun `large url survives intent round-trip via payload handoff`() {
+        // ~200 KB data URI would exceed the Binder transaction limit if inlined.
+        val largeUrl = "data:image/png;base64," + "A".repeat(200_000)
+        val extra = ImageDetailsIntentContract.toIntentExtra(largeUrl)
+
+        // The extra placed in the Intent is a small reference token, not the payload.
+        assertTrue(extra.length < 1024)
+        assertNotEquals(largeUrl, extra)
+
+        val intent = Intent().apply {
+            putExtra(ImageDetailsIntentContract.EXTRA_NAME, "big.png")
+            putExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION, extra)
+            putExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE, ImageDetailsIntentContract.SOURCE_NETWORK)
+            putExtra(ImageDetailsIntentContract.EXTRA_URL, extra)
+        }
+
+        val details = ImageDetailsIntentContract.fromIntent(intent)
+        assertNotNull(details)
+        assertEquals(largeUrl, (details!!.source as ImageDetailsSource.Network).url)
+        assertEquals(largeUrl, details.description)
+    }
+
+    @Test
+    fun `short url passes through intent extra unchanged`() {
+        val url = "https://example.com/small.png"
+        assertEquals(url, ImageDetailsIntentContract.toIntentExtra(url))
+    }
+
+    @Test
     fun `downloadFileName adds extension for name without extension`() {
         val details = ImageDetails(
             name = "image_without_ext",

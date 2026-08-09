@@ -144,6 +144,10 @@
     <string name="background_sound_title">背景音乐</string>
     <string name="background_sound_summary_on">背景音乐已开启</string>
     <string name="background_sound_summary_off">背景音乐已关闭</string>
+    <string name="bgm_format_title">音乐格式</string>
+    <string name="bgm_format_summary">在 MP3 与 OGG 背景音轨之间切换</string>
+    <string name="bgm_format_mp3">MP3</string>
+    <string name="bgm_format_ogg">OGG</string>
     <string name="combat_sound_title">战斗音效</string>
     <string name="combat_sound_summary_on">战斗音效已开启</string>
     <string name="combat_sound_summary_off">战斗音效已关闭</string>
@@ -257,6 +261,7 @@
     <string name="puzzle_hint_image_desc">拼图提示图</string>
     <string name="puzzle_save">保存</string>
     <string name="puzzle_save_and_exit">保存并退出</string>
+    <string name="puzzle_undo_button">撤销</string>
     <string name="puzzle_hint_button">提示 (%1$d)</string>
     <string name="puzzle_hint_active">提示已激活</string>
     <string name="puzzle_cleared_title">拼图通关</string>
@@ -269,7 +274,7 @@
     <string name="puzzle_stat_moves">步数</string>
     <string name="puzzle_stat_score">得分</string>
     <string name="puzzle_guide_title">拼图引导</string>
-    <string name="puzzle_guide_message">点击与空白格相邻的拼图块即可移动。在倒计时结束前还原完整图片。卡住时可使用提示，退出前可保存进度。</string>
+    <string name="puzzle_guide_message">拖动拼图块到对应的图片位置。接近正确位置时会自动吸附，可用双指缩放棋盘，提示可预览完整图片，撤销可回退上一次放置。</string>
     <string name="puzzle_guide_confirm">开始</string>
     <string name="develop_settings_title">开发设置</string>
     <string name="develop_settings_summary">仅限调试使用的工具和崩溃测试</string>
@@ -421,22 +426,7 @@
     <string name="rich_text_editor_title">富文本编辑器</string>
     <string name="rich_text_mode_edit">编辑</string>
     <string name="rich_text_mode_preview">预览</string>
-    <string name="rich_text_hint">在此输入\u2026 使用工具栏格式化文本，点击 MD 启用 Markdown 模式。</string>
-    <string name="rich_text_btn_size">字号</string>
-    <string name="rich_text_btn_color">颜色</string>
-    <string name="rich_text_select_text">请先选择文本</string>
-    <string name="rich_text_size_small">小号 (12sp)</string>
-    <string name="rich_text_size_medium">中号 (16sp)</string>
-    <string name="rich_text_size_large">大号 (22sp)</string>
-    <string name="rich_text_size_xlarge">特大号 (30sp)</string>
-    <string name="rich_text_color_green">绿色</string>
-    <string name="rich_text_color_red">红色</string>
-    <string name="rich_text_color_blue">蓝色</string>
-    <string name="rich_text_color_yellow">黄色</string>
-    <string name="rich_text_color_white">白色</string>
-    <string name="rich_text_md_on">Markdown 模式已开启</string>
-    <string name="rich_text_md_off">Markdown 模式已关闭</string>
-    <string name="rich_text_html_image">图片标签 %s</string>
-    <string name="rich_text_html_link">超链接标签</string>
-    <string name="rich_text_html_heading">标题标签</string>
+    <string name="rich_text_load_example_json">JSON</string>
+    <string name="rich_text_example_json_loaded">示例 JSON 已加载</string>
+    <string name="rich_text_example_json_failed">无法加载示例 JSON</string>
 </resources>

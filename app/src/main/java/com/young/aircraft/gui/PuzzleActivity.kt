@@ -8,31 +8,34 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
@@ -61,19 +64,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
@@ -92,14 +100,17 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 import java.util.concurrent.TimeUnit
 
 class PuzzleActivity : ComponentActivity() {
     companion object {
         private const val MAX_PUZZLE_LEVEL = 10
         private const val CACHE_PREFS = "puzzle_image_cache"
-        private const val KEY_CACHE_FILE = "cached_image_file"
-        private const val CACHE_FILE_NAME = "puzzle_cached_image.jpg"
+        private const val KEY_CACHE_FILE_PREFIX = "cached_image_file_"
+        private const val CACHE_FILE_NAME_PREFIX = "puzzle_cached_image_level_"
         private const val TAG = "PuzzleActivity"
         private const val USER_AGENT = "AircraftPuzzle/1.0 (Android)"
     }
@@ -112,7 +123,10 @@ class PuzzleActivity : ComponentActivity() {
     private var jetPlaneIndex: Int = 0
     private lateinit var settingsRepository: SettingsRepository
 
-    private var puzzleImageModel by mutableStateOf<Any?>(null)
+    private val puzzleImageModels = mutableStateMapOf<Int, Any>()
+    private var activePuzzleImageLevel by mutableIntStateOf(1)
+    private var loadingPuzzleImageLevel by mutableStateOf<Int?>(null)
+    private var hasPuzzleScreenStarted by mutableStateOf(false)
     private var isImageLoading by mutableStateOf(true)
     private var imageLoadFailed by mutableStateOf(false)
     private var imageLoadErrorDetail by mutableStateOf<String?>(null)
@@ -136,16 +150,31 @@ class PuzzleActivity : ComponentActivity() {
         jetPlaneRes = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, R.drawable.jet_plane_2)
         jetPlaneIndex = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_INDEX, 0)
 
-        loadPuzzleImageWithCache()
+        activePuzzleImageLevel = puzzleLevel
+        loadPuzzleImageWithCache(puzzleLevel)
 
         setContent {
             MaterialTheme {
-                if (puzzleImageModel != null) {
+                if (hasPuzzleScreenStarted) {
+                    val activePuzzleImageModel = puzzleImageModels[activePuzzleImageLevel]
                     PuzzleScreen(
                         startLevel = puzzleLevel,
                         startScore = puzzleScore,
                         difficulty = viewModel.getDifficulty(),
-                        puzzleImageUrl = puzzleImageModel.toString(),
+                        puzzleImageUrl = activePuzzleImageModel?.toString(),
+                        isImageLoading = isImageLoading && loadingPuzzleImageLevel == activePuzzleImageLevel,
+                        imageLoadFailed = imageLoadFailed && loadingPuzzleImageLevel == activePuzzleImageLevel,
+                        imageLoadErrorDetail = imageLoadErrorDetail,
+                        onLevelImageNeeded = { level ->
+                            activePuzzleImageLevel = level.coerceIn(1, MAX_PUZZLE_LEVEL)
+                            if (!puzzleImageModels.containsKey(activePuzzleImageLevel)) {
+                                loadPuzzleImageWithCache(activePuzzleImageLevel)
+                            }
+                        },
+                        onRetryImage = { level ->
+                            activePuzzleImageLevel = level.coerceIn(1, MAX_PUZZLE_LEVEL)
+                            loadPuzzleImageWithCache(activePuzzleImageLevel, forceRefresh = true)
+                        },
                         onSaveAndExit = { level, score ->
                             savePuzzleProgress(level, score, finishAfterSave = true)
                         },
@@ -166,7 +195,7 @@ class PuzzleActivity : ComponentActivity() {
                             imageLoadFailed = false
                             imageLoadErrorDetail = null
                             isImageLoading = true
-                            loadPuzzleImageWithCache()
+                            loadPuzzleImageWithCache(activePuzzleImageLevel, forceRefresh = true)
                         }
                     )
                 }
@@ -209,14 +238,21 @@ class PuzzleActivity : ComponentActivity() {
         }
     }
 
-    private fun loadPuzzleImageWithCache() {
+    private fun loadPuzzleImageWithCache(level: Int, forceRefresh: Boolean = false) {
+        val targetLevel = level.coerceIn(1, MAX_PUZZLE_LEVEL)
+        loadingPuzzleImageLevel = targetLevel
+        isImageLoading = true
+        imageLoadFailed = false
+        imageLoadErrorDetail = null
+
         lifecycleScope.launch(Dispatchers.IO) {
             var failureReason: String? = null
             val loadedModel = runCatching {
                 val prefs = getSharedPreferences(CACHE_PREFS, MODE_PRIVATE)
-                val cachedFileName = prefs.getString(KEY_CACHE_FILE, null)
+                val cacheKey = cacheKeyForPuzzleLevel(targetLevel)
+                val cachedFileName = prefs.getString(cacheKey, null)
                 val cachedFile = if (cachedFileName.isNullOrBlank()) null else File(cacheDir, cachedFileName)
-                if (cachedFile != null && cachedFile.exists() && cachedFile.length() > 0) {
+                if (!forceRefresh && cachedFile != null && cachedFile.exists() && cachedFile.length() > 0) {
                     return@runCatching Uri.fromFile(cachedFile)
                 }
 
@@ -233,9 +269,10 @@ class PuzzleActivity : ComponentActivity() {
                     response.body?.string().orEmpty()
                 }
 
-                val candidates = AircraftConstants.Urls.extractLatestPuzzleImageCandidatesFromPeapixFeed(feedBody)
+                val candidateGroups = AircraftConstants.Urls.extractPuzzleImageCandidateGroupsFromPeapixFeed(feedBody)
+                val candidates = puzzleImageCandidatesForLevel(candidateGroups, targetLevel)
                 if (candidates.isEmpty()) {
-                    failureReason = "No image URL in feed"
+                    failureReason = "No unique image URL in feed for puzzle level $targetLevel"
                     return@runCatching null
                 }
 
@@ -259,7 +296,7 @@ class PuzzleActivity : ComponentActivity() {
                     val bytes = attempt.getOrNull()
                     if (bytes != null && bytes.isNotEmpty()) {
                         imageBytes = bytes
-                        Log.d(TAG, "Loaded puzzle image from $candidate (${bytes.size} bytes)")
+                        Log.d(TAG, "Loaded puzzle level $targetLevel image from $candidate (${bytes.size} bytes)")
                         break
                     }
                     val cause = attempt.exceptionOrNull()
@@ -271,9 +308,9 @@ class PuzzleActivity : ComponentActivity() {
                     return@runCatching null
                 }
 
-                val file = File(cacheDir, CACHE_FILE_NAME)
+                val file = File(cacheDir, cacheFileNameForPuzzleLevel(targetLevel))
                 file.outputStream().use { it.write(imageBytes) }
-                prefs.edit().putString(KEY_CACHE_FILE, CACHE_FILE_NAME).apply()
+                prefs.edit().putString(cacheKey, file.name).apply()
                 failureReason = null
                 Uri.fromFile(file)
             }
@@ -285,7 +322,10 @@ class PuzzleActivity : ComponentActivity() {
 
             withContext(Dispatchers.Main) {
                 if (loadedModel != null) {
-                    puzzleImageModel = loadedModel
+                    puzzleImageModels[targetLevel] = loadedModel
+                    if (targetLevel == puzzleLevel) {
+                        hasPuzzleScreenStarted = true
+                    }
                     isImageLoading = false
                     imageLoadFailed = false
                     imageLoadErrorDetail = null
@@ -297,6 +337,10 @@ class PuzzleActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun cacheKeyForPuzzleLevel(level: Int): String = "$KEY_CACHE_FILE_PREFIX$level"
+
+    private fun cacheFileNameForPuzzleLevel(level: Int): String = "$CACHE_FILE_NAME_PREFIX$level.jpg"
 
     private fun savePuzzleProgress(level: Int, score: Long, finishAfterSave: Boolean) {
         lifecycleScope.launch {
@@ -329,9 +373,12 @@ private val PuzzlePanelBg = Color(0xFF161A26)
 private val PuzzleAccent = Color(0xFF00FF88)
 private val PuzzleTextSecondary = Color(0xFFAAB4C8)
 private val PuzzleTileBg = Color(0xFF263142)
-private val PuzzleEmptyTileBg = Color(0xFF1A2331)
 private val PuzzleDivider = Color(0x4400FF88)
 private val PuzzleButtonBg = Color(0xFF1F2636)
+private val PuzzleTargetBg = Color(0xFF1A2331)
+private val PuzzleTrayBg = Color(0xFF101722)
+private val PuzzlePieceTouchTargetMin = 72.dp
+private const val DRAGGING_PIECE_SCALE = 1.14f
 
 @Composable
 private fun PuzzleLoadingScreen(
@@ -408,7 +455,12 @@ private fun PuzzleScreen(
     startLevel: Int,
     startScore: Long,
     difficulty: GameDifficulty,
-    puzzleImageUrl: String,
+    puzzleImageUrl: String?,
+    isImageLoading: Boolean,
+    imageLoadFailed: Boolean,
+    imageLoadErrorDetail: String?,
+    onLevelImageNeeded: (Int) -> Unit,
+    onRetryImage: (Int) -> Unit,
     onSaveAndExit: (Int, Long) -> Unit,
     onProgressSaved: (Int, Long) -> Unit,
     onAllLevelsCleared: (Long) -> Unit,
@@ -440,14 +492,16 @@ private fun PuzzleScreen(
     var solvedState by remember(level) { mutableIntStateOf(0) }
 
     val gridSize = remember(difficulty) { gridSizeForDifficulty(difficulty) }
-    val solvedTiles = remember(gridSize) { createSolvedTiles(gridSize) }
-    var tiles by remember(level, gridSize) { mutableStateOf(shuffleTiles(solvedTiles, gridSize, level)) }
+    var boardResetToken by remember(level, gridSize) { mutableIntStateOf(level * 100 + gridSize) }
+    var undoRequested by remember(level, gridSize) { mutableIntStateOf(0) }
+    var canUndo by remember(level, gridSize) { mutableStateOf(false) }
 
     val totalSec = remember(level) { (GameCoreView.getLevelDurationMs(level) / 1000L).toInt() }
     val remainingSec = (totalSec - elapsedSec).coerceAtLeast(0)
+    val isLevelImageReady = !puzzleImageUrl.isNullOrBlank()
 
-    LaunchedEffect(appActive, solvedState, remainingSec) {
-        while (appActive == 1 && solvedState == 0 && remainingSec > 0) {
+    LaunchedEffect(appActive, solvedState, remainingSec, isLevelImageReady) {
+        while (appActive == 1 && solvedState == 0 && remainingSec > 0 && isLevelImageReady) {
             delay(1000)
             elapsedSec += 1
         }
@@ -493,16 +547,28 @@ private fun PuzzleScreen(
                     moves = moves
                 )
 
-            AsyncImage(
-                model = puzzleImageUrl,
-                contentDescription = stringResource(R.string.puzzle_image_preview_desc),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(136.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp)),
-                contentScale = ContentScale.Crop
-            )
+                if (isLevelImageReady) {
+                    AsyncImage(
+                        model = puzzleImageUrl.orEmpty(),
+                        contentDescription = stringResource(R.string.puzzle_image_preview_desc),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(136.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    PuzzleLevelImageStatus(
+                        isLoading = isImageLoading,
+                        hasError = imageLoadFailed,
+                        errorDetail = imageLoadErrorDetail,
+                        onRetry = { onRetryImage(level) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(136.dp)
+                    )
+                }
 
                 Card(
                     modifier = Modifier
@@ -512,72 +578,34 @@ private fun PuzzleScreen(
                     border = BorderStroke(1.dp, PuzzleDivider),
                     shape = RoundedCornerShape(18.dp)
                 ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(gridSize),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        items(tiles) { tile ->
-                            val isEmpty = tile == 0
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (isEmpty) PuzzleEmptyTileBg else PuzzleTileBg)
-                                    .border(
-                                        1.dp,
-                                        if (isEmpty) PuzzleDivider else PuzzleAccent.copy(alpha = 0.4f),
-                                        RoundedCornerShape(12.dp)
-                                    )
-                                    .clickable(enabled = !isEmpty && solvedState == 0) {
-                                        val result = moveTile(tiles, tile, gridSize)
-                                        if (result.moved) {
-                                            tiles = result.tiles
-                                            moves += 1
-                                            score += 10L * level
-                                        }
-                                        if (isSolved(tiles)) {
-                                            solvedState = 1
-                                        }
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (!isEmpty) {
-                                    val tileIndex = tile - 1
-                                    val tileRow = tileIndex / gridSize
-                                    val tileCol = tileIndex % gridSize
-
-                                    AsyncImage(
-                                        model = puzzleImageUrl,
-                                        contentDescription = stringResource(R.string.puzzle_tile_desc, tile),
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .graphicsLayer {
-                                                transformOrigin = TransformOrigin(0f, 0f)
-                                                scaleX = gridSize.toFloat()
-                                                scaleY = gridSize.toFloat()
-                                                translationX = -size.width * tileCol
-                                                translationY = -size.height * tileRow
-                                            }
-                                            .drawWithContent { drawContent() }
-                                    )
-
-                                    Text(
-                                        text = tile.toString(),
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier
-                                            .align(Alignment.TopStart)
-                                            .padding(8.dp)
-                                    )
-                                }
-                            }
-                        }
+                    if (isLevelImageReady) {
+                        PuzzleBoard(
+                            imageModel = puzzleImageUrl,
+                            gridSize = gridSize,
+                            level = level,
+                            enabled = solvedState == 0,
+                            resetToken = boardResetToken,
+                            undoRequest = undoRequested,
+                            onUndoAvailabilityChanged = { canUndo = it },
+                            onPieceDropped = {
+                                moves += 1
+                                score += 10L * level
+                            },
+                            onSolved = { solvedState = 1 },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(10.dp)
+                        )
+                    } else {
+                        PuzzleLevelImageStatus(
+                            isLoading = isImageLoading,
+                            hasError = imageLoadFailed,
+                            errorDetail = imageLoadErrorDetail,
+                            onRetry = { onRetryImage(level) },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(10.dp)
+                        )
                     }
                 }
 
@@ -593,8 +621,16 @@ private fun PuzzleScreen(
                     ) {
                         Text(stringResource(R.string.puzzle_save))
                     }
+                    FilledTonalButton(
+                        enabled = canUndo && solvedState == 0 && isLevelImageReady,
+                        onClick = { undoRequested += 1 },
+                        contentPadding = PaddingValues(horizontal = 10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.puzzle_undo_button))
+                    }
                     Button(
-                        enabled = hintsRemaining > 0 && hintVisible == 0 && solvedState == 0,
+                        enabled = hintsRemaining > 0 && hintVisible == 0 && solvedState == 0 && isLevelImageReady,
                         onClick = {
                             hintsRemaining -= 1
                             hintVisible = 1
@@ -611,7 +647,7 @@ private fun PuzzleScreen(
             }
         }
 
-        if (hintVisible == 1) {
+        if (hintVisible == 1 && isLevelImageReady) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -662,18 +698,20 @@ private fun PuzzleScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            val updatedScore = score + remainingSec * 2L
-                            if (level >= maxPuzzleLevel) {
-                                onAllLevelsCleared(updatedScore)
-                            } else {
-                                level += 1
+                                val updatedScore = score + remainingSec * 2L
+                                if (level >= maxPuzzleLevel) {
+                                    onAllLevelsCleared(updatedScore)
+                                } else {
+                                val nextLevel = level + 1
+                                onLevelImageNeeded(nextLevel)
+                                level = nextLevel
                                 score = updatedScore
                                 moves = 0
                                 elapsedSec = 0
                                 hintsRemaining = 3
                                 hintVisible = 0
                                 solvedState = 0
-                                tiles = shuffleTiles(solvedTiles, gridSize, level)
+                                boardResetToken += 1
                                 onProgressSaved(level, score)
                             }
                         }
@@ -701,7 +739,7 @@ private fun PuzzleScreen(
                         hintsRemaining = 3
                         hintVisible = 0
                         solvedState = 0
-                        tiles = shuffleTiles(solvedTiles, gridSize, level)
+                        boardResetToken += 1
                     }) {
                         Text(stringResource(R.string.puzzle_retry))
                     }
@@ -726,6 +764,265 @@ private fun PuzzleScreen(
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun PuzzleBoard(
+    imageModel: Any,
+    gridSize: Int,
+    level: Int,
+    enabled: Boolean,
+    resetToken: Int,
+    undoRequest: Int,
+    onUndoAvailabilityChanged: (Boolean) -> Unit,
+    onPieceDropped: () -> Unit,
+    onSolved: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var boardSizePx by remember { mutableIntStateOf(0) }
+    var boardScale by remember(resetToken) { mutableStateOf(1f) }
+    var pieces by remember(resetToken) { mutableStateOf(emptyList<PuzzlePieceState>()) }
+    var undoStack by remember(resetToken) { mutableStateOf(emptyList<PuzzleMove>()) }
+    var activeMoveStart by remember(resetToken) { mutableStateOf<PuzzlePieceState?>(null) }
+    var activePieceId by remember(resetToken) { mutableIntStateOf(0) }
+    var playAreaHeightPx by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val spacingPx = with(density) { 4.dp.toPx() }
+
+    LaunchedEffect(gridSize, level, boardSizePx, playAreaHeightPx, resetToken) {
+        if (boardSizePx > 0 && playAreaHeightPx > boardSizePx) {
+            pieces = createPuzzlePieces(
+                gridSize = gridSize,
+                boardSizePx = boardSizePx.toFloat(),
+                level = level,
+                playAreaHeightPx = playAreaHeightPx.toFloat()
+            )
+            undoStack = emptyList()
+            boardScale = 1f
+        }
+    }
+
+    LaunchedEffect(undoRequest) {
+        if (undoRequest > 0 && undoStack.isNotEmpty()) {
+            val move = undoStack.last()
+            pieces = restorePuzzleMove(pieces, move)
+            undoStack = undoStack.dropLast(1)
+        }
+    }
+
+    LaunchedEffect(undoStack) {
+        onUndoAvailabilityChanged(undoStack.isNotEmpty())
+    }
+
+    BoxWithConstraints(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        val boardSize = if (maxWidth < maxHeight * 0.72f) maxWidth else maxHeight * 0.72f
+        val playAreaHeight = maxHeight
+        val pieceSize = boardSize / gridSize
+
+        Box(
+            modifier = Modifier
+                .width(boardSize)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(14.dp))
+                .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp))
+                .onSizeChanged {
+                    boardSizePx = it.width
+                    playAreaHeightPx = it.height
+                }
+                .graphicsLayer {
+                    scaleX = boardScale
+                    scaleY = boardScale
+                }
+                .pointerInput(enabled) {
+                    if (enabled) {
+                        detectTransformGestures { _, _, zoom, _ ->
+                            boardScale = (boardScale * zoom).coerceIn(0.8f, 2.4f)
+                        }
+                    }
+                }
+        ) {
+            if (pieces.isEmpty()) {
+                CircularProgressIndicator(
+                    color = PuzzleAccent,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(boardSize)
+                    .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
+                    .background(PuzzleTargetBg)
+                    .border(1.dp, PuzzleDivider, RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
+            ) {
+                for (row in 0 until gridSize) {
+                    for (col in 0 until gridSize) {
+                        Box(
+                            modifier = Modifier
+                                .offset {
+                                    IntOffset(
+                                        (col * (boardSizePx.toFloat() / gridSize)).roundToInt(),
+                                        (row * (boardSizePx.toFloat() / gridSize)).roundToInt()
+                                    )
+                                }
+                                .size(pieceSize)
+                                .padding(2.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(
+                                    1.dp,
+                                    PuzzleDivider.copy(alpha = 0.55f),
+                                    RoundedCornerShape(8.dp)
+                                )
+                        )
+                    }
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(playAreaHeight - boardSize)
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(bottomStart = 14.dp, bottomEnd = 14.dp))
+                    .background(PuzzleTrayBg)
+                    .border(
+                        1.dp,
+                        PuzzleDivider.copy(alpha = 0.3f),
+                        RoundedCornerShape(bottomStart = 14.dp, bottomEnd = 14.dp)
+                    )
+            )
+
+            pieces.forEach { piece ->
+                PuzzlePiece(
+                    piece = piece,
+                    imageModel = imageModel,
+                    gridSize = gridSize,
+                    pieceSize = pieceSize,
+                    enabled = enabled && !piece.snapped,
+                    isDragging = activePieceId == piece.id,
+                    spacingPx = spacingPx,
+                    boardScale = boardScale,
+                    onDragStart = {
+                        activeMoveStart = piece
+                        activePieceId = piece.id
+                        pieces = bringPuzzlePieceToFront(pieces, piece.id)
+                    },
+                    onDrag = { dragAmount ->
+                        pieces = dragPuzzlePiece(
+                            pieces = pieces,
+                            pieceId = piece.id,
+                            delta = dragAmount / boardScale,
+                            boardSizePx = boardSizePx.toFloat(),
+                            gridSize = gridSize,
+                            playAreaHeightPx = playAreaHeightPx.toFloat()
+                        )
+                    },
+                    onDragEnd = {
+                        val before = activeMoveStart
+                        val result = snapPuzzlePiece(
+                            pieces = pieces,
+                            pieceId = piece.id,
+                            gridSize = gridSize,
+                            boardSizePx = boardSizePx.toFloat()
+                        )
+                        pieces = result.pieces
+                        val after = result.pieces.firstOrNull { it.id == piece.id }
+                        if (before != null && after != null && hasPieceMoved(before, after)) {
+                            undoStack = undoStack + PuzzleMove(piece.id, before)
+                            onPieceDropped()
+                        }
+                        activeMoveStart = null
+                        activePieceId = 0
+                        if (result.pieces.isNotEmpty() && result.pieces.all { it.snapped }) {
+                            onSolved()
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PuzzlePiece(
+    piece: PuzzlePieceState,
+    imageModel: Any,
+    gridSize: Int,
+    pieceSize: androidx.compose.ui.unit.Dp,
+    enabled: Boolean,
+    isDragging: Boolean,
+    spacingPx: Float,
+    boardScale: Float,
+    onDragStart: () -> Unit,
+    onDrag: (Offset) -> Unit,
+    onDragEnd: () -> Unit
+) {
+    val targetTint = if (piece.snapped) PuzzleAccent.copy(alpha = 0.72f) else PuzzleAccent.copy(alpha = 0.4f)
+    val touchTargetSize = if (pieceSize < PuzzlePieceTouchTargetMin) PuzzlePieceTouchTargetMin else pieceSize
+    val touchInsetPx = with(LocalDensity.current) { ((touchTargetSize - pieceSize) / 2f).toPx() }
+
+    Box(
+        modifier = Modifier
+            .offset {
+                IntOffset(
+                    (piece.x - touchInsetPx).roundToInt(),
+                    (piece.y - touchInsetPx).roundToInt()
+                )
+            }
+            .size(touchTargetSize)
+            .pointerInput(piece.id, enabled, boardScale) {
+                if (enabled) {
+                    detectDragGestures(
+                        onDragStart = { onDragStart() },
+                        onDragCancel = onDragEnd,
+                        onDragEnd = onDragEnd,
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            onDrag(dragAmount)
+                        }
+                    )
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(pieceSize)
+                .padding(2.dp)
+                .graphicsLayer {
+                    val scale = when {
+                        isDragging -> DRAGGING_PIECE_SCALE
+                        enabled -> 1f
+                        else -> 0.99f
+                    }
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .clip(RoundedCornerShape(8.dp))
+                .background(PuzzleTileBg)
+                .border(1.dp, targetTint, RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = imageModel,
+                contentDescription = stringResource(R.string.puzzle_tile_desc, piece.id),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        transformOrigin = TransformOrigin(0f, 0f)
+                        scaleX = gridSize.toFloat()
+                        scaleY = gridSize.toFloat()
+                        translationX = -size.width * piece.col - spacingPx * piece.col
+                        translationY = -size.height * piece.row - spacingPx * piece.row
+                    }
+            )
+        }
+
     }
 }
 
@@ -816,6 +1113,61 @@ private fun PuzzleTopBar(
 }
 
 @Composable
+private fun PuzzleLevelImageStatus(
+    isLoading: Boolean,
+    hasError: Boolean,
+    errorDetail: String?,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(PuzzleTargetBg)
+            .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (hasError) {
+                Text(
+                    text = stringResource(R.string.puzzle_load_failed),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
+                )
+                if (!errorDetail.isNullOrBlank()) {
+                    Text(
+                        text = errorDetail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = PuzzleTextSecondary,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+                Button(
+                    onClick = onRetry,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = PuzzleButtonBg,
+                        contentColor = PuzzleAccent
+                    )
+                ) {
+                    Text(stringResource(R.string.puzzle_retry))
+                }
+            } else if (isLoading) {
+                CircularProgressIndicator(color = PuzzleAccent)
+                Text(
+                    text = stringResource(R.string.puzzle_loading),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = PuzzleTextSecondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun PuzzleStatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
@@ -832,7 +1184,20 @@ private fun PuzzleStatCard(label: String, value: String, modifier: Modifier = Mo
     }
 }
 
-internal data class MoveResult(val tiles: List<Int>, val moved: Boolean)
+internal data class PuzzlePieceState(
+    val id: Int,
+    val row: Int,
+    val col: Int,
+    val x: Float,
+    val y: Float,
+    val snapped: Boolean = false,
+    val zIndex: Int = id
+)
+
+internal data class PuzzleMove(
+    val pieceId: Int,
+    val previous: PuzzlePieceState
+)
 
 internal fun gridSizeForDifficulty(difficulty: GameDifficulty): Int = when (difficulty) {
     GameDifficulty.EASY -> 3
@@ -840,62 +1205,138 @@ internal fun gridSizeForDifficulty(difficulty: GameDifficulty): Int = when (diff
     GameDifficulty.HARD -> 5
 }
 
-internal fun createSolvedTiles(gridSize: Int): List<Int> {
-    val list = MutableList(gridSize * gridSize) { it + 1 }
-    list[list.lastIndex] = 0
-    return list
+/**
+ * Picks the candidate URL group (thumbUrl / imageUrl / fullUrl in priority order) for a
+ * given puzzle level so each level shows a distinct feed image when enough are available.
+ * Levels beyond the number of feed entries wrap around via modulo.
+ */
+internal fun puzzleImageCandidatesForLevel(
+    candidateGroups: List<List<String>>,
+    level: Int
+): List<String> {
+    if (candidateGroups.isEmpty()) return emptyList()
+    val index = ((level - 1) % candidateGroups.size + candidateGroups.size) % candidateGroups.size
+    return candidateGroups[index]
 }
 
-internal fun shuffleTiles(solved: List<Int>, gridSize: Int, level: Int): List<Int> {
-    var board = solved
-    repeat(gridSize * gridSize * 12 + level * 4) {
-        val emptyIndex = board.indexOf(0)
-        val neighbors = neighborsOf(emptyIndex, gridSize)
-        val swapIndex = neighbors.random()
-        board = swap(board, emptyIndex, swapIndex)
+internal fun createPuzzlePieces(
+    gridSize: Int,
+    boardSizePx: Float,
+    level: Int,
+    playAreaHeightPx: Float = boardSizePx
+): List<PuzzlePieceState> {
+    val pieceSize = boardSizePx / gridSize
+    val trayTop = (boardSizePx + pieceSize * 0.16f).coerceAtMost(playAreaHeightPx - pieceSize)
+    val trayHeight = (playAreaHeightPx - trayTop).coerceAtLeast(pieceSize)
+    val trayColumns = gridSize.coerceAtLeast(1)
+    val trayRows = ceil((gridSize * gridSize) / trayColumns.toFloat()).roundToInt().coerceAtLeast(1)
+    val horizontalStep = if (trayColumns == 1) 0f else (boardSizePx - pieceSize) / (trayColumns - 1)
+    val verticalStep = if (trayRows == 1) 0f else (trayHeight - pieceSize) / (trayRows - 1)
+    return List(gridSize * gridSize) { index ->
+        val row = index / gridSize
+        val col = index % gridSize
+        val trayIndex = (index + level).floorMod(gridSize * gridSize)
+        val trayCol = trayIndex % trayColumns
+        val trayRow = trayIndex / trayColumns
+        val rowNudge = if ((trayRow + level) % 2 == 0) pieceSize * 0.08f else -pieceSize * 0.08f
+        PuzzlePieceState(
+            id = index + 1,
+            row = row,
+            col = col,
+            x = (trayCol * horizontalStep + rowNudge).coerceIn(0f, boardSizePx - pieceSize),
+            y = (trayTop + trayRow * verticalStep).coerceIn(0f, playAreaHeightPx - pieceSize),
+            snapped = false,
+            zIndex = index
+        )
+    }.let { pieces ->
+        if (pieces.all { it.isNearTarget(gridSize, boardSizePx) }) {
+            pieces.mapIndexed { index, piece ->
+                if (index == pieces.lastIndex) piece.copy(x = 0f, y = 0f) else piece
+            }
+        } else {
+            pieces
+        }
     }
-    if (isSolved(board)) {
-        val emptyIndex = board.indexOf(0)
-        val swapIndex = neighborsOf(emptyIndex, gridSize).first()
-        board = swap(board, emptyIndex, swapIndex)
+}
+
+internal fun dragPuzzlePiece(
+    pieces: List<PuzzlePieceState>,
+    pieceId: Int,
+    delta: Offset,
+    boardSizePx: Float,
+    gridSize: Int,
+    playAreaHeightPx: Float = boardSizePx
+): List<PuzzlePieceState> {
+    val pieceSize = boardSizePx / gridSize
+    return pieces.map { piece ->
+        if (piece.id == pieceId && !piece.snapped) {
+            piece.copy(
+                x = (piece.x + delta.x).coerceIn(0f, boardSizePx - pieceSize),
+                y = (piece.y + delta.y).coerceIn(0f, playAreaHeightPx - pieceSize)
+            )
+        } else {
+            piece
+        }
     }
-    return board
 }
 
-internal fun moveTile(tiles: List<Int>, tileValue: Int, gridSize: Int): MoveResult {
-    val tileIndex = tiles.indexOf(tileValue)
-    val emptyIndex = tiles.indexOf(0)
-    if (tileIndex == -1 || emptyIndex == -1) return MoveResult(tiles, false)
-    if (tileIndex !in neighborsOf(emptyIndex, gridSize)) return MoveResult(tiles, false)
-    return MoveResult(swap(tiles, tileIndex, emptyIndex), true)
-}
+internal data class SnapResult(
+    val pieces: List<PuzzlePieceState>,
+    val snapped: Boolean
+)
 
-private fun neighborsOf(index: Int, gridSize: Int): List<Int> {
-    val row = index / gridSize
-    val col = index % gridSize
-    val result = mutableListOf<Int>()
-    if (row > 0) result += index - gridSize
-    if (row < gridSize - 1) result += index + gridSize
-    if (col > 0) result += index - 1
-    if (col < gridSize - 1) result += index + 1
-    return result
-}
-
-private fun swap(tiles: List<Int>, i: Int, j: Int): List<Int> {
-    val mutable = tiles.toMutableList()
-    val temp = mutable[i]
-    mutable[i] = mutable[j]
-    mutable[j] = temp
-    return mutable
-}
-
-internal fun isSolved(tiles: List<Int>): Boolean {
-    if (tiles.isEmpty()) return false
-    for (i in 0 until tiles.lastIndex) {
-        if (tiles[i] != i + 1) return false
+internal fun snapPuzzlePiece(
+    pieces: List<PuzzlePieceState>,
+    pieceId: Int,
+    gridSize: Int,
+    boardSizePx: Float
+): SnapResult {
+    var didSnap = false
+    val updated = pieces.map { piece ->
+        if (piece.id == pieceId && !piece.snapped && piece.isNearTarget(gridSize, boardSizePx)) {
+            didSnap = true
+            val pieceSize = boardSizePx / gridSize
+            piece.copy(
+                x = piece.col * pieceSize,
+                y = piece.row * pieceSize,
+                snapped = true
+            )
+        } else {
+            piece
+        }
     }
-    return tiles.last() == 0
+    return SnapResult(updated, didSnap)
 }
+
+internal fun restorePuzzleMove(pieces: List<PuzzlePieceState>, move: PuzzleMove): List<PuzzlePieceState> {
+    return pieces.map { piece ->
+        if (piece.id == move.pieceId) move.previous else piece
+    }
+}
+
+internal fun bringPuzzlePieceToFront(pieces: List<PuzzlePieceState>, pieceId: Int): List<PuzzlePieceState> {
+    val nextZ = (pieces.maxOfOrNull { it.zIndex } ?: 0) + 1
+    return pieces.map { piece ->
+        if (piece.id == pieceId) piece.copy(zIndex = nextZ) else piece
+    }.sortedBy { it.zIndex }
+}
+
+internal fun hasPieceMoved(before: PuzzlePieceState, after: PuzzlePieceState): Boolean {
+    return abs(before.x - after.x) > 0.5f ||
+        abs(before.y - after.y) > 0.5f ||
+        before.snapped != after.snapped
+}
+
+private fun PuzzlePieceState.isNearTarget(gridSize: Int, boardSizePx: Float): Boolean {
+    val pieceSize = boardSizePx / gridSize
+    val snapThreshold = pieceSize * 0.38f
+    return abs(x - col * pieceSize) <= snapThreshold &&
+        abs(y - row * pieceSize) <= snapThreshold
+}
+
+private fun Int.floorMod(other: Int): Int = ((this % other) + other) % other
+
+private operator fun Offset.div(value: Float): Offset = Offset(x / value, y / value)
 
 internal fun formatTime(seconds: Int): String {
     val safe = seconds.coerceAtLeast(0)

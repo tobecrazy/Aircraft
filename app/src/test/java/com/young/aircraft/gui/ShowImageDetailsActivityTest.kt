@@ -164,4 +164,19 @@ class ShowImageDetailsActivityTest {
         )
         assertEquals(42, resolveImageDetailsModel(42))
     }
+
+    @Test
+    fun `resolve image details model decodes base64 data uri to byte buffer`() {
+        val original = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47)
+        val uri = "data:image/png;base64," +
+            android.util.Base64.encodeToString(original, android.util.Base64.NO_WRAP)
+
+        val resolved = resolveImageDetailsModel(uri)
+
+        assertTrue(resolved is java.nio.ByteBuffer)
+        val buffer = resolved as java.nio.ByteBuffer
+        val out = ByteArray(buffer.remaining())
+        buffer.get(out)
+        assertArrayEquals(original, out)
+    }
 }

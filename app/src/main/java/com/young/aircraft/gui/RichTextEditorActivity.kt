@@ -2,15 +2,20 @@ package com.young.aircraft.gui
 
 import android.os.Bundle
 import android.text.Html
+import android.text.Spanned
 import android.view.View
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModelProvider
+import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityRichTextEditorBinding
-import com.young.aircraft.ui.RichTextEditorView
+import com.young.aircraft.utils.DataUriUtils
 import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.RichTextEditorViewModel
-import androidx.core.graphics.toColorInt
+import com.young.richtext.RichTextEditorView
+import org.json.JSONObject
 
 class RichTextEditorActivity : AppCompatActivity() {
 
@@ -33,14 +38,53 @@ class RichTextEditorActivity : AppCompatActivity() {
         setupModeToggle()
         setupWebView()
 
-        if (!viewModel.isEditMode) {
+        loadDefaultContent()
+
+        if (viewModel.isEditMode) {
+            switchToEditMode()
+        } else {
             switchToPreviewMode()
         }
+    }
+
+    /**
+     * Seeds sample rich text only when it is small enough for native EditText layout. Oversized
+     * samples are skipped so the screen still opens as an editable rich-text surface.
+     */
+    private fun loadDefaultContent() {
+        if (binding.richEditor.text?.isNotEmpty() == true) return
+        val default = runCatching {
+            assets.open(DEFAULT_CONTENT_ASSET).bufferedReader().use { it.readText() }
+        }.getOrNull()
+        if (default.isNullOrEmpty()) return
+        if (default.length > MAX_EDITABLE_LENGTH) {
+            return
+        }
+        binding.richEditor.editor.setText(default)
     }
 
     private fun setupModeToggle() {
         binding.btnEditMode.setOnClickListener { switchToEditMode() }
         binding.btnPreviewMode.setOnClickListener { switchToPreviewMode() }
+        binding.btnLoadExampleJson.setOnClickListener { loadExampleJson() }
+    }
+
+    private fun loadExampleJson() {
+        val loaded = runCatching {
+            val rawJson = assets.open(EXAMPLE_JSON_ASSET).bufferedReader().use { it.readText() }
+            val html = JSONObject(rawJson).optString(EXAMPLE_JSON_HTML_KEY)
+            if (html.isBlank()) return@runCatching false
+            binding.richEditor.editor.setText(makeHtmlEditable(html))
+            binding.richEditor.editor.setSelection(binding.richEditor.editor.text?.length ?: 0)
+            switchToEditMode()
+            true
+        }.getOrDefault(false)
+
+        Toast.makeText(
+            this,
+            if (loaded) R.string.rich_text_example_json_loaded else R.string.rich_text_example_json_failed,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun switchToEditMode() {
@@ -95,6 +139,16 @@ class RichTextEditorActivity : AppCompatActivity() {
         if (binding.richEditor.isMarkdownMode) {
             val content = RichTextEditorView.processMarkdown(editable.toString())
             return wrapHtml(content)
+        }
+
+        // Pure plain text (no formatting spans, no HTML tags) is escaped so metacharacters render
+        // literally and cannot inject markup. Content with toolbar spans or typed tags keeps the
+        // span-serializing path below.
+        val plain = editable.toString()
+        val hasSpans = editable.getSpans(0, editable.length, Any::class.java)
+            .any { editable.getSpanFlags(it) and Spanned.SPAN_COMPOSING == 0 }
+        if (!hasSpans && !CONTAINS_HTML_TAG.containsMatchIn(plain)) {
+            return wrapHtml(RichTextEditorView.plainTextToHtml(plain))
         }
 
         @Suppress("DEPRECATION")
@@ -173,12 +227,39 @@ class RichTextEditorActivity : AppCompatActivity() {
 
     private fun openImageDetails(imageTapUrl: String) {
         val src = RichTextEditorView.extractImageSrcFromTapUrl(imageTapUrl) ?: return
-        val name = src.substringAfterLast('/').substringBefore('?').takeIf { it.isNotBlank() } ?: "image"
+        val name = if (DataUriUtils.isBase64DataUri(src)) {
+            "image.${DataUriUtils.fileExtension(src)}"
+        } else {
+            src.substringAfterLast('/').substringBefore('?').takeIf { it.isNotBlank() } ?: "image"
+        }
         val item = SupperBannerItem(
             name = name,
             description = src,
             image = SupperBannerImage.Network(src)
         )
         startActivity(ShowImageDetailsActivity.createIntent(this, item))
+    }
+
+    companion object {
+        private const val DEFAULT_CONTENT_ASSET = "rich_text_default.html"
+        private const val EXAMPLE_JSON_ASSET = "example.json"
+        private const val EXAMPLE_JSON_HTML_KEY = "sectDesc"
+
+        // Content above this length is not seeded into the editor. Editing very large content
+        // (e.g. a long unbreakable base64 image token) in an EditText makes native text layout
+        // allocate enormous buffers and the process gets OOM-killed.
+        private const val MAX_EDITABLE_LENGTH = 100_000
+
+        // Heuristic: does the text contain an HTML tag (e.g. <b>, <img ...>)? If so, treat it as
+        // authored HTML; otherwise escape it as plain text.
+        private val CONTAINS_HTML_TAG = Regex("<[a-zA-Z/][^>]*>")
+        private val DATA_IMAGE_TAG = Regex(
+            pattern = "<img\\b[^>]*\\bsrc\\s*=\\s*([\"'])data:image/[^\"']+\\1[^>]*>",
+            options = setOf(RegexOption.IGNORE_CASE)
+        )
+
+        fun makeHtmlEditable(html: String): String {
+            return DATA_IMAGE_TAG.replace(html, "<span>[embedded image omitted]</span>")
+        }
     }
 }

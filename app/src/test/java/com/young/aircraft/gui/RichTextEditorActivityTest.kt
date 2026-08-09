@@ -11,7 +11,8 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.R
-import com.young.aircraft.ui.RichTextEditorView
+import com.young.richtext.RichTextEditorView
+import com.young.richtext.R as RichTextR
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -42,13 +43,17 @@ class RichTextEditorActivityTest {
     // ── Activity lifecycle ───────────────────────────────────
 
     @Test
-    fun `activity launches in edit mode`() {
+    fun `activity launches in edit mode with editable rich text input`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editorView = findRichEditor(activity)
+                val editor = findEditor(activity)
                 val preview = activity.findViewById<View>(R.id.wv_preview)
                 assertEquals(View.VISIBLE, editorView.visibility)
                 assertEquals(View.GONE, preview.visibility)
+                assertTrue(editor.isEnabled)
+                assertTrue(editor.isFocusable)
+                assertNotNull(editor.keyListener)
             }
         }
     }
@@ -78,16 +83,48 @@ class RichTextEditorActivityTest {
     }
 
     @Test
-    fun `clicking edit after preview restores editor`() {
+    fun `clicking edit after preview shows editable rich text input`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 activity.findViewById<View>(R.id.btn_preview_mode).performClick()
                 activity.findViewById<View>(R.id.btn_edit_mode).performClick()
 
+                val editor = findEditor(activity)
                 assertEquals(View.VISIBLE, findRichEditor(activity).visibility)
                 assertEquals(View.GONE, activity.findViewById<View>(R.id.wv_preview).visibility)
+                assertTrue(editor.isEnabled)
+                assertNotNull(editor.keyListener)
             }
         }
+    }
+
+    @Test
+    fun `clicking json loads editable example content`() {
+        ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                activity.findViewById<View>(R.id.btn_load_example_json).performClick()
+
+                val editor = findEditor(activity)
+                val content = editor.text.toString()
+                assertEquals(View.VISIBLE, findRichEditor(activity).visibility)
+                assertTrue(content.contains("a good day"))
+                assertTrue(content.contains("https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"))
+                assertFalse(content.contains("data:image/png;base64"))
+                assertEquals(
+                    context.getString(R.string.rich_text_example_json_loaded),
+                    ShadowToast.getTextOfLatestToast()
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `makeHtmlEditable omits embedded data image tags`() {
+        val html = "<p><img src=\"data:image/png;base64,abc123\" /></p><p>keep</p>"
+
+        val editable = RichTextEditorActivity.makeHtmlEditable(html)
+
+        assertEquals("<p><span>[embedded image omitted]</span></p><p>keep</p>", editable)
     }
 
     // ── Formatting without selection shows toast ─────────────
@@ -100,9 +137,9 @@ class RichTextEditorActivityTest {
                 editor.setText("hello")
                 editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.rich_btn_bold).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_bold).performClick()
                 assertEquals(
-                    context.getString(R.string.rich_text_select_text),
+                    context.getString(RichTextR.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
@@ -117,9 +154,9 @@ class RichTextEditorActivityTest {
                 editor.setText("hello")
                 editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.rich_btn_italic).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_italic).performClick()
                 assertEquals(
-                    context.getString(R.string.rich_text_select_text),
+                    context.getString(RichTextR.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
@@ -134,9 +171,9 @@ class RichTextEditorActivityTest {
                 editor.setText("hello")
                 editor.setSelection(0, 0)
 
-                activity.findViewById<View>(R.id.rich_btn_underline).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_underline).performClick()
                 assertEquals(
-                    context.getString(R.string.rich_text_select_text),
+                    context.getString(RichTextR.string.rich_text_select_text),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
@@ -153,7 +190,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello world")
                 editor.setSelection(0, 5)
 
-                activity.findViewById<View>(R.id.rich_btn_bold).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_bold).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(0, 5, StyleSpan::class.java)
@@ -171,7 +208,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello world")
                 editor.setSelection(6, 11)
 
-                activity.findViewById<View>(R.id.rich_btn_italic).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_italic).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(6, 11, StyleSpan::class.java)
@@ -189,7 +226,7 @@ class RichTextEditorActivityTest {
                 editor.setText("hello world")
                 editor.setSelection(0, 5)
 
-                activity.findViewById<View>(R.id.rich_btn_underline).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_underline).performClick()
 
                 val spannable = editor.text as Spanned
                 val spans = spannable.getSpans(0, 5, UnderlineSpan::class.java)
@@ -204,9 +241,9 @@ class RichTextEditorActivityTest {
     fun `markdown toggle shows enabled toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.rich_btn_markdown).performClick()
+                activity.findViewById<View>(RichTextR.id.rich_btn_markdown).performClick()
                 assertEquals(
-                    context.getString(R.string.rich_text_md_on),
+                    context.getString(RichTextR.string.rich_text_md_on),
                     ShadowToast.getTextOfLatestToast()
                 )
             }
@@ -217,11 +254,11 @@ class RichTextEditorActivityTest {
     fun `markdown double toggle shows disabled toast`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btn = activity.findViewById<View>(R.id.rich_btn_markdown)
+                val btn = activity.findViewById<View>(RichTextR.id.rich_btn_markdown)
                 btn.performClick() // ON
                 btn.performClick() // OFF
                 assertEquals(
-                    context.getString(R.string.rich_text_md_off),
+                    context.getString(RichTextR.string.rich_text_md_off),
                     ShadowToast.getTextOfLatestToast()
                 )
             }

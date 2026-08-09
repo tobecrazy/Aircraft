@@ -26,6 +26,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +52,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +64,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -75,10 +76,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -122,7 +125,7 @@ class FlashlightActivity : AppCompatActivity() {
         requestCameraPermissionIfNeeded()
 
         setContent {
-            MaterialTheme {
+            MaterialTheme(colorScheme = FlashlightColorScheme) {
                 val uiState by viewModel.uiState.collectAsState()
                 LaunchedEffect(uiState.errorMessage) {
                     uiState.errorMessage?.let {
@@ -214,13 +217,30 @@ class FlashlightActivity : AppCompatActivity() {
 
 private val FlashAccent = Color(0xFF00FF88)
 private val FlashBackground = Color(0xFF0F1118)
-private val FlashSurface = Color(0x20252A3A)
-private val FlashSurfaceHigh = Color(0xFF161A26)
+private val FlashSurface = Color(0xFF151A24)
+private val FlashSurfaceHigh = Color(0xFF1B2130)
 private val FlashHeader = Color(0xFF161A26)
 private val FlashText = Color(0xFFD8E0EF)
 private val FlashSubText = Color(0xFFAAB4C8)
-private val FlashBorder = Color(0x3300FF88)
+private val FlashMuted = Color(0xFF6F7B94)
+private val FlashBorder = Color(0x4400FF88)
 private val FlashCritical = Color(0xFFFF6F7E)
+
+internal const val FLASHLIGHT_TORCH_HERO_TAG = "flashlight_torch_hero"
+
+private val FlashlightColorScheme = darkColorScheme(
+    primary = FlashAccent,
+    onPrimary = Color(0xFF07120D),
+    primaryContainer = FlashAccent.copy(alpha = 0.18f),
+    onPrimaryContainer = FlashAccent,
+    surface = FlashBackground,
+    surfaceVariant = FlashSurface,
+    onSurface = FlashText,
+    onSurfaceVariant = FlashSubText,
+    outline = FlashBorder,
+    error = FlashCritical,
+    onError = Color.White
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -273,7 +293,7 @@ private fun FlashlightScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = FlashHeader,
-                    scrolledContainerColor = Color.Unspecified,
+                    scrolledContainerColor = FlashHeader,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = Color.Unspecified,
                     actionIconContentColor = Color.Unspecified
@@ -287,15 +307,20 @@ private fun FlashlightScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .testTag("flashlight_screen"),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 FlashStatusPanel(uiState = uiState, hasCameraPermission = hasCameraPermission)
             }
             item {
-                TorchHero(isOn = uiState.isOn, isSosMode = uiState.isSosMode)
+                TorchHero(
+                    isOn = uiState.isOn,
+                    isSosMode = uiState.isSosMode,
+                    enabled = hasCameraPermission && uiState.isFlashAvailable,
+                    onToggleFlashlight = { onToggleFlashlight(!uiState.isOn) }
+                )
             }
             item {
                 if (!hasCameraPermission || !uiState.isFlashAvailable) {
@@ -336,10 +361,52 @@ private fun FlashStatusPanel(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = FlashSurfaceHigh,
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, FlashBorder)
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, FlashBorder),
+        shadowElevation = 2.dp,
+        tonalElevation = 1.dp
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(3.dp)
+                        .height(18.dp)
+                        .background(
+                            if (uiState.isFlashAvailable) FlashAccent else FlashCritical,
+                            RoundedCornerShape(2.dp)
+                        )
+                )
+                Text(
+                    text = stringResource(
+                        if (uiState.isFlashAvailable) R.string.flashlight_available
+                        else R.string.flashlight_unavailable
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp),
+                    color = if (uiState.isFlashAvailable) FlashAccent else FlashCritical,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = stringResource(R.string.flashlight_percent, (uiState.brightnessLevel * 100).roundToInt()),
+                    color = FlashSubText,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -358,9 +425,7 @@ private fun FlashStatusPanel(
                 )
             }
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 StatusPill(
@@ -392,23 +457,27 @@ private fun StatusPill(
 ) {
     Surface(
         modifier = modifier.heightIn(min = 36.dp),
-        color = if (active) FlashAccent.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.05f),
+        color = if (active) FlashAccent.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.045f),
         shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, if (active) FlashAccent.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.08f))
+        border = BorderStroke(1.dp, if (active) FlashAccent.copy(alpha = 0.55f) else Color.White.copy(alpha = 0.09f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(7.dp)
+                    .size(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(if (active) FlashAccent else FlashSubText.copy(alpha = 0.5f))
+                    .background(if (active) FlashAccent else FlashMuted)
             )
             Text(
                 text = label,
-                modifier = Modifier.padding(start = 8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
                 color = if (active) FlashAccent else FlashSubText,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
@@ -421,9 +490,11 @@ private fun StatusPill(
 }
 
 @Composable
-private fun TorchHero(
+internal fun TorchHero(
     isOn: Boolean,
-    isSosMode: Boolean
+    isSosMode: Boolean,
+    enabled: Boolean,
+    onToggleFlashlight: () -> Unit
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "flashlight_pulse_loop")
     val activePulse by infiniteTransition.animateFloat(
@@ -442,9 +513,15 @@ private fun TorchHero(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(238.dp),
+            .height(250.dp)
+            .testTag(FLASHLIGHT_TORCH_HERO_TAG)
+            .clickable(
+                enabled = enabled,
+                role = Role.Switch,
+                onClick = onToggleFlashlight
+            ),
         color = FlashSurface,
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(14.dp),
         border = BorderStroke(1.dp, FlashBorder),
         shadowElevation = 4.dp,
         tonalElevation = 2.dp
@@ -456,7 +533,7 @@ private fun TorchHero(
                     Brush.verticalGradient(
                         colors = listOf(
                             FlashAccent.copy(alpha = if (isOn) 0.13f else 0.04f),
-                            Color.Transparent,
+                            FlashSurface.copy(alpha = 0.5f),
                             Color.Black.copy(alpha = 0.12f)
                         )
                     )
@@ -465,16 +542,22 @@ private fun TorchHero(
         ) {
             Canvas(modifier = Modifier.size(204.dp)) {
                 val radius = size.minDimension / 2f
-                drawCircle(FlashAccent.copy(alpha = glowAlpha * 0.18f), radius = radius)
-                drawCircle(FlashAccent.copy(alpha = glowAlpha * 0.30f), radius = radius * 0.72f)
+                drawCircle(FlashAccent.copy(alpha = glowAlpha * 0.12f), radius = radius, style = Fill)
+                drawCircle(FlashAccent.copy(alpha = glowAlpha * 0.22f), radius = radius * 0.74f, style = Fill)
                 drawCircle(
                     color = FlashAccent.copy(alpha = if (isOn) glowAlpha else 0.28f),
-                    radius = radius * 0.42f
+                    radius = radius * 0.42f,
+                    style = Fill
                 )
                 drawCircle(
                     color = FlashAccent.copy(alpha = 0.70f),
                     radius = radius * 0.86f,
                     style = Stroke(width = 3.dp.toPx())
+                )
+                drawCircle(
+                    color = FlashText.copy(alpha = if (isOn) 0.28f else 0.10f),
+                    radius = radius * 0.23f,
+                    style = Stroke(width = 2.dp.toPx())
                 )
                 // Beam stops at 86% of canvas height to leave clear space for the label
                 // pill at the bottom of the parent Box (prevents the beam line from
@@ -497,7 +580,7 @@ private fun TorchHero(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 12.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(FlashSurfaceHigh)
+                    .background(FlashSurfaceHigh.copy(alpha = 0.96f))
                     .border(1.dp, FlashBorder, RoundedCornerShape(8.dp))
                     .padding(horizontal = 14.dp, vertical = 7.dp)
             )
@@ -527,6 +610,7 @@ private fun PermissionCard(onRequestPermission: () -> Unit) {
             modifier = Modifier
                 .padding(top = 12.dp)
                 .heightIn(min = 48.dp),
+            shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = FlashAccent, contentColor = Color(0xFF07120D))
         ) {
             Text(text = stringResource(R.string.flashlight_permission_button), fontFamily = FontFamily.Monospace)
@@ -568,7 +652,11 @@ private fun ToggleCard(
                 onCheckedChange = onToggleFlashlight,
                 colors = SwitchDefaults.colors(
                     checkedTrackColor = FlashAccent,
-                    checkedThumbColor = Color.White
+                    checkedThumbColor = Color.White,
+                    uncheckedTrackColor = FlashMuted.copy(alpha = 0.35f),
+                    uncheckedThumbColor = FlashSubText,
+                    disabledCheckedTrackColor = FlashAccent.copy(alpha = 0.22f),
+                    disabledUncheckedTrackColor = FlashMuted.copy(alpha = 0.18f)
                 )
             )
         }
@@ -608,8 +696,11 @@ private fun SosCard(
                 onClick = { onToggleSos(!uiState.isSosMode) },
                 border = BorderStroke(1.dp, if (uiState.isSosMode) FlashAccent else FlashBorder),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = if (uiState.isSosMode) FlashAccent else FlashText
-                )
+                    contentColor = if (uiState.isSosMode) Color(0xFF07120D) else FlashText,
+                    containerColor = if (uiState.isSosMode) FlashAccent else Color.Transparent,
+                    disabledContentColor = FlashMuted
+                ),
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Text(text = stringResource(R.string.flashlight_sos_button), fontFamily = FontFamily.Monospace)
             }
@@ -624,7 +715,11 @@ private fun SosCard(
             steps = FlashlightViewModel.SOS_STEPS,
             colors = SliderDefaults.colors(
                 activeTrackColor = FlashAccent,
-                thumbColor = FlashAccent
+                inactiveTrackColor = FlashMuted.copy(alpha = 0.35f),
+                thumbColor = FlashAccent,
+                disabledActiveTrackColor = FlashAccent.copy(alpha = 0.24f),
+                disabledInactiveTrackColor = FlashMuted.copy(alpha = 0.18f),
+                disabledThumbColor = FlashMuted
             )
         )
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -653,8 +748,11 @@ private fun BrightnessCard(
             valueRange = 0f..1f,
             colors = SliderDefaults.colors(
                 activeTrackColor = FlashAccent,
-                inactiveTrackColor = Color(0xFF555555),
-                thumbColor = FlashAccent
+                inactiveTrackColor = FlashMuted.copy(alpha = 0.35f),
+                thumbColor = FlashAccent,
+                disabledActiveTrackColor = FlashAccent.copy(alpha = 0.24f),
+                disabledInactiveTrackColor = FlashMuted.copy(alpha = 0.18f),
+                disabledThumbColor = FlashMuted
             )
         )
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || uiState.maxBrightnessLevel <= 1) {
@@ -688,19 +786,24 @@ private fun SectionHeader(title: String, value: String) {
         )
         Text(
             text = title,
-            modifier = Modifier.padding(start = 8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 8.dp, end = 8.dp),
             color = FlashText,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace
+            fontFamily = FontFamily.Monospace,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
-        Spacer(modifier = Modifier.weight(1f))
         Text(
             text = value,
             color = FlashAccent,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace
+            fontFamily = FontFamily.Monospace,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -726,15 +829,16 @@ private fun ControlCard(
             .fillMaxWidth()
             .animateContentSize(),
         color = FlashSurface,
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, borderColor)
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, borderColor),
+        shadowElevation = 2.dp,
+        tonalElevation = 1.dp
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
             content = content
         )
     }
-    HorizontalDivider(color = Color.Transparent)
 }
 
 @Composable

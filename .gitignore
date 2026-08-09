@@ -98,3 +98,4 @@ OPTIMIZATION_PLAN.md
 /app/release
 /app/debug
 /.qwen
+.github/copilot-instructions.md

@@ -11,7 +11,7 @@ import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
-import com.young.aircraft.ui.RichTextEditorView
+import com.young.richtext.RichTextEditorView
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test

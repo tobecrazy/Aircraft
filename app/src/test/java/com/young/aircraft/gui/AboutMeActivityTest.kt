@@ -3,6 +3,13 @@ package com.young.aircraft.gui
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import androidx.activity.compose.setContent
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -79,6 +86,48 @@ class AboutMeActivityTest {
             activity.getString(R.string.about_me_project_repo_url),
             nextIntent.dataString
         )
+    }
+
+    @Test
+    fun `flashlight torch hero click toggles flashlight like switch`() {
+        val toggledValues = mutableListOf<Boolean>()
+
+        composeRule.activity.setContent {
+            var torchOn by remember { mutableStateOf(false) }
+
+            MaterialTheme {
+                TorchHero(
+                    isOn = torchOn,
+                    isSosMode = false,
+                    enabled = true,
+                    onToggleFlashlight = {
+                        torchOn = !torchOn
+                        toggledValues += torchOn
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(FLASHLIGHT_TORCH_HERO_TAG).performClick()
+        composeRule.onNodeWithTag(FLASHLIGHT_TORCH_HERO_TAG).performClick()
+
+        assertEquals(listOf(true, false), toggledValues)
+    }
+
+    @Test
+    fun `flashlight torch hero is disabled when controls are disabled`() {
+        composeRule.activity.setContent {
+            MaterialTheme {
+                TorchHero(
+                    isOn = false,
+                    isSosMode = false,
+                    enabled = false,
+                    onToggleFlashlight = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(FLASHLIGHT_TORCH_HERO_TAG).assertIsNotEnabled()
     }
 
     @Test

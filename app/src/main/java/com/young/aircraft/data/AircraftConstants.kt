@@ -26,6 +26,7 @@ object AircraftConstants {
         private val IMAGE_URL_PATTERN = Regex("\"imageUrl\"\\s*:\\s*\"([^\"]+)\"")
         private val THUMB_URL_PATTERN = Regex("\"thumbUrl\"\\s*:\\s*\"([^\"]+)\"")
         private val FULL_URL_PATTERN = Regex("\"fullUrl\"\\s*:\\s*\"([^\"]+)\"")
+        private val FEED_ITEM_PATTERN = Regex("\\{[^{}]*(?:\"thumbUrl\"|\"imageUrl\"|\"fullUrl\")[^{}]*\\}")
 
         fun extractPuzzleImageUrlsFromPeapixFeed(feedJson: String): List<String> {
             if (feedJson.isBlank()) return emptyList()
@@ -50,6 +51,24 @@ object AircraftConstants {
             val image = IMAGE_URL_PATTERN.find(feedJson)?.groupValues?.getOrNull(1)?.trim().orEmpty()
             val full = FULL_URL_PATTERN.find(feedJson)?.groupValues?.getOrNull(1)?.trim().orEmpty()
             return listOf(thumb, image, full).filter { it.isNotEmpty() }.distinct()
+        }
+
+        fun extractPuzzleImageCandidateGroupsFromPeapixFeed(feedJson: String): List<List<String>> {
+            if (feedJson.isBlank()) return emptyList()
+            val groups = FEED_ITEM_PATTERN.findAll(feedJson)
+                .map { matchResult ->
+                    val itemJson = matchResult.value
+                    val thumb = THUMB_URL_PATTERN.find(itemJson)?.groupValues?.getOrNull(1)?.trim().orEmpty()
+                    val image = IMAGE_URL_PATTERN.find(itemJson)?.groupValues?.getOrNull(1)?.trim().orEmpty()
+                    val full = FULL_URL_PATTERN.find(itemJson)?.groupValues?.getOrNull(1)?.trim().orEmpty()
+                    listOf(thumb, image, full).filter { it.isNotEmpty() }.distinct()
+                }
+                .filter { it.isNotEmpty() }
+                .toList()
+
+            return groups.ifEmpty {
+                extractPuzzleImageUrlsFromPeapixFeed(feedJson).map { listOf(it) }
+            }
         }
     }
 

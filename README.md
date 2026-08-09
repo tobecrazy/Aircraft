@@ -1,6 +1,6 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, 9 interleaved puzzle gates (one after each non-final combat stage), boss fights, collectible power-ups, QR code and flashlight utilities, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus a reusable `:richtexteditor` Android library module that can be built as an AAR. The app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, 9 interleaved puzzle gates (one after each non-final combat stage), boss fights, collectible power-ups, QR code and flashlight utilities, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Demo
 
@@ -15,7 +15,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - **Combat gameplay** — 30 FPS `SurfaceView` rendering with drag-to-move controls, auto-firing bullets, scrolling backgrounds, the two-row tactical HUD (mission/hull cards + countdown timer), and screen-shake/damage-flash feedback.
 - **Power-ups in action** — red envelopes detonating into AoE rockets, medical kits restoring HP, shields granting blink-indicated invincibility, and time freezes locking enemies in place.
 - **Boss fight** — end-of-level boss with bomb attacks, scaling HP, and the multi-phase particle explosion on defeat.
-- **Puzzle gate** — Compose-based sliding puzzle that gates progression between combat levels (3×3 / 4×4 / 5×5 by difficulty).
+- **Puzzle gate** — Compose-based drag-and-drop picture puzzle with pinch zoom, auto-snapping, hints, and undo, gating progression between combat levels (3×3 / 4×4 / 5×5 by difficulty).
 - **Utility screens** — QR code scan/generate, flashlight with SOS and brightness control, device info telemetry, and the localized About / History screens.
 
 ## Project Architecture
@@ -35,6 +35,7 @@ The demo above walks through the end-to-end player experience on a real device:
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource`, `BannerDetails`, `BannerDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
+| `richtexteditor/` | Blue-gray | `RichTextEditorView` | Reusable AAR library for rich-text input, toolbar formatting, Markdown/HTML helpers, and image-tap URL helpers |
 | `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
 | `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder`, `FlashlightService` | BGM/SFX bound service + camera-torch foreground service with wakelock-backed SOS |
@@ -60,7 +61,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Compose-powered two-page onboarding carousel with animated entrance effects
 - 10 combat levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
 - Puzzle-gate flow: after clearing combat levels 1-9, players must clear the same-numbered puzzle level before entering the next combat level (Easy = 3×3, Normal = 4×4, Hard = 5×5)
-- Compose-based `PuzzleActivity` shell with the standard tactical 52dp header (back button saves progress) and status-bar inset handling
+- Compose-based `PuzzleActivity` shell with drag-and-drop pieces, two-finger zoom, auto-snapping, hint preview, undo, the standard tactical 52dp header (back button saves progress), and status-bar inset handling
 - Four power-up systems: red envelopes/rockets, medical kits, shields, and time freezes
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
@@ -70,7 +71,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Coil-based network image loading with crossfade animations (`AsyncImage` for Compose, `ImageView.load()` for Views)
 - Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
 - `FileProvider` paths include `Pictures/`, `Download/`, and app cache, enabling shared file URIs for exported/generated assets
-- Rich-text preview image tap support: clicking an image in `RichTextEditorActivity` opens `ShowImageDetailsActivity`
+- Rich-text editor AAR module (`:richtexteditor`) consumed by the app, with JSON sample loading from `app/src/main/assets/example.json` and preview image tap support that opens `ShowImageDetailsActivity`; usage is documented in [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md)
 - Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
@@ -105,6 +106,15 @@ The demo above walks through the end-to-end player experience on a real device:
 ## Project Structure
 
 ```text
+richtexteditor/
+├── build.gradle                        # Android library module; builds richtexteditor-*.aar
+├── src/main/java/com/young/richtext/
+│   └── RichTextEditorView.kt           # Reusable rich-text editor custom view and HTML/Markdown helpers
+└── src/main/res/
+    ├── layout/view_rich_text_editor.xml
+    ├── values/strings.xml
+    └── values-zh/strings.xml
+
 app/src/main/java/com/young/aircraft/
 ├── common/
 │   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events
@@ -140,7 +150,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
 │   ├── FlashlightActivity.kt           # Compose flashlight utility with torch, SOS, and brightness controls
-│   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with WebView preview; preview image taps open ShowImageDetailsActivity
+│   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with example JSON loading, WebView preview, and image details navigation
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── BannerDetailsActivity.kt        # Legacy banner details viewer retained in source
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, Android Dev Assistant entry, and QR Tool notification test
@@ -218,6 +228,8 @@ app/src/main/java/com/young/aircraft/
 - `PlayerGameDataTest` for timestamp-aware data-class behavior
 - `StarFieldViewTest` for the animated onboarding/privacy background
 - `StringResourceTest` for locale parity and resource usage coverage
+
+`richtexteditor/src/test` includes focused unit tests for Markdown conversion, plain-text escaping, image tap URL round-tripping, and preview image format support.
 
 Instrumented tests belong in `app/src/androidTest`.
 

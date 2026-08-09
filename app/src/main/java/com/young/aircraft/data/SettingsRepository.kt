@@ -38,6 +38,14 @@ class SettingsRepository(context: Context) {
         prefs.edit { putBoolean(KEY_COMBAT_SOUND, enabled) }
     }
 
+    fun getBgmFormat(): String =
+        prefs.getString(KEY_BGM_FORMAT, BGM_FORMAT_MP3) ?: BGM_FORMAT_MP3
+
+    fun setBgmFormat(value: String) {
+        val normalized = if (value == BGM_FORMAT_OGG) BGM_FORMAT_OGG else BGM_FORMAT_MP3
+        prefs.edit { putString(KEY_BGM_FORMAT, normalized) }
+    }
+
     fun isHitShakeEffectEnabled(): Boolean = prefs.getBoolean(KEY_HIT_SHAKE_EFFECT, true)
 
     fun setHitShakeEffectEnabled(enabled: Boolean) {
@@ -145,6 +153,9 @@ class SettingsRepository(context: Context) {
         const val KEY_DIFFICULTY = "difficulty"
         const val KEY_BACKGROUND_SOUND = "background_sound"
         const val KEY_COMBAT_SOUND = "combat_sound"
+        const val KEY_BGM_FORMAT = "bgm_format"
+        const val BGM_FORMAT_MP3 = "mp3"
+        const val BGM_FORMAT_OGG = "ogg"
         const val KEY_HIT_SHAKE_EFFECT = "hit_shake_effect"
         const val KEY_INVINCIBLE_MODE = "invincible_mode"
         const val KEY_PRIVACY_POLICY_ACCEPTED = "privacy_policy_accepted"

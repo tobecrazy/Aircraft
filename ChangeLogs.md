@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `:richtexteditor` Android library module that packages `com.young.richtext.RichTextEditorView` as a reusable AAR, including its layout, localized editor strings, Markdown/plain-text HTML helpers, image tap URL helpers, and focused JVM tests
+- `docs/rich-text-editor-aar-usage.md` with build commands, AAR integration steps, XML/Kotlin usage examples, preview WebView guidance, and public API notes
+- `app/src/main/assets/example.json` rich-text sample plus a `RichTextEditorActivity` JSON load action that imports `sectDesc` as editable HTML while omitting embedded base64 image tags
 - `FlashlightService` foreground service (`foregroundServiceType="camera"`) that owns the Camera2 torch on behalf of `FlashlightViewModel`, keeping the torch alive when the screen is off or the activity is paused
 - Persistent low-importance notification with a "Turn off" action that fires `ACTION_TORCH_OFF` — gives users a one-tap escape so they don't reach for force-stop
 - `PARTIAL_WAKE_LOCK` (`Aircraft::FlashlightSos`, 10-min safety timeout) acquired only while SOS mode is active, keeping CPU running so coroutine `delay()` pacing stays accurate with the screen off
@@ -69,7 +72,12 @@ All notable changes to this project will be documented in this file.
 - `ic_placeholder.xml` shape drawable for Coil View-based placeholder/error states
 
 ### Changed
+- `RichTextEditorActivity` and `QRCodeToolActivity` now consume `RichTextEditorView` from the `:richtexteditor` library module instead of `app/src/main/java/com/young/aircraft/ui`
+- `PuzzleActivity` core gameplay redesigned from tap-to-slide tiles into a drag-and-drop picture puzzle with freeform pieces, two-finger board zoom, auto-snapping, hint preview, and undo support
+- `PuzzleActivity` keeps the 3×3 / 4×4 / 5×5 difficulty split while improving interaction: pieces use a larger invisible touch target, active drags scale the selected piece for better visibility, and snap tolerance is wider so players do not need pixel-perfect drops
 - `FlashlightViewModel` refactored to delegate all torch and SOS work to `FlashlightService` via intent commands (`ACTION_TORCH_ON/OFF`, `ACTION_SOS_ON/OFF` with `EXTRA_BRIGHTNESS` and `EXTRA_SOS_UNIT_MS`); torch on/off state still syncs through `CameraManager.TorchCallback`, and SOS state is now observed from `FlashlightService.isSosRunning` `StateFlow` instead of running a coroutine in the ViewModel — public companion API (`SOS_PATTERN`, `brightnessToStrengthLevel`, `SOS_MIN_UNIT_MS`/`MAX`/`STEPS`) preserved verbatim
+- `FlashlightActivity` torch hero now toggles the flashlight on tap, matching the dedicated switch behavior while staying disabled when camera permission or flash hardware is unavailable
+- `FlashlightActivity` UI refined with the shared tactical Material color scheme, higher-contrast panels, improved status hierarchy, stronger hero glow treatment, and clearer disabled switch/slider/button states while preserving existing torch/SOS behavior
 - `FlashlightActivity` migrated from deprecated `WindowCompat.setDecorFitsSystemWindows` + manual `statusBarColor`/`navigationBarColor` to `enableEdgeToEdge(SystemBarStyle.dark(...))`; torch hero label now uses opaque `FlashSurfaceHigh` background and the canvas beam stops at `size.height * 0.86f` to prevent the green beam from bleeding through the bottom label pill; `StatusPill` adds `TextOverflow.Ellipsis` for narrow-screen safety; `TorchHero` Surface gains `shadowElevation = 4.dp` + `tonalElevation = 2.dp` for depth
 - Documentation refresh: `README.md`, `class_diagram.svg`, and `project_diagram.svg` now reflect app version `1.2.8`, Room schema `2031`, current save-state fields, current source files, and the five bundled scrolling backgrounds.
 - `DevelopSettingsActivity` keeps only a single Android Developer Assistant entry button; assistant feature controls/actions are implemented in `AndroidDevAssistantToolsActivity`

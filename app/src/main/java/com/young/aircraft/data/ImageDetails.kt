@@ -32,16 +32,49 @@ object ImageDetailsIntentContract {
     const val SOURCE_LOCAL = "local"
     const val SOURCE_NETWORK = "network"
 
+    // Strings longer than this are handed off via an in-memory store instead of the Intent
+    // Binder transaction, to avoid TransactionTooLargeException (e.g. large base64 data URIs).
+    private const val MAX_INLINE_EXTRA_LENGTH = 64 * 1024
+    private const val PAYLOAD_REF_PREFIX = "payload-ref:"
+    private const val PAYLOAD_CACHE_SIZE = 4
+
+    private val payloadSeq = java.util.concurrent.atomic.AtomicLong(0)
+    private val payloadCache = object : LinkedHashMap<String, String>(PAYLOAD_CACHE_SIZE, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>): Boolean =
+            size > PAYLOAD_CACHE_SIZE
+    }
+
+    /**
+     * Returns a value safe to place in an Intent extra: short strings pass through unchanged,
+     * long strings are stored in-process and replaced by a lightweight reference token.
+     */
+    @Synchronized
+    fun toIntentExtra(value: String): String {
+        if (value.length < MAX_INLINE_EXTRA_LENGTH) return value
+        val token = "$PAYLOAD_REF_PREFIX${payloadSeq.incrementAndGet()}"
+        payloadCache[token] = value
+        return token
+    }
+
+    @Synchronized
+    private fun fromIntentExtra(value: String?): String? {
+        if (value == null || !value.startsWith(PAYLOAD_REF_PREFIX)) return value
+        return payloadCache[value]
+    }
+
     fun fromIntent(intent: Intent): ImageDetails? {
         val name = intent.getStringExtra(EXTRA_NAME) ?: return null
-        val description = intent.getStringExtra(EXTRA_DESCRIPTION).orEmpty()
+        val description = fromIntentExtra(intent.getStringExtra(EXTRA_DESCRIPTION)).orEmpty()
         val source = when (intent.getStringExtra(EXTRA_SOURCE_TYPE)) {
             SOURCE_LOCAL -> {
                 val resId = intent.getIntExtra(EXTRA_RES_ID, 0)
                 if (resId == 0) return null
                 ImageDetailsSource.Local(resId)
             }
-            SOURCE_NETWORK -> ImageDetailsSource.Network(intent.getStringExtra(EXTRA_URL) ?: return null)
+            SOURCE_NETWORK -> {
+                val url = fromIntentExtra(intent.getStringExtra(EXTRA_URL)) ?: return null
+                ImageDetailsSource.Network(url)
+            }
             else -> return null
         }
         return ImageDetails(name, description, source)
