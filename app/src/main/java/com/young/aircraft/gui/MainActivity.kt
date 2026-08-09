@@ -15,9 +15,7 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -31,6 +29,8 @@ import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
 import com.young.aircraft.databinding.ActivityMainBinding
+import com.young.aircraft.databinding.BottomSheetHallOfHeroesBinding
+import com.young.aircraft.databinding.DialogGameBinding
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.GameCoreView
@@ -44,9 +44,30 @@ import kotlinx.coroutines.launch
  * @author Young
  */
 class MainActivity : AppCompatActivity() {
-    private enum class DialogTone {
-        Success,
-        Danger
+    private enum class DialogTone(
+        val titleColor: Int,
+        val dividerColor: Int,
+        val badgeBackgroundRes: Int,
+        val statCardBackgroundRes: Int,
+        val statLabelColor: Int,
+        val positiveButtonBackgroundRes: Int
+    ) {
+        Success(
+            titleColor = 0xFF00FF88.toInt(),
+            dividerColor = 0x4400FF88.toInt(),
+            badgeBackgroundRes = R.drawable.dialog_badge_positive_bg,
+            statCardBackgroundRes = R.drawable.dialog_stat_card_bg,
+            statLabelColor = 0x88FFFFFF.toInt(),
+            positiveButtonBackgroundRes = R.drawable.dialog_button_primary
+        ),
+        Danger(
+            titleColor = 0xFFFF4444.toInt(),
+            dividerColor = 0x44FF4444.toInt(),
+            badgeBackgroundRes = R.drawable.dialog_badge_danger_bg,
+            statCardBackgroundRes = R.drawable.dialog_stat_card_danger_bg,
+            statLabelColor = 0x88FF6F7E.toInt(),
+            positiveButtonBackgroundRes = R.drawable.dialog_button_primary_danger
+        )
     }
 
     private lateinit var mService: MusicService
@@ -114,24 +135,16 @@ class MainActivity : AppCompatActivity() {
                 tone = DialogTone.Danger,
                 title = getString(R.string.game_over_title),
                 message = getString(R.string.game_over_message, coreView.level, score),
-                titleColor = 0xFFFF4444.toInt(),
                 positiveText = getString(R.string.game_over_save),
-                negativeText = getString(R.string.game_over_discard),
-                stat1Label = getString(R.string.stat_kills),
-                stat1Value = coreView.totalKills.toString(),
-                stat2Label = getString(R.string.stat_score),
-                stat2Value = score.toString(),
+                primaryStatValue = coreView.totalKills,
+                secondaryStatValue = score,
                 onPositive = {
                     lifecycleScope.launch {
-                        viewModel.saveAirBattleData(
-                            level = coreView.level,
-                            totalKills = coreView.totalKills,
-                            jetPlaneResId = coreView.jetPlaneResId,
-                            jetPlaneIndex = coreView.jetPlaneIndex
-                        )
+                        saveCurrentProgress(level = coreView.level)
                         finish()
                     }
                 },
+                negativeText = getString(R.string.game_over_discard),
                 onNegative = {
                     lifecycleScope.launch {
                         viewModel.deletePlayerData()
@@ -148,18 +161,11 @@ class MainActivity : AppCompatActivity() {
                 title = getString(R.string.level_complete, completedLevel),
                 message = getString(R.string.level_complete_message, completedLevel),
                 positiveText = getString(R.string.next_level),
-                stat1Label = getString(R.string.stat_kills),
-                stat1Value = coreView.enemiesDestroyedThisLevel.toString(),
-                stat2Label = getString(R.string.stat_score),
-                stat2Value = score.toString(),
+                primaryStatValue = coreView.enemiesDestroyedThisLevel,
+                secondaryStatValue = score,
                 onPositive = {
                     lifecycleScope.launch {
-                        viewModel.saveAirBattleData(
-                            level = completedLevel + 1,
-                            totalKills = coreView.totalKills,
-                            jetPlaneResId = coreView.jetPlaneResId,
-                            jetPlaneIndex = coreView.jetPlaneIndex
-                        )
+                        saveCurrentProgress(level = completedLevel + 1)
                         coreView.advanceToNextLevel()
                     }
                 }
@@ -268,113 +274,59 @@ class MainActivity : AppCompatActivity() {
         if (isExitInProgress) return
         isExitInProgress = true
         hidePauseOverlay(shouldResumeGame = false)
-        lifecycleScope.launch {
-            runCatching {
-                if (viewModel.shouldAutoSaveOnExit(coreView.level, coreView.totalKills)) {
-                    viewModel.saveAirBattleData(
-                        level = coreView.level,
-                        totalKills = coreView.totalKills,
-                        jetPlaneResId = coreView.jetPlaneResId,
-                        jetPlaneIndex = coreView.jetPlaneIndex
-                    )
-                }
-            }.onFailure {
-                Log.e("MainActivity", "Failed to save progress from pause overlay", it)
-            }
-            finish()
-        }
+        autoSaveAndFinish("Failed to save progress from pause overlay")
     }
 
     private fun showGameDialog(
-        badgeText: String? = null,
-        tone: DialogTone = DialogTone.Success,
+        badgeText: String,
+        tone: DialogTone,
         title: String,
-        message: String?,
-        titleColor: Int = 0xFF00FF88.toInt(),
+        message: String,
         positiveText: String,
-        negativeText: String? = null,
-        stat1Label: String? = null,
-        stat1Value: String? = null,
-        stat2Label: String? = null,
-        stat2Value: String? = null,
+        primaryStatValue: Int,
+        secondaryStatValue: Long,
         onPositive: () -> Unit,
+        negativeText: String? = null,
         onNegative: (() -> Unit)? = null
     ) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_game, null)
-        dialogView.findViewById<TextView>(R.id.dialog_badge).apply {
-            if (badgeText.isNullOrBlank()) {
-                visibility = View.GONE
-            } else {
-                visibility = View.VISIBLE
-                text = badgeText
-                setBackgroundResource(
-                    when (tone) {
-                        DialogTone.Danger -> R.drawable.dialog_badge_danger_bg
-                        DialogTone.Success -> R.drawable.dialog_badge_positive_bg
-                    }
-                )
-            }
+        val dialogBinding = DialogGameBinding.inflate(layoutInflater)
+        dialogBinding.dialogBadge.apply {
+            text = badgeText
+            visibility = View.VISIBLE
+            setBackgroundResource(tone.badgeBackgroundRes)
         }
-        dialogView.findViewById<TextView>(R.id.dialog_title).apply {
+        dialogBinding.dialogTitle.apply {
             text = title
-            setTextColor(titleColor)
+            setTextColor(tone.titleColor)
         }
-        dialogView.findViewById<TextView>(R.id.dialog_message).apply {
-            if (message != null) {
-                text = message
-                visibility = View.VISIBLE
-            } else {
-                visibility = View.GONE
-            }
-        }
-        if (stat1Label != null && stat2Label != null) {
-            dialogView.findViewById<LinearLayout>(R.id.dialog_stats_container).visibility = View.VISIBLE
-            dialogView.findViewById<TextView>(R.id.stat_label_1).text = "⚔ $stat1Label"
-            dialogView.findViewById<TextView>(R.id.stat_value_1).text = stat1Value
-            dialogView.findViewById<TextView>(R.id.stat_label_2).text = "★ $stat2Label"
-            dialogView.findViewById<TextView>(R.id.stat_value_2).text = stat2Value
-        }
-
-        val dividerColor = when (tone) {
-            DialogTone.Danger -> 0x44FF4444.toInt()
-            DialogTone.Success -> 0x4400FF88.toInt()
-        }
-        dialogView.findViewById<View>(R.id.dialog_divider).setBackgroundColor(dividerColor)
-
-        val statCardBg = when (tone) {
-            DialogTone.Danger -> R.drawable.dialog_stat_card_danger_bg
-            DialogTone.Success -> R.drawable.dialog_stat_card_bg
-        }
-        dialogView.findViewById<LinearLayout>(R.id.stat_card_1).setBackgroundResource(statCardBg)
-        dialogView.findViewById<LinearLayout>(R.id.stat_card_2).setBackgroundResource(statCardBg)
-
-        val statLabelColor = when (tone) {
-            DialogTone.Danger -> 0x88FF6F7E.toInt()
-            DialogTone.Success -> 0x88FFFFFF.toInt()
-        }
-        dialogView.findViewById<TextView>(R.id.stat_label_1).setTextColor(statLabelColor)
-        dialogView.findViewById<TextView>(R.id.stat_label_2).setTextColor(statLabelColor)
+        dialogBinding.dialogMessage.text = message
+        dialogBinding.dialogStatsContainer.visibility = View.VISIBLE
+        dialogBinding.statLabel1.text = getString(R.string.stat_kills).let { "\u2694 $it" }
+        dialogBinding.statValue1.text = primaryStatValue.toString()
+        dialogBinding.statLabel2.text = getString(R.string.stat_score).let { "\u2605 $it" }
+        dialogBinding.statValue2.text = secondaryStatValue.toString()
+        dialogBinding.dialogDivider.setBackgroundColor(tone.dividerColor)
+        dialogBinding.statCard1.setBackgroundResource(tone.statCardBackgroundRes)
+        dialogBinding.statCard2.setBackgroundResource(tone.statCardBackgroundRes)
+        dialogBinding.statLabel1.setTextColor(tone.statLabelColor)
+        dialogBinding.statLabel2.setTextColor(tone.statLabelColor)
         val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
+            .setView(dialogBinding.root)
             .setCancelable(false)
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
         dialog.window?.setDimAmount(0.7f)
-        val buttonBg = when (tone) {
-            DialogTone.Danger -> R.drawable.dialog_button_primary_danger
-            DialogTone.Success -> R.drawable.dialog_button_primary
-        }
-        dialogView.findViewById<TextView>(R.id.dialog_positive_btn).apply {
+        dialogBinding.dialogPositiveBtn.apply {
             text = positiveText
-            setBackgroundResource(buttonBg)
+            setBackgroundResource(tone.positiveButtonBackgroundRes)
             setOnClickListener {
                 dialog.dismiss()
                 onPositive()
             }
         }
         if (negativeText != null && onNegative != null) {
-            dialogView.findViewById<TextView>(R.id.dialog_negative_btn).apply {
+            dialogBinding.dialogNegativeBtn.apply {
                 text = negativeText
                 visibility = View.VISIBLE
                 setOnClickListener {
@@ -385,14 +337,8 @@ class MainActivity : AppCompatActivity() {
         }
         dialog.show()
 
-        if (stat1Value != null) {
-            val target1 = stat1Value.toIntOrNull() ?: 0
-            if (target1 > 0) animateCountUp(dialogView.findViewById(R.id.stat_value_1), target1)
-        }
-        if (stat2Value != null) {
-            val target2 = stat2Value.toIntOrNull() ?: 0
-            if (target2 > 0) animateCountUp(dialogView.findViewById(R.id.stat_value_2), target2, 1000)
-        }
+        if (primaryStatValue > 0) animateCountUp(dialogBinding.statValue1, primaryStatValue)
+        if (secondaryStatValue > 0) animateCountUp(dialogBinding.statValue2, secondaryStatValue.toInt(), 1000)
     }
 
     private fun animateCountUp(textView: TextView, targetValue: Int, durationMs: Long = 800) {
@@ -407,31 +353,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun showHallOfHeroesBottomSheet() {
         val dialog = BottomSheetDialog(this, R.style.ThemeOverlay_Aircraft_HallOfHeroesBottomSheet)
-        val dialogView = dialog.layoutInflater.inflate(R.layout.bottom_sheet_hall_of_heroes, null)
-        val nameInput = dialogView.findViewById<EditText>(R.id.edit_hero_name)
-        dialogView.findViewById<TextView>(R.id.text_hall_of_heroes_hint).text =
-            getString(R.string.hall_of_heroes_hint)
+        val sheetBinding = BottomSheetHallOfHeroesBinding.inflate(dialog.layoutInflater)
+        sheetBinding.textHallOfHeroesHint.text = getString(R.string.hall_of_heroes_hint)
 
         fun recordHero() {
             if (!dialog.isShowing) return
             val heroName = HallOfHeroesNameUtils.resolveSubmittedName(
-                nameInput.text,
+                sheetBinding.editHeroName.text,
                 getString(R.string.hall_of_heroes_anonymous)
             )
             dialog.dismiss()
             lifecycleScope.launch {
-                viewModel.saveAirBattleData(
-                    level = coreView.level,
-                    totalKills = coreView.totalKills,
-                    jetPlaneResId = coreView.jetPlaneResId,
-                    jetPlaneIndex = coreView.jetPlaneIndex,
-                    playerName = heroName
-                )
+                saveCurrentProgress(level = coreView.level, playerName = heroName)
                 finish()
             }
         }
 
-        dialog.setContentView(dialogView)
+        dialog.setContentView(sheetBinding.root)
         dialog.setCancelable(false)
         dialog.setCanceledOnTouchOutside(false)
         dialog.behavior.isDraggable = false
@@ -440,10 +378,10 @@ class MainActivity : AppCompatActivity() {
                 ?.setBackgroundColor(Color.TRANSPARENT)
         }
 
-        dialogView.findViewById<TextView>(R.id.button_record_hero).setOnClickListener {
+        sheetBinding.buttonRecordHero.setOnClickListener {
             recordHero()
         }
-        nameInput.setOnEditorActionListener { _, actionId, _ ->
+        sheetBinding.editHeroName.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 recordHero()
                 true
@@ -453,15 +391,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog.show()
-        dialogView.alpha = 0f
-        dialogView.translationY = 120f
-        dialogView.animate()
+        sheetBinding.root.alpha = 0f
+        sheetBinding.root.translationY = 120f
+        sheetBinding.root.animate()
             .alpha(1f)
             .translationY(0f)
             .setDuration(350)
             .setInterpolator(DecelerateInterpolator())
             .start()
-        nameInput.requestFocus()
+        sheetBinding.editHeroName.requestFocus()
     }
 
     private fun exitApp() {
@@ -475,22 +413,31 @@ class MainActivity : AppCompatActivity() {
             if (isExitInProgress) return
             isExitInProgress = true
             coreView.pauseGame()
-            lifecycleScope.launch {
-                runCatching {
-                    if (viewModel.shouldAutoSaveOnExit(coreView.level, coreView.totalKills)) {
-                        viewModel.saveAirBattleData(
-                            level = coreView.level,
-                            totalKills = coreView.totalKills,
-                            jetPlaneResId = coreView.jetPlaneResId,
-                            jetPlaneIndex = coreView.jetPlaneIndex
-                        )
-                    }
-                }.onFailure {
-                    Log.e("MainActivity", "Failed to auto-save progress on exit", it)
-                }
-                finish()
-            }
+            autoSaveAndFinish("Failed to auto-save progress on exit")
         }
+    }
+
+    private fun autoSaveAndFinish(logMessage: String) {
+        lifecycleScope.launch {
+            runCatching {
+                if (viewModel.shouldAutoSaveOnExit(coreView.level, coreView.totalKills)) {
+                    saveCurrentProgress(level = coreView.level)
+                }
+            }.onFailure {
+                Log.e("MainActivity", logMessage, it)
+            }
+            finish()
+        }
+    }
+
+    private suspend fun saveCurrentProgress(level: Int, playerName: String? = null) {
+        viewModel.saveAirBattleData(
+            level = level,
+            totalKills = coreView.totalKills,
+            jetPlaneResId = coreView.jetPlaneResId,
+            jetPlaneIndex = coreView.jetPlaneIndex,
+            playerName = playerName
+        )
     }
 
     override fun onStart() {
