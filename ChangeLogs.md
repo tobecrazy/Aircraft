@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Converted root, app, and rich-text editor Gradle build scripts to Kotlin DSL (`*.gradle.kts`) and upgraded the Gradle wrapper to 9.7.0
+- Centralized plugin and dependency versions in the Gradle version catalog at `gradle/libs.versions.toml`
+
 ### Added
 - `:richtexteditor` Android library module that packages `com.young.richtext.RichTextEditorView` as a reusable AAR, including its layout, localized editor strings, Markdown/plain-text HTML helpers, image tap URL helpers, and focused JVM tests
 - `docs/rich-text-editor-aar-usage.md` with build commands, AAR integration steps, XML/Kotlin usage examples, preview WebView guidance, and public API notes

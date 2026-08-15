@@ -651,7 +651,7 @@
   <rect x="1040" y="1210" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#64748b" stroke-width="0.8"/>
   <text x="1062" y="1222" fill="#64748b" font-size="9">AAR Library</text>
 
-  <text x="1350" y="1222" text-anchor="end" fill="#94a3b8" font-size="8.5">Kotlin · Android SDK 37 · AGP 9.1.1</text>
+  <text x="1350" y="1222" text-anchor="end" fill="#94a3b8" font-size="8.5">Kotlin · Gradle Kotlin DSL + version catalog · Android SDK 37 · AGP 9.3.1</text>
   <!-- 2026-05-14 update: Added PuzzleActivity branch and mode-aware save/resume path (AIR_BATTLE/PUZZLE). -->
   <!-- 2026-05-17 update: Puzzle screen now uses the standard tactical 52dp header (PuzzleHeader composable, back saves progress), difficulty grids set to Easy 3×3 / Normal 4×4 / Hard 5×5, and statusBarsPadding restores correct inset behavior under enableEdgeToEdge(). -->
   <!-- 2026-05-31 update: Refreshed Room schema to 2031, utility inventory with FilePickerHelper, Image/Banner detail ViewModels, and five background assets. -->
@@ -659,4 +659,6 @@
   <!-- 2026-05-31 update: Added FlashlightService foreground service (camera) — torch + SOS coroutine + PARTIAL_WAKE_LOCK with persistent notification, Off action, and post-first-torch battery-optimization whitelist prompt. -->
   <!-- 2026-07-19 update: Moved example.json into app/src/main/assets and added RichTextEditorActivity JSON sample loading. -->
   <!-- 2026-07-19 update: Extracted RichTextEditorView into :richtexteditor Android library/AAR consumed by :app. -->
+  <!-- 2026-08-15 update: Migrated Gradle build scripts to Kotlin DSL. -->
+  <!-- 2026-08-15 update: Centralized plugin and dependency versions in gradle/libs.versions.toml. -->
 </svg>
