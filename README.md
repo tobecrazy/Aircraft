@@ -22,7 +22,7 @@ The demo above walks through the end-to-end player experience on a real device:
 
 ![Project Architecture](project_diagram.svg)
 
-> For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
+> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
 
 ## Class Diagram
 
@@ -33,11 +33,11 @@ The demo above walks through the end-to-end player experience on a real device:
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
 | `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
-| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource`, `BannerDetails`, `BannerDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
+| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
 | `richtexteditor/` | Blue-gray | `RichTextEditorView` | Reusable AAR library for rich-text input, toolbar formatting, Markdown/HTML helpers, and image-tap URL helpers |
-| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
+| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `ShowImageDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder`, `FlashlightService` | BGM/SFX bound service + camera-torch foreground service with wakelock-backed SOS |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, file URI/cache helpers, name formatting |
@@ -107,7 +107,7 @@ The demo above walks through the end-to-end player experience on a real device:
 
 ```text
 richtexteditor/
-├── build.gradle                        # Android library module; builds richtexteditor-*.aar
+├── build.gradle.kts                    # Android library module; builds richtexteditor-*.aar
 ├── src/main/java/com/young/richtext/
 │   └── RichTextEditorView.kt           # Reusable rich-text editor custom view and HTML/Markdown helpers
 └── src/main/res/
@@ -136,8 +136,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
 │   ├── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/puzzle-guide/install-id store
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
-│   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
-│   └── BannerDetails.kt                # Legacy banner details contract kept in source
+│   └── ImageDetails.kt                 # Image details contract (local resource or network URL)
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
 │   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
@@ -152,12 +151,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── FlashlightActivity.kt           # Compose flashlight utility with torch, SOS, and brightness controls
 │   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with example JSON loading, WebView preview, and image details navigation
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
-│   ├── BannerDetailsActivity.kt        # Legacy banner details viewer retained in source
-│   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, Android Dev Assistant entry, and QR Tool notification test
+│   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, inline banner preview lab, Android Dev Assistant entry, and QR Tool notification test
 │   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
-│   ├── SupperBannerConfig.kt           # Banner carousel timing bounds
-│   ├── SupperBannerItem.kt             # Banner carousel data model
-│   ├── SupperBannerView.kt             # Banner carousel custom view
 │   ├── DeviceInfoActivity.kt           # Live system monitor
 │   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
@@ -205,9 +200,7 @@ app/src/main/java/com/young/aircraft/
     ├── QRCodeToolViewModel.kt          # QR encode/decode logic (QRCodeToolActivity)
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
     ├── FlashlightViewModel.kt          # Drives FlashlightService via intents; observes torch state via TorchCallback and SOS state via FlashlightService.isSosRunning
-    ├── RichTextEditorViewModel.kt      # Edit/preview mode state (RichTextEditorActivity)
-    ├── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
-    └── BannerDetailsViewModel.kt       # Legacy banner details display logic
+    └── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
 ```
 
 ## Tests
@@ -273,8 +266,10 @@ Instrumented tests belong in `app/src/androidTest`.
 - **Min SDK**: `30`
 - **Target SDK**: `36`
 - **Java**: `17`
-- **Gradle Wrapper**: `9.4.1`
-- **Android Gradle Plugin**: `9.1.1`
+- **Gradle Wrapper**: `9.7.0`
+- **Android Gradle Plugin**: `9.3.1`
+- **Build scripts**: Kotlin DSL (`*.gradle.kts`)
+- **Dependency versions**: `gradle/libs.versions.toml` Gradle version catalog
 
 ## Build
 

@@ -55,7 +55,7 @@
 
   <!-- Title -->
   <text x="900" y="30" text-anchor="middle" font-size="22" font-weight="bold" fill="#333">Aircraft — Class Diagram</text>
-  <text x="900" y="46" text-anchor="middle" font-size="10" fill="#666">Modules: :app + :richtexteditor AAR · FileProvider paths = Pictures/, Download/, cache</text>
+  <text x="900" y="46" text-anchor="middle" font-size="10" fill="#666">Modules: :app + :richtexteditor AAR · Gradle Kotlin DSL + version catalog · FileProvider paths = Pictures/, Download/, cache</text>
 
   <!-- Legend -->
   <g transform="translate(1380, 45)">

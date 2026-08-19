@@ -59,9 +59,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
         binding.tvBuildBadge.text = getString(R.string.develop_settings_debug_badge)
         binding.tvVersionBadge.text = getString(R.string.device_info_fmt_version, BuildConfig.VERSION_NAME)
         binding.tvVersionBadge.setOnClickListener {
-            clickCount++
-            if (clickCount >= 8) {
-                clickCount = 0
+            if (++clickCount % 8 == 0) {
                 binding.switchInvincible.toggle()
             }
         }
@@ -118,7 +116,15 @@ class DevelopSettingsActivity : AppCompatActivity() {
         )
         val notificationManager = getSystemService(NotificationManager::class.java)
 
-        createNotificationChannel(notificationManager)
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                QR_TOOL_NOTIFICATION_CHANNEL_ID,
+                getString(R.string.develop_settings_notification_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = getString(R.string.develop_settings_notification_channel_description)
+            }
+        )
 
         val notification = NotificationCompat.Builder(this, QR_TOOL_NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
@@ -133,52 +139,30 @@ class DevelopSettingsActivity : AppCompatActivity() {
         notificationManager.notify(QR_TOOL_NOTIFICATION_ID, notification)
     }
 
-    private fun createNotificationChannel(notificationManager: NotificationManager) {
-        val channel = NotificationChannel(
-            QR_TOOL_NOTIFICATION_CHANNEL_ID,
-            getString(R.string.develop_settings_notification_channel_name),
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            description = getString(R.string.develop_settings_notification_channel_description)
-        }
-        notificationManager.createNotificationChannel(channel)
-    }
-
     private fun setupSupperBanner() {
+        val localDescription = getString(R.string.develop_settings_supper_banner_local_description)
+        val networkDescription = getString(R.string.develop_settings_supper_banner_network_description)
         val backgroundItems = listOf(
+            "background.jpg" to R.drawable.background,
+            "background_1.jpg" to R.drawable.background_1,
+            "background_2.jpg" to R.drawable.background_2,
+            "background_3.jpg" to R.drawable.background_3,
+            "background_4.jpg" to R.drawable.background_4
+        ).map { (name, drawableRes) ->
             SupperBannerItem(
-                name = "background.jpg",
-                description = getString(R.string.develop_settings_supper_banner_local_description),
-                image = SupperBannerImage.Local(R.drawable.background)
-            ),
-            SupperBannerItem(
-                name = "background_1.jpg",
-                description = getString(R.string.develop_settings_supper_banner_local_description),
-                image = SupperBannerImage.Local(R.drawable.background_1)
-            ),
-            SupperBannerItem(
-                name = "background_2.jpg",
-                description = getString(R.string.develop_settings_supper_banner_local_description),
-                image = SupperBannerImage.Local(R.drawable.background_2)
-            ),
-            SupperBannerItem(
-                name = "background_3.jpg",
-                description = getString(R.string.develop_settings_supper_banner_local_description),
-                image = SupperBannerImage.Local(R.drawable.background_3)
-            ),
-            SupperBannerItem(
-                name = "background_4.jpg",
-                description = getString(R.string.develop_settings_supper_banner_local_description),
-                image = SupperBannerImage.Local(R.drawable.background_4)
-            ),
+                name = name,
+                description = localDescription,
+                image = SupperBannerImage.Local(drawableRes)
+            )
+        } + listOf(
             SupperBannerItem(
                 name = "network_TianQi",
-                description = getString(R.string.develop_settings_supper_banner_network_description),
+                description = networkDescription,
                 image = SupperBannerImage.Network(AircraftConstants.Urls.EXAMPLE_IMAGE_PNG)
             ),
             SupperBannerItem(
                 name = "network_ContactUs",
-                description = getString(R.string.develop_settings_supper_banner_network_description),
+                description = networkDescription,
                 image = SupperBannerImage.Network(AircraftConstants.Urls.CONTACT_US_QR_CODE)
             )
         )
@@ -256,18 +240,25 @@ class DevelopSettingsActivity : AppCompatActivity() {
     }
 
     private fun updateInvincibleUi(enabled: Boolean) {
-        binding.tvInvincibleChip.text = getString(
-            if (enabled) R.string.develop_settings_invincible_status_on
-            else R.string.develop_settings_invincible_status_off
-        )
-        binding.tvInvincibleChip.setBackgroundResource(
-            if (enabled) R.drawable.develop_settings_status_active_bg
-            else R.drawable.develop_settings_status_inactive_bg
-        )
-        binding.tvInvincibleRuntimeStatus.text = getString(
-            if (enabled) R.string.develop_settings_invincible_runtime_on
-            else R.string.develop_settings_invincible_runtime_off
-        )
+        val chipTextRes = if (enabled) {
+            R.string.develop_settings_invincible_status_on
+        } else {
+            R.string.develop_settings_invincible_status_off
+        }
+        val chipBackgroundRes = if (enabled) {
+            R.drawable.develop_settings_status_active_bg
+        } else {
+            R.drawable.develop_settings_status_inactive_bg
+        }
+        val runtimeStatusTextRes = if (enabled) {
+            R.string.develop_settings_invincible_runtime_on
+        } else {
+            R.string.develop_settings_invincible_runtime_off
+        }
+
+        binding.tvInvincibleChip.text = getString(chipTextRes)
+        binding.tvInvincibleChip.setBackgroundResource(chipBackgroundRes)
+        binding.tvInvincibleRuntimeStatus.text = getString(runtimeStatusTextRes)
     }
 
     private companion object {

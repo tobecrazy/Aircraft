@@ -13,6 +13,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
 rootProject.name = "Aircraft"
-include ':app'
-include ':richtexteditor'
+include(":app", ":richtexteditor")

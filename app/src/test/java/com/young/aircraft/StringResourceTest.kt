@@ -93,7 +93,7 @@ class StringResourceTest {
 
     private fun findProjectRoot(): File {
         var current: File? = File(".").absoluteFile
-        while (current != null && !File(current, "settings.gradle").exists()) {
+        while (current != null && !File(current, "settings.gradle").exists() && !File(current, "settings.gradle.kts").exists()) {
             current = current.parentFile
         }
         return current ?: File(".")
