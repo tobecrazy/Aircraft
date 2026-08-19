@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Aircraft 战机游戏 App 架构",
+    "output": "aircraft-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "main-rail", "label": "启动到持久化的主链路", "focus": ["launcher", "home", "viewmodel", "data", "room"], "note": "从启动页经 MainActivity 汇聚到 ViewModel 与 Room 持久化。" },
+      { "id": "game-render", "label": "游戏渲染与状态", "focus": ["home", "game", "viewmodel", "data"], "note": "GameCoreView 用自绘 View 渲染战机、敌机与特效，状态回写到 ViewModel。" },
+      { "id": "tools-and-services", "label": "工具页与模块", "focus": ["home", "settings", "media", "text"], "note": "设置、媒体工具、独立 richtext 模块各司其职，前台服务常驻运行。" }
+    ]
+  },
+  "components": [
+    { "id": "launcher", "type": "frontend", "label": "LaunchActivity", "sublabel": "启动页 / 隐私协议", "pos": [430, 30], "size": [140, 60] },
+    { "id": "home", "type": "frontend", "label": "MainActivity", "sublabel": "主界面（Jetpack Compose）", "pos": [430, 150], "size": [140, 60] },
+    { "id": "settings", "type": "frontend", "label": "设置页", "sublabel": "Settings / DeviceInfo", "pos": [60, 150], "size": [150, 60] },
+    { "id": "text", "type": "external", "label": "richtext 模块", "sublabel": "独立 Editor 库", "pos": [800, 150], "size": [150, 60] },
+    { "id": "media", "type": "frontend", "label": "媒体工具", "sublabel": "Flashlight / QRCode", "pos": [60, 262], "size": [150, 60] },
+    { "id": "history", "type": "frontend", "label": "历史页", "sublabel": "History / About", "pos": [800, 262], "size": [150, 60] },
+    { "id": "viewmodel", "type": "backend", "label": "ViewModel 层", "sublabel": "GameViewModel 等 16 个", "pos": [430, 262], "size": [140, 60], "tag": "MVVM" },
+    { "id": "game", "type": "frontend", "label": "GameCoreView", "sublabel": "自绘渲染 / 战机敌机特效", "pos": [430, 375], "size": [140, 60] },
+    { "id": "data", "type": "backend", "label": "Data 层", "sublabel": "Repository / DAO", "pos": [180, 375], "size": [150, 60] },
+    { "id": "room", "type": "database", "label": "Room", "sublabel": "AppDatabase", "pos": [670, 375], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Android App（com.young.aircraft）", "wraps": ["launcher", "home", "settings", "media", "history", "viewmodel", "game", "data", "room"] },
+    { "kind": "region", "label": "独立模块 :richtexteditor", "wraps": ["text"] }
+  ],
+  "connections": [
+    { "id": "launch-home", "from": "launcher", "to": "home", "label": "启动", "variant": "emphasis", "labelDy": 24 },
+    { "id": "home-settings", "from": "home", "to": "settings", "label": "打开设置" },
+    { "id": "home-text", "from": "home", "to": "text", "label": "打开编辑器" },
+    { "id": "home-viewmodel", "from": "home", "to": "viewmodel", "label": "观察 StateFlow", "labelDy": 24 },
+    { "id": "home-media", "from": "home", "to": "media", "label": "工具" },
+    { "id": "home-history", "from": "home", "to": "history", "label": "工具" },
+    { "id": "viewmodel-game", "from": "viewmodel", "to": "game", "label": "游戏状态", "labelDy": 24, "labelDx": 48 },
+    { "id": "viewmodel-data", "from": "viewmodel", "to": "data", "label": "读写", "fromSide": "bottom", "toSide": "top", "labelDy": -18 },
+    { "id": "viewmodel-room", "from": "viewmodel", "to": "room", "label": "Retrofit / Coil", "fromSide": "bottom", "toSide": "top", "labelDy": -18 },
+    { "id": "data-room", "from": "data", "to": "room", "label": "SQL", "fromSide": "bottom", "toSide": "bottom", "via": [[255, 470], [745, 470]], "labelDy": -14 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "表现层", "items": ["Jetpack Compose + Material3 构建主界面与设置等页面", "GameCoreView 自绘渲染战机、敌机与爆炸特效", "FlashlightService / MusicService 前台服务常驻"] },
+    { "dot": "violet", "title": "状态层", "items": ["每个页面配套 ViewModel，共 16 个", "MVVM 单向数据流，UI 观察 State"] },
+    { "dot": "amber", "title": "数据层", "items": ["Room（AppDatabase + PlayerGameDataDao）本地持久化", "SettingsRepository 管理应用配置", "Retrofit 网络 + Coil 图片加载", "richtexteditor 为独立编辑器模块"] }
+  ]
+}
