@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-22
+
 ### Changed
 - Converted root, app, and rich-text editor Gradle build scripts to Kotlin DSL (`*.gradle.kts`) and upgraded the Gradle wrapper to 9.7.0
 - Centralized plugin and dependency versions in the Gradle version catalog at `gradle/libs.versions.toml`

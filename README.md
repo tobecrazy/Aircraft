@@ -2,6 +2,14 @@
 
 Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus a reusable `:richtexteditor` Android library module that can be built as an AAR. The app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, 9 interleaved puzzle gates (one after each non-final combat stage), boss fights, collectible power-ups, QR code and flashlight utilities, local save/resume support, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
+## Download
+
+Latest release APK (V1.3.0):
+
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.3.0/app-release.apk)
+
+All releases: <https://github.com/tobecrazy/Aircraft/releases>
+
 ## Demo
 
 <p align="center">
@@ -260,11 +268,11 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.2.8`
+- **Version**: `1.3.0`
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `30`
-- **Target SDK**: `36`
+- **Target SDK**: `37`
 - **Java**: `17`
 - **Gradle Wrapper**: `9.7.0`
 - **Android Gradle Plugin**: `9.3.1`
