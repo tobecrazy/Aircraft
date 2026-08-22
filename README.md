@@ -144,7 +144,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
 │   ├── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/puzzle-guide/install-id store
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
-│   └── ImageDetails.kt                 # Image details contract (local resource or network URL)
+│   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
+│   └── BannerDetails.kt                # In-app banner content model (name/description/source)
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
 │   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
@@ -161,6 +162,10 @@ app/src/main/java/com/young/aircraft/
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, inline banner preview lab, Android Dev Assistant entry, and QR Tool notification test
 │   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
+│   ├── SupperBannerView.kt             # Auto-rotating in-app banner carousel custom view
+│   ├── SupperBannerItem.kt             # Banner entry model (name, description, local/network image)
+│   ├── SupperBannerConfig.kt           # Banner carousel transition timing constants
+│   ├── BannerDetailsActivity.kt        # Compose banner details screen launched from SupperBannerView
 │   ├── DeviceInfoActivity.kt           # Compose live system monitor; foldable-aware System Info layout
 │   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
@@ -187,6 +192,7 @@ app/src/main/java/com/young/aircraft/
 │   └── GameHudFormatter.kt             # HUD data formatting (time, health %, score)
 ├── utils/
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
+│   ├── DataUriUtils.kt                 # RFC 2397 data:image URI parsing for rich-text embedded images
 │   ├── FilePickerHelper.kt             # FileProvider URI and cache helpers for QR image export/import
 │   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
 │   └── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
@@ -199,6 +205,7 @@ app/src/main/java/com/young/aircraft/
     ├── HistoryUiState.kt               # UI state data class for history screen
     ├── OnboardingViewModel.kt          # Onboarding completion gate (OnboardingActivity)
     ├── PrivacyPolicyViewModel.kt       # Privacy acceptance gate (PrivacyPolicyAcceptActivity)
+    ├── RichTextEditorViewModel.kt      # Editor/preview mode state (RichTextEditorActivity)
     ├── DevelopSettingsViewModel.kt     # Invincible mode toggle (DevelopSettingsActivity)
     ├── AboutAircraftViewModel.kt       # Project info StateFlow (AboutAircraftActivity)
     ├── AboutAircraftUiState.kt         # UI state for about-aircraft screen
@@ -208,6 +215,7 @@ app/src/main/java/com/young/aircraft/
     ├── QRCodeToolViewModel.kt          # QR encode/decode logic (QRCodeToolActivity)
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
     ├── FlashlightViewModel.kt          # Drives FlashlightService via intents; observes torch state via TorchCallback and SOS state via FlashlightService.isSosRunning
+    ├── BannerDetailsViewModel.kt       # Banner detail display/download logic (BannerDetailsActivity)
     └── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
 ```
 

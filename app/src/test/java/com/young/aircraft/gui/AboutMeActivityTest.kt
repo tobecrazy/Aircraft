@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -58,6 +59,9 @@ class AboutMeActivityTest {
         composeRule.onNodeWithText(activity.getString(R.string.about_me_project_section_title))
             .assertTextEquals(activity.getString(R.string.about_me_project_section_title))
 
+        // The repo URL lives in the hero card; scroll to it so its lazy item is composed
+        composeRule.onNodeWithTag("about_me_list")
+            .performScrollToNode(hasText(activity.getString(R.string.about_me_project_repo_url)))
         val repoNodes = composeRule.onAllNodesWithText(activity.getString(R.string.about_me_project_repo_url))
             .fetchSemanticsNodes()
         assertTrue(repoNodes.isNotEmpty())
@@ -77,6 +81,9 @@ class AboutMeActivityTest {
     fun `github action launches browser intent`() {
         val activity = composeRule.activity
 
+        // Button sits below the fold in the test viewport; scroll it into view first
+        composeRule.onNodeWithTag("about_me_list")
+            .performScrollToNode(hasTestTag("about_me_open_repo"))
         composeRule.onNodeWithTag("about_me_open_repo").performClick()
         composeRule.waitForIdle()
 
