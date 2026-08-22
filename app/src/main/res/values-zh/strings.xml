@@ -369,7 +369,6 @@
     <string name="device_info_battery_charging">充电中</string>
     <string name="device_info_battery_discharging">放电中</string>
     <string name="device_info_net_offline">离线</string>
-    <string name="device_info_net_no_connection">无网络连接</string>
     <string name="device_info_net_wifi">Wi-Fi</string>
     <string name="device_info_net_cellular">蜂窝网络</string>
     <string name="device_info_net_ethernet">以太网</string>
@@ -384,14 +383,13 @@
     <string name="device_info_fmt_pct">%d%%</string>
     <string name="device_info_fmt_core_pct">%1$3d%%</string>
     <string name="device_info_fmt_core_pct_freq">%1$3d%% %2$dMHz</string>
-    <string name="device_info_fmt_core_init">  0%%</string>
     <string name="device_info_fmt_cpu_temp">温度: %.1f\u00B0C</string>
     <string name="device_info_cpu_temp_na">温度: N/A</string>
     <string name="device_info_fmt_memory_detail">已用 %.1fG / 可用 %.1fG\n共 %.1fG | 缓冲 %.2fG | 缓存 %.2fG</string>
     <string name="device_info_fmt_disk_detail">已用 %.1fG / 可用 %.1fG\n共 %.1fG</string>
     <string name="device_info_net_wifi_detail_ext">%1$s %2$dMbps 信号:%3$ddBm [%4$d/4]</string>
     <string name="device_info_net_throughput">\u2193%1$s \u2191%2$s</string>
-    <string name="device_info_net_throughput_init">\u2193— \u2191—</string>
+    <string name="device_info_net_throughput_init">\u2193-- \u2191--</string>
     <string name="device_info_net_ip">IP: %s</string>
 
     <!-- Launch Screen -->

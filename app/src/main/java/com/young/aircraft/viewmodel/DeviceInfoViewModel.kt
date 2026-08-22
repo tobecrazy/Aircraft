@@ -502,16 +502,6 @@ class DeviceInfoViewModel(
         }
     }
 
-    // ── Formatting helpers (exposed for Activity rendering) ───────────────
-
-    fun formatBytes(bytesPerSec: Long): String {
-        return when {
-            bytesPerSec >= 1_000_000 -> String.format(Locale.getDefault(), "%.1f MB/s", bytesPerSec / 1_000_000.0)
-            bytesPerSec >= 1_000 -> String.format(Locale.getDefault(), "%.1f KB/s", bytesPerSec / 1_000.0)
-            else -> String.format(Locale.getDefault(), "%d B/s", bytesPerSec)
-        }
-    }
-
     class Factory(context: Context) : ViewModelProvider.Factory {
         private val appContext = context.applicationContext
 
@@ -522,9 +512,18 @@ class DeviceInfoViewModel(
     }
 }
 
+// ── Formatting helpers (exposed for Activity rendering) ──────────────────
+
+internal fun formatBytes(bytesPerSec: Long): String {
+    return when {
+        bytesPerSec >= 1_000_000 -> String.format(Locale.getDefault(), "%.1f MB/s", bytesPerSec / 1_000_000.0)
+        bytesPerSec >= 1_000 -> String.format(Locale.getDefault(), "%.1f KB/s", bytesPerSec / 1_000.0)
+        else -> String.format(Locale.getDefault(), "%d B/s", bytesPerSec)
+    }
+}
+
 internal object DeviceResourceCalculators {
     private val whitespace = "\\s+".toRegex()
-
     fun parseCpuStatLine(line: String): LongArray? {
         val parts = line.trim().split(whitespace)
         if (parts.size < 5 || !parts[0].startsWith("cpu")) return null
