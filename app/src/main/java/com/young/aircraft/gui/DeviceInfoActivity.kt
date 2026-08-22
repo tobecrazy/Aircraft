@@ -363,7 +363,7 @@ private fun CpuCard(cpu: CpuState, cpuInfo: String) {
                         fontFamily = FontFamily.Monospace
                     )
                     Text(
-                        text = cpuInfo.ifEmpty { "" },
+                        text = cpuInfo,
                         modifier = Modifier.padding(top = 6.dp),
                         color = TextMuted,
                         fontSize = 11.sp,
@@ -749,46 +749,44 @@ private fun PercentBar(pct: Int, modifier: Modifier = Modifier, barHeight: Dp = 
 
 // ── Preview ──────────────────────────────────────────────────────────────
 
+private fun previewUiState(): DeviceInfoUiState = DeviceInfoUiState(
+    staticInfo = com.young.aircraft.viewmodel.DeviceStaticInfo(
+        deviceModel = "GOOGLE PIXEL 9",
+        androidVersion = "Android 15 (API 35)",
+        cpuInfo = "Tensor G4 | 8 cores | arm64-v8a",
+        screenResolution = "1080 x 2340 @ 420dpi",
+        bootTime = "2026-08-22 08:30:00",
+        appVersion = "v1.2.9"
+    ),
+    cpu = CpuState(
+        overallPct = 34,
+        coreUsages = List(8) { i ->
+            CoreUsage(index = i, pct = (i * 11) % 100, freqMhz = 1800 + i * 100)
+        },
+        temperature = 45.7f
+    ),
+    memory = MemoryState(pct = 61, usedGB = 5.2, availGB = 3.1, totalGB = 8.0, buffersGB = 0.31, cachedGB = 1.2),
+    disk = DiskState(pct = 47, usedGB = 48.1, availGB = 54.0, totalGB = 102.4),
+    network = NetworkState(
+        type = NetworkType.WIFI,
+        detail = "HOME_5G 300Mbps RSSI:-52dBm [4/4]",
+        rxBytesPerSec = 245760,
+        txBytesPerSec = 40960,
+        ipAddress = "192.168.1.23",
+        throughputReady = true
+    ),
+    battery = BatteryState(pct = 76, isCharging = false),
+    time = TimeState(
+        currentTime = "2026-08-22 08:39:47",
+        uptime = "1 day 02:03:04"
+    )
+)
+
 @Preview(showBackground = true, widthDp = 420, heightDp = 960)
 @Composable
 private fun DeviceInfoScreenPreview() {
     MaterialTheme {
-        DeviceInfoScreen(
-            uiState = DeviceInfoUiState(
-                staticInfo = com.young.aircraft.viewmodel.DeviceStaticInfo(
-                    deviceModel = "GOOGLE PIXEL 9",
-                    androidVersion = "Android 15 (API 35)",
-                    cpuInfo = "Tensor G4 | 8 cores | arm64-v8a",
-                    screenResolution = "1080 x 2340 @ 420dpi",
-                    bootTime = "2026-08-22 08:30:00",
-                    appVersion = "v1.2.9"
-                ),
-                cpu = CpuState(
-                    overallPct = 34,
-                    coreUsages = List(8) { i ->
-                        CoreUsage(index = i, pct = (i * 11) % 100, freqMhz = 1800 + i * 100)
-                    },
-                    temperature = 45.7f
-                ),
-                memory = MemoryState(pct = 61, usedGB = 5.2, availGB = 3.1, totalGB = 8.0, buffersGB = 0.31, cachedGB = 1.2),
-                disk = DiskState(pct = 47, usedGB = 48.1, availGB = 54.0, totalGB = 102.4),
-                network = NetworkState(
-                    type = NetworkType.WIFI,
-                    detail = "HOME_5G 300Mbps RSSI:-52dBm [4/4]",
-                    rxBytesPerSec = 245760,
-                    txBytesPerSec = 40960,
-                    ipAddress = "192.168.1.23",
-                    throughputReady = true
-                ),
-                battery = BatteryState(pct = 76, isCharging = false),
-                time = TimeState(
-                    currentTime = "2026-08-22 08:39:47",
-                    uptime = "1 day 02:03:04"
-                )
-            ),
-            systemInfoWide = false,
-            onBack = {}
-        )
+        DeviceInfoScreen(uiState = previewUiState(), systemInfoWide = false, onBack = {})
     }
 }
 
@@ -796,41 +794,6 @@ private fun DeviceInfoScreenPreview() {
 @Composable
 private fun DeviceInfoScreenUnfoldedPreview() {
     MaterialTheme {
-        DeviceInfoScreen(
-            uiState = DeviceInfoUiState(
-                staticInfo = com.young.aircraft.viewmodel.DeviceStaticInfo(
-                    deviceModel = "GOOGLE PIXEL 9",
-                    androidVersion = "Android 15 (API 35)",
-                    cpuInfo = "Tensor G4 | 8 cores | arm64-v8a",
-                    screenResolution = "1080 x 2340 @ 420dpi",
-                    bootTime = "2026-08-22 08:30:00",
-                    appVersion = "v1.2.9"
-                ),
-                cpu = CpuState(
-                    overallPct = 34,
-                    coreUsages = List(8) { i ->
-                        CoreUsage(index = i, pct = (i * 11) % 100, freqMhz = 1800 + i * 100)
-                    },
-                    temperature = 45.7f
-                ),
-                memory = MemoryState(pct = 61, usedGB = 5.2, availGB = 3.1, totalGB = 8.0, buffersGB = 0.31, cachedGB = 1.2),
-                disk = DiskState(pct = 47, usedGB = 48.1, availGB = 54.0, totalGB = 102.4),
-                network = NetworkState(
-                    type = NetworkType.WIFI,
-                    detail = "HOME_5G 300Mbps RSSI:-52dBm [4/4]",
-                    rxBytesPerSec = 245760,
-                    txBytesPerSec = 40960,
-                    ipAddress = "192.168.1.23",
-                    throughputReady = true
-                ),
-                battery = BatteryState(pct = 76, isCharging = false),
-                time = TimeState(
-                    currentTime = "2026-08-22 08:39:47",
-                    uptime = "1 day 02:03:04"
-                )
-            ),
-            systemInfoWide = true,
-            onBack = {}
-        )
+        DeviceInfoScreen(uiState = previewUiState(), systemInfoWide = true, onBack = {})
     }
 }
