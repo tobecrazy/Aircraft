@@ -62,7 +62,8 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
             settings.allowFileAccess = true
             settings.javaScriptEnabled = true
             settings.loadsImagesAutomatically = true
-            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.SINGLE_COLUMN
+            settings.useWideViewPort = true
+            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
             settings.loadWithOverviewMode = true
 
             webViewClient = object : WebViewClient() {

@@ -5,9 +5,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "/tmp/archify-aircraft/aircraft-architecture.html",
-    "sha256": "8dbb68454fdcaf7cbc151d8ac788fddeedeb96c7ec80445a69aabb008f79673f",
-    "bytes": 640854
+    "path": "/Users/I321533/AndroidStudioProjects/Aircraft/docs/aircraft-architecture.html",
+    "sha256": "4e8030cf8f1764f3d2cc34ae88c012412858923ea8a8c626993169e907a4975b",
+    "bytes": 643056
   },
   "state": {
     "detail": "read",

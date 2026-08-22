@@ -56,6 +56,9 @@ captures/
 *.keystore
 keystore.properties
 
+# Local secrets (DB credentials)
+database_config.yml
+
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
 .cxx/
@@ -99,3 +102,5 @@ OPTIMIZATION_PLAN.md
 /app/debug
 /.qwen
 .github/copilot-instructions.md
+ComposeRichText.md
+ogg.md

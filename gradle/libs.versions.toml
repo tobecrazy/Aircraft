@@ -1,27 +1,27 @@
 [versions]
 agp = "9.3.1"
-ksp = "2.1.20-1.0.32"
+ksp = "2.3.11"
 kotlin-compose = "2.4.10"
 google-services = "4.5.0"
-crashlytics-plugin = "3.0.7"
+crashlytics-plugin = "3.0.8"
 zxing = "3.5.4"
 retrofit = "3.0.0"
-okhttp = "5.4.0"
+okhttp = "5.5.0"
 room = "2.8.4"
 core-ktx = "1.19.0"
 appcompat = "1.8.0"
-richtext-appcompat = "1.7.1"
+richtext-appcompat = "1.8.0"
 material = "1.14.0"
 constraintlayout = "2.2.2"
 viewpager2 = "1.1.0"
 media = "1.8.0"
 preference = "1.2.1"
 lifecycle = "2.11.0"
-firebase-bom = "34.17.0"
+firebase-bom = "34.18.0"
 coil = "2.7.0"
-compose-bom = "2026.06.01"
+compose-bom = "2026.08.00"
 activity-compose = "1.13.0"
-window = "1.5.0"
+window = "1.5.1"
 junit = "4.13.2"
 mockito = "5.23.0"
 mockito-kotlin = "6.3.0"
@@ -39,7 +39,9 @@ room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
+#noinspection SimilarGradleDependency
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+#noinspection SimilarGradleDependency
 androidx-appcompat-richtext = { module = "androidx.appcompat:appcompat", version.ref = "richtext-appcompat" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }

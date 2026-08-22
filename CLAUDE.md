@@ -2,11 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Language
+
+- **Respond in Chinese (中文回复)**: All responses and explanations should be in Chinese.
+
 ## Project Overview
 
 Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions. The game has 10 time-based levels with scaling difficulty and a boss fight at the end of each level.
 
 For detailed documentation (formulas, database schema, common tasks like adding enemies/sounds/languages, and how to play), see **[DOCUMENT.md](DOCUMENT.md)**.
+
+**[AGENTS.md](AGENTS.md) is a symlink to this file — editing CLAUDE.md updates both automatically.**
 
 ## Build Commands
 
@@ -23,15 +29,15 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 
 ## Build Configuration
 
-- **Gradle:** 9.4.1, AGP 9.1.1 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.1.20-1.0.32
-- **Build files:** Groovy DSL (`build.gradle`, not `.gradle.kts`)
-- **SDK:** compileSdk 37, minSdk 30, targetSdk 36, buildToolsVersion 37.0.0
+- **Gradle:** 9.7.0, AGP 9.3.1 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.3.11
+- **Build files:** Kotlin DSL (`build.gradle.kts`), dependency versions centralized in `gradle/libs.versions.toml`
+- **SDK:** compileSdk 37, minSdk 30, targetSdk 37, buildToolsVersion 37.0.0
 - **Java:** 17
 - **Room:** 2.8.4
-- **Compose BOM:** 2026.04.01 (material3, foundation, activity-compose 1.13.0)
-- **Firebase:** BOM 34.12.0 (Analytics + Crashlytics)
+- **Compose BOM:** 2026.08.00 (material3, foundation, activity-compose 1.13.0); Coil for Compose image loading
+- **Firebase:** BOM 34.18.0 (Analytics + Crashlytics)
 - **ZXing:** 3.5.4 (QR code generation/decoding)
-- **Networking:** Retrofit 3.0.0, OkHttp 5.3.2
+- **Networking:** Retrofit 3.0.0, OkHttp 5.5.0
 - **Test stack:** JUnit 4.13.2, Robolectric 4.16.1, Mockito 5.23.0/Kotlin 6.3.0, Compose UI test
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
