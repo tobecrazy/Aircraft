@@ -104,6 +104,6 @@ object AircraftConstants {
         const val HULL_LOW = "#59FFAB"
         const val HULL_MID = "#8DFFC6"
         const val SCORE_VALUE = "#D8F7E9"
-        const val BOSS_BAR = "#59FFAB"
+        const val BOSS_BAR = "#FF5252"
     }
 }
