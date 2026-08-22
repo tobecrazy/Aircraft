@@ -369,7 +369,6 @@
     <string name="device_info_battery_charging">Charging</string>
     <string name="device_info_battery_discharging">Discharging</string>
     <string name="device_info_net_offline">Offline</string>
-    <string name="device_info_net_no_connection">No connection</string>
     <string name="device_info_net_wifi">Wi-Fi</string>
     <string name="device_info_net_cellular">Cellular</string>
     <string name="device_info_net_ethernet">Ethernet</string>
@@ -384,7 +383,6 @@
     <string name="device_info_fmt_pct">%d%%</string>
     <string name="device_info_fmt_core_pct">%1$3d%%</string>
     <string name="device_info_fmt_core_pct_freq">%1$3d%% %2$dMHz</string>
-    <string name="device_info_fmt_core_init">  0%%</string>
     <string name="device_info_fmt_cpu_temp">Temp: %.1f\u00B0C</string>
     <string name="device_info_cpu_temp_na">Temp: N/A</string>
     <string name="device_info_fmt_memory_detail">%.1fG used / %.1fG free\n%.1fG total | Buf %.2fG | Cache %.2fG</string>

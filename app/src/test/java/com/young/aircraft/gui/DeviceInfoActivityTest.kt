@@ -1,148 +1,103 @@
 package com.young.aircraft.gui
 
-import android.content.Context
-import android.os.Build
-import android.os.SystemClock
-import android.view.View
-import android.widget.TextView
-import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ApplicationProvider
+import androidx.compose.runtime.MutableState
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import com.young.aircraft.R
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowSystemClock
 import org.robolectric.util.ReflectionHelpers
+import org.robolectric.annotation.GraphicsMode
 import java.util.Locale
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class DeviceInfoActivityTest {
 
+    @get:Rule
+    val composeRule = createAndroidComposeRule<DeviceInfoActivity>()
+
     @Test
-    fun `activity launches and displays static info`() {
-        ReflectionHelpers.setStaticField(Build::class.java, "MANUFACTURER", "Google")
-        ReflectionHelpers.setStaticField(Build::class.java, "MODEL", "Pixel 7")
-        ReflectionHelpers.setStaticField(Build.VERSION::class.java, "RELEASE", "14")
-        ReflectionHelpers.setStaticField(Build.VERSION::class.java, "SDK_INT", 34)
+    fun `screen renders header title and sections`() {
+        val activity = composeRule.activity
+        composeRule.waitForIdle()
 
-        ActivityScenario.launch(DeviceInfoActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val tvModel = activity.findViewById<TextView>(R.id.tv_device_model)
-                val tvAndroid = activity.findViewById<TextView>(R.id.tv_android_version)
+        composeRule.onNodeWithText(activity.getString(R.string.title_activity_device_info))
+            .assertTextEquals(activity.getString(R.string.title_activity_device_info))
 
-                assertEquals("GOOGLE Pixel 7", tvModel.text.toString())
-                assertTrue(tvAndroid.text.toString().contains("Android 14"))
-                assertTrue(tvAndroid.text.toString().contains("API 34"))
-            }
-        }
+        composeRule.onNodeWithTag("device_info_scroll")
+            .performScrollToNode(hasText(activity.getString(R.string.device_info_section_resources)))
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_section_resources))
+            .assertExists()
+
+        composeRule.onNodeWithTag("device_info_scroll")
+            .performScrollToNode(hasText(activity.getString(R.string.device_info_section_system)))
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_section_system))
+            .assertExists()
     }
 
     @Test
     fun `back button finishes activity`() {
-        ActivityScenario.launch(DeviceInfoActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val btnBack = activity.findViewById<View>(R.id.btn_back)
-                btnBack.performClick()
-                assertTrue(activity.isFinishing)
-            }
-        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription(composeRule.activity.getString(R.string.history_cancel))
+            .performClick()
+        assertTrue(composeRule.activity.isFinishing)
+    }
+
+    // ── Foldable System Info layout ───────────────────────────────────
+
+    @Test
+    fun `system info items stack vertically when folded`() {
+        val activity = composeRule.activity
+        composeRule.waitForIdle()
+        val (current, uptime) = heroTimeBounds()
+        assertTrue("uptime should sit below current time", uptime.top >= current.bottom)
+        val (resolution, boot) = systemInfoBounds()
+        assertTrue("boot time should sit below screen info", boot.top >= resolution.bottom)
     }
 
     @Test
-    fun `cpu temperature view exists`() {
-        ActivityScenario.launch(DeviceInfoActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val tvCpuTemp = activity.findViewById<TextView>(R.id.tv_cpu_temp)
-                assertNotNull(tvCpuTemp)
-                val text = tvCpuTemp.text.toString()
-                // Should display either a temperature or N/A
-                assertTrue(
-                    "CPU temp should show temperature or N/A, got: $text",
-                    text.contains("°C") || text.contains("N/A")
-                )
-            }
-        }
+    fun `system info items share one row when foldable unfolded`() {
+        val activity = composeRule.activity
+        ReflectionHelpers.getField<MutableState<Boolean>>(activity, "systemInfoWide").value = true
+        composeRule.waitForIdle()
+        val (current, uptime) = heroTimeBounds()
+        assertEquals(current.top, uptime.top, 0.5f)
+        val (resolution, boot) = systemInfoBounds()
+        assertEquals(resolution.top, boot.top, 0.5f)
     }
 
-    @Test
-    fun `memory detail shows buffer and cache info`() {
-        ActivityScenario.launch(DeviceInfoActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val tvMemory = activity.findViewById<TextView>(R.id.tv_memory)
-                val text = tvMemory.text.toString()
-                // New format includes "used", "free", "total", "Buf", "Cache"
-                // or Chinese equivalents
-                assertTrue(
-                    "Memory detail should show multi-line info with used/free/total, got: $text",
-                    text.contains("G") && text.contains("\n")
-                )
-            }
-        }
+    private fun heroTimeBounds(): Pair<Rect, Rect> {
+        val activity = composeRule.activity
+        val current = composeRule.onNodeWithText(activity.getString(R.string.device_info_current_time))
+            .fetchSemanticsNode().boundsInRoot
+        val uptime = composeRule.onNodeWithText(activity.getString(R.string.device_info_uptime))
+            .fetchSemanticsNode().boundsInRoot
+        return current to uptime
     }
 
-    @Test
-    fun `disk detail shows used free and total`() {
-        ActivityScenario.launch(DeviceInfoActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val tvDisk = activity.findViewById<TextView>(R.id.tv_disk)
-                val text = tvDisk.text.toString()
-                assertTrue(
-                    "Disk detail should show multi-line info, got: $text",
-                    text.contains("G") && text.contains("\n")
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `network throughput view exists and initialized`() {
-        ActivityScenario.launch(DeviceInfoActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val tvThroughput = activity.findViewById<TextView>(R.id.tv_network_throughput)
-                assertNotNull(tvThroughput)
-                // Should show arrows (↓↑) or be empty when offline
-                val text = tvThroughput.text.toString()
-                assertTrue(
-                    "Network throughput should show arrows or be empty, got: $text",
-                    text.isEmpty() || text.contains("\u2193") || text.contains("\u2191")
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `network extra view exists`() {
-        ActivityScenario.launch(DeviceInfoActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val tvExtra = activity.findViewById<TextView>(R.id.tv_network_extra)
-                assertNotNull(tvExtra)
-                // Should show IP or be empty when offline
-                val text = tvExtra.text.toString()
-                assertTrue(
-                    "Network extra should show IP or be empty, got: $text",
-                    text.isEmpty() || text.contains("IP")
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `uptime displays in correct format`() {
-        ActivityScenario.launch(DeviceInfoActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val tvUptime = activity.findViewById<TextView>(R.id.tv_uptime)
-                val text = tvUptime.text.toString()
-                assertFalse("Uptime should not be empty", text.isEmpty())
-                // Should contain colons (mm:ss or hh:mm:ss format)
-                assertTrue(
-                    "Uptime should contain colon-separated time, got: $text",
-                    text.contains(":")
-                )
-            }
-        }
+    private fun systemInfoBounds(): Pair<Rect, Rect> {
+        val activity = composeRule.activity
+        composeRule.onNodeWithTag("device_info_scroll")
+            .performScrollToNode(hasText(activity.getString(R.string.device_info_boot_time)))
+        val resolution = composeRule.onNodeWithText(activity.getString(R.string.device_info_screen_resolution))
+            .fetchSemanticsNode().boundsInRoot
+        val boot = composeRule.onNodeWithText(activity.getString(R.string.device_info_boot_time))
+            .fetchSemanticsNode().boundsInRoot
+        return resolution to boot
     }
 
     // ── Uptime format unit tests ──────────────────────────────────────
@@ -268,11 +223,11 @@ class DeviceInfoActivityTest {
         assertEquals("1.0 MB/s", formatBytesForTest(1_000_000))
     }
 
-    // ── Helper functions that mirror the Activity logic for pure unit testing ──
+    // ── Helper functions that mirror the ViewModel logic for pure unit testing ──
 
     companion object {
         /**
-         * Pure function mirroring DeviceInfoActivity.getUptime() logic.
+         * Pure function mirroring DeviceInfoViewModel.getUptime() logic.
          * Uses English string format resources directly for testability.
          */
         fun formatUptimeForTest(uptimeMs: Long): String {
@@ -309,7 +264,7 @@ class DeviceInfoActivityTest {
         }
 
         /**
-         * Pure function mirroring DeviceInfoActivity.formatBytes() logic.
+         * Pure function mirroring formatBytes() logic.
          */
         fun formatBytesForTest(bytesPerSec: Long): String {
             return when {

@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.activity.compose)
+    implementation(libs.androidx.window)
     debugImplementation(libs.compose.ui.tooling)
     testImplementation(libs.compose.ui.test.junit4)
     testImplementation(libs.junit)

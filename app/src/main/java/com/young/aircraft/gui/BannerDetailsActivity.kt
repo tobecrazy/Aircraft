@@ -228,7 +228,7 @@ private fun DetailsTopBar(
                 Icon(
                     painter = painterResource(R.drawable.ic_header_back),
                     contentDescription = stringResource(R.string.history_back),
-                    tint = DetailsText
+                    tint = DetailsAccent
                 )
             }
         },

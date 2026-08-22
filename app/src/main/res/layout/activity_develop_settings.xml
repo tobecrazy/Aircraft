@@ -24,7 +24,7 @@
                 android:layout_marginStart="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/history_cancel"
-                android:src="?attr/homeAsUpIndicator" />
+                android:src="@drawable/ic_header_back" />
 
             <TextView
                 android:layout_width="wrap_content"
