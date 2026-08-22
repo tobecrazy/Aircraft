@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Language
+
+- **Respond in Chinese (中文回复)**: All responses and explanations should be in Chinese.
+
 ## Project Overview
 
 Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions. The game has 10 time-based levels with scaling difficulty and a boss fight at the end of each level.
