@@ -63,6 +63,8 @@ class DeviceInfoActivityTest {
     fun `system info items stack vertically when folded`() {
         val activity = composeRule.activity
         composeRule.waitForIdle()
+        val (current, uptime) = heroTimeBounds()
+        assertTrue("uptime should sit below current time", uptime.top >= current.bottom)
         val (resolution, boot) = systemInfoBounds()
         assertTrue("boot time should sit below screen info", boot.top >= resolution.bottom)
     }
@@ -72,8 +74,19 @@ class DeviceInfoActivityTest {
         val activity = composeRule.activity
         ReflectionHelpers.getField<MutableState<Boolean>>(activity, "systemInfoWide").value = true
         composeRule.waitForIdle()
+        val (current, uptime) = heroTimeBounds()
+        assertEquals(current.top, uptime.top, 0.5f)
         val (resolution, boot) = systemInfoBounds()
         assertEquals(resolution.top, boot.top, 0.5f)
+    }
+
+    private fun heroTimeBounds(): Pair<Rect, Rect> {
+        val activity = composeRule.activity
+        val current = composeRule.onNodeWithText(activity.getString(R.string.device_info_current_time))
+            .fetchSemanticsNode().boundsInRoot
+        val uptime = composeRule.onNodeWithText(activity.getString(R.string.device_info_uptime))
+            .fetchSemanticsNode().boundsInRoot
+        return current to uptime
     }
 
     private fun systemInfoBounds(): Pair<Rect, Rect> {

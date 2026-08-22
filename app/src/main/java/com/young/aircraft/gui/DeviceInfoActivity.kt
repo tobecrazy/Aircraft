@@ -77,7 +77,7 @@ class DeviceInfoActivity : AppCompatActivity() {
 
     private lateinit var viewModel: DeviceInfoViewModel
 
-    // True while a foldable's hinge reports FLAT (device unfolded) — widens the System Info rows.
+    // True while a foldable's hinge reports FLAT (device unfolded) — widens the Current time and System Info rows.
     private val systemInfoWide = mutableStateOf(false)
 
     private val handler = Handler(Looper.getMainLooper())
@@ -206,7 +206,7 @@ fun DeviceInfoScreen(
                 .testTag("device_info_scroll")
                 .padding(horizontal = 14.dp)
         ) {
-            HeroCard(uiState.staticInfo, uiState.time)
+            HeroCard(uiState.staticInfo, uiState.time, wide = systemInfoWide)
             SectionHeader(R.string.device_info_section_resources)
             CpuCard(cpu = uiState.cpu, cpuInfo = uiState.staticInfo.cpuInfo)
             MemoryDiskRow(uiState.memory, uiState.disk)
@@ -279,7 +279,11 @@ private fun SectionHeader(titleRes: Int) {
 }
 
 @Composable
-private fun HeroCard(staticInfo: com.young.aircraft.viewmodel.DeviceStaticInfo, time: TimeState) {
+private fun HeroCard(
+    staticInfo: com.young.aircraft.viewmodel.DeviceStaticInfo,
+    time: TimeState,
+    wide: Boolean
+) {
     val shape = RoundedCornerShape(18.dp)
     Column(
         modifier = Modifier
@@ -326,27 +330,40 @@ private fun HeroCard(staticInfo: com.young.aircraft.viewmodel.DeviceStaticInfo, 
             fontFamily = FontFamily.Monospace,
             lineHeight = 20.sp
         )
-        InfoItem(
-            labelRes = R.string.device_info_current_time,
-            value = time.currentTime,
-            valueColor = AccentGreen,
-            valueSize = 14.sp,
-            valueBold = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-        )
-        InfoItem(
-            labelRes = R.string.device_info_uptime,
-            value = time.uptime,
-            valueColor = TextPrimary,
-            valueSize = 14.sp,
-            valueBold = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp)
-        )
+        if (wide) {
+            // Foldable unfolded: current time + uptime share one row.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                HeroTimeItem(R.string.device_info_current_time, time.currentTime, AccentGreen, Modifier.weight(1f))
+                HeroTimeItem(R.string.device_info_uptime, time.uptime, TextPrimary, Modifier.weight(1f))
+            }
+        } else {
+            HeroTimeItem(
+                R.string.device_info_current_time, time.currentTime, AccentGreen,
+                Modifier.fillMaxWidth().padding(top = 16.dp)
+            )
+            HeroTimeItem(
+                R.string.device_info_uptime, time.uptime, TextPrimary,
+                Modifier.fillMaxWidth().padding(top = 10.dp)
+            )
+        }
     }
+}
+
+@Composable
+private fun HeroTimeItem(labelRes: Int, value: String, valueColor: Color, modifier: Modifier) {
+    InfoItem(
+        labelRes = labelRes,
+        value = value,
+        valueColor = valueColor,
+        valueSize = 14.sp,
+        valueBold = true,
+        modifier = modifier
+    )
 }
 
 @Composable

@@ -67,7 +67,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
 - Leaderboard top record highlighting with a medal/star badge and gold first-place styling
 - History screen with Chinese ink-painting background (`launch_background.jpeg`)
-- Compose-powered About Me and Onboarding screens with localized copy and smooth transition animations
+- Compose-powered About Me, Onboarding, Flashlight, and Device Info screens with localized copy and smooth transition animations
 - Coil-based network image loading with crossfade animations (`AsyncImage` for Compose, `ImageView.load()` for Views)
 - Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
 - `FileProvider` paths include `Pictures/`, `Download/`, and app cache, enabling shared file URIs for exported/generated assets
@@ -100,8 +100,8 @@ The demo above walks through the end-to-end player experience on a real device:
 - Jet selection with 4 playable plane sprites and saved `jet_plane_index`
 - QR code utility with live camera scan, gallery image import, rich-text encoding input, framed preview output, and long-press save to device
 - Flashlight utility backed by a camera-type foreground service (`FlashlightService`): Camera2 torch on/off, SOS blink mode with `PARTIAL_WAKE_LOCK` for accurate pacing when the screen is off, Android 13+ brightness levels, persistent notification with a "Turn off" action, and a one-shot battery-optimization whitelist prompt that fires after the first successful torch-on
-- Device information screen with CPU, memory, disk, battery, and network telemetry
-- Robolectric coverage for onboarding, privacy gate, QR tool flows, About Me Compose UI wiring, leaderboard styling, string parity, and gameplay formulas
+- Device information screen (`DeviceInfoActivity`, Jetpack Compose) with CPU, memory, disk, battery, and network telemetry; the hero card places Current Time and Uptime side by side, and the System Info card places Screen Resolution and Boot Time side by side, while a foldable's hinge reports FLAT (unfolded) — both stack otherwise, via Jetpack WindowManager posture detection
+- Robolectric coverage for onboarding, privacy gate, QR tool flows, About Me and Device Info Compose UI wiring (including foldable System Info layout), leaderboard styling, string parity, and gameplay formulas
 
 ## Project Structure
 
@@ -153,7 +153,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, inline banner preview lab, Android Dev Assistant entry, and QR Tool notification test
 │   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
-│   ├── DeviceInfoActivity.kt           # Live system monitor
+│   ├── DeviceInfoActivity.kt           # Compose live system monitor; foldable-aware System Info layout
 │   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer

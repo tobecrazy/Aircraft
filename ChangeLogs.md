@@ -7,8 +7,12 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Converted root, app, and rich-text editor Gradle build scripts to Kotlin DSL (`*.gradle.kts`) and upgraded the Gradle wrapper to 9.7.0
 - Centralized plugin and dependency versions in the Gradle version catalog at `gradle/libs.versions.toml`
+- `DeviceInfoActivity` migrated from XML ViewBinding (`activity_device_info.xml`, deleted) to Jetpack Compose with pixel-parity rendering verified via Robolectric screenshots; live CPU/memory/disk/battery/network telemetry, 1s refresh tick, and battery receiver behavior unchanged; `formatBytes` moved to a top-level internal function in `DeviceInfoViewModel` so composables can reference it
+- Back-icon tint on image details screens (`ShowImageDetailsActivity`, `BannerDetailsActivity`) unified to accent green `#00FF88` to match all other pages
 
 ### Added
+- Foldable-aware layouts: while a hinge reports `FoldingFeature.State.FLAT` (unfolded), the hero card's Current Time and Uptime share one row and the System Info card's Screen Resolution and Boot Time share one row; folded (or any non-foldable device) keeps the stacked rows — via `androidx.window:window:1.5.0` posture collection with `WindowInfoTracker`
+- Robolectric Compose tests for both foldable System Info layout states plus uptime (`mm:ss` / `hh:mm:ss` / day / month / year formats) and network-throughput formatter coverage
 - `:richtexteditor` Android library module that packages `com.young.richtext.RichTextEditorView` as a reusable AAR, including its layout, localized editor strings, Markdown/plain-text HTML helpers, image tap URL helpers, and focused JVM tests
 - `docs/rich-text-editor-aar-usage.md` with build commands, AAR integration steps, XML/Kotlin usage examples, preview WebView guidance, and public API notes
 - `docs/aircraft-architecture.html` interactive architecture diagram (generated from `docs/aircraft-arch.json` with the archify tool) covering the main flow from LaunchActivity through MainActivity, ViewModel layer, game rendering, data/Room persistence, and the standalone `:richtexteditor` module
