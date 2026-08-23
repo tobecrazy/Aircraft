@@ -72,6 +72,7 @@ import coil.request.ImageRequest
 import com.young.aircraft.R
 import com.young.aircraft.data.BannerDetailsIntentContract
 import com.young.aircraft.data.BannerDetailsSource
+import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.BannerDetailsEvent
 import com.young.aircraft.viewmodel.BannerDetailsUiState
 import com.young.aircraft.viewmodel.BannerDetailsViewModel
@@ -187,6 +188,7 @@ private fun BannerDetailsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .maxContentWidth()
                 .padding(innerPadding),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)

@@ -67,6 +67,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,6 +93,7 @@ import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameMode
 import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.ui.GameCoreView
+import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.GameViewModel
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
@@ -113,6 +115,7 @@ class PuzzleActivity : ComponentActivity() {
         private const val CACHE_FILE_NAME_PREFIX = "puzzle_cached_image_level_"
         private const val TAG = "PuzzleActivity"
         private const val USER_AGENT = "AircraftPuzzle/1.0 (Android)"
+        private const val KEY_ACTIVE_PUZZLE_IMAGE_LEVEL = "active_puzzle_image_level"
     }
 
     private val viewModel: GameViewModel by viewModels { GameViewModel.Factory(this) }
@@ -150,8 +153,11 @@ class PuzzleActivity : ComponentActivity() {
         jetPlaneRes = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, R.drawable.jet_plane_2)
         jetPlaneIndex = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_INDEX, 0)
 
-        activePuzzleImageLevel = puzzleLevel
-        loadPuzzleImageWithCache(puzzleLevel)
+        // Restore the image level the restored board is actually on (may differ from intent
+        // after the user advanced levels) — otherwise recreation shows the wrong level's image
+        activePuzzleImageLevel =
+            savedInstanceState?.getInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, puzzleLevel) ?: puzzleLevel
+        loadPuzzleImageWithCache(activePuzzleImageLevel)
 
         setContent {
             MaterialTheme {
@@ -201,6 +207,11 @@ class PuzzleActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, activePuzzleImageLevel)
     }
 
     private fun persistPuzzleProgress(level: Int, score: Long) {
@@ -483,18 +494,19 @@ private fun PuzzleScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    var level by remember { mutableIntStateOf(startLevel.coerceIn(1, maxPuzzleLevel)) }
-    var score by remember { mutableLongStateOf(startScore) }
-    var moves by remember(level) { mutableIntStateOf(0) }
-    var elapsedSec by remember(level) { mutableIntStateOf(0) }
-    var hintsRemaining by remember(level) { mutableIntStateOf(3) }
+    // Survive rotation/fold recreation — the board must not reset mid-puzzle
+    var level by rememberSaveable { mutableIntStateOf(startLevel.coerceIn(1, maxPuzzleLevel)) }
+    var score by rememberSaveable { mutableLongStateOf(startScore) }
+    var moves by rememberSaveable(level) { mutableIntStateOf(0) }
+    var elapsedSec by rememberSaveable(level) { mutableIntStateOf(0) }
+    var hintsRemaining by rememberSaveable(level) { mutableIntStateOf(3) }
     var hintVisible by remember(level) { mutableIntStateOf(0) }
-    var solvedState by remember(level) { mutableIntStateOf(0) }
+    var solvedState by rememberSaveable(level) { mutableIntStateOf(0) }
 
     val gridSize = remember(difficulty) { gridSizeForDifficulty(difficulty) }
-    var boardResetToken by remember(level, gridSize) { mutableIntStateOf(level * 100 + gridSize) }
+    var boardResetToken by rememberSaveable(level, gridSize) { mutableIntStateOf(level * 100 + gridSize) }
     var undoRequested by remember(level, gridSize) { mutableIntStateOf(0) }
-    var canUndo by remember(level, gridSize) { mutableStateOf(false) }
+    var canUndo by rememberSaveable(level, gridSize) { mutableStateOf(false) }
 
     val totalSec = remember(level) { (GameCoreView.getLevelDurationMs(level) / 1000L).toInt() }
     val remainingSec = (totalSec - elapsedSec).coerceAtLeast(0)
@@ -534,6 +546,7 @@ private fun PuzzleScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .maxContentWidth()
                     .padding(innerPadding)
                     .padding(horizontal = 14.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),

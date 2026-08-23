@@ -78,6 +78,7 @@ import coil.request.ImageRequest
 import com.young.aircraft.R
 import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.data.ImageDetailsSource
+import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.ImageDetailsEvent
 import com.young.aircraft.viewmodel.ShowImageDetailsUiState
 import com.young.aircraft.utils.DataUriUtils
@@ -204,6 +205,7 @@ private fun ImageDetailsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .maxContentWidth()
                 .padding(innerPadding),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)

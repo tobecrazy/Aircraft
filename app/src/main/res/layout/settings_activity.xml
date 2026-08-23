@@ -53,8 +53,10 @@
             android:paddingBottom="24dp">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:maxWidth="@dimen/content_max_width"
                 android:orientation="vertical"
                 android:paddingHorizontal="14dp">
 

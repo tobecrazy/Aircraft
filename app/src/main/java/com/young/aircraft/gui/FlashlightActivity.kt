@@ -90,6 +90,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.R
+import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.FlashlightUiState
 import com.young.aircraft.viewmodel.FlashlightViewModel
 import kotlin.math.roundToInt
@@ -305,6 +306,7 @@ private fun FlashlightScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .maxContentWidth()
                 .padding(innerPadding)
                 .testTag("flashlight_screen"),
             contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp),

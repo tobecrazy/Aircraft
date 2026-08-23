@@ -66,6 +66,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
+import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.AboutMeViewModel
 
 class AboutMeActivity : AppCompatActivity() {
@@ -144,6 +145,7 @@ private fun AboutMeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .maxContentWidth()
                 .padding(innerPadding)
                 .testTag("about_me_list"),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),

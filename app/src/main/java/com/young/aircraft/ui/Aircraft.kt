@@ -41,7 +41,7 @@ class Aircraft(
         ScreenUtils.getScreenWidth(context).toFloat() / 2 - ScreenUtils.dpToPx(context, 20.0f)
     var jetY: Float =
         ScreenUtils.getScreenHeight(context).toFloat() - ScreenUtils.dpToPx(context, 100.0f)
-    private val maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.7f
+    private var maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.7f
 
     // Hit flash state
     var hitTimeMs: Long = 0L
@@ -88,6 +88,13 @@ class Aircraft(
     }
 
     fun isShielded(): Boolean = System.currentTimeMillis() < shieldEndTimeMs
+
+    /** Re-anchor the jet after a canvas resize (rotation / fold). */
+    fun onScreenResized(newW: Int, newH: Int, sx: Float, sy: Float) {
+        jetX = (jetX * sx).coerceIn(0f, (newW - renderedJetW).coerceAtLeast(0f))
+        jetY = (jetY * sy).coerceIn(0f, (newH - renderedJetH).coerceAtLeast(0f))
+        maxBulletRange = newH * 0.7f
+    }
 
     fun activateShield() {
         shieldEndTimeMs = System.currentTimeMillis() + SHIELD_DURATION_MS

@@ -21,6 +21,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:resizeableActivity="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/TransparentTheme">
@@ -113,6 +114,7 @@
             android:name=".gui.MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:windowLayoutInDisplayCutoutMode="shortEdges"
             android:theme="@style/TransparentMaterialTheme" />
 
         <service

@@ -9,7 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.young.aircraft.R
 import com.young.aircraft.data.PlayerGameData
@@ -44,7 +44,11 @@ class HistoryFragment : Fragment() {
         viewModel = ViewModelProvider(this, HistoryViewModel.Factory(dao))[HistoryViewModel::class.java]
 
         binding.btnBack.setOnClickListener { requireActivity().finish() }
-        binding.recyclerHistory.layoutManager = LinearLayoutManager(requireContext())
+        // Multi-column grid on wide windows (sw600dp/sw1240dp), single column on phones
+        binding.recyclerHistory.layoutManager = GridLayoutManager(
+            requireContext(),
+            resources.getInteger(R.integer.history_span_count)
+        )
 
         observeState()
     }

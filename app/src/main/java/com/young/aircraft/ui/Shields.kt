@@ -17,9 +17,24 @@ class Shields(var context: Context, var speed: Float) : DrawBaseObject(context) 
     private var spawnAttempted: Boolean = false
     var level: Int = 1
 
-    private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
-    private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+    private var screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
+    private var screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
+
+    /** Keep active pickups reachable after a canvas resize. */
+    fun onScreenResized(newW: Int, newH: Int, sx: Float, sy: Float) {
+        screenWidth = newW.toFloat()
+        screenHeight = newH.toFloat()
+        val maxX = (screenWidth - shieldSizePx).coerceAtLeast(0f)
+        val maxY = (screenHeight - shieldSizePx).coerceAtLeast(0f)
+        for (i in activeShields.indices) {
+            val shield = activeShields[i]
+            activeShields[i] = shield.copy(
+                x = (shield.x * sx).coerceIn(0f, maxX),
+                y = (shield.y * sy).coerceIn(0f, maxY)
+            )
+        }
+    }
 
     private val shieldBitmaps = arrayOfNulls<Bitmap>(3)
     private val shieldSizePx: Int = ScreenUtils.dpToPx(context, 100.0f)

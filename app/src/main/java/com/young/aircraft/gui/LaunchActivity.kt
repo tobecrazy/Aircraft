@@ -47,6 +47,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +67,7 @@ import androidx.compose.ui.window.Dialog
 import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.Aircraft
+import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.LaunchViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -147,7 +149,7 @@ private fun LaunchScreen(
 ) {
     val activity = LocalContext.current as LaunchActivity
     val jetPlanes = Aircraft.JET_PLANES
-    var selectedJetIndex by remember { mutableIntStateOf(0) }
+    var selectedJetIndex by rememberSaveable { mutableIntStateOf(0) }
     var savedGameInfo by remember { mutableStateOf<SavedGameInfo?>(null) }
     var showContent by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -171,7 +173,7 @@ private fun LaunchScreen(
         )
 
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().maxContentWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             LaunchHeader()

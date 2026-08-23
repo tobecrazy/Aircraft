@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.young.aircraft.R
+import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -159,7 +160,7 @@ private fun OnboardingScreen(
         )
 
         // Layer 2: Content overlay
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().maxContentWidth()) {
             OnboardingHeader(onSkip = onSkip)
             NeonDivider()
 
