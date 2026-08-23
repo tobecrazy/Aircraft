@@ -70,16 +70,24 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
                     // Inject dark theme CSS to match game aesthetic
+                    // Removed monospace font override as it can cause layout issues on different screen sizes
                     view?.evaluateJavascript(
                         """
                         (function() {
                             var style = document.createElement('style');
-                            style.textContent = 'body { background-color: #0F1118 !important; color: #CCFFFFFF !important; font-family: monospace !important; padding: 8px !important; } a { color: #00FF88 !important; } h1,h2,h3 { color: #00FF88 !important; }';
+                            style.textContent = 'body { background-color: #0F1118 !important; color: #CCFFFFFF !important; padding: 8px !important; } a { color: #00FF88 !important; } h1,h2,h3 { color: #00FF88 !important; }';
                             document.head.appendChild(style);
                         })()
                         """.trimIndent(),
                         null
                     )
+
+                    // If content is short enough to fit without scrolling, enable buttons immediately
+                    view?.postDelayed({
+                        if (view != null && !view.canScrollVertically(1)) {
+                            enableButtons()
+                        }
+                    }, 500)
                 }
 
                 override fun onReceivedError(
@@ -97,7 +105,8 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
 
             setOnScrollChangeListener { v, _, scrollY, _, _ ->
                 val wv = v as WebView
-                if (scrollY > 0 && !wv.canScrollVertically(1)) {
+                // Enable buttons if reached bottom or if content is fully visible
+                if ((scrollY > 0 && !wv.canScrollVertically(1)) || !wv.canScrollVertically(1)) {
                     enableButtons()
                 }
             }
