@@ -85,6 +85,11 @@ import com.young.aircraft.utils.DataUriUtils
 import com.young.aircraft.viewmodel.ShowImageDetailsViewModel
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.TextBright
+import com.young.aircraft.ui.theme.AircraftTheme
 
 class ShowImageDetailsActivity : AppCompatActivity() {
 
@@ -119,7 +124,7 @@ class ShowImageDetailsActivity : AppCompatActivity() {
         }
 
         setContent {
-            MaterialTheme {
+            AircraftTheme {
                 val uiState by viewModel.uiState.collectAsState()
                 ImageDetailsScreen(
                     uiState = uiState,
@@ -170,11 +175,7 @@ class ShowImageDetailsActivity : AppCompatActivity() {
     }
 }
 
-private val DetailsBackground = Color(0xFF0F1118)
-private val DetailsHeader = Color(0xFF161A26)
-private val DetailsAccent = Color(0xFF00FF88)
 private val DetailsPanelStrong = Color(0xFF171D29)
-private val DetailsText = Color(0xFFD8E0EF)
 private val DetailsSubText = Color(0xFFAAB4C8)
 private val DetailsBorder = Color(0x3300FF88)
 
@@ -190,7 +191,7 @@ private fun ImageDetailsScreen(
     onDownload: () -> Unit
 ) {
     Scaffold(
-        containerColor = DetailsBackground,
+        containerColor = BackgroundDark,
         contentWindowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
         ),
@@ -237,7 +238,7 @@ private fun DetailsTopBar(
         title = {
             Text(
                 text = stringResource(R.string.banner_details_title),
-                color = DetailsAccent,
+                color = AccentGreen,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold
             )
@@ -247,7 +248,7 @@ private fun DetailsTopBar(
                 Icon(
                     painter = painterResource(R.drawable.ic_header_back),
                     contentDescription = stringResource(R.string.history_back),
-                    tint = DetailsAccent
+                    tint = AccentGreen
                 )
             }
         },
@@ -259,7 +260,7 @@ private fun DetailsTopBar(
                 Icon(
                     painter = painterResource(R.drawable.ic_qr_save),
                     contentDescription = stringResource(R.string.banner_details_menu),
-                    tint = if (isSaving) DetailsSubText else DetailsAccent
+                    tint = if (isSaving) DetailsSubText else AccentGreen
                 )
             }
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -272,7 +273,7 @@ private fun DetailsTopBar(
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = DetailsHeader)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = HeaderBackground)
     )
 }
 
@@ -328,7 +329,7 @@ private fun FullImagePanel(
                         .background(DetailsPanelStrong),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = DetailsAccent)
+                    CircularProgressIndicator(color = AccentGreen)
                 }
             },
             error = {
@@ -411,8 +412,8 @@ private fun DetailsSummaryPanel(
                 onClick = onDownload,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = DetailsAccent,
-                    contentColor = DetailsBackground,
+                    containerColor = AccentGreen,
+                    contentColor = BackgroundDark,
                     disabledContainerColor = Color(0xFF26352F),
                     disabledContentColor = DetailsSubText
                 ),
@@ -480,7 +481,7 @@ private fun DetailChip(
         Text(
             text = value,
             modifier = Modifier.weight(1f),
-            color = DetailsText,
+            color = TextBright,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
             maxLines = 2,
@@ -503,14 +504,14 @@ private fun SavingPanel() {
         ) {
             Text(
                 text = stringResource(R.string.banner_details_saving),
-                color = DetailsText,
+                color = TextBright,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.labelMedium
             )
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth(),
-                color = DetailsAccent,
+                color = AccentGreen,
                 trackColor = Color(0xFF24362F)
             )
         }

@@ -72,6 +72,15 @@ import com.young.aircraft.viewmodel.NetworkType
 import com.young.aircraft.viewmodel.TimeState
 import com.young.aircraft.viewmodel.formatBytes
 import kotlinx.coroutines.launch
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.DividerGreen
+import com.young.aircraft.ui.theme.TextBright
+import com.young.aircraft.ui.theme.TextBody
+import com.young.aircraft.ui.theme.TextSubtle
+import com.young.aircraft.ui.theme.TextMuted
+import com.young.aircraft.ui.theme.AircraftTheme
 
 class DeviceInfoActivity : AppCompatActivity() {
 
@@ -118,7 +127,7 @@ class DeviceInfoActivity : AppCompatActivity() {
         viewModel.refreshDynamicInfo()
 
         setContent {
-            MaterialTheme {
+            AircraftTheme {
                 val uiState by viewModel.uiState.collectAsState()
                 DeviceInfoScreen(
                     uiState = uiState,
@@ -158,14 +167,7 @@ class DeviceInfoActivity : AppCompatActivity() {
 
 // ── Tactical palette (matches peer screens) ──────────────────────────────
 
-private val BgDark = Color(0xFF0F1118)
-private val HeaderBg = Color(0xFF161A26)
-private val AccentGreen = Color(0xFF00FF88)
-private val DividerGreen = Color(0x4400FF88)
 private val TextPrimary = Color.White
-private val TextSecondary = Color(0xFFCDD2E0)
-private val TextMuted = Color(0xFFAAB4C8)
-private val LabelMuted = Color(0x88FFFFFF)
 private val Red = Color(0xFFFF4444)
 private val Yellow = Color(0xFFFFFF00)
 
@@ -192,7 +194,7 @@ fun DeviceInfoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgDark)
+            .background(BackgroundDark)
             .safeDrawingPadding()
     ) {
         MonitorHeader(onBack = onBack)
@@ -225,7 +227,7 @@ private fun MonitorHeader(onBack: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
-            .background(HeaderBg)
+            .background(HeaderBackground)
     ) {
         IconButton(
             onClick = onBack,
@@ -298,7 +300,7 @@ private fun HeroCard(
     ) {
         GaugeChip(
             text = stringResource(R.string.device_info_title),
-            textColor = Color(0xFFD8E0EF),
+            textColor = TextBright,
             textSize = 11.sp
         )
         Text(
@@ -318,14 +320,14 @@ private fun HeroCard(
             Spacer(modifier = Modifier.width(8.dp))
             GaugeChip(
                 text = staticInfo.appVersion,
-                textColor = Color(0xFFD8E0EF),
+                textColor = TextBright,
                 textSize = 11.sp
             )
         }
         Text(
             text = stringResource(R.string.device_info_summary),
             modifier = Modifier.padding(top = 10.dp),
-            color = TextSecondary,
+            color = TextBody,
             fontSize = 13.sp,
             fontFamily = FontFamily.Monospace,
             lineHeight = 20.sp
@@ -382,7 +384,7 @@ private fun CpuCard(cpu: CpuState, cpuInfo: String) {
                     Text(
                         text = cpuInfo,
                         modifier = Modifier.padding(top = 6.dp),
-                        color = TextMuted,
+                        color = TextSubtle,
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace
                     )
@@ -433,7 +435,7 @@ private fun CoreUsageRow(core: CoreUsage) {
     ) {
         Text(
             text = String.format(LocalLocale.current.platformLocale, "C%02d", core.index),
-            color = LabelMuted,
+            color = TextMuted,
             fontSize = 9.sp,
             fontFamily = FontFamily.Monospace
         )
@@ -515,7 +517,7 @@ private fun ResourceStatCard(
             Text(
                 text = detail,
                 modifier = Modifier.padding(top = 10.dp),
-                color = TextMuted,
+                color = TextSubtle,
                 fontSize = 10.sp,
                 fontFamily = FontFamily.Monospace
             )
@@ -545,7 +547,7 @@ private fun BatteryCard(battery: BatteryState) {
                         if (battery.isCharging) R.string.device_info_battery_charging
                         else R.string.device_info_battery_discharging
                     ),
-                    textColor = Color(0xFFD8E0EF),
+                    textColor = TextBright,
                     textSize = 10.sp,
                     bold = false
                 )
@@ -570,7 +572,7 @@ private fun NetworkCard(network: NetworkState) {
             Text(
                 text = network.detail,
                 modifier = Modifier.padding(top = 4.dp),
-                color = TextSecondary,
+                color = TextBody,
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace
             )
@@ -594,7 +596,7 @@ private fun NetworkCard(network: NetworkState) {
                 Text(
                     text = stringResource(R.string.device_info_net_ip, network.ipAddress),
                     modifier = Modifier.padding(top = 4.dp),
-                    color = LabelMuted,
+                    color = TextMuted,
                     fontSize = 10.sp,
                     fontFamily = FontFamily.Monospace
                 )
@@ -629,14 +631,14 @@ private fun SystemInfoCard(
                 InfoItem(
                     labelRes = R.string.device_info_screen_resolution,
                     value = staticInfo.screenResolution,
-                    valueColor = TextSecondary,
+                    valueColor = TextBody,
                     valueSize = 12.sp,
                     modifier = Modifier.weight(1f)
                 )
                 InfoItem(
                     labelRes = R.string.device_info_boot_time,
                     value = staticInfo.bootTime,
-                    valueColor = TextSecondary,
+                    valueColor = TextBody,
                     valueSize = 12.sp,
                     modifier = Modifier.weight(1f)
                 )
@@ -646,14 +648,14 @@ private fun SystemInfoCard(
                 InfoItem(
                     labelRes = R.string.device_info_screen_resolution,
                     value = staticInfo.screenResolution,
-                    valueColor = TextSecondary,
+                    valueColor = TextBody,
                     valueSize = 12.sp,
                     modifier = Modifier.fillMaxWidth()
                 )
                 InfoItem(
                     labelRes = R.string.device_info_boot_time,
                     value = staticInfo.bootTime,
-                    valueColor = TextSecondary,
+                    valueColor = TextBody,
                     valueSize = 12.sp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -696,7 +698,7 @@ private fun ItemBox(modifier: Modifier = Modifier, content: @Composable () -> Un
 private fun ItemLabel(labelRes: Int) {
     Text(
         text = stringResource(labelRes),
-        color = LabelMuted,
+        color = TextMuted,
         fontSize = 10.sp,
         fontWeight = FontWeight.Bold,
         fontFamily = FontFamily.Monospace
@@ -802,7 +804,7 @@ private fun previewUiState(): DeviceInfoUiState = DeviceInfoUiState(
 @Preview(showBackground = true, widthDp = 420, heightDp = 960)
 @Composable
 private fun DeviceInfoScreenPreview() {
-    MaterialTheme {
+    AircraftTheme {
         DeviceInfoScreen(uiState = previewUiState(), systemInfoWide = false, onBack = {})
     }
 }
@@ -810,7 +812,7 @@ private fun DeviceInfoScreenPreview() {
 @Preview(showBackground = true, widthDp = 800, heightDp = 840)
 @Composable
 private fun DeviceInfoScreenUnfoldedPreview() {
-    MaterialTheme {
+    AircraftTheme {
         DeviceInfoScreen(uiState = previewUiState(), systemInfoWide = true, onBack = {})
     }
 }

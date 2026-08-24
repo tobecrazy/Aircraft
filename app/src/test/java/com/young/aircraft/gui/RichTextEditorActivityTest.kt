@@ -271,7 +271,10 @@ class RichTextEditorActivityTest {
     fun `rich text button navigates to RichTextEditorActivity`() {
         ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_test_rich_text).performClick()
+                assertTrue(
+                    activity.window.decorView.findSemanticsOwner()!!.rootSemanticsNode
+                        .clickOnTag("btn_test_rich_text")
+                )
                 val intent = shadowOf(activity).nextStartedActivity
                 assertNotNull(intent)
                 assertEquals(

@@ -38,6 +38,31 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
@@ -48,6 +73,7 @@ import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
+import com.young.aircraft.gui.dialogs.setDialogComposeContent
 import com.young.aircraft.utils.FilePickerHelper
 import com.young.aircraft.viewmodel.QRCodeToolViewModel
 import com.young.aircraft.viewmodel.QRCodeToolUiState
@@ -398,42 +424,25 @@ class QRCodeToolActivity : AppCompatActivity() {
     private fun onScanResult(result: String) {
         stopScanning()
         val dialog = BottomSheetDialog(this, R.style.ThemeOverlay_Aircraft_QrToolBottomSheet)
-        val sheetView = dialog.layoutInflater.inflate(R.layout.bottom_sheet_scan_result, null)
-
-        sheetView.findViewById<android.widget.TextView>(R.id.tv_scan_result_text).text = result
-
-        val btnCopy = sheetView.findViewById<android.widget.TextView>(R.id.btn_copy_result)
-        val btnDismiss = sheetView.findViewById<android.widget.TextView>(R.id.btn_dismiss_result)
-
-        val sheetButtonDelegate = object : androidx.core.view.AccessibilityDelegateCompat() {
-            override fun onInitializeAccessibilityNodeInfo(
-                host: View,
-                info: AccessibilityNodeInfoCompat
-            ) {
-                super.onInitializeAccessibilityNodeInfo(host, info)
-                info.className = "android.widget.Button"
-            }
-        }
-        ViewCompat.setAccessibilityDelegate(btnCopy, sheetButtonDelegate)
-        ViewCompat.setAccessibilityDelegate(btnDismiss, sheetButtonDelegate)
-
-        btnCopy.setOnClickListener {
-            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-            clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
-            Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
-        }
-
-        btnDismiss.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.setContentView(sheetView)
         dialog.setOnShowListener {
             dialog.findViewById<android.widget.FrameLayout>(
                 com.google.android.material.R.id.design_bottom_sheet
             )?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
-        dialog.show()
+
+        dialog.setDialogComposeContent(this) {
+            ScanResultSheetContent(
+                result = result,
+                onCopy = ::copyScanResult,
+                onDismiss = { dialog.dismiss() }
+            )
+        }
+    }
+
+    private fun copyScanResult(result: String) {
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
+        Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
     }
 
     private fun releaseCamera() {
@@ -674,5 +683,127 @@ class QRCodeToolActivity : AppCompatActivity() {
         scanLineAnimator = null
         releaseCamera()
         stopBackgroundThread()
+    }
+}
+
+// ── Scan-result bottom-sheet content (Compose in a BottomSheetDialog shell) ──
+
+private val SheetTopShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+private val QrSheetBackground = Color(0xFF161A26)
+private val QrSheetBorder = Color(0x4400FF88)
+private val SheetHandle = Color(0x4400FF88)
+private val StatusPillContainer = Color(0x18253333)
+private val ResultCardContainer = Color(0x18FFFFFF)
+private val ResultLabelColor = Color(0x9900FF88)
+private val ResultTextColor = Color(0xE6FFFFFF)
+private val CopyButtonContainer = Color(0x885DFFD0)
+private val CopyButtonText = Color(0xFF08121A)
+private val DismissButtonContainer = Color(0x3300FF88)
+
+@Composable
+private fun ScanResultSheetContent(
+    result: String,
+    onCopy: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(QrSheetBackground, SheetTopShape)
+            .border(1.dp, QrSheetBorder, SheetTopShape)
+            .padding(start = 24.dp, end = 24.dp, top = 14.dp, bottom = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(width = 44.dp, height = 5.dp)
+                .background(SheetHandle, RoundedCornerShape(999.dp))
+        )
+
+        Text(
+            text = stringResource(R.string.qr_code_tool_scan_result),
+            color = Color(0xFF00FF88),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier
+                .padding(top = 18.dp)
+                .background(StatusPillContainer, RoundedCornerShape(999.dp))
+                .border(1.dp, QrSheetBorder, RoundedCornerShape(999.dp))
+                .padding(horizontal = 12.dp, vertical = 6.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 18.dp)
+                .background(ResultCardContainer, RoundedCornerShape(14.dp))
+                .padding(horizontal = 14.dp, vertical = 14.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.qr_code_tool_scan_result_label),
+                color = ResultLabelColor,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+            // Selectable result text (was android:textIsSelectable).
+            SelectionContainer(modifier = Modifier.padding(top = 8.dp)) {
+                Text(
+                    text = result,
+                    color = ResultTextColor,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+
+        SheetButton(
+            text = stringResource(R.string.qr_code_tool_copy_result),
+            container = CopyButtonContainer,
+            textColor = CopyButtonText,
+            onClick = { onCopy(result) },
+            modifier = Modifier
+                .padding(top = 18.dp)
+                .testTag("btn_copy_result")
+        )
+        SheetButton(
+            text = stringResource(android.R.string.ok),
+            container = DismissButtonContainer,
+            textColor = Color.White,
+            onClick = onDismiss,
+            modifier = Modifier
+                .padding(top = 10.dp)
+                .testTag("btn_dismiss_result")
+        )
+    }
+}
+
+/** 50dp full-width action row; Button semantics replace the legacy accessibility delegate. */
+@Composable
+private fun SheetButton(
+    text: String,
+    container: Color,
+    textColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(container, RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .semantics { role = Role.Button },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace
+        )
     }
 }

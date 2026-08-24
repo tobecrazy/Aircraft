@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <data />
-
-    <LinearLayout
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#0F1118"
@@ -52,7 +48,7 @@
             android:overScrollMode="never"
             android:paddingBottom="24dp">
 
-            <LinearLayout
+            <com.young.aircraft.gui.MaxWidthLinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
@@ -1211,7 +1207,6 @@
                         android:textSize="22sp"
                         android:typeface="monospace" />
                 </LinearLayout>
-            </LinearLayout>
+            </com.young.aircraft.gui.MaxWidthLinearLayout>
         </ScrollView>
     </LinearLayout>
-</layout>

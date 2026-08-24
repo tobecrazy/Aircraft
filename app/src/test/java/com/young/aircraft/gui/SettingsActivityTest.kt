@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Looper
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.room.Room
 import androidx.test.core.app.ActivityScenario
@@ -150,21 +149,25 @@ class SettingsActivityTest {
                 val dialog = ShadowDialog.getLatestDialog()
                 assertNotNull("Clear cache confirmation should be shown", dialog)
                 assertTrue(dialog!!.isShowing)
-                assertEquals(
-                    activity.getString(R.string.clear_cache_badge),
-                    dialog.findViewById<TextView>(R.id.dialog_badge)?.text.toString()
-                )
-                assertEquals(
-                    activity.getString(R.string.clear_cache_size_label),
-                    dialog.findViewById<TextView>(R.id.stat_label_1)?.text.toString()
-                )
+                // Drain the looper so the dialog's ComposeView attaches and composes.
+                repeat(2) { shadowOf(Looper.getMainLooper()).idle() }
+
+
+                // Dialog content is Compose now — assert via its semantics tree.
+                val nodes = findAllNodes(
+                    dialog.window!!.decorView.findSemanticsOwner()!!.rootSemanticsNode
+                ).mapNotNull { it.displayText() }
+
                 assertTrue(
-                    dialog.findViewById<TextView>(R.id.stat_value_1)?.text.toString()
-                        .isNotBlank()
+                    nodes.contains(activity.getString(R.string.clear_cache_badge))
                 )
-                assertEquals(
-                    activity.getString(R.string.clear_cache_keep_value),
-                    dialog.findViewById<TextView>(R.id.stat_value_2)?.text.toString()
+                val sizeLabelIndex =
+                    nodes.indexOfFirst { it == activity.getString(R.string.clear_cache_size_label) }
+                assertTrue(sizeLabelIndex >= 0)
+                // The size value is the node right after its label (DFS order).
+                assertFalse(nodes.getOrNull(sizeLabelIndex + 1).isNullOrBlank())
+                assertTrue(
+                    nodes.contains(activity.getString(R.string.clear_cache_keep_value))
                 )
             }
         }

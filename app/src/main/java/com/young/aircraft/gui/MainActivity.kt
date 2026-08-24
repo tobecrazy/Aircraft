@@ -1,10 +1,8 @@
 package com.young.aircraft.gui
 
-import android.animation.ValueAnimator
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Color
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -12,11 +10,8 @@ import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -29,12 +24,52 @@ import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
 import com.young.aircraft.databinding.ActivityMainBinding
-import com.young.aircraft.databinding.BottomSheetHallOfHeroesBinding
-import com.young.aircraft.databinding.DialogGameBinding
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.utils.HallOfHeroesNameUtils
+import com.young.aircraft.gui.dialogs.DangerPalette
+import com.young.aircraft.gui.dialogs.GameDialogPalette
+import com.young.aircraft.gui.dialogs.GameDialogStat
+import com.young.aircraft.gui.dialogs.GameDialogContent
+import com.young.aircraft.gui.dialogs.SuccessPalette
+import com.young.aircraft.gui.dialogs.setDialogComposeContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.young.aircraft.viewmodel.GameViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
@@ -44,32 +79,6 @@ import kotlinx.coroutines.launch
  * @author Young
  */
 class MainActivity : AppCompatActivity() {
-    private enum class DialogTone(
-        val titleColor: Int,
-        val dividerColor: Int,
-        val badgeBackgroundRes: Int,
-        val statCardBackgroundRes: Int,
-        val statLabelColor: Int,
-        val positiveButtonBackgroundRes: Int
-    ) {
-        Success(
-            titleColor = 0xFF00FF88.toInt(),
-            dividerColor = 0x4400FF88.toInt(),
-            badgeBackgroundRes = R.drawable.dialog_badge_positive_bg,
-            statCardBackgroundRes = R.drawable.dialog_stat_card_bg,
-            statLabelColor = 0x88FFFFFF.toInt(),
-            positiveButtonBackgroundRes = R.drawable.dialog_button_primary
-        ),
-        Danger(
-            titleColor = 0xFFFF4444.toInt(),
-            dividerColor = 0x44FF4444.toInt(),
-            badgeBackgroundRes = R.drawable.dialog_badge_danger_bg,
-            statCardBackgroundRes = R.drawable.dialog_stat_card_danger_bg,
-            statLabelColor = 0x88FF6F7E.toInt(),
-            positiveButtonBackgroundRes = R.drawable.dialog_button_primary_danger
-        )
-    }
-
     private lateinit var mService: MusicService
     private lateinit var binding: ActivityMainBinding
     private lateinit var coreView: GameCoreView
@@ -132,7 +141,7 @@ class MainActivity : AppCompatActivity() {
             val score = viewModel.calculateScore(coreView.totalKills)
             showGameDialog(
                 badgeText = getString(R.string.game_over_badge),
-                tone = DialogTone.Danger,
+                tone = DangerPalette,
                 title = getString(R.string.game_over_title),
                 message = getString(R.string.game_over_message, coreView.level, score),
                 positiveText = getString(R.string.game_over_save),
@@ -157,7 +166,7 @@ class MainActivity : AppCompatActivity() {
             val score = viewModel.calculateScore(coreView.totalKills)
             showGameDialog(
                 badgeText = getString(R.string.level_complete_badge),
-                tone = DialogTone.Success,
+                tone = SuccessPalette,
                 title = getString(R.string.level_complete, completedLevel),
                 message = getString(R.string.level_complete_message, completedLevel),
                 positiveText = getString(R.string.next_level),
@@ -279,7 +288,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showGameDialog(
         badgeText: String,
-        tone: DialogTone,
+        tone: GameDialogPalette,
         title: String,
         message: String,
         positiveText: String,
@@ -289,77 +298,47 @@ class MainActivity : AppCompatActivity() {
         negativeText: String? = null,
         onNegative: (() -> Unit)? = null
     ) {
-        val dialogBinding = DialogGameBinding.inflate(layoutInflater)
-        dialogBinding.dialogBadge.apply {
-            text = badgeText
-            visibility = View.VISIBLE
-            setBackgroundResource(tone.badgeBackgroundRes)
-        }
-        dialogBinding.dialogTitle.apply {
-            text = title
-            setTextColor(tone.titleColor)
-        }
-        dialogBinding.dialogMessage.text = message
-        dialogBinding.dialogStatsContainer.visibility = View.VISIBLE
-        dialogBinding.statLabel1.text = getString(R.string.stat_kills).let { "\u2694 $it" }
-        dialogBinding.statValue1.text = primaryStatValue.toString()
-        dialogBinding.statLabel2.text = getString(R.string.stat_score).let { "\u2605 $it" }
-        dialogBinding.statValue2.text = secondaryStatValue.toString()
-        dialogBinding.dialogDivider.setBackgroundColor(tone.dividerColor)
-        dialogBinding.statCard1.setBackgroundResource(tone.statCardBackgroundRes)
-        dialogBinding.statCard2.setBackgroundResource(tone.statCardBackgroundRes)
-        dialogBinding.statLabel1.setTextColor(tone.statLabelColor)
-        dialogBinding.statLabel2.setTextColor(tone.statLabelColor)
         val dialog = AlertDialog.Builder(this)
-            .setView(dialogBinding.root)
             .setCancelable(false)
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
         dialog.window?.setDimAmount(0.7f)
-        dialogBinding.dialogPositiveBtn.apply {
-            text = positiveText
-            setBackgroundResource(tone.positiveButtonBackgroundRes)
-            setOnClickListener {
-                dialog.dismiss()
-                onPositive()
-            }
-        }
-        if (negativeText != null && onNegative != null) {
-            dialogBinding.dialogNegativeBtn.apply {
-                text = negativeText
-                visibility = View.VISIBLE
-                setOnClickListener {
+
+        dialog.setDialogComposeContent(this) {
+            GameDialogContent(
+                badgeText = badgeText,
+                palette = tone,
+                title = title,
+                message = message,
+                primaryStat = GameDialogStat(
+                    label = getString(R.string.stat_kills).let { "\u2694 $it" },
+                    value = primaryStatValue.toString(),
+                    countUp = primaryStatValue > 0
+                ),
+                secondaryStat = GameDialogStat(
+                    label = getString(R.string.stat_score).let { "\u2605 $it" },
+                    value = secondaryStatValue.toString(),
+                    countUp = secondaryStatValue > 0
+                ),
+                positiveText = positiveText,
+                onPositive = {
                     dialog.dismiss()
-                    onNegative()
-                }
-            }
-        }
-        dialog.show()
-
-        if (primaryStatValue > 0) animateCountUp(dialogBinding.statValue1, primaryStatValue)
-        if (secondaryStatValue > 0) animateCountUp(dialogBinding.statValue2, secondaryStatValue.toInt(), 1000)
-    }
-
-    private fun animateCountUp(textView: TextView, targetValue: Int, durationMs: Long = 800) {
-        ValueAnimator.ofInt(0, targetValue).apply {
-            duration = durationMs
-            interpolator = AccelerateDecelerateInterpolator()
-            startDelay = 200
-            addUpdateListener { textView.text = (it.animatedValue as Int).toString() }
-            start()
+                    onPositive()
+                },
+                negativeText = negativeText,
+                onNegative = onNegative?.let { callback -> { dialog.dismiss(); callback() } }
+            )
         }
     }
 
     private fun showHallOfHeroesBottomSheet() {
         val dialog = BottomSheetDialog(this, R.style.ThemeOverlay_Aircraft_HallOfHeroesBottomSheet)
-        val sheetBinding = BottomSheetHallOfHeroesBinding.inflate(dialog.layoutInflater)
-        sheetBinding.textHallOfHeroesHint.text = getString(R.string.hall_of_heroes_hint)
 
-        fun recordHero() {
+        fun recordHero(rawName: String) {
             if (!dialog.isShowing) return
             val heroName = HallOfHeroesNameUtils.resolveSubmittedName(
-                sheetBinding.editHeroName.text,
+                rawName.ifBlank { null },
                 getString(R.string.hall_of_heroes_anonymous)
             )
             dialog.dismiss()
@@ -369,37 +348,32 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        dialog.setContentView(sheetBinding.root)
         dialog.setCancelable(false)
         dialog.setCanceledOnTouchOutside(false)
         dialog.behavior.isDraggable = false
         dialog.setOnShowListener {
             dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
-                ?.setBackgroundColor(Color.TRANSPARENT)
+                ?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
 
-        sheetBinding.buttonRecordHero.setOnClickListener {
-            recordHero()
-        }
-        sheetBinding.editHeroName.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                recordHero()
-                true
-            } else {
-                false
-            }
+        dialog.setDialogComposeContent(this) {
+            HallOfHeroesContent(
+                hint = getString(R.string.hall_of_heroes_hint),
+                onRecord = ::recordHero
+            )
         }
 
-        dialog.show()
-        sheetBinding.root.alpha = 0f
-        sheetBinding.root.translationY = 120f
-        sheetBinding.root.animate()
-            .alpha(1f)
-            .translationY(0f)
-            .setDuration(350)
-            .setInterpolator(DecelerateInterpolator())
-            .start()
-        sheetBinding.editHeroName.requestFocus()
+        // Entrance animation on the Material sheet frame (was the inflated content root).
+        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.apply {
+            alpha = 0f
+            translationY = 120f
+            animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(350)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
     }
 
     private fun exitApp() {
@@ -475,4 +449,164 @@ class MainActivity : AppCompatActivity() {
         coreView.musicService = null
     }
 
+}
+
+// ── Hall of Heroes bottom-sheet content (Compose in a BottomSheetDialog shell) ──
+
+private val SheetGradient = Brush.verticalGradient(listOf(Color(0xFF1A231C), Color(0xFF141A16)))
+private val SheetBorder = Color(0x4438E08D)
+private val SheetTopShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+private val SheetHandle = Color(0x4400FF88)
+private val MedalBadgeContainer = Color(0x2900FF88)
+private val MedalBadgeBorder = Color(0x6600FF88)
+private val MedalBadgeText = Color(0xFFFFD9FFEC)
+private val SheetTitleColor = Color(0xFF7DFFBB)
+private val SheetMessageColor = Color(0xE6FFFFFF)
+private val SheetPromptColor = Color(0xFF997DFFBB)
+private val InputBackground = Color(0xFF101713)
+private val InputBorder = Color(0x6600FF88)
+private val InputHintColor = Color(0x66FFFFFF)
+private val RecordButtonContainer = Color(0xCCDBFFEF)
+private val RecordButtonText = Color(0xFF13221E)
+
+@Composable
+private fun HallOfHeroesContent(hint: String, onRecord: (String) -> Unit) {
+    var heroName by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SheetGradient, SheetTopShape)
+            .border(1.dp, SheetBorder, SheetTopShape)
+            .padding(start = 24.dp, end = 24.dp, top = 14.dp, bottom = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(width = 44.dp, height = 5.dp)
+                .background(SheetHandle, RoundedCornerShape(999.dp))
+        )
+
+        Text(
+            text = stringResource(R.string.hall_of_heroes_badge),
+            color = MedalBadgeText,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier
+                .padding(top = 18.dp)
+                .background(MedalBadgeContainer, RoundedCornerShape(999.dp))
+                .border(1.dp, MedalBadgeBorder, RoundedCornerShape(999.dp))
+                .padding(horizontal = 12.dp, vertical = 6.dp)
+        )
+
+        Image(
+            painter = painterResource(R.drawable.ic_hall_of_heroes_medal),
+            contentDescription = stringResource(R.string.hall_of_heroes_medal_content_description),
+            modifier = Modifier
+                .padding(top = 18.dp)
+                .size(152.dp)
+        )
+
+        Text(
+            text = stringResource(R.string.hall_of_heroes_title),
+            color = SheetTitleColor,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        Text(
+            text = stringResource(R.string.hall_of_heroes_message),
+            color = SheetMessageColor,
+            fontSize = 15.sp,
+            lineHeight = 19.sp,
+            fontFamily = FontFamily.Monospace,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 14.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp)
+                .background(Color(0x18FFFFFF), RoundedCornerShape(14.dp))
+                .padding(horizontal = 14.dp, vertical = 14.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.hall_of_heroes_prompt),
+                color = SheetPromptColor,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp)
+                    .height(50.dp)
+                    .background(InputBackground, RoundedCornerShape(18.dp))
+                    .border(1.dp, InputBorder, RoundedCornerShape(18.dp))
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                BasicTextField(
+                    value = heroName,
+                    onValueChange = { heroName = it },
+                    singleLine = true,
+                    textStyle = TextStyle(color = Color.White, fontSize = 15.sp, fontFamily = FontFamily.Monospace),
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(onDone = { onRecord(heroName) }),
+                    cursorBrush = SolidColor(Color(0xFF00FF88)),
+                    modifier = Modifier.fillMaxWidth(),
+                    decorationBox = { inner ->
+                        if (heroName.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.hall_of_heroes_name_hint),
+                                color = InputHintColor,
+                                fontSize = 15.sp,
+                                fontFamily = FontFamily.Monospace,
+                                maxLines = 1
+                            )
+                        }
+                        inner()
+                    }
+                )
+            }
+
+            Text(
+                text = hint,
+                color = Color(0x88FFFFFF),
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 18.dp)
+                .height(50.dp)
+                .background(RecordButtonContainer, RoundedCornerShape(12.dp))
+                .clickable { onRecord(heroName) },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.hall_of_heroes_record_button),
+                color = RecordButtonText,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+    }
 }

@@ -68,6 +68,13 @@ import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.AboutMeViewModel
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.DividerGreen
+import com.young.aircraft.ui.theme.TextBody
+import com.young.aircraft.ui.theme.TextMuted
+import com.young.aircraft.ui.theme.AircraftTheme
 
 class AboutMeActivity : AppCompatActivity() {
 
@@ -89,7 +96,7 @@ class AboutMeActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this, AboutMeViewModel.Factory(this))[AboutMeViewModel::class.java]
 
         setContent {
-            MaterialTheme {
+            AircraftTheme {
                 AboutMeScreen(
                     repoUrl = viewModel.repoUrl,
                     repoLine = viewModel.repoLine,
@@ -112,14 +119,8 @@ class AboutMeActivity : AppCompatActivity() {
 
 private val PROFILE_IMAGE_URL = AircraftConstants.Urls.PROFILE_IMAGE
 
-private val BackgroundDark = Color(0xFF0F1118)
-private val HeaderBackground = Color(0xFF161A26)
-private val AccentGreen = Color(0xFF00FF88)
 private val CardBackground = Color(0x20252A3A)
 private val CardBorder = Color(0x2200FF88)
-private val TextPrimary = Color(0xFFCDD2E0)
-private val TextSecondary = Color(0x88FFFFFF)
-private val DividerGreen = Color(0x4400FF88)
 private val HeroGradientStart = Color(0xFF1B2234)
 private val HeroGradientEnd = Color(0xFF112722)
 private val HeroPanelBackground = Color(0x1AFFFFFF)
@@ -225,7 +226,7 @@ private fun SectionHeader(title: String) {
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = title,
-            color = TextSecondary,
+            color = TextMuted,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
@@ -308,7 +309,7 @@ private fun HeroTextPanel(
 
         Text(
             text = stringResource(R.string.about_me_summary),
-            color = TextPrimary,
+            color = TextBody,
             fontSize = 14.sp,
             lineHeight = 22.sp,
             fontFamily = FontFamily.Monospace
@@ -343,7 +344,7 @@ private fun HeroTextPanel(
         SelectionContainer {
             Text(
                 text = repoUrl,
-                color = TextSecondary,
+                color = TextMuted,
                 fontSize = 12.sp,
                 lineHeight = 18.sp,
                 fontFamily = FontFamily.Monospace
@@ -436,7 +437,7 @@ private fun NarrativeCard(
                     paragraphs.forEach { paragraph ->
                         Text(
                             text = paragraph,
-                            color = TextPrimary,
+                            color = TextBody,
                             fontSize = 13.sp,
                             lineHeight = 20.sp,
                             fontFamily = FontFamily.Monospace
@@ -490,7 +491,7 @@ private fun ProjectNarrativeCard(
                     paragraphs.forEach { paragraph ->
                         Text(
                             text = paragraph,
-                            color = TextPrimary,
+                            color = TextBody,
                             fontSize = 13.sp,
                             lineHeight = 20.sp,
                             fontFamily = FontFamily.Monospace

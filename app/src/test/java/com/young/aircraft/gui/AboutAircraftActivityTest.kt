@@ -1,12 +1,15 @@
 package com.young.aircraft.gui
 
 import android.content.Intent
-import android.view.View
-import android.widget.TextView
+import android.os.Looper
+import androidx.compose.ui.semantics.SemanticsNode
 import androidx.test.core.app.ActivityScenario
 import com.young.aircraft.R
 import com.young.aircraft.data.ImageDetailsIntentContract
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -14,21 +17,20 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "w420dp-h920dp")
 class AboutAircraftActivityTest {
+
+    private fun root(activity: AboutAircraftActivity): SemanticsNode =
+        activity.window.decorView.findSemanticsOwner()!!.rootSemanticsNode
 
     @Test
     fun `activity launches and displays version info`() {
         ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val tvVersion = activity.findViewById<TextView>(R.id.tv_version_badge)
-                val tvSummary = activity.findViewById<TextView>(R.id.tv_project_summary)
-                assertNotNull(tvVersion.text)
-                assertTrue(tvVersion.text.startsWith("v"))
-                assertEquals(
-                    activity.getString(R.string.about_banner_summary),
-                    tvSummary.text.toString()
-                )
+                val texts = findAllNodes(root(activity)).mapNotNull { it.displayText() }
+
+                assertTrue(texts.any { it.startsWith("v") })
+                assertTrue(activity.getString(R.string.about_banner_summary) in texts)
             }
         }
     }
@@ -37,11 +39,9 @@ class AboutAircraftActivityTest {
     fun `clicking primary github button starts action view intent`() {
         ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val githubLink = activity.findViewById<View>(R.id.btn_open_github_primary)
-                githubLink.performClick()
+                assertTrue(root(activity).clickOnTag("github_cta_primary"))
 
-                val shadowActivity = shadowOf(activity)
-                val intent = shadowActivity.nextStartedActivity
+                val intent: Intent = shadowOf(activity).nextStartedActivity
                 assertEquals(Intent.ACTION_VIEW, intent.action)
                 assertEquals(activity.getString(R.string.about_me_project_repo_url), intent.dataString)
             }
@@ -52,11 +52,9 @@ class AboutAircraftActivityTest {
     fun `clicking source card starts action view intent`() {
         ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val githubLink = activity.findViewById<View>(R.id.ll_github_link)
-                githubLink.performClick()
+                assertTrue(root(activity).clickOnTag("github_source_card"))
 
-                val shadowActivity = shadowOf(activity)
-                val intent = shadowActivity.nextStartedActivity
+                val intent: Intent = shadowOf(activity).nextStartedActivity
                 assertEquals(Intent.ACTION_VIEW, intent.action)
                 assertEquals(activity.getString(R.string.about_me_project_repo_url), intent.dataString)
             }
@@ -67,8 +65,8 @@ class AboutAircraftActivityTest {
     fun `back button finishes activity`() {
         ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btnBack = activity.findViewById<View>(R.id.btn_back)
-                btnBack.performClick()
+                assertTrue(root(activity).clickOnTag("btn_back"))
+                shadowOf(Looper.getMainLooper()).idle()
                 assertTrue(activity.isFinishing)
             }
         }
@@ -78,27 +76,11 @@ class AboutAircraftActivityTest {
     fun `clicking project image launches ShowImageDetailsActivity`() {
         ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val projectImage = activity.findViewById<View>(R.id.iv_project)
-                projectImage.performClick()
+                assertTrue(root(activity).clickOnTag("project_image"))
 
-                val shadowActivity = shadowOf(activity)
-                val intent = shadowActivity.nextStartedActivity
+                val intent: Intent = shadowOf(activity).nextStartedActivity
                 assertNotNull(intent)
                 assertEquals(ShowImageDetailsActivity::class.java.name, intent.component?.className)
-            }
-        }
-    }
-
-    @Test
-    fun `project image intent contains correct banner details`() {
-        ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val projectImage = activity.findViewById<View>(R.id.iv_project)
-                projectImage.performClick()
-
-                val shadowActivity = shadowOf(activity)
-                val intent = shadowActivity.nextStartedActivity
-                assertNotNull(intent)
 
                 val name = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_NAME)
                 val description = intent.getStringExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION)
@@ -114,15 +96,18 @@ class AboutAircraftActivityTest {
     }
 
     @Test
-    fun `project image intent source is network type`() {
+    fun `project image intent contains correct banner details`() {
         ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val projectImage = activity.findViewById<View>(R.id.iv_project)
-                projectImage.performClick()
+                assertTrue(root(activity).clickOnTag("project_image"))
 
-                val shadowActivity = shadowOf(activity)
-                val intent = shadowActivity.nextStartedActivity
-                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, intent.getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE))
+                val intent: Intent = shadowOf(activity).nextStartedActivity
+                assertEquals(activity.getString(R.string.about_aircraft_title),
+                    intent.getStringExtra(ImageDetailsIntentContract.EXTRA_NAME))
+                assertEquals(activity.getString(R.string.about_banner_summary),
+                    intent.getStringExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION))
+                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK,
+                    intent.getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE))
                 assertNull(intent.getIntExtra(ImageDetailsIntentContract.EXTRA_RES_ID, -1).takeIf { it != -1 })
             }
         }

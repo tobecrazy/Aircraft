@@ -153,7 +153,7 @@
         android:clipToPadding="false"
         android:overScrollMode="never">
 
-        <LinearLayout
+        <com.young.aircraft.gui.MaxWidthLinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -452,7 +452,7 @@
                     android:layout_marginTop="12dp" />
 
             </LinearLayout>
-        </LinearLayout>
+        </com.young.aircraft.gui.MaxWidthLinearLayout>
     </ScrollView>
 
     <TextView

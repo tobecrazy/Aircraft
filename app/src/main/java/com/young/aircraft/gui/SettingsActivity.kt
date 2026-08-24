@@ -17,6 +17,11 @@ import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.databinding.SettingsActivityBinding
+import com.young.aircraft.gui.dialogs.DangerPalette
+import com.young.aircraft.gui.dialogs.GameDialogContent
+import com.young.aircraft.gui.dialogs.GameDialogStat
+import com.young.aircraft.gui.dialogs.setDialogComposeContent
+import androidx.compose.ui.graphics.Color
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.viewmodel.SettingsUiState
 import com.young.aircraft.viewmodel.SettingsViewModel
@@ -110,57 +115,38 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showClearCacheDialog(cacheSize: String) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_game, null)
-        dialogView.findViewById<TextView>(R.id.dialog_badge).apply {
-            visibility = View.VISIBLE
-            text = getString(R.string.clear_cache_badge)
-            setBackgroundResource(R.drawable.dialog_badge_danger_bg)
-        }
-        dialogView.findViewById<TextView>(R.id.dialog_title).apply {
-            text = getString(R.string.clear_cache_dialog_title)
-            setTextColor(0xFFFF6F7E.toInt())
-        }
-        dialogView.findViewById<View>(R.id.dialog_divider).setBackgroundColor(0x44FF4444)
-        dialogView.findViewById<TextView>(R.id.dialog_message).text =
-            getString(R.string.clear_cache_dialog_message)
-        dialogView.findViewById<LinearLayout>(R.id.dialog_stats_container).visibility = View.VISIBLE
-        dialogView.findViewById<LinearLayout>(R.id.stat_card_1)
-            .setBackgroundResource(R.drawable.dialog_stat_card_danger_bg)
-        dialogView.findViewById<LinearLayout>(R.id.stat_card_2)
-            .setBackgroundResource(R.drawable.dialog_stat_card_bg)
-        dialogView.findViewById<TextView>(R.id.stat_label_1).apply {
-            text = getString(R.string.clear_cache_size_label)
-            setTextColor(0x88FF6F7E.toInt())
-        }
-        dialogView.findViewById<TextView>(R.id.stat_value_1).text = cacheSize
-        dialogView.findViewById<TextView>(R.id.stat_label_2).apply {
-            text = getString(R.string.clear_cache_keep_label)
-            setTextColor(0x8800FF88.toInt())
-        }
-        dialogView.findViewById<TextView>(R.id.stat_value_2).text =
-            getString(R.string.clear_cache_keep_value)
-
         val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
         dialog.window?.setDimAmount(0.7f)
 
-        dialogView.findViewById<TextView>(R.id.dialog_negative_btn).apply {
-            visibility = View.VISIBLE
-            text = getString(R.string.history_cancel)
-            setOnClickListener { dialog.dismiss() }
+        // Danger palette with the legacy per-slot overrides: softer title red, mixed stat cards.
+        dialog.setDialogComposeContent(this) {
+            GameDialogContent(
+                badgeText = getString(R.string.clear_cache_badge),
+                palette = DangerPalette.copy(titleColor = Color(0xFFFF6F7E)),
+                title = getString(R.string.clear_cache_dialog_title),
+                message = getString(R.string.clear_cache_dialog_message),
+                primaryStat = GameDialogStat(
+                    label = getString(R.string.clear_cache_size_label),
+                    value = cacheSize
+                ),
+                secondaryStat = GameDialogStat(
+                    label = getString(R.string.clear_cache_keep_label),
+                    value = getString(R.string.clear_cache_keep_value),
+                    labelColor = Color(0x8800FF88),
+                    cardContainer = Color(0x18FFFFFF),
+                    cardBorder = Color(0x22FFFFFF)
+                ),
+                positiveText = getString(R.string.clear_cache_confirm),
+                onPositive = {
+                    dialog.dismiss()
+                    clearCachedGameData()
+                },
+                negativeText = getString(R.string.history_cancel)
+            )
         }
-        dialogView.findViewById<TextView>(R.id.dialog_positive_btn).apply {
-            text = getString(R.string.clear_cache_confirm)
-            setBackgroundResource(R.drawable.dialog_button_primary_danger)
-            setOnClickListener {
-                dialog.dismiss()
-                clearCachedGameData()
-            }
-        }
-        dialog.show()
     }
 
     private fun formatCacheSize(bytes: Long): String {
