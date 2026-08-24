@@ -64,7 +64,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.young.aircraft.R
-import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -159,8 +158,9 @@ private fun OnboardingScreen(
                 .testTag("star_field")
         )
 
-        // Layer 2: Content overlay
-        Column(modifier = Modifier.fillMaxSize().maxContentWidth()) {
+        // Layer 2: Content overlay. Full width on purpose — header/divider/bottom bar
+        // span the window; pager pages center their fixed-size content themselves.
+        Column(modifier = Modifier.fillMaxSize()) {
             OnboardingHeader(onSkip = onSkip)
             NeonDivider()
 

@@ -67,7 +67,6 @@ import androidx.compose.ui.window.Dialog
 import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.Aircraft
-import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.LaunchViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -172,8 +171,10 @@ private fun LaunchScreen(
                 .testTag("star_field")
         )
 
+        // Header/divider must span the full window; the fixed-width children below
+        // are centered by horizontalAlignment, so no max-width cap is needed here.
         Column(
-            modifier = Modifier.fillMaxSize().maxContentWidth(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             LaunchHeader()
