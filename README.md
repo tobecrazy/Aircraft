@@ -285,6 +285,7 @@ Instrumented tests belong in `app/src/androidTest`.
 - **Gradle Wrapper**: `9.7.0`
 - **Android Gradle Plugin**: `9.3.1`
 - **Build scripts**: Kotlin DSL (`*.gradle.kts`)
+- **Release minification**: R8 code shrinking + resource shrinking enabled (mapping files uploaded to Crashlytics automatically)
 - **Dependency versions**: `gradle/libs.versions.toml` Gradle version catalog
 
 ## Build

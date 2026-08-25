@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Enabled R8 code shrinking and resource shrinking for release builds (`isMinifyEnabled = true`, `isShrinkResources = true`), reducing the release APK from ~45 MB to ~16 MB; Crashlytics receives the R8 mapping file automatically so obfuscated release stack traces remain retraceable
+
+### Fixed
+- Release builds failed at `produceReleaseComposeMapping` with `Could not find org.jetbrains.kotlin:compose-group-mapping:2.2.10` (AGP's bundled KGP version; that artifact is only published from KGP 2.3.0+). Fixed by raising the built-in Kotlin Gradle plugin to `2.4.10` via a `buildscript` classpath dependency, matching the Compose compiler plugin version
+
+### Changed
+- Fixed ProGuard keep-rule syntax in `app/proguard-rules.pro`: `-keepclassmembers enum class X` → `-keepclassmembers enum X` for `GameDifficulty` and `GameState` (the old form fails to parse under the R8 bundled with AGP 9)
+- Completed AGP 9 built-in-Kotlin migration: removed the obsolete `android.disallowKotlinSourceSets=false` flag from `gradle.properties` (not needed with KSP 2.3.11); confirmed the Compose Compiler Gradle plugin (`org.jetbrains.kotlin.plugin.compose`) is still required alongside built-in Kotlin
+- `CLAUDE.md` build-configuration notes updated to match
+
 ## [1.3.0] - 2026-08-22
 
 ### Changed

@@ -29,7 +29,7 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 
 ## Build Configuration
 
-- **Gradle:** 9.7.0, AGP 9.3.1 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.3.11
+- **Gradle:** 9.7.0, AGP 9.3.1 (built-in Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately; the `org.jetbrains.kotlin.plugin.compose` plugin IS still required for Compose), KSP 2.3.11
 - **Build files:** Kotlin DSL (`build.gradle.kts`), dependency versions centralized in `gradle/libs.versions.toml`
 - **SDK:** compileSdk 37, minSdk 30, targetSdk 37, buildToolsVersion 37.0.0
 - **Java:** 17
@@ -41,7 +41,6 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 - **Test stack:** JUnit 4.13.2, Robolectric 4.16.1, Mockito 5.23.0/Kotlin 6.3.0, Compose UI test
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
-- `android.disallowKotlinSourceSets=false` in gradle.properties (required for KSP compatibility with AGP's built-in Kotlin)
 - Release signing reads from `keystore.properties` in project root (not checked in)
 
 ## Architecture
