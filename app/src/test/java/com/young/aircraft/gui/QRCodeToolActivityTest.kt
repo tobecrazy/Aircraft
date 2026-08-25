@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
@@ -366,7 +367,15 @@ class QRCodeToolActivityTest {
     fun `QR code tool row in Settings navigates to QRCodeToolActivity`() {
         ActivityScenario.launch(SettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.row_qr_code_tool).performClick()
+                val title = activity.getString(R.string.qr_code_tool_title)
+                val root = activity.window.decorView.findSemanticsOwner()!!.rootSemanticsNode
+                // The clickable row merges its Text children, so match by containment.
+                val row = findAllNodes(root).firstOrNull { node ->
+                    node.displayText()?.contains(title) == true &&
+                        node.config.getOrNull(SemanticsActions.OnClick) != null
+                }
+                assertNotNull("Settings row for QR Code Tool not found", row)
+                row!!.config.getOrNull(SemanticsActions.OnClick)!!.action!!.invoke()
                 val intent = shadowOf(activity).nextStartedActivity
                 assertNotNull(intent)
                 assertEquals(

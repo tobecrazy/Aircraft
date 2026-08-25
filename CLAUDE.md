@@ -90,7 +90,7 @@ Twelve checks run every frame in `GameCoreView.checkCollision()`:
 
 ### Activity Flow
 
-Most GUI activities use ViewBinding with XML layouts. Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent`). Activities like `QRCodeToolActivity`, `HistoryActivity`, `LaunchActivity`, `SettingsActivity`, and `MainActivity` all use ViewBinding.
+Most GUI activities now use Jetpack Compose (`setContent`) — the `migrate to compose` commit converted nearly all of `gui/` off XML layouts. Only three activities still use ViewBinding: `MainActivity` (game host), `QRCodeToolActivity`, and `RichTextEditorActivity`. A handful of layout XMLs remain (bottom sheets, the three ViewBinding screens).
 
 ```
 PrivacyPolicyAcceptActivity (entry point, MAIN LAUNCHER, Theme.Aircraft.Common)
@@ -156,7 +156,7 @@ User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Norm
 
 ### Compose UI Layer
 
-Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent`) with Material3. There is no shared Compose theme — each uses hardcoded color constants matching the XML tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing.
+Jetpack Compose (`setContent` + Material3) is now the primary UI layer for non-game activities — the exceptions are `MainActivity`, `QRCodeToolActivity`, and `RichTextEditorActivity`, which still use ViewBinding. There is no shared Compose theme — screens use hardcoded color constants matching the tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing; when clicking rows inside `verticalScroll` content, use a tall viewport qualifier (e.g. `w420dp-h2000dp`) — clicks on nodes below the fold land outside the window and silently no-op.
 
 ### MVVM (non-game activities)
 
@@ -166,6 +166,9 @@ Most non-game activities follow MVVM with a `ViewModel` in `viewmodel/` (e.g. `S
 
 ### UI Consistency
 All UI interfaces must maintain a consistent style. When adding or modifying activities, match the existing patterns: standard 52dp header, color scheme (`#0F1118` background, `#161A26` header, `#00FF88` accent), monospace typography, `fitsSystemWindows="true"`, and the shared drawable/theme conventions. Never introduce novel layout structures or color values without checking how peer screens are built.
+
+### Null Safety (avoid `!!`)
+Never use the `!!` not-null assertion operator in Kotlin — it throws `NullPointerException` at runtime. Handle nullable variables safely instead: use `?.` safe calls, `?:` Elvis with a sensible default, `let`/`run` scope functions, early-return guards (`val x = foo ?: return`), or `requireNotNull(x) { "message" }` / `checkNotNull(x)` when a null genuinely indicates a programming error (these give a clear message instead of a bare NPE).
 
 ### Naming Collision
 Two files named `Aircraft.kt`: `data/PlayerAircraft.kt` (data class, renamed from Aircraft) and `ui/Aircraft.kt` (rendering class). Code disambiguates with `import com.young.aircraft.data.PlayerAircraft as AircraftData`.
