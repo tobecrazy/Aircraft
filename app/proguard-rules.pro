@@ -24,12 +24,12 @@
 # ============================================================
 # Enums (GameDifficulty has constructor params accessed reflectively)
 # ============================================================
--keepclassmembers enum class com.young.aircraft.data.GameDifficulty {
+-keepclassmembers enum com.young.aircraft.data.GameDifficulty {
     public static **[] values();
     public static ** valueOf(java.lang.String);
     *;
 }
--keepclassmembers enum class com.young.aircraft.data.GameState {
+-keepclassmembers enum com.young.aircraft.data.GameState {
     *;
 }
 
