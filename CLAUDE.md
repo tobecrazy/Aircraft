@@ -10,6 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions. The game has 10 time-based levels with scaling difficulty and a boss fight at the end of each level.
 
+Two Gradle modules: `:app` (the game) and `:richtexteditor` (a reusable Android library providing rich-text editing, used by `RichTextEditorActivity`).
+
 For detailed documentation (formulas, database schema, common tasks like adding enemies/sounds/languages, and how to play), see **[DOCUMENT.md](DOCUMENT.md)**.
 
 **[AGENTS.md](AGENTS.md) is a symlink to this file — editing CLAUDE.md updates both automatically.**
@@ -20,7 +22,7 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 ./gradlew assembleDebug          # Build debug APK
 ./gradlew assembleRelease        # Build release APK
 ./gradlew test                   # Run unit tests (Robolectric + JUnit)
-./gradlew testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"  # Single test class
+./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"  # Single test class (scope to :app:)
 ./gradlew connectedAndroidTest   # Instrumented tests (requires device/emulator)
 ./gradlew clean                  # Clean build
 ./gradlew lint                   # Lint check
@@ -41,6 +43,7 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 - **Test stack:** JUnit 4.13.2, Robolectric 4.16.1, Mockito 5.23.0/Kotlin 6.3.0, Compose UI test
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
+- **R8:** release build has `isMinifyEnabled = true` + `isShrinkResources = true` (`proguard-rules.pro`)
 - Release signing reads from `keystore.properties` in project root (not checked in)
 
 ## Architecture
@@ -187,7 +190,7 @@ All game object bitmaps must have `bitmap.density = screenDensity` set for corre
 English (default) and Chinese (`values-zh/strings.xml`). A `StringResourceTest` verifies locale parity and usage coverage — when adding/removing strings, ensure both locales stay in sync to avoid test failures. Unused strings in `strings.xml` will also cause test failures; clean up orphans after refactors. If there are any String changes, ensure that all Strings are i18n-compatible and properly referenced (no hardcoded text in layouts or code — always use `@string/` in XML and `getString(R.string.*)` in Kotlin).
 
 ### CI
-GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug lintDebug` on push/PR to `main`, using JDK 17 (temurin). Note: CI does **not** run unit tests — only compile and lint.
+GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug lintDebug testDebugUnitTest` on push/PR to `main`, using JDK 17 (temurin). CI runs compile + lint + unit tests — keep tests passing locally before pushing.
 
 ### Settings & Debug
 `SettingsRepository` (providers/) wraps SharedPreferences for difficulty, sound toggles, privacy acceptance, hit-shake effect, and a debug invincible-mode flag. `GameStateManager.isInvincible` exposes this flag to the game loop. Debug builds expose `DevelopSettingsActivity` (crash testing, invincible-mode toggle) from `SettingsActivity`.
