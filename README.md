@@ -45,7 +45,7 @@ The demo above walks through the end-to-end player experience on a real device:
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
 | `richtexteditor/` | Blue-gray | `RichTextEditorView` | Reusable AAR library for rich-text input, toolbar formatting, Markdown/HTML helpers, and image-tap URL helpers |
 | `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `ShowImageDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `HistoryFragment`, `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
+| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `QRCodeToolActivity`, `FlashlightActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder`, `FlashlightService` | BGM/SFX bound service + camera-torch foreground service with wakelock-backed SOS |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, file URI/cache helpers, name formatting |
@@ -67,6 +67,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Green tactical in-game shell for `MainActivity` with a mission-briefing card, pause overlay, and themed end-of-run dialogs
 - First-launch privacy acceptance flow with cinematic `StarFieldView`
 - Compose-powered two-page onboarding carousel with animated entrance effects
+- Compose-powered Settings screen with difficulty, audio, cache, and utility navigation controls
 - 10 combat levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
 - Puzzle-gate flow: after clearing combat levels 1-9, players must clear the same-numbered puzzle level before entering the next combat level (Easy = 3×3, Normal = 4×4, Hard = 5×5)
 - Compose-based `PuzzleActivity` shell with drag-and-drop pieces, two-finger zoom, auto-snapping, hint preview, undo, the standard tactical 52dp header (back button saves progress), and status-bar inset handling
@@ -156,6 +157,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── HistoryFragment.kt              # Leaderboard fragment
 │   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
 │   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
+│   ├── SettingsScreen.kt               # Compose settings presentation and destinations
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
 │   ├── FlashlightActivity.kt           # Compose flashlight utility with torch, SOS, and brightness controls
 │   ├── RichTextEditorActivity.kt       # DEBUG rich-text editor with example JSON loading, WebView preview, and image details navigation
@@ -227,6 +229,7 @@ app/src/main/java/com/young/aircraft/
 - `GameCoreViewFormulaTest` for level duration and kill-target math
 - `HistoryAdapterTest` for first-place badge visibility and gold score styling
 - `QRCodeToolActivityTest` for scan/generate screen state, bottom-sheet result dialog, save-to-device flow, gallery pick button, and Settings navigation
+- `SettingsActivityTest` for Compose settings controls, navigation, and cache-clear dialog wiring
 - `FlashlightViewModelTest` for SOS timing pattern and brightness-strength mapping
 - `AboutMeActivityTest` for localized About Me copy, repo URL rendering, and back navigation
 - `MainActivityTest` for tactical overlay behavior, mission-briefing chips, and low-memory pause handling
