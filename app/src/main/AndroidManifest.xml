@@ -58,6 +58,7 @@
             android:name=".gui.DevelopSettingsActivity"
             android:exported="false"
             android:label="@string/develop_settings_title"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.AndroidDevAssistantToolsActivity"
@@ -73,6 +74,7 @@
             android:name=".gui.QRCodeToolActivity"
             android:exported="false"
             android:label="@string/qr_code_tool_title"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.FlashlightActivity"
@@ -83,6 +85,7 @@
             android:name=".gui.RichTextEditorActivity"
             android:exported="false"
             android:label="@string/rich_text_editor_title"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.SettingsActivity"
@@ -117,6 +120,7 @@
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:windowLayoutInDisplayCutoutMode="shortEdges"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/TransparentMaterialTheme" />
 
         <service
