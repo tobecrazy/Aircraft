@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Aircraft Android Architecture",
+    "output": "aircraft-architecture.html",
+    "quality_profile": "showcase",
+    "repository": { "url": "https://github.com/tobecrazy/Aircraft.git", "revision": "cba9af499f115b66ff70b8124b8c7ae6a5d0ef38" },
+    "views": [
+      { "id": "launch-flow", "label": "Launch flow", "focus": ["privacy", "onboarding", "launch", "main", "game"], "note": "Follow the user from consent and onboarding into the game host." },
+      { "id": "game-core", "label": "Game core", "focus": ["main", "game", "player", "enemies", "boss"], "note": "Trace the dedicated 30 FPS rendering and collision loop." },
+      { "id": "persistence-audio", "label": "Persistence and audio", "focus": ["game", "room", "music", "settings"], "note": "See how gameplay state, preferences, and sound are connected." }
+    ]
+  },
+  "components": [
+    { "id": "privacy", "type": "frontend", "label": "PrivacyPolicyAcceptActivity", "sublabel": "Entry point / consent", "pos": [40, 280], "size": [190, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/gui/PrivacyPolicyAcceptActivity.kt" }] },
+    { "id": "onboarding", "type": "frontend", "label": "OnboardingActivity", "sublabel": "Compose pager", "pos": [300, 280], "size": [170, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/gui/OnboardingActivity.kt" }] },
+    { "id": "launch", "type": "frontend", "label": "LaunchActivity", "sublabel": "Compose menu / MVVM", "pos": [540, 280], "size": [170, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/gui/LaunchActivity.kt" }] },
+    { "id": "main", "type": "frontend", "label": "MainActivity", "sublabel": "ViewBinding game host", "pos": [780, 280], "size": [170, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/gui/MainActivity.kt" }] },
+    { "id": "game", "type": "backend", "label": "GameCoreView", "sublabel": "SurfaceView / 30 FPS thread", "pos": [1020, 280], "size": [190, 70], "tag": "Canvas renderer", "sources": [{ "path": "app/src/main/java/com/young/aircraft/ui/GameCoreView.kt" }] },
+    { "id": "player", "type": "backend", "label": "Aircraft + Draw objects", "sublabel": "Player, bullets, effects", "pos": [1020, 430], "size": [190, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/ui/Aircraft.kt" }] },
+    { "id": "enemies", "type": "backend", "label": "Enemies / Powerups", "sublabel": "Spawns, collisions, pickups", "pos": [780, 430], "size": [190, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/ui/Enemies.kt" }] },
+    { "id": "boss", "type": "backend", "label": "BossEnemy", "sublabel": "Level-end boss AI", "pos": [540, 430], "size": [170, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/ui/BossEnemy.kt" }] },
+    { "id": "room", "type": "database", "label": "Room / AppDatabase", "sublabel": "player_game_data · v2030", "pos": [300, 430], "size": [190, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/data/AppDatabase.kt" }] },
+    { "id": "settings", "type": "database", "label": "SettingsRepository", "sublabel": "Preferences / difficulty", "pos": [40, 430], "size": [190, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/data/SettingsRepository.kt" }] },
+    { "id": "music", "type": "backend", "label": "MusicService", "sublabel": "MediaPlayer + SoundPool", "pos": [40, 600], "size": [190, 70], "sources": [{ "path": "app/src/main/java/com/young/aircraft/service/MusicService.kt" }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Android application · com.young.aircraft", "wraps": ["privacy", "onboarding", "launch", "main", "game", "player", "enemies", "boss", "room", "settings", "music"] },
+    { "kind": "security-group", "label": "Dedicated game thread", "wraps": ["game", "player", "enemies", "boss"] }
+  ],
+  "connections": [
+    { "id": "privacy-onboarding", "from": "privacy", "to": "onboarding", "label": "accept / skip", "variant": "emphasis" },
+    { "id": "onboarding-launch", "from": "onboarding", "to": "launch", "label": "start" },
+    { "id": "launch-main", "from": "launch", "to": "main", "label": "start_level + jet_plane_res", "variant": "emphasis", "labelDy": 59 },
+    { "id": "main-game", "from": "main", "to": "game", "label": "SurfaceView" },
+    { "id": "game-player", "from": "game", "to": "player" },
+    { "id": "game-enemies", "from": "game", "to": "enemies" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "UI shell", "items": ["Privacy and onboarding gate the app", "Compose is used by most non-game activities", "MainActivity remains ViewBinding-based"] },
+    { "dot": "emerald", "title": "Game loop", "items": ["GameCoreView owns Canvas rendering and progression", "DrawBaseObject hierarchy handles player, enemies, boss, and effects", "Collision checks run on the dedicated game thread"] },
+    { "dot": "violet", "title": "State and services", "items": ["Room persists player_game_data and saved progress", "SettingsRepository wraps SharedPreferences", "MusicService owns looping BGM and combat SFX"] }
+  ]
+}

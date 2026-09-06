@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
@@ -12,13 +13,12 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
-import com.young.aircraft.data.GameDifficulty
-import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.gui.dialogs.DangerPalette
 import com.young.aircraft.gui.dialogs.GameDialogContent
 import com.young.aircraft.gui.dialogs.GameDialogStat
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
 import androidx.compose.ui.graphics.Color
+import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
@@ -30,23 +30,24 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-
         viewModel = ViewModelProvider(this, SettingsViewModel.Factory(this))[SettingsViewModel::class.java]
 
         setContent {
-            val state by viewModel.uiState.collectAsState()
-            SettingsScreen(
-                state = state,
-                soundOptionCount = soundOptionCount,
-                onBack = { finish() },
-                onDifficultySelected = viewModel::setDifficulty,
-                onBgSoundToggled = viewModel::setBgSoundEnabled,
-                onCombatSoundToggled = viewModel::setCombatSoundEnabled,
-                onHitShakeToggled = viewModel::setHitShakeEnabled,
-                onBgmFormatSelected = viewModel::setBgmFormat,
-                onNavigate = ::navigateTo,
-                onClearCache = ::showClearCacheDialog
-            )
+            AircraftTheme {
+                val state by viewModel.uiState.collectAsState()
+                SettingsScreen(
+                    state = state,
+                    soundOptionCount = soundOptionCount,
+                    onBack = { finish() },
+                    onDifficultySelected = viewModel::setDifficulty,
+                    onBgSoundToggled = viewModel::setBgSoundEnabled,
+                    onCombatSoundToggled = viewModel::setCombatSoundEnabled,
+                    onHitShakeToggled = viewModel::setHitShakeEnabled,
+                    onBgmFormatSelected = viewModel::setBgmFormat,
+                    onNavigate = ::navigateTo,
+                    onClearCache = ::showClearCacheDialog
+                )
+            }
         }
     }
 

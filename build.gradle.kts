@@ -12,6 +12,7 @@ plugins {
 // (that artifact is only published for KGP 2.3.0+).
 buildscript {
     dependencies {
+        //noinspection UseTomlInstead
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.10")
     }
 }
