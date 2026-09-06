@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
@@ -29,8 +30,8 @@ import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowDialog
 
 @RunWith(RobolectricTestRunner::class)
-// Tall viewport so every row is on-screen — clicks below the fold otherwise land outside
-// the window (verticalScroll composes all children, visible or not).
+// Tall viewport keeps most rows on-screen; performScrollTo() in the navigation test
+// brings any below-the-fold row into view before clicking (verticalScroll composes all children).
 @Config(sdk = [34], qualifiers = "w420dp-h2000dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class SettingsActivityTest {
@@ -115,7 +116,7 @@ class SettingsActivityTest {
             activity.getString(R.string.privacy_policy_title) to PrivacyPolicyActivity::class.java
         )
         cases.forEach { (rowText, target) ->
-            composeRule.onNodeWithText(rowText).performClick()
+            composeRule.onNodeWithText(rowText).performScrollTo().performClick()
             assertEquals(
                 "row '$rowText' should start ${target.simpleName}",
                 target.name,
