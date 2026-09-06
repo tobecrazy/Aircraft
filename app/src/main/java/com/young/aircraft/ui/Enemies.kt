@@ -60,14 +60,14 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     }
 
     // Bullet range: 60% of screen height
-    private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+    private var screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
     val enemySizePx: Float = ScreenUtils.dpToPx(context, 48.0f).toFloat()
     private val enemyHalfSizePx: Float = enemySizePx / 2f
     private val spawnInsetPx: Float = ScreenUtils.dpToPx(context, 40.0f).toFloat()
     private val spawnSpreadPx: Float = ScreenUtils.dpToPx(context, 80.0f).toFloat()
     private val baseBulletSpacingPx: Float = ScreenUtils.dpToPx(context, BASE_BULLET_SPACING_DP).toFloat()
     private val minBulletSpacingPx: Float = ScreenUtils.dpToPx(context, MIN_BULLET_SPACING_DP).toFloat()
-    private val maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.6f
+    private var maxBulletRange: Float = ScreenUtils.getScreenHeight(context).toFloat() * 0.6f
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
     val bulletWidthPx: Float
     val bulletHeightPx: Float
@@ -101,7 +101,14 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         return spacing.coerceAtLeast(MIN_BULLET_SPACING_DP)
     }
 
-    private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
+    private var screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
+
+    /** Update spawn/despawn bounds after a canvas resize. Live enemies are short-lived and fly out naturally. */
+    fun onScreenResized(newW: Int, newH: Int) {
+        screenWidth = newW.toFloat()
+        screenHeight = newH.toFloat()
+        maxBulletRange = newH * 0.6f
+    }
 
     init {
         val enemyResIds = intArrayOf(
@@ -147,6 +154,8 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
 
     private fun getRandomLeft(): Float {
         val end = screenWidth - spawnInsetPx
+        // Extremely narrow window: the valid band collapsed, don't spin forever
+        if (spawnInsetPx >= end) return screenWidth / 2f
         var randomX = screenWidth * rng.nextFloat()
         while (randomX <= spawnInsetPx || randomX >= end) {
             randomX = screenWidth * rng.nextFloat()

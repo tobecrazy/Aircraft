@@ -10,6 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions. The game has 10 time-based levels with scaling difficulty and a boss fight at the end of each level.
 
+Two Gradle modules: `:app` (the game) and `:richtexteditor` (a reusable Android library providing rich-text editing, used by `RichTextEditorActivity`).
+
 For detailed documentation (formulas, database schema, common tasks like adding enemies/sounds/languages, and how to play), see **[DOCUMENT.md](DOCUMENT.md)**.
 
 **[AGENTS.md](AGENTS.md) is a symlink to this file — editing CLAUDE.md updates both automatically.**
@@ -20,7 +22,7 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 ./gradlew assembleDebug          # Build debug APK
 ./gradlew assembleRelease        # Build release APK
 ./gradlew test                   # Run unit tests (Robolectric + JUnit)
-./gradlew testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"  # Single test class
+./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"  # Single test class (scope to :app:)
 ./gradlew connectedAndroidTest   # Instrumented tests (requires device/emulator)
 ./gradlew clean                  # Clean build
 ./gradlew lint                   # Lint check
@@ -29,7 +31,7 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 
 ## Build Configuration
 
-- **Gradle:** 9.7.0, AGP 9.3.1 (bundles Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately), KSP 2.3.11
+- **Gradle:** 9.7.0, AGP 9.3.1 (built-in Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately; the `org.jetbrains.kotlin.plugin.compose` plugin IS still required for Compose), KSP 2.3.11
 - **Build files:** Kotlin DSL (`build.gradle.kts`), dependency versions centralized in `gradle/libs.versions.toml`
 - **SDK:** compileSdk 37, minSdk 30, targetSdk 37, buildToolsVersion 37.0.0
 - **Java:** 17
@@ -41,7 +43,7 @@ For detailed documentation (formulas, database schema, common tasks like adding 
 - **Test stack:** JUnit 4.13.2, Robolectric 4.16.1, Mockito 5.23.0/Kotlin 6.3.0, Compose UI test
 - **App ID:** `com.young.aircraft`
 - View Binding and Data Binding are both enabled
-- `android.disallowKotlinSourceSets=false` in gradle.properties (required for KSP compatibility with AGP's built-in Kotlin)
+- **R8:** release build has `isMinifyEnabled = true` + `isShrinkResources = true` (`proguard-rules.pro`)
 - Release signing reads from `keystore.properties` in project root (not checked in)
 
 ## Architecture
@@ -91,7 +93,7 @@ Twelve checks run every frame in `GameCoreView.checkCollision()`:
 
 ### Activity Flow
 
-Most GUI activities use ViewBinding with XML layouts. Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent`). Activities like `QRCodeToolActivity`, `HistoryActivity`, `LaunchActivity`, `SettingsActivity`, and `MainActivity` all use ViewBinding.
+Most GUI activities now use Jetpack Compose (`setContent`) — the `migrate to compose` commit converted nearly all of `gui/` off XML layouts. Only three activities still use ViewBinding: `MainActivity` (game host), `QRCodeToolActivity`, and `RichTextEditorActivity`. A handful of layout XMLs remain (bottom sheets, the three ViewBinding screens).
 
 ```
 PrivacyPolicyAcceptActivity (entry point, MAIN LAUNCHER, Theme.Aircraft.Common)
@@ -157,7 +159,7 @@ User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Norm
 
 ### Compose UI Layer
 
-Only `AboutMeActivity` and `OnboardingActivity` use Jetpack Compose (`setContent`) with Material3. There is no shared Compose theme — each uses hardcoded color constants matching the XML tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing.
+Jetpack Compose (`setContent` + Material3) is now the primary UI layer for non-game activities — the exceptions are `MainActivity`, `QRCodeToolActivity`, and `RichTextEditorActivity`, which still use ViewBinding. There is no shared Compose theme — screens use hardcoded color constants matching the tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing; when clicking rows inside `verticalScroll` content, use a tall viewport qualifier (e.g. `w420dp-h2000dp`) — clicks on nodes below the fold land outside the window and silently no-op.
 
 ### MVVM (non-game activities)
 
@@ -167,6 +169,9 @@ Most non-game activities follow MVVM with a `ViewModel` in `viewmodel/` (e.g. `S
 
 ### UI Consistency
 All UI interfaces must maintain a consistent style. When adding or modifying activities, match the existing patterns: standard 52dp header, color scheme (`#0F1118` background, `#161A26` header, `#00FF88` accent), monospace typography, `fitsSystemWindows="true"`, and the shared drawable/theme conventions. Never introduce novel layout structures or color values without checking how peer screens are built.
+
+### Null Safety (avoid `!!`)
+Never use the `!!` not-null assertion operator in Kotlin — it throws `NullPointerException` at runtime. Handle nullable variables safely instead: use `?.` safe calls, `?:` Elvis with a sensible default, `let`/`run` scope functions, early-return guards (`val x = foo ?: return`), or `requireNotNull(x) { "message" }` / `checkNotNull(x)` when a null genuinely indicates a programming error (these give a clear message instead of a bare NPE).
 
 ### Naming Collision
 Two files named `Aircraft.kt`: `data/PlayerAircraft.kt` (data class, renamed from Aircraft) and `ui/Aircraft.kt` (rendering class). Code disambiguates with `import com.young.aircraft.data.PlayerAircraft as AircraftData`.
@@ -185,7 +190,7 @@ All game object bitmaps must have `bitmap.density = screenDensity` set for corre
 English (default) and Chinese (`values-zh/strings.xml`). A `StringResourceTest` verifies locale parity and usage coverage — when adding/removing strings, ensure both locales stay in sync to avoid test failures. Unused strings in `strings.xml` will also cause test failures; clean up orphans after refactors. If there are any String changes, ensure that all Strings are i18n-compatible and properly referenced (no hardcoded text in layouts or code — always use `@string/` in XML and `getString(R.string.*)` in Kotlin).
 
 ### CI
-GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug lintDebug` on push/PR to `main`, using JDK 17 (temurin). Note: CI does **not** run unit tests — only compile and lint.
+GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug lintDebug testDebugUnitTest` on push/PR to `main`, using JDK 17 (temurin). CI runs compile + lint + unit tests — keep tests passing locally before pushing.
 
 ### Settings & Debug
 `SettingsRepository` (providers/) wraps SharedPreferences for difficulty, sound toggles, privacy acceptance, hit-shake effect, and a debug invincible-mode flag. `GameStateManager.isInvincible` exposes this flag to the game loop. Debug builds expose `DevelopSettingsActivity` (crash testing, invincible-mode toggle) from `SettingsActivity`.

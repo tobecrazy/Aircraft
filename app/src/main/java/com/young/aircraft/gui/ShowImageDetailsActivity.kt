@@ -5,7 +5,9 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -62,8 +64,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -78,12 +78,18 @@ import coil.request.ImageRequest
 import com.young.aircraft.R
 import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.data.ImageDetailsSource
+import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.viewmodel.ImageDetailsEvent
 import com.young.aircraft.viewmodel.ShowImageDetailsUiState
 import com.young.aircraft.utils.DataUriUtils
 import com.young.aircraft.viewmodel.ShowImageDetailsViewModel
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.TextBright
+import com.young.aircraft.ui.theme.AircraftTheme
 
 class ShowImageDetailsActivity : AppCompatActivity() {
 
@@ -95,7 +101,6 @@ class ShowImageDetailsActivity : AppCompatActivity() {
         if (uri != null) viewModel.saveImage(uri)
     }
 
-    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
@@ -109,16 +114,13 @@ class ShowImageDetailsActivity : AppCompatActivity() {
             ShowImageDetailsViewModel.Factory(this, intent)
         )[ShowImageDetailsViewModel::class.java]
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-        window.navigationBarColor = android.graphics.Color.TRANSPARENT
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+        )
 
         setContent {
-            MaterialTheme {
+            AircraftTheme {
                 val uiState by viewModel.uiState.collectAsState()
                 ImageDetailsScreen(
                     uiState = uiState,
@@ -169,11 +171,7 @@ class ShowImageDetailsActivity : AppCompatActivity() {
     }
 }
 
-private val DetailsBackground = Color(0xFF0F1118)
-private val DetailsHeader = Color(0xFF161A26)
-private val DetailsAccent = Color(0xFF00FF88)
 private val DetailsPanelStrong = Color(0xFF171D29)
-private val DetailsText = Color(0xFFD8E0EF)
 private val DetailsSubText = Color(0xFFAAB4C8)
 private val DetailsBorder = Color(0x3300FF88)
 
@@ -189,7 +187,7 @@ private fun ImageDetailsScreen(
     onDownload: () -> Unit
 ) {
     Scaffold(
-        containerColor = DetailsBackground,
+        containerColor = BackgroundDark,
         contentWindowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
         ),
@@ -204,6 +202,7 @@ private fun ImageDetailsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .maxContentWidth()
                 .padding(innerPadding),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -235,7 +234,7 @@ private fun DetailsTopBar(
         title = {
             Text(
                 text = stringResource(R.string.banner_details_title),
-                color = DetailsAccent,
+                color = AccentGreen,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold
             )
@@ -245,7 +244,7 @@ private fun DetailsTopBar(
                 Icon(
                     painter = painterResource(R.drawable.ic_header_back),
                     contentDescription = stringResource(R.string.history_back),
-                    tint = DetailsAccent
+                    tint = AccentGreen
                 )
             }
         },
@@ -257,7 +256,7 @@ private fun DetailsTopBar(
                 Icon(
                     painter = painterResource(R.drawable.ic_qr_save),
                     contentDescription = stringResource(R.string.banner_details_menu),
-                    tint = if (isSaving) DetailsSubText else DetailsAccent
+                    tint = if (isSaving) DetailsSubText else AccentGreen
                 )
             }
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -270,7 +269,7 @@ private fun DetailsTopBar(
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = DetailsHeader)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = HeaderBackground)
     )
 }
 
@@ -326,7 +325,7 @@ private fun FullImagePanel(
                         .background(DetailsPanelStrong),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = DetailsAccent)
+                    CircularProgressIndicator(color = AccentGreen)
                 }
             },
             error = {
@@ -409,8 +408,8 @@ private fun DetailsSummaryPanel(
                 onClick = onDownload,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = DetailsAccent,
-                    contentColor = DetailsBackground,
+                    containerColor = AccentGreen,
+                    contentColor = BackgroundDark,
                     disabledContainerColor = Color(0xFF26352F),
                     disabledContentColor = DetailsSubText
                 ),
@@ -478,7 +477,7 @@ private fun DetailChip(
         Text(
             text = value,
             modifier = Modifier.weight(1f),
-            color = DetailsText,
+            color = TextBright,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
             maxLines = 2,
@@ -501,14 +500,14 @@ private fun SavingPanel() {
         ) {
             Text(
                 text = stringResource(R.string.banner_details_saving),
-                color = DetailsText,
+                color = TextBright,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.labelMedium
             )
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth(),
-                color = DetailsAccent,
+                color = AccentGreen,
                 trackColor = Color(0xFF24362F)
             )
         }

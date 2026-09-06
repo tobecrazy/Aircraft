@@ -67,15 +67,15 @@ import com.young.aircraft.R
 import com.young.aircraft.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.TextBody
+import com.young.aircraft.ui.theme.TextMuted
+import com.young.aircraft.ui.theme.AircraftTheme
+import com.young.aircraft.ui.theme.NeonDivider
 
 // Tactical theme colors (matching existing XML theme)
-private val BackgroundDark = Color(0xFF0F1118)
-private val HeaderBg = Color(0xFF161A26)
-private val AccentGreen = Color(0xFF00FF88)
-private val DividerGreen = Color(0x4400FF88)
-private val TextBody = Color(0xCCFFFFFF.toInt())
-private val TextSkip = Color(0x88FFFFFF.toInt())
-private val ButtonTextDark = Color(0xFF0F1118)
 
 /**
  * 2-screen onboarding carousel — controls tutorial + power-ups overview.
@@ -104,7 +104,7 @@ class OnboardingActivity : AppCompatActivity() {
         }
 
         setContent {
-            MaterialTheme {
+            AircraftTheme {
                 OnboardingScreen(
                     onSkip = { completeOnboarding() },
                     onLaunch = { completeOnboarding() },
@@ -158,7 +158,8 @@ private fun OnboardingScreen(
                 .testTag("star_field")
         )
 
-        // Layer 2: Content overlay
+        // Layer 2: Content overlay. Full width on purpose — header/divider/bottom bar
+        // span the window; pager pages center their fixed-size content themselves.
         Column(modifier = Modifier.fillMaxSize()) {
             OnboardingHeader(onSkip = onSkip)
             NeonDivider()
@@ -191,7 +192,7 @@ private fun OnboardingHeader(onSkip: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(HeaderBg)
+            .background(HeaderBackground)
             .windowInsetsPadding(WindowInsets.statusBars)
     ) {
         Box(
@@ -210,7 +211,7 @@ private fun OnboardingHeader(onSkip: () -> Unit) {
             )
             Text(
                 text = stringResource(R.string.onboarding_skip),
-                color = TextSkip,
+                color = TextMuted,
                 fontSize = 13.sp,
                 fontFamily = FontFamily.Monospace,
                 modifier = Modifier
@@ -225,16 +226,6 @@ private fun OnboardingHeader(onSkip: () -> Unit) {
             )
         }
     }
-}
-
-@Composable
-private fun NeonDivider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(DividerGreen)
-    )
 }
 
 // ---------------------------------------------------------------------------
@@ -424,7 +415,7 @@ private fun OnboardingBottomBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(HeaderBg)
+            .background(HeaderBackground)
             .windowInsetsPadding(WindowInsets.navigationBars)
             .height(56.dp)
             .padding(horizontal = 16.dp),
@@ -478,7 +469,7 @@ private fun OnboardingBottomBar(
                         if (isLastPage) R.string.onboarding_launch
                         else R.string.onboarding_next
                     ),
-                    color = ButtonTextDark,
+                    color = BackgroundDark,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Large screens (tablets / unfolded foldables): center content at a readable width -->
+    <dimen name="content_max_width">640dp</dimen>
+</resources>

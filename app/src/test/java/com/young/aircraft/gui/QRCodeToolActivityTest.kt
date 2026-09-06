@@ -3,11 +3,16 @@ package com.young.aircraft.gui
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Looper
 import android.view.SurfaceView
 import android.view.View
 import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
@@ -38,7 +43,17 @@ class QRCodeToolActivityTest {
             .getDeclaredMethod("onScanResult", String::class.java)
         method.isAccessible = true
         method.invoke(activity, text)
+        // Drain the looper so the sheet's ComposeView attaches and composes.
+        repeat(2) { shadowOf(Looper.getMainLooper()).idle() }
     }
+
+    // Scan-result sheet content is Compose — traverse its semantics tree.
+    private fun sheetRoot() =
+        ShadowDialog.getLatestDialog()!!.window!!.decorView
+            .findSemanticsOwner()!!.rootSemanticsNode
+
+    private fun SemanticsNode.hasTag(tag: String): Boolean =
+        findAllNodes(this).any { it.config.getOrNull(SemanticsProperties.TestTag) == tag }
 
     // ── Activity lifecycle ───────────────────────────────────
 
@@ -281,9 +296,8 @@ class QRCodeToolActivityTest {
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "Hello QR")
 
-                val dialog = ShadowDialog.getLatestDialog()!!
-                val resultText = dialog.findViewById<TextView>(R.id.tv_scan_result_text)
-                assertEquals("Hello QR", resultText?.text.toString())
+                val texts = findAllNodes(sheetRoot()).mapNotNull { it.displayText() }
+                assertTrue(texts.contains("Hello QR"))
             }
         }
     }
@@ -294,14 +308,12 @@ class QRCodeToolActivityTest {
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "test")
 
-                val dialog = ShadowDialog.getLatestDialog()!!
-                val copyButton = dialog.findViewById<TextView>(R.id.btn_copy_result)
-                val dismissButton = dialog.findViewById<TextView>(R.id.btn_dismiss_result)
-                assertNotNull("Copy button should exist", copyButton)
-                assertNotNull("Dismiss button should exist", dismissButton)
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_copy_result),
-                    copyButton?.text.toString()
+                val root = sheetRoot()
+                assertTrue("Copy button should exist", root.hasTag("btn_copy_result"))
+                assertTrue("Dismiss button should exist", root.hasTag("btn_dismiss_result"))
+                val texts = findAllNodes(root).mapNotNull { it.displayText() }
+                assertTrue(
+                    texts.contains(context.getString(R.string.qr_code_tool_copy_result))
                 )
             }
         }
@@ -313,8 +325,7 @@ class QRCodeToolActivityTest {
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "clipboard test 你好")
 
-                val dialog = ShadowDialog.getLatestDialog()!!
-                dialog.findViewById<TextView>(R.id.btn_copy_result)!!.performClick()
+                assertTrue(sheetRoot().clickOnTag("btn_copy_result"))
 
                 val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 assertEquals("clipboard test 你好", clipboard.primaryClip?.getItemAt(0)?.text)
@@ -328,8 +339,7 @@ class QRCodeToolActivityTest {
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "toast test")
 
-                val dialog = ShadowDialog.getLatestDialog()!!
-                dialog.findViewById<TextView>(R.id.btn_copy_result)!!.performClick()
+                assertTrue(sheetRoot().clickOnTag("btn_copy_result"))
 
                 assertEquals(
                     context.getString(R.string.qr_code_tool_copied),
@@ -345,9 +355,8 @@ class QRCodeToolActivityTest {
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "二维码扫描结果")
 
-                val dialog = ShadowDialog.getLatestDialog()!!
-                val resultText = dialog.findViewById<TextView>(R.id.tv_scan_result_text)
-                assertEquals("二维码扫描结果", resultText?.text.toString())
+                val texts = findAllNodes(sheetRoot()).mapNotNull { it.displayText() }
+                assertTrue(texts.contains("二维码扫描结果"))
             }
         }
     }
@@ -358,7 +367,15 @@ class QRCodeToolActivityTest {
     fun `QR code tool row in Settings navigates to QRCodeToolActivity`() {
         ActivityScenario.launch(SettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.row_qr_code_tool).performClick()
+                val title = activity.getString(R.string.qr_code_tool_title)
+                val root = activity.window.decorView.findSemanticsOwner()!!.rootSemanticsNode
+                // The clickable row merges its Text children, so match by containment.
+                val row = findAllNodes(root).firstOrNull { node ->
+                    node.displayText()?.contains(title) == true &&
+                        node.config.getOrNull(SemanticsActions.OnClick) != null
+                }
+                assertNotNull("Settings row for QR Code Tool not found", row)
+                row!!.config.getOrNull(SemanticsActions.OnClick)!!.action!!.invoke()
                 val intent = shadowOf(activity).nextStartedActivity
                 assertNotNull(intent)
                 assertEquals(

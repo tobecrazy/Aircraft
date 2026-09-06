@@ -25,9 +25,24 @@ class TimeFreezes(var context: Context, var speed: Float) : DrawBaseObject(conte
     private var nextSpawnFrame: Int = 0
     var level: Int = 1
 
-    private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
-    private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+    private var screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
+    private var screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
+
+    /** Keep active pickups reachable after a canvas resize. */
+    fun onScreenResized(newW: Int, newH: Int, sx: Float, sy: Float) {
+        screenWidth = newW.toFloat()
+        screenHeight = newH.toFloat()
+        val maxX = (screenWidth - timeFreezeSizePx).coerceAtLeast(0f)
+        val maxY = (screenHeight - timeFreezeSizePx).coerceAtLeast(0f)
+        for (i in activeTimeFreezes.indices) {
+            val freeze = activeTimeFreezes[i]
+            activeTimeFreezes[i] = freeze.copy(
+                x = (freeze.x * sx).coerceIn(0f, maxX),
+                y = (freeze.y * sy).coerceIn(0f, maxY)
+            )
+        }
+    }
 
     private val timeFreezeBitmaps = arrayOfNulls<Bitmap>(3)
     private val timeFreezeSizePx: Int = ScreenUtils.dpToPx(context, 80.0f)

@@ -27,8 +27,8 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     val bossSizePx: Int = ScreenUtils.dpToPx(context, 350.0f)
     val missileSizePx: Int = ScreenUtils.dpToPx(context, 90.0f)
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
-    private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
-    private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+    private var screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
+    private var screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
 
     // Density-scaled rendered sizes (updated each frame in onDraw)
     var renderedBossSize: Float = bossSizePx.toFloat()
@@ -107,6 +107,18 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     }
 
     fun getBossHp(level: Int): Float = BASE_HP + 100f * (level - 1)
+
+    /** Re-clamp the active boss and its bombs into the resized canvas; movement AI re-converges. */
+    fun onScreenResized(newW: Int, newH: Int, sx: Float, sy: Float) {
+        screenWidth = newW.toFloat()
+        screenHeight = newH.toFloat()
+        activeBoss?.let { boss ->
+            boss.x = (boss.x * sx)
+                .coerceIn(marginPx, (screenWidth - marginPx - renderedBossSize).coerceAtLeast(marginPx))
+            boss.y *= sy
+            boss.bombs.forEach { it.x *= sx }
+        }
+    }
 
     private fun getBombFireInterval(): Int {
         return (BASE_BOMB_FIRE_INTERVAL / (1f + 0.3f * (level - 1))).toInt().coerceAtLeast(15)

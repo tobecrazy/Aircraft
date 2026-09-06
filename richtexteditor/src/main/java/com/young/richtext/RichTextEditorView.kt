@@ -64,8 +64,10 @@ class RichTextEditorView @JvmOverloads constructor(
         btnMarkdown = findViewById(R.id.rich_btn_markdown)
         btnHtml = findViewById(R.id.rich_btn_html)
 
-        // Large HTML/base64 payloads should be restored by the host, not through the view state Bundle.
-        editor.isSaveEnabled = false
+        // Save/restore typed rich text across config changes (rotation/fold).
+        // ponytail: huge (>~500KB) payloads still ride the state Bundle — if that ever
+        // throws TransactionTooLargeException, hoist text into RichTextEditorViewModel instead.
+        editor.isSaveEnabled = true
 
         setupUnderlineButton()
         setupFormatting()

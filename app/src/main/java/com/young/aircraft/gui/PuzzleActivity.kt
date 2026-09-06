@@ -20,12 +20,10 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -37,8 +35,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -53,11 +51,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -67,21 +60,27 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
@@ -92,18 +91,25 @@ import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameMode
 import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.ui.GameCoreView
+import com.young.aircraft.ui.maxContentWidth
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.AircraftTheme
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.DividerGreen
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.TextSubtle
 import com.young.aircraft.viewmodel.GameViewModel
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToInt
-import java.util.concurrent.TimeUnit
 
 class PuzzleActivity : ComponentActivity() {
     companion object {
@@ -113,6 +119,7 @@ class PuzzleActivity : ComponentActivity() {
         private const val CACHE_FILE_NAME_PREFIX = "puzzle_cached_image_level_"
         private const val TAG = "PuzzleActivity"
         private const val USER_AGENT = "AircraftPuzzle/1.0 (Android)"
+        private const val KEY_ACTIVE_PUZZLE_IMAGE_LEVEL = "active_puzzle_image_level"
     }
 
     private val viewModel: GameViewModel by viewModels { GameViewModel.Factory(this) }
@@ -150,11 +157,14 @@ class PuzzleActivity : ComponentActivity() {
         jetPlaneRes = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, R.drawable.jet_plane_2)
         jetPlaneIndex = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_INDEX, 0)
 
-        activePuzzleImageLevel = puzzleLevel
-        loadPuzzleImageWithCache(puzzleLevel)
+        // Restore the image level the restored board is actually on (may differ from intent
+        // after the user advanced levels) — otherwise recreation shows the wrong level's image
+        activePuzzleImageLevel =
+            savedInstanceState?.getInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, puzzleLevel) ?: puzzleLevel
+        loadPuzzleImageWithCache(activePuzzleImageLevel)
 
         setContent {
-            MaterialTheme {
+            AircraftTheme {
                 if (hasPuzzleScreenStarted) {
                     val activePuzzleImageModel = puzzleImageModels[activePuzzleImageLevel]
                     PuzzleScreen(
@@ -201,6 +211,11 @@ class PuzzleActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, activePuzzleImageLevel)
     }
 
     private fun persistPuzzleProgress(level: Int, score: Long) {
@@ -368,12 +383,7 @@ class PuzzleActivity : ComponentActivity() {
     }
 }
 
-private val PuzzlePageBg = Color(0xFF0F1118)
-private val PuzzlePanelBg = Color(0xFF161A26)
-private val PuzzleAccent = Color(0xFF00FF88)
-private val PuzzleTextSecondary = Color(0xFFAAB4C8)
 private val PuzzleTileBg = Color(0xFF263142)
-private val PuzzleDivider = Color(0x4400FF88)
 private val PuzzleButtonBg = Color(0xFF1F2636)
 private val PuzzleTargetBg = Color(0xFF1A2331)
 private val PuzzleTrayBg = Color(0xFF101722)
@@ -389,7 +399,7 @@ private fun PuzzleLoadingScreen(
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = PuzzlePageBg
+        color = BackgroundDark
     ) {
         Column(
             modifier = Modifier
@@ -402,7 +412,7 @@ private fun PuzzleLoadingScreen(
             if (hasError) {
                 Text(
                     text = "⚠",
-                    color = PuzzleAccent,
+                    color = AccentGreen,
                     fontSize = 56.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -416,14 +426,14 @@ private fun PuzzleLoadingScreen(
                     text = stringResource(R.string.puzzle_load_failed_hint),
                     modifier = Modifier.padding(top = 6.dp, start = 16.dp, end = 16.dp),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = PuzzleTextSecondary
+                    color = TextSubtle
                 )
                 if (!errorDetail.isNullOrBlank()) {
                     Text(
                         text = errorDetail,
                         modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp),
                         style = MaterialTheme.typography.bodySmall,
-                        color = PuzzleTextSecondary,
+                        color = TextSubtle,
                         fontFamily = FontFamily.Monospace
                     )
                 }
@@ -432,13 +442,13 @@ private fun PuzzleLoadingScreen(
                     modifier = Modifier.padding(top = 20.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = PuzzleButtonBg,
-                        contentColor = PuzzleAccent
+                        contentColor = AccentGreen
                     )
                 ) {
                     Text(stringResource(R.string.puzzle_retry))
                 }
             } else if (isLoading) {
-                CircularProgressIndicator(color = PuzzleAccent)
+                CircularProgressIndicator(color = AccentGreen)
                 Text(
                     text = stringResource(R.string.puzzle_loading),
                     modifier = Modifier.padding(top = 16.dp),
@@ -483,18 +493,19 @@ private fun PuzzleScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    var level by remember { mutableIntStateOf(startLevel.coerceIn(1, maxPuzzleLevel)) }
-    var score by remember { mutableLongStateOf(startScore) }
-    var moves by remember(level) { mutableIntStateOf(0) }
-    var elapsedSec by remember(level) { mutableIntStateOf(0) }
-    var hintsRemaining by remember(level) { mutableIntStateOf(3) }
+    // Survive rotation/fold recreation — the board must not reset mid-puzzle
+    var level by rememberSaveable { mutableIntStateOf(startLevel.coerceIn(1, maxPuzzleLevel)) }
+    var score by rememberSaveable { mutableLongStateOf(startScore) }
+    var moves by rememberSaveable(level) { mutableIntStateOf(0) }
+    var elapsedSec by rememberSaveable(level) { mutableIntStateOf(0) }
+    var hintsRemaining by rememberSaveable(level) { mutableIntStateOf(3) }
     var hintVisible by remember(level) { mutableIntStateOf(0) }
-    var solvedState by remember(level) { mutableIntStateOf(0) }
+    var solvedState by rememberSaveable(level) { mutableIntStateOf(0) }
 
     val gridSize = remember(difficulty) { gridSizeForDifficulty(difficulty) }
-    var boardResetToken by remember(level, gridSize) { mutableIntStateOf(level * 100 + gridSize) }
+    var boardResetToken by rememberSaveable(level, gridSize) { mutableIntStateOf(level * 100 + gridSize) }
     var undoRequested by remember(level, gridSize) { mutableIntStateOf(0) }
-    var canUndo by remember(level, gridSize) { mutableStateOf(false) }
+    var canUndo by rememberSaveable(level, gridSize) { mutableStateOf(false) }
 
     val totalSec = remember(level) { (GameCoreView.getLevelDurationMs(level) / 1000L).toInt() }
     val remainingSec = (totalSec - elapsedSec).coerceAtLeast(0)
@@ -522,10 +533,10 @@ private fun PuzzleScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = PuzzlePageBg
+        color = BackgroundDark
     ) {
         Scaffold(
-            containerColor = PuzzlePageBg,
+            containerColor = BackgroundDark,
             contentWindowInsets = WindowInsets.safeDrawing.only(
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
             ),
@@ -534,6 +545,7 @@ private fun PuzzleScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .maxContentWidth()
                     .padding(innerPadding)
                     .padding(horizontal = 14.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -555,7 +567,7 @@ private fun PuzzleScreen(
                             .fillMaxWidth()
                             .height(136.dp)
                             .clip(RoundedCornerShape(14.dp))
-                            .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp)),
+                            .border(1.dp, DividerGreen, RoundedCornerShape(14.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else {
@@ -574,8 +586,8 @@ private fun PuzzleScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    colors = CardDefaults.cardColors(containerColor = PuzzlePanelBg),
-                    border = BorderStroke(1.dp, PuzzleDivider),
+                    colors = CardDefaults.cardColors(containerColor = HeaderBackground),
+                    border = BorderStroke(1.dp, DividerGreen),
                     shape = RoundedCornerShape(18.dp)
                 ) {
                     if (isLevelImageReady) {
@@ -828,7 +840,7 @@ private fun PuzzleBoard(
                 .width(boardSize)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(14.dp))
-                .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp))
+                .border(1.dp, DividerGreen, RoundedCornerShape(14.dp))
                 .onSizeChanged {
                     boardSizePx = it.width
                     playAreaHeightPx = it.height
@@ -847,7 +859,7 @@ private fun PuzzleBoard(
         ) {
             if (pieces.isEmpty()) {
                 CircularProgressIndicator(
-                    color = PuzzleAccent,
+                    color = AccentGreen,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -857,7 +869,7 @@ private fun PuzzleBoard(
                     .size(boardSize)
                     .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
                     .background(PuzzleTargetBg)
-                    .border(1.dp, PuzzleDivider, RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
+                    .border(1.dp, DividerGreen, RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
             ) {
                 for (row in 0 until gridSize) {
                     for (col in 0 until gridSize) {
@@ -874,7 +886,7 @@ private fun PuzzleBoard(
                                 .clip(RoundedCornerShape(8.dp))
                                 .border(
                                     1.dp,
-                                    PuzzleDivider.copy(alpha = 0.55f),
+                                    DividerGreen.copy(alpha = 0.55f),
                                     RoundedCornerShape(8.dp)
                                 )
                         )
@@ -891,7 +903,7 @@ private fun PuzzleBoard(
                     .background(PuzzleTrayBg)
                     .border(
                         1.dp,
-                        PuzzleDivider.copy(alpha = 0.3f),
+                        DividerGreen.copy(alpha = 0.3f),
                         RoundedCornerShape(bottomStart = 14.dp, bottomEnd = 14.dp)
                     )
             )
@@ -961,7 +973,7 @@ private fun PuzzlePiece(
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit
 ) {
-    val targetTint = if (piece.snapped) PuzzleAccent.copy(alpha = 0.72f) else PuzzleAccent.copy(alpha = 0.4f)
+    val targetTint = if (piece.snapped) AccentGreen.copy(alpha = 0.72f) else AccentGreen.copy(alpha = 0.4f)
     val touchTargetSize = if (pieceSize < PuzzlePieceTouchTargetMin) PuzzlePieceTouchTargetMin else pieceSize
     val touchInsetPx = with(LocalDensity.current) { ((touchTargetSize - pieceSize) / 2f).toPx() }
 
@@ -1033,7 +1045,7 @@ private fun PuzzleTopBarHeader(onBack: () -> Unit) {
         title = {
             Text(
                 text = stringResource(R.string.puzzle_game_title),
-                color = PuzzleAccent,
+                color = AccentGreen,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
@@ -1045,14 +1057,14 @@ private fun PuzzleTopBarHeader(onBack: () -> Unit) {
                 Icon(
                     painter = painterResource(R.drawable.ic_header_back),
                     contentDescription = stringResource(R.string.history_back),
-                    tint = PuzzleAccent
+                    tint = AccentGreen
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = PuzzlePanelBg,
-            titleContentColor = PuzzleAccent,
-            navigationIconContentColor = PuzzleAccent
+            containerColor = HeaderBackground,
+            titleContentColor = AccentGreen,
+            navigationIconContentColor = AccentGreen
         ),
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top)
     )
@@ -1068,9 +1080,9 @@ private fun PuzzleTopBar(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = PuzzlePanelBg),
+        colors = CardDefaults.cardColors(containerColor = HeaderBackground),
         shape = RoundedCornerShape(22.dp),
-        border = BorderStroke(1.dp, PuzzleDivider)
+        border = BorderStroke(1.dp, DividerGreen)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
@@ -1090,14 +1102,14 @@ private fun PuzzleTopBar(
                     Text(
                         text = stringResource(R.string.puzzle_level_progress, level, maxLevel),
                         style = MaterialTheme.typography.bodySmall,
-                        color = PuzzleTextSecondary
+                        color = TextSubtle
                     )
                 }
 
                 AssistChip(
                     onClick = { },
-                    label = { Text(text = formatTime(remainingSec), color = PuzzleAccent) },
-                    border = BorderStroke(1.dp, PuzzleAccent.copy(alpha = 0.32f))
+                    label = { Text(text = formatTime(remainingSec), color = AccentGreen) },
+                    border = BorderStroke(1.dp, AccentGreen.copy(alpha = 0.32f))
                 )
             }
 
@@ -1124,7 +1136,7 @@ private fun PuzzleLevelImageStatus(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .background(PuzzleTargetBg)
-            .border(1.dp, PuzzleDivider, RoundedCornerShape(14.dp)),
+            .border(1.dp, DividerGreen, RoundedCornerShape(14.dp)),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -1142,7 +1154,7 @@ private fun PuzzleLevelImageStatus(
                     Text(
                         text = errorDetail,
                         style = MaterialTheme.typography.bodySmall,
-                        color = PuzzleTextSecondary,
+                        color = TextSubtle,
                         fontFamily = FontFamily.Monospace
                     )
                 }
@@ -1150,17 +1162,17 @@ private fun PuzzleLevelImageStatus(
                     onClick = onRetry,
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = PuzzleButtonBg,
-                        contentColor = PuzzleAccent
+                        contentColor = AccentGreen
                     )
                 ) {
                     Text(stringResource(R.string.puzzle_retry))
                 }
             } else if (isLoading) {
-                CircularProgressIndicator(color = PuzzleAccent)
+                CircularProgressIndicator(color = AccentGreen)
                 Text(
                     text = stringResource(R.string.puzzle_loading),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = PuzzleTextSecondary
+                    color = TextSubtle
                 )
             }
         }
@@ -1171,15 +1183,15 @@ private fun PuzzleLevelImageStatus(
 private fun PuzzleStatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = PuzzlePanelBg),
+        colors = CardDefaults.cardColors(containerColor = HeaderBackground),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
             modifier = Modifier.padding(vertical = 8.dp, horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = label, style = MaterialTheme.typography.labelMedium, color = PuzzleTextSecondary)
-            Text(text = value, style = MaterialTheme.typography.titleMedium, color = PuzzleAccent)
+            Text(text = label, style = MaterialTheme.typography.labelMedium, color = TextSubtle)
+            Text(text = value, style = MaterialTheme.typography.titleMedium, color = AccentGreen)
         }
     }
 }

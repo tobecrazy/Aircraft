@@ -47,6 +47,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,18 +70,19 @@ import com.young.aircraft.ui.Aircraft
 import com.young.aircraft.viewmodel.LaunchViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.DividerGreen
+import com.young.aircraft.ui.theme.TextBright
+import com.young.aircraft.ui.theme.TextMuted
+import com.young.aircraft.ui.theme.AircraftTheme
+import com.young.aircraft.ui.theme.NeonDivider
 
-private val BackgroundDark = Color(0xFF0F1118)
-private val HeaderBg = Color(0xFF161A26)
-private val AccentGreen = Color(0xFF00FF88)
-private val DividerGreen = Color(0x4400FF88)
-private val TextHint = Color(0x88FFFFFF.toInt())
-private val ButtonTextDark = Color(0xFF0F1118)
 private val ButtonSecondaryBg = Color(0x16FFFFFF)
 private val ButtonSecondaryStroke = Color(0x6600FF88)
 private val DialogGradientTop = Color(0xFF1C2432)
 private val DialogGradientBottom = Color(0xFF141D26)
-private val DialogTextBody = Color(0xFFD8E0EF)
 
 data class SavedGameInfo(
     val level: Int,
@@ -102,7 +104,7 @@ class LaunchActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this, LaunchViewModel.Factory(this))[LaunchViewModel::class.java]
 
         setContent {
-            MaterialTheme {
+            AircraftTheme {
                 LaunchScreen(
                     onStarFieldCreated = { starFieldView = it }
                 )
@@ -147,7 +149,7 @@ private fun LaunchScreen(
 ) {
     val activity = LocalContext.current as LaunchActivity
     val jetPlanes = Aircraft.JET_PLANES
-    var selectedJetIndex by remember { mutableIntStateOf(0) }
+    var selectedJetIndex by rememberSaveable { mutableIntStateOf(0) }
     var savedGameInfo by remember { mutableStateOf<SavedGameInfo?>(null) }
     var showContent by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -170,6 +172,8 @@ private fun LaunchScreen(
                 .testTag("star_field")
         )
 
+        // Header/divider must span the full window; the fixed-width children below
+        // are centered by horizontalAlignment, so no max-width cap is needed here.
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -197,7 +201,7 @@ private fun LaunchScreen(
             ) {
                 Text(
                     text = stringResource(R.string.launch_jet_hint),
-                    color = TextHint,
+                    color = TextMuted,
                     fontSize = 11.sp,
                     fontFamily = FontFamily.Monospace,
                     letterSpacing = 2.sp,
@@ -270,7 +274,7 @@ private fun LaunchHeader() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(HeaderBg)
+            .background(HeaderBackground)
             .windowInsetsPadding(WindowInsets.statusBars)
             .height(56.dp),
         contentAlignment = Alignment.Center
@@ -284,16 +288,6 @@ private fun LaunchHeader() {
             letterSpacing = 6.sp
         )
     }
-}
-
-@Composable
-private fun NeonDivider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(DividerGreen)
-    )
 }
 
 @Composable
@@ -403,7 +397,7 @@ private fun TacticalButton(
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = text,
-                color = if (isPrimary) ButtonTextDark else AccentGreen,
+                color = if (isPrimary) BackgroundDark else AccentGreen,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
@@ -461,7 +455,7 @@ private fun SavedGameDialog(
 
                 Text(
                     text = stringResource(R.string.continue_game_message, info.level),
-                    color = DialogTextBody,
+                    color = TextBright,
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace,
                     textAlign = TextAlign.Center,

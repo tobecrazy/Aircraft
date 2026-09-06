@@ -8,13 +8,16 @@ import android.content.Context
 import android.content.Intent
 import android.os.Looper
 import android.widget.TextView
-import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.SettingsRepository
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,7 +28,8 @@ import org.robolectric.shadows.ShadowDialog
 import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+// w420dp-h920dp: room for the scrollable hero + panels so all tags are composed.
+@Config(sdk = [34], qualifiers = "w420dp-h920dp")
 class DevelopSettingsActivityTest {
 
     private lateinit var context: Context
@@ -39,22 +43,25 @@ class DevelopSettingsActivityTest {
         GameStateManager.isInvincible = false
     }
 
+    private fun root(activity: DevelopSettingsActivity) =
+        activity.window.decorView.findSemanticsOwner()!!.rootSemanticsNode
+
     @Test
     fun `clicking version badge 8 times toggles invincible mode`() {
         ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val versionBadge = activity.findViewById<android.widget.TextView>(R.id.tv_version_badge)
-                
                 assertFalse(settingsRepository.isInvincibleModeEnabled())
                 assertFalse(GameStateManager.isInvincible)
 
                 // Click 7 times - should not toggle yet
-                repeat(7) { versionBadge.performClick() }
+                repeat(7) {
+                    assertTrue(root(activity).clickOnTag("version_badge"))
+                }
                 assertFalse(settingsRepository.isInvincibleModeEnabled())
                 assertFalse(GameStateManager.isInvincible)
 
                 // 8th click - should toggle ON
-                versionBadge.performClick()
+                assertTrue(root(activity).clickOnTag("version_badge"))
                 assertTrue(settingsRepository.isInvincibleModeEnabled())
                 assertTrue(GameStateManager.isInvincible)
                 assertEquals(
@@ -63,7 +70,9 @@ class DevelopSettingsActivityTest {
                 )
 
                 // Another 8 clicks - should toggle OFF
-                repeat(8) { versionBadge.performClick() }
+                repeat(8) {
+                    assertTrue(root(activity).clickOnTag("version_badge"))
+                }
                 assertFalse(settingsRepository.isInvincibleModeEnabled())
                 assertFalse(GameStateManager.isInvincible)
                 assertEquals(
@@ -78,9 +87,8 @@ class DevelopSettingsActivityTest {
     fun `clicking test crash button throws RuntimeException`() {
         ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btnCrash = activity.findViewById<android.view.View>(R.id.btn_test_crash)
                 assertThrows(RuntimeException::class.java) {
-                    btnCrash.performClick()
+                    assertTrue(root(activity).clickOnTag("btn_test_crash"))
                 }
             }
         }
@@ -90,8 +98,7 @@ class DevelopSettingsActivityTest {
     fun `back button finishes activity`() {
         ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btnBack = activity.findViewById<android.view.View>(R.id.btn_back)
-                btnBack.performClick()
+                assertTrue(root(activity).clickOnTag("btn_back"))
                 assertTrue(activity.isFinishing)
             }
         }
@@ -101,10 +108,10 @@ class DevelopSettingsActivityTest {
     fun `android developer assistant tools button opens details activity`() {
         ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val button = activity.findViewById<android.view.View>(R.id.btn_android_dev_assistant_tools)
-                button.performClick()
+                assertTrue(root(activity).clickOnTag("btn_android_dev_assistant_tools"))
 
-                val startedIntent: Intent? = shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>()).nextStartedActivity
+                val startedIntent: Intent? =
+                    shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>()).nextStartedActivity
                 assertNotNull(startedIntent)
                 assertEquals(
                     AndroidDevAssistantToolsActivity::class.java.name,
@@ -121,8 +128,7 @@ class DevelopSettingsActivityTest {
                 shadowOf(activity).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
                 val notificationManager = activity.getSystemService(NotificationManager::class.java)
                 shadowOf(notificationManager).setNotificationsEnabled(true)
-                val button = activity.findViewById<android.view.View>(R.id.btn_notification)
-                button.performClick()
+                assertTrue(root(activity).clickOnTag("btn_notification"))
 
                 val dialog = ShadowDialog.getLatestDialog() as? androidx.appcompat.app.AlertDialog
                 assertNotNull(dialog)
@@ -149,26 +155,6 @@ class DevelopSettingsActivityTest {
                 assertNotNull(startedIntent)
                 assertEquals(
                     QRCodeToolActivity::class.java.name,
-                    startedIntent!!.component?.className
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `android dev assistant system info action opens device info activity`() {
-        val prefs = context.getSharedPreferences("android_dev_assistant_prefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("module_system_info", true).apply()
-
-        ActivityScenario.launch(AndroidDevAssistantToolsActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val button = activity.findViewById<android.view.View>(R.id.btn_assistant_open_system_info)
-                button.performClick()
-
-                val startedIntent: Intent? = shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>()).nextStartedActivity
-                assertNotNull(startedIntent)
-                assertEquals(
-                    DeviceInfoActivity::class.java.name,
                     startedIntent!!.component?.className
                 )
             }

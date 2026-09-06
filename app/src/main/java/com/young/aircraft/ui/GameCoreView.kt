@@ -170,6 +170,24 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     }
 
+    // Last canvas size the game objects were laid out for. Render-thread confined —
+    // the loop self-heals on resize/fold by comparing against each locked canvas,
+    // same pattern as DrawBackground.ensureBitmapForCanvas.
+    private var appliedW: Int = 0
+    private var appliedH: Int = 0
+
+    private fun applyScreenSize(oldW: Int, oldH: Int, newW: Int, newH: Int) {
+        val sx = if (oldW > 0) newW.toFloat() / oldW else 1f
+        val sy = if (oldH > 0) newH.toFloat() / oldH else 1f
+        drawAircraft.onScreenResized(newW, newH, sx, sy)
+        enemies.onScreenResized(newW, newH)
+        bossEnemy.onScreenResized(newW, newH, sx, sy)
+        redEnvelopes.onScreenResized(newW, newH, sx, sy)
+        medicalKits.onScreenResized(newW, newH, sx, sy)
+        shields.onScreenResized(newW, newH, sx, sy)
+        timeFreezes.onScreenResized(newW, newH, sx, sy)
+    }
+
     private fun checkCollision() {
         val aircraftBounds = drawAircraft.getBounds()
 
@@ -307,10 +325,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkRocketsHitEnemies() {
         val enemySize = ScreenUtils.dpToPx(context, 48.0f)
-        val blastSide = min(
-            ScreenUtils.getScreenWidth(context).toFloat(),
-            ScreenUtils.getScreenHeight(context).toFloat()
-        ) * 0.20f
+        val blastSide = min(appliedW.toFloat(), appliedH.toFloat()) * 0.20f
 
         for (rocket in redEnvelopes.activeRockets) {
             if (!rocket.active) continue
@@ -640,6 +655,13 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private fun onUpdateGameDraw(canvas: Canvas?) {
         if (null == canvas) return
 
+        // Re-layout game objects when the canvas was resized (rotation / fold / split-screen)
+        if (canvas.width != appliedW || canvas.height != appliedH) {
+            applyScreenSize(appliedW, appliedH, canvas.width, canvas.height)
+            appliedW = canvas.width
+            appliedH = canvas.height
+        }
+
         // Screen shake
         val shaking = applyScreenShake(canvas)
 
@@ -702,8 +724,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         damageFlashPaint.alpha = alpha
         canvas.drawRect(
             0f, 0f,
-            ScreenUtils.getScreenWidth(context).toFloat(),
-            ScreenUtils.getScreenHeight(context).toFloat(),
+            canvas.width.toFloat(),
+            canvas.height.toFloat(),
             damageFlashPaint
         )
     }
@@ -712,8 +734,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         if (!gameInitialized) return
         if (playerData.health_points > 20f || !playerData.isAlive()) return
 
-        val screenW = ScreenUtils.getScreenWidth(context).toFloat()
-        val screenH = ScreenUtils.getScreenHeight(context).toFloat()
+        val screenW = canvas.width.toFloat()
+        val screenH = canvas.height.toFloat()
         val centerX = screenW / 2f
         val centerY = screenH / 2f
         val radius = maxOf(screenW, screenH) * 0.7f

@@ -58,7 +58,8 @@ class DrawHeader(
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        val screenWidth = ScreenUtils.getScreenWidth(context).toFloat()
+        // Use the actual canvas width (not window bounds) so the HUD tracks resizes/folds
+        val screenWidth = canvas.width.toFloat()
         val margin = ScreenUtils.dpToPx(context, 16.0f).toFloat()
         val top = ScreenUtils.dpToPx(context, 16.0f).toFloat()
         val leftCardWidth = ScreenUtils.dpToPx(context, 150.0f).toFloat()

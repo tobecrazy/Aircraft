@@ -1,148 +1,168 @@
 package com.young.aircraft.gui
 
+import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.os.Looper
+import android.view.View
+import android.view.ViewGroup
 import android.webkit.WebView
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import com.young.aircraft.R
-import org.junit.Assert.*
+import com.young.aircraft.data.AircraftConstants
+import com.young.aircraft.data.SettingsRepository
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import java.util.Locale
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class PrivacyPolicyAcceptActivityTest {
 
-    private lateinit var context: Context
+    @get:Rule(order = 0)
+    val clearPrefsRule = object : ExternalResource() {
+        override fun before() {
+            ApplicationProvider.getApplicationContext<Context>()
+                .getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .remove(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED)
+                .remove("onboarding_completed")
+                .commit()
+        }
+    }
+
+    @get:Rule(order = 1)
+    val composeTestRule = createAndroidComposeRule<PrivacyPolicyAcceptActivity>()
+
+    private val prefs
+        get() = ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
 
     @Before
     fun setUp() {
-        context = ApplicationProvider.getApplicationContext()
-        // Clear all gate prefs before each test
-        context.getSharedPreferences("aircraft_prefs", Context.MODE_PRIVATE)
-            .edit()
-            .remove("privacy_policy_accepted")
-            .remove("onboarding_completed")
-            .commit()
+        // Infinite neon pulse on the accept button never quiesces — freeze the clock.
+        composeTestRule.mainClock.autoAdvance = false
     }
 
-    @Test
-    fun `first launch shows privacy policy accept screen with star field`() {
-        ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val webView = activity.findViewById<WebView>(R.id.web_view)
-                assertNotNull(webView)
-                val starField = activity.findViewById<StarFieldView>(R.id.star_field)
-                assertNotNull(starField)
-            }
-        }
+    /** Advances the frozen compose clock so pending recompositions land. */
+    private fun tick(ms: Long = 32) {
+        composeTestRule.mainClock.advanceTimeBy(ms)
+        composeTestRule.waitForIdle()
     }
 
-    @Test
-    fun `reject button is always enabled, accept button requires scroll to bottom`() {
-        ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val btnAccept = activity.findViewById<android.widget.TextView>(R.id.btn_accept)
-                val btnReject = activity.findViewById<android.widget.TextView>(R.id.btn_reject)
-                // Reject button is always enabled
-                assertTrue(btnReject.isEnabled)
-                assertEquals(1.0f, btnReject.alpha, 0.01f)
-                // Accept button requires scroll to bottom
-                assertFalse(btnAccept.isEnabled)
-                assertEquals(0.3f, btnAccept.alpha, 0.01f)
+    private fun findWebView(view: View): WebView? {
+        if (view is WebView) return view
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                findWebView(view.getChildAt(i))?.let { return it }
             }
         }
+        return null
     }
 
-    @Test
-    fun `accept button saves preference and routes to OnboardingActivity`() {
-        ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val btnAccept = activity.findViewById<android.widget.TextView>(R.id.btn_accept)
-                // Simulate enabling (as if user scrolled to bottom)
-                btnAccept.isEnabled = true
-                btnAccept.alpha = 1.0f
-                btnAccept.performClick()
-
-                val prefs = activity.getSharedPreferences("aircraft_prefs", Context.MODE_PRIVATE)
-                assertTrue(prefs.getBoolean("privacy_policy_accepted", false))
-
-                val shadowActivity = shadowOf(activity)
-                val nextIntent = shadowActivity.nextStartedActivity
-                assertNotNull(nextIntent)
-                assertEquals(
-                    OnboardingActivity::class.java.name,
-                    nextIntent.component?.className
-                )
-                assertTrue(activity.isFinishing)
+    private fun expectedAssetUrl(): String {
+        val page =
+            if (Locale.getDefault().language == AircraftConstants.PrivacyPolicy.LANG_ZH) {
+                AircraftConstants.PrivacyPolicy.ASSET_ZH
+            } else {
+                AircraftConstants.PrivacyPolicy.ASSET_EN
             }
-        }
-    }
-
-    @Test
-    fun `reject button finishes activity`() {
-        ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val btnReject = activity.findViewById<android.widget.TextView>(R.id.btn_reject)
-                // Reject is always enabled
-                assertTrue(btnReject.isEnabled)
-                btnReject.performClick()
-
-                assertTrue(activity.isFinishing)
-            }
-        }
-    }
-
-    @Test
-    fun `reject does not save acceptance preference`() {
-        ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val btnReject = activity.findViewById<android.widget.TextView>(R.id.btn_reject)
-                // Reject is always enabled, no need to manually set
-                btnReject.performClick()
-
-                val prefs = activity.getSharedPreferences("aircraft_prefs", Context.MODE_PRIVATE)
-                assertFalse(prefs.getBoolean("privacy_policy_accepted", false))
-            }
-        }
+        return "${AircraftConstants.PrivacyPolicy.ASSET_PREFIX}$page"
     }
 
     @Test
     fun `already accepted routes to OnboardingActivity immediately`() {
-        context.getSharedPreferences("aircraft_prefs", Context.MODE_PRIVATE)
-            .edit().putBoolean("privacy_policy_accepted", true).commit()
+        prefs.edit().putBoolean(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED, true).commit()
 
-        val intent = Intent(context, PrivacyPolicyAcceptActivity::class.java)
-        val scenario = ActivityScenario.launch<PrivacyPolicyAcceptActivity>(intent)
-        assertEquals(Lifecycle.State.DESTROYED, scenario.state)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        ActivityScenario.launch<PrivacyPolicyAcceptActivity>(
+            Intent(context, PrivacyPolicyAcceptActivity::class.java)
+        ).use { scenario ->
+            // Gated before setContent → the launched instance destroys itself.
+            assertEquals(Lifecycle.State.DESTROYED, scenario.state)
+        }
+        val routed = shadowOf(
+            ApplicationProvider.getApplicationContext<Application>()
+        ).nextStartedActivity
+        assertEquals(OnboardingActivity::class.java.name, routed.component?.className)
     }
 
     @Test
-    fun `webview loads with javascript enabled`() {
-        ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val webView = activity.findViewById<WebView>(R.id.web_view)
-                assertNotNull(webView)
-                assertTrue(webView.settings.javaScriptEnabled)
-                assertTrue(webView.settings.loadsImagesAutomatically)
-            }
-        }
+    fun `first launch shows star field, policy web view and both actions`() {
+        tick()
+
+        composeTestRule.onNodeWithTag("star_field").assertExists()
+        composeTestRule.onNodeWithTag("policy_web_view").assertExists()
+        composeTestRule.onNodeWithTag("btn_accept").assertExists()
+        composeTestRule.onNodeWithTag("btn_reject").assertExists()
+
+        val webView = findWebView(composeTestRule.activity.window.decorView)
+        assertNotNull("WebView must be inflated inside the policy card", webView)
+        assertTrue(webView!!.settings.javaScriptEnabled)
+        assertTrue(webView.settings.loadsImagesAutomatically)
+        assertEquals(expectedAssetUrl(), webView.url)
     }
 
     @Test
-    fun `mission briefing header is displayed`() {
-        ActivityScenario.launch(PrivacyPolicyAcceptActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                // The layout uses the cinematic mission briefing title
-                val webView = activity.findViewById<WebView>(R.id.web_view)
-                assertNotNull("WebView should be present in cinematic layout", webView)
-            }
-        }
+    fun `accept stays inert while the document has not been read`() {
+        tick()
+
+        // Disabled Surface still exposes OnClick semantics but must be inert.
+        composeTestRule.onNodeWithTag("btn_accept").assertIsNotEnabled()
+        composeTestRule.onNodeWithTag("btn_accept").performClick()
+        tick()
+
+        assertFalse(prefs.getBoolean(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED, false))
+        assertFalse(composeTestRule.activity.isFinishing)
+    }
+
+    @Test
+    fun `reject finishes without saving acceptance`() {
+        tick()
+
+        composeTestRule.onNodeWithTag("btn_reject").performClick()
+        tick()
+
+        assertTrue(composeTestRule.activity.isFinishing)
+        assertFalse(prefs.getBoolean(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED, false))
+    }
+
+    @Test
+    fun `reaching document end unlocks accept which saves pref and routes to onboarding`() {
+        tick()
+
+        // Robolectric never fires WebViewClient callbacks — drive the unlock path
+        // directly: page finish schedules the 500ms can-scroll probe.
+        val webView = findWebView(composeTestRule.activity.window.decorView)
+        assertNotNull(webView)
+        webView!!.webViewClient.onPageFinished(webView, webView.url)
+        shadowOf(Looper.getMainLooper()).runToEndOfTasks()
+        tick(600)
+
+        composeTestRule.onNodeWithTag("btn_accept").performClick()
+        tick()
+
+        assertTrue(prefs.getBoolean(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED, false))
+        val nextIntent = shadowOf(composeTestRule.activity).nextStartedActivity
+        assertNotNull(nextIntent)
+        assertEquals(OnboardingActivity::class.java.name, nextIntent.component?.className)
+        assertTrue(composeTestRule.activity.isFinishing)
     }
 }

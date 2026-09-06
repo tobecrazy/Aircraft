@@ -18,9 +18,24 @@ class MedicalKits(var context: Context, var speed: Float) : DrawBaseObject(conte
     private var frameCounter: Int = 0
     var level: Int = 1
 
-    private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
-    private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+    private var screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
+    private var screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
+
+    /** Keep active pickups reachable after a canvas resize. */
+    fun onScreenResized(newW: Int, newH: Int, sx: Float, sy: Float) {
+        screenWidth = newW.toFloat()
+        screenHeight = newH.toFloat()
+        val maxX = (screenWidth - kitSizePx).coerceAtLeast(0f)
+        val maxY = (screenHeight - kitSizePx).coerceAtLeast(0f)
+        for (i in activeKits.indices) {
+            val kit = activeKits[i]
+            activeKits[i] = kit.copy(
+                x = (kit.x * sx).coerceIn(0f, maxX),
+                y = (kit.y * sy).coerceIn(0f, maxY)
+            )
+        }
+    }
 
     private val kitBitmaps = arrayOfNulls<Bitmap>(2)
     private val kitSizePx: Int = ScreenUtils.dpToPx(context, 120.0f)

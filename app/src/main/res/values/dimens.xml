@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive UI: max width of scrollable content columns. -1px = uncapped on phones;
+         capped and centered on large screens via values-sw600dp. -->
+    <dimen name="content_max_width">-1px</dimen>
+</resources>

@@ -30,17 +30,18 @@ android {
 
     defaultConfig {
         applicationId = "com.young.aircraft"
-        minSdk = 30
+        minSdk = 32
         targetSdk = 37
         versionCode = 4
-        versionName = "1.3.0"
+        versionName = "1.3.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             isDebuggable = false
             isJniDebuggable = false
@@ -55,7 +56,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
-        dataBinding = true
         viewBinding = true
         buildConfig = true
         compose = true
@@ -69,6 +69,7 @@ android {
 
 dependencies {
     implementation(project(":richtexteditor"))
+    implementation(libs.androidx.foundation.layout)
     implementation(libs.zxing)
     implementation(libs.retrofit)
     implementation(libs.okhttp)
@@ -107,6 +108,5 @@ dependencies {
     testImplementation(libs.coroutines.test)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.junit)
-    androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.espresso.core)
 }

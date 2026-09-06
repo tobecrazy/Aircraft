@@ -13,13 +13,13 @@ import com.young.aircraft.data.GameState
  **/
 class AircraftApplication : Application() {
 
-    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate() {
         super.onCreate()
-        //force portrait mode
+        // Lock portrait on phone-width screens; leave free rotation on large screens
+        // (tablets / unfolded foldables), where the platform ignores the lock anyway.
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                applyOrientation(activity)
                 activity.window.setFlags(
                     WindowManager.LayoutParams.FLAG_SECURE,
                     WindowManager.LayoutParams.FLAG_SECURE
@@ -27,13 +27,22 @@ class AircraftApplication : Application() {
             }
             override fun onActivityStarted(activity: Activity) {}
             override fun onActivityResumed(activity: Activity) {
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                applyOrientation(activity)
             }
             override fun onActivityPaused(activity: Activity) {}
             override fun onActivityStopped(activity: Activity) {}
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
             override fun onActivityDestroyed(activity: Activity) {}
         })
+    }
+
+    private fun applyOrientation(activity: Activity) {
+        if (activity.resources.configuration.smallestScreenWidthDp < 600) {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else {
+            // UNSPECIFIED defers to the user's rotation lock / sensor, unlike FULL_USER.
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
     }
 
     override fun onLowMemory() {

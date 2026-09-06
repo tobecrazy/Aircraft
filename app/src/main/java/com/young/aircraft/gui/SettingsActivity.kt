@@ -3,164 +3,110 @@ package com.young.aircraft.gui
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.Formatter
-import android.view.View
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.young.aircraft.R
-import com.young.aircraft.data.GameDifficulty
-import com.young.aircraft.data.SettingsRepository
-import com.young.aircraft.databinding.SettingsActivityBinding
+import com.young.aircraft.gui.dialogs.DangerPalette
+import com.young.aircraft.gui.dialogs.GameDialogContent
+import com.young.aircraft.gui.dialogs.GameDialogStat
+import com.young.aircraft.gui.dialogs.setDialogComposeContent
+import androidx.compose.ui.graphics.Color
+import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.utils.BitmapUtils
-import com.young.aircraft.viewmodel.SettingsUiState
 import com.young.aircraft.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
-    private lateinit var binding: SettingsActivityBinding
-    private lateinit var viewModel: SettingsViewModel
     private val soundOptionCount = 3
+    private lateinit var viewModel: SettingsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-
-        binding = SettingsActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         viewModel = ViewModelProvider(this, SettingsViewModel.Factory(this))[SettingsViewModel::class.java]
 
-        setupClickListeners()
-        observeState()
+        setContent {
+            AircraftTheme {
+                val state by viewModel.uiState.collectAsState()
+                SettingsScreen(
+                    state = state,
+                    soundOptionCount = soundOptionCount,
+                    onBack = { finish() },
+                    onDifficultySelected = viewModel::setDifficulty,
+                    onBgSoundToggled = viewModel::setBgSoundEnabled,
+                    onCombatSoundToggled = viewModel::setCombatSoundEnabled,
+                    onHitShakeToggled = viewModel::setHitShakeEnabled,
+                    onBgmFormatSelected = viewModel::setBgmFormat,
+                    onNavigate = ::navigateTo,
+                    onClearCache = ::showClearCacheDialog
+                )
+            }
+        }
     }
 
-    private fun setupClickListeners() {
-        binding.btnBack.setOnClickListener { finish() }
-
-        binding.optionEasy.setOnClickListener { viewModel.setDifficulty(GameDifficulty.EASY) }
-        binding.optionNormal.setOnClickListener { viewModel.setDifficulty(GameDifficulty.NORMAL) }
-        binding.optionHard.setOnClickListener { viewModel.setDifficulty(GameDifficulty.HARD) }
-
-        binding.rowBgSound.setOnClickListener { binding.switchBgSound.toggle() }
-        binding.switchBgSound.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.setBgSoundEnabled(isChecked)
+    private fun navigateTo(destination: SettingsDestination) {
+        val target = when (destination) {
+            SettingsDestination.DEVICE_INFO -> DeviceInfoActivity::class.java
+            SettingsDestination.QR_CODE_TOOL -> QRCodeToolActivity::class.java
+            SettingsDestination.FLASHLIGHT -> FlashlightActivity::class.java
+            SettingsDestination.PUZZLE -> PuzzleActivity::class.java
+            SettingsDestination.ABOUT_AIRCRAFT -> AboutAircraftActivity::class.java
+            SettingsDestination.ABOUT_ME -> AboutMeActivity::class.java
+            SettingsDestination.PRIVACY_POLICY -> PrivacyPolicyActivity::class.java
+            SettingsDestination.DEVELOP_SETTINGS -> DevelopSettingsActivity::class.java
         }
-
-        binding.rowCombatSound.setOnClickListener { binding.switchCombatSound.toggle() }
-        binding.switchCombatSound.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.setCombatSoundEnabled(isChecked)
-        }
-
-        binding.rowHitShake.setOnClickListener { binding.switchHitShake.toggle() }
-        binding.switchHitShake.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.setHitShakeEnabled(isChecked)
-        }
-
-        binding.optionBgmMp3.setOnClickListener {
-            viewModel.setBgmFormat(SettingsRepository.BGM_FORMAT_MP3)
-        }
-        binding.optionBgmOgg.setOnClickListener {
-            viewModel.setBgmFormat(SettingsRepository.BGM_FORMAT_OGG)
-        }
-
-        binding.rowDeviceInfo.setOnClickListener {
-            startActivity(Intent(this, DeviceInfoActivity::class.java))
-        }
-        binding.rowQrCodeTool.setOnClickListener {
-            startActivity(Intent(this, QRCodeToolActivity::class.java))
-        }
-        binding.rowFlashlight.setOnClickListener {
-            startActivity(Intent(this, FlashlightActivity::class.java))
-        }
-        binding.rowPuzzleGame.setOnClickListener {
-            startActivity(Intent(this, PuzzleActivity::class.java))
-        }
-        binding.rowClearCache.setOnClickListener {
-            showClearCacheDialog()
-        }
-        binding.rowAboutAircraft.setOnClickListener {
-            startActivity(Intent(this, AboutAircraftActivity::class.java))
-        }
-        binding.rowAboutMe.setOnClickListener {
-            startActivity(Intent(this, AboutMeActivity::class.java))
-        }
-        binding.rowPrivacyPolicy.setOnClickListener {
-            startActivity(Intent(this, PrivacyPolicyActivity::class.java))
-        }
-        binding.rowDevelopSettings.setOnClickListener {
-            startActivity(Intent(this, DevelopSettingsActivity::class.java))
-        }
+        startActivity(Intent(this, target))
     }
 
     private fun showClearCacheDialog() {
-        binding.rowClearCache.isEnabled = false
         lifecycleScope.launch {
             val cacheSizeBytes = runCatching {
                 viewModel.getCachedGameDataSizeBytes()
             }.getOrDefault(0L)
-            binding.rowClearCache.isEnabled = true
             showClearCacheDialog(formatCacheSize(cacheSizeBytes))
         }
     }
 
     private fun showClearCacheDialog(cacheSize: String) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_game, null)
-        dialogView.findViewById<TextView>(R.id.dialog_badge).apply {
-            visibility = View.VISIBLE
-            text = getString(R.string.clear_cache_badge)
-            setBackgroundResource(R.drawable.dialog_badge_danger_bg)
-        }
-        dialogView.findViewById<TextView>(R.id.dialog_title).apply {
-            text = getString(R.string.clear_cache_dialog_title)
-            setTextColor(0xFFFF6F7E.toInt())
-        }
-        dialogView.findViewById<View>(R.id.dialog_divider).setBackgroundColor(0x44FF4444)
-        dialogView.findViewById<TextView>(R.id.dialog_message).text =
-            getString(R.string.clear_cache_dialog_message)
-        dialogView.findViewById<LinearLayout>(R.id.dialog_stats_container).visibility = View.VISIBLE
-        dialogView.findViewById<LinearLayout>(R.id.stat_card_1)
-            .setBackgroundResource(R.drawable.dialog_stat_card_danger_bg)
-        dialogView.findViewById<LinearLayout>(R.id.stat_card_2)
-            .setBackgroundResource(R.drawable.dialog_stat_card_bg)
-        dialogView.findViewById<TextView>(R.id.stat_label_1).apply {
-            text = getString(R.string.clear_cache_size_label)
-            setTextColor(0x88FF6F7E.toInt())
-        }
-        dialogView.findViewById<TextView>(R.id.stat_value_1).text = cacheSize
-        dialogView.findViewById<TextView>(R.id.stat_label_2).apply {
-            text = getString(R.string.clear_cache_keep_label)
-            setTextColor(0x8800FF88.toInt())
-        }
-        dialogView.findViewById<TextView>(R.id.stat_value_2).text =
-            getString(R.string.clear_cache_keep_value)
-
         val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
         dialog.window?.setDimAmount(0.7f)
 
-        dialogView.findViewById<TextView>(R.id.dialog_negative_btn).apply {
-            visibility = View.VISIBLE
-            text = getString(R.string.history_cancel)
-            setOnClickListener { dialog.dismiss() }
+        // Danger palette with the legacy per-slot overrides: softer title red, mixed stat cards.
+        dialog.setDialogComposeContent(this) {
+            GameDialogContent(
+                badgeText = getString(R.string.clear_cache_badge),
+                palette = DangerPalette.copy(titleColor = Color(0xFFFF6F7E)),
+                title = getString(R.string.clear_cache_dialog_title),
+                message = getString(R.string.clear_cache_dialog_message),
+                primaryStat = GameDialogStat(
+                    label = getString(R.string.clear_cache_size_label),
+                    value = cacheSize
+                ),
+                secondaryStat = GameDialogStat(
+                    label = getString(R.string.clear_cache_keep_label),
+                    value = getString(R.string.clear_cache_keep_value),
+                    labelColor = Color(0x8800FF88),
+                    cardContainer = Color(0x18FFFFFF),
+                    cardBorder = Color(0x22FFFFFF)
+                ),
+                positiveText = getString(R.string.clear_cache_confirm),
+                onPositive = {
+                    dialog.dismiss()
+                    clearCachedGameData()
+                },
+                negativeText = getString(R.string.history_cancel)
+            )
         }
-        dialogView.findViewById<TextView>(R.id.dialog_positive_btn).apply {
-            text = getString(R.string.clear_cache_confirm)
-            setBackgroundResource(R.drawable.dialog_button_primary_danger)
-            setOnClickListener {
-                dialog.dismiss()
-                clearCachedGameData()
-            }
-        }
-        dialog.show()
     }
 
     private fun formatCacheSize(bytes: Long): String {
@@ -172,13 +118,11 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun clearCachedGameData() {
-        binding.rowClearCache.isEnabled = false
         lifecycleScope.launch {
             val result = runCatching {
                 viewModel.clearCachedGameData()
                 BitmapUtils.clearCaches()
             }
-            binding.rowClearCache.isEnabled = true
             val messageRes = if (result.isSuccess) {
                 R.string.clear_cache_success
             } else {
@@ -186,116 +130,5 @@ class SettingsActivity : AppCompatActivity() {
             }
             Toast.makeText(this@SettingsActivity, messageRes, Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun observeState() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    renderState(state)
-                }
-            }
-        }
-    }
-
-    private fun renderState(state: SettingsUiState) {
-        renderDifficulty(state.difficulty)
-        renderSoundToggles(state)
-        renderSoundOverview(state.enabledSoundCount)
-        renderBgmFormat(state.bgmFormat, state.bgSoundEnabled)
-        binding.rowDevelopSettings.visibility = if (state.showDevelopSettings) View.VISIBLE else View.GONE
-    }
-
-    private fun renderBgmFormat(format: String, bgSoundEnabled: Boolean) {
-        val isOgg = format == SettingsRepository.BGM_FORMAT_OGG
-        binding.optionBgmMp3.isSelected = !isOgg
-        binding.optionBgmOgg.isSelected = isOgg
-        binding.optionBgmMp3.isEnabled = bgSoundEnabled
-        binding.optionBgmOgg.isEnabled = bgSoundEnabled
-        binding.tvBgmFormatChip.text = getString(
-            if (isOgg) R.string.bgm_format_ogg else R.string.bgm_format_mp3
-        )
-        binding.tvBgmFormatChip.setBackgroundResource(
-            if (bgSoundEnabled) R.drawable.settings_chip_active_bg else R.drawable.settings_chip_bg
-        )
-        val alpha = if (bgSoundEnabled) 1f else 0.5f
-        binding.optionBgmMp3.alpha = alpha
-        binding.optionBgmOgg.alpha = alpha
-    }
-
-    private fun renderDifficulty(difficulty: GameDifficulty) {
-        binding.optionEasy.isSelected = difficulty == GameDifficulty.EASY
-        binding.optionNormal.isSelected = difficulty == GameDifficulty.NORMAL
-        binding.optionHard.isSelected = difficulty == GameDifficulty.HARD
-
-        val label = getDifficultyLabel(difficulty)
-        binding.currentSelectionLabel.text = getString(R.string.difficulty_current, label)
-        binding.currentIndicatorDot.setBackgroundResource(
-            when (difficulty) {
-                GameDifficulty.EASY -> R.drawable.difficulty_indicator_easy
-                GameDifficulty.HARD -> R.drawable.difficulty_indicator_hard
-                else -> R.drawable.difficulty_indicator_normal
-            }
-        )
-        binding.tvActiveDifficultyChip.text = getString(R.string.settings_profile_chip, label)
-    }
-
-    private fun renderSoundToggles(state: SettingsUiState) {
-        renderToggle(binding.switchBgSound, state.bgSoundEnabled,
-            binding.tvBgSoundStatus, R.string.background_sound_summary_on, R.string.background_sound_summary_off,
-            binding.tvBgSoundChip)
-        renderToggle(binding.switchCombatSound, state.combatSoundEnabled,
-            binding.tvCombatSoundStatus, R.string.combat_sound_summary_on, R.string.combat_sound_summary_off,
-            binding.tvCombatSoundChip)
-        renderToggle(binding.switchHitShake, state.hitShakeEnabled,
-            binding.tvHitShakeStatus, R.string.hit_shake_effect_summary_on, R.string.hit_shake_effect_summary_off,
-            binding.tvHitShakeChip)
-    }
-
-    private fun renderToggle(
-        switch: androidx.appcompat.widget.SwitchCompat,
-        enabled: Boolean,
-        status: android.widget.TextView,
-        onTextRes: Int,
-        offTextRes: Int,
-        chip: android.widget.TextView
-    ) {
-        if (switch.isChecked != enabled) {
-            switch.setOnCheckedChangeListener(null)
-            switch.isChecked = enabled
-            switch.setOnCheckedChangeListener { _, isChecked ->
-                when (switch.id) {
-                    R.id.switch_bg_sound -> viewModel.setBgSoundEnabled(isChecked)
-                    R.id.switch_combat_sound -> viewModel.setCombatSoundEnabled(isChecked)
-                    R.id.switch_hit_shake -> viewModel.setHitShakeEnabled(isChecked)
-                }
-            }
-        }
-        status.text = getString(if (enabled) onTextRes else offTextRes)
-        chip.text = getString(if (enabled) R.string.settings_state_on else R.string.settings_state_off)
-        chip.setBackgroundResource(
-            if (enabled) R.drawable.settings_chip_active_bg else R.drawable.settings_chip_bg
-        )
-    }
-
-    private fun renderSoundOverview(enabledCount: Int) {
-        binding.tvSoundProfileChip.text = getString(
-            R.string.settings_sound_profile_chip, enabledCount, soundOptionCount
-        )
-        binding.tvSoundProfileChip.setBackgroundResource(
-            if (enabledCount > 0) R.drawable.settings_chip_active_bg else R.drawable.settings_chip_bg
-        )
-        binding.tvSoundSectionChip.text = getString(
-            R.string.settings_sound_active_count, enabledCount, soundOptionCount
-        )
-        binding.tvSoundSectionChip.setBackgroundResource(
-            if (enabledCount > 0) R.drawable.settings_chip_active_bg else R.drawable.settings_chip_bg
-        )
-    }
-
-    private fun getDifficultyLabel(value: GameDifficulty): String = when (value) {
-        GameDifficulty.EASY -> getString(R.string.difficulty_easy)
-        GameDifficulty.HARD -> getString(R.string.difficulty_hard)
-        else -> getString(R.string.difficulty_normal)
     }
 }

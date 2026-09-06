@@ -22,9 +22,24 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
     private var framesSinceLastSpawn: Int = 0
     var level: Int = 1
 
-    private val screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
-    private val screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
+    private var screenWidth: Float = ScreenUtils.getScreenWidth(context).toFloat()
+    private var screenHeight: Float = ScreenUtils.getScreenHeight(context).toFloat()
     private val screenDensity: Int = context.resources.displayMetrics.densityDpi
+
+    /** Keep the active envelope reachable after a canvas resize. */
+    fun onScreenResized(newW: Int, newH: Int, sx: Float, sy: Float) {
+        screenWidth = newW.toFloat()
+        screenHeight = newH.toFloat()
+        val maxX = (screenWidth - envelopeSizePx).coerceAtLeast(0f)
+        val maxY = (screenHeight - envelopeSizePx).coerceAtLeast(0f)
+        for (i in activeEnvelopes.indices) {
+            val envelope = activeEnvelopes[i]
+            activeEnvelopes[i] = envelope.copy(
+                x = (envelope.x * sx).coerceIn(0f, maxX),
+                y = (envelope.y * sy).coerceIn(0f, maxY)
+            )
+        }
+    }
 
     // Envelope bitmaps: closed while active, open briefly after detonation.
     private val closedBitmap: Bitmap?
