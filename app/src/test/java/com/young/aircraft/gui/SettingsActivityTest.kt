@@ -151,14 +151,15 @@ class SettingsActivityTest {
 
         val dialog = ShadowDialog.getLatestDialog()
         assertNotNull("Clear cache confirmation should be shown", dialog)
-        assertTrue(dialog!!.isShowing)
+        val shownDialog = requireNotNull(dialog)
+        assertTrue(shownDialog.isShowing)
         // Drain the looper so the dialog's ComposeView attaches and composes.
         repeat(2) { shadowOf(Looper.getMainLooper()).idle() }
 
         // Dialog content is Compose — assert via its semantics tree.
-        val nodes = findAllNodes(
-            dialog.window!!.decorView.findSemanticsOwner()!!.rootSemanticsNode
-        ).mapNotNull { it.displayText() }
+        val root = requireNotNull(requireNotNull(shownDialog.window).decorView.findSemanticsOwner())
+            .rootSemanticsNode
+        val nodes = findAllNodes(root).mapNotNull { it.displayText() }
 
         assertTrue(nodes.contains(composeRule.activity.getString(R.string.clear_cache_badge)))
         val sizeLabelIndex =
@@ -167,5 +168,10 @@ class SettingsActivityTest {
         // The size value is the node right after its label (DFS order).
         assertFalse(nodes.getOrNull(sizeLabelIndex + 1).isNullOrBlank())
         assertTrue(nodes.contains(composeRule.activity.getString(R.string.clear_cache_keep_value)))
+
+        // Regression: Cancel dismisses even though showClearCacheDialog passes no onNegative.
+        assertTrue("Cancel button should dismiss the dialog", root.clickOnText(composeRule.activity.getString(R.string.history_cancel)))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertFalse(shownDialog.isShowing)
     }
 }

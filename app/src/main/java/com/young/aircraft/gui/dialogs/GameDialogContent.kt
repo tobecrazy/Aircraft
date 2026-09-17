@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,11 +36,9 @@ import kotlin.math.roundToInt
 // Visuals lifted from dialog_background / dialog_badge_*_bg / dialog_stat_card*_bg /
 // dialog_button_primary* / dialog_button_secondary drawables.
 private val DialogGradient = Brush.linearGradient(listOf(Color(0xF11C2432), Color(0xE4141D26)))
-private val DialogBorder = Color(0x6600FF88)
 private val SecondaryButtonContainer = Color(0x16FFFFFF)
 private val SecondaryButtonBorder = Color(0x44FFFFFF)
 private val SecondaryButtonText = Color(0xFFD8E0EF)
-private val ButtonText = Color(0xFF13221E)
 private val MessageColor = Color(0xFFD8E0EF)
 
 /** Per-tone colors; SettingsActivity's clear-cache dialog copies + overrides individual slots. */
@@ -54,26 +53,15 @@ data class GameDialogPalette(
     val positiveButtonContainer: Color
 )
 
-val SuccessPalette = GameDialogPalette(
-    titleColor = Color(0xFF00FF88),
-    dividerColor = Color(0x4400FF88),
-    badgeContainer = Color(0x2600FF88),
-    badgeBorder = Color(0x6600FF88),
-    statCardContainer = Color(0x18FFFFFF),
-    statCardBorder = Color(0x22FFFFFF),
-    statLabelColor = Color(0x88FFFFFF),
-    positiveButtonContainer = Color(0xCCDBFFEF)
-)
-
-val DangerPalette = GameDialogPalette(
-    titleColor = Color(0xFFFF4444),
-    dividerColor = Color(0x44FF4444),
-    badgeContainer = Color(0x26FF5555),
-    badgeBorder = Color(0x66FF6F7E),
-    statCardContainer = Color(0x18FF5555),
-    statCardBorder = Color(0x22FF5555),
-    statLabelColor = Color(0x88FF6F7E),
-    positiveButtonContainer = Color(0xCCFFE0D0)
+internal fun gameDialogPalette(accent: Color) = GameDialogPalette(
+    titleColor = accent,
+    dividerColor = accent.copy(alpha = 0x44 / 255f),
+    badgeContainer = accent.copy(alpha = 0x26 / 255f),
+    badgeBorder = accent.copy(alpha = 0x66 / 255f),
+    statCardContainer = accent.copy(alpha = 0.09f),
+    statCardBorder = accent.copy(alpha = 0.13f),
+    statLabelColor = accent.copy(alpha = 0.8f),
+    positiveButtonContainer = accent
 )
 
 /** One stat card. Overrides fall back to the palette defaults when null. */
@@ -89,7 +77,6 @@ data class GameDialogStat(
 @Composable
 fun GameDialogContent(
     badgeText: String,
-    palette: GameDialogPalette,
     title: String,
     message: String,
     primaryStat: GameDialogStat,
@@ -99,11 +86,16 @@ fun GameDialogContent(
     negativeText: String? = null,
     onNegative: (() -> Unit)? = null
 ) {
+    val palette = gameDialogPalette(MaterialTheme.colorScheme.primary)
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(DialogGradient, RoundedCornerShape(20.dp))
-            .border(1.5.dp, DialogBorder, RoundedCornerShape(20.dp))
+            .border(
+                1.5.dp,
+                MaterialTheme.colorScheme.primary.copy(alpha = 0x66 / 255f),
+                RoundedCornerShape(20.dp)
+            )
             .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -164,18 +156,22 @@ fun GameDialogContent(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (negativeText != null) {
+                val dismiss = LocalDialogDismiss.current
                 DialogButton(
                     text = negativeText,
                     textColor = SecondaryButtonText,
                     container = SecondaryButtonContainer,
                     border = SecondaryButtonBorder,
-                    onClick = onNegative ?: {},
+                    onClick = {
+                        dismiss?.invoke()
+                        onNegative?.invoke()
+                    },
                     modifier = Modifier.weight(1f)
                 )
             }
             DialogButton(
                 text = positiveText,
-                textColor = ButtonText,
+                textColor = MaterialTheme.colorScheme.onPrimary,
                 container = palette.positiveButtonContainer,
                 border = Color.Transparent,
                 onClick = onPositive,

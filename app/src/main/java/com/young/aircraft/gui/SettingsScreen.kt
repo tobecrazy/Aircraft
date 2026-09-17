@@ -295,7 +295,9 @@ private fun ThemeCard(selectedTheme: String, onSelected: (String) -> Unit) {
         listOf(
             SettingsRepository.THEME_GREEN to R.string.theme_green,
             SettingsRepository.THEME_BLUE to R.string.theme_blue,
-            SettingsRepository.THEME_PURPLE to R.string.theme_purple
+            SettingsRepository.THEME_PURPLE to R.string.theme_purple,
+            SettingsRepository.THEME_YELLOW to R.string.theme_yellow,
+            SettingsRepository.THEME_RED to R.string.theme_red
         ).forEach { (theme, label) ->
             val selected = theme == selectedTheme
             val accent = themeAccent(theme)

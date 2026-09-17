@@ -19,10 +19,11 @@ class SettingsRepository(context: Context) {
     }
 
     fun getTheme(): String = prefs.getString(KEY_THEME, THEME_GREEN)
-        ?.takeIf { it in setOf(THEME_GREEN, THEME_BLUE, THEME_PURPLE) } ?: THEME_GREEN
+        ?.takeIf { it in setOf(THEME_GREEN, THEME_BLUE, THEME_PURPLE, THEME_YELLOW, THEME_RED) }
+            ?: THEME_GREEN
 
     fun setTheme(theme: String) {
-        require(theme in setOf(THEME_GREEN, THEME_BLUE, THEME_PURPLE))
+        require(theme in setOf(THEME_GREEN, THEME_BLUE, THEME_PURPLE, THEME_YELLOW, THEME_RED))
         prefs.edit { putString(KEY_THEME, theme) }
     }
 
@@ -162,6 +163,8 @@ class SettingsRepository(context: Context) {
         const val THEME_GREEN = "green"
         const val THEME_BLUE = "blue"
         const val THEME_PURPLE = "purple"
+        const val THEME_YELLOW = "yellow"
+        const val THEME_RED = "red"
         const val KEY_DIFFICULTY = "difficulty"
         const val KEY_BACKGROUND_SOUND = "background_sound"
         const val KEY_COMBAT_SOUND = "combat_sound"

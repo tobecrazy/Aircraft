@@ -65,6 +65,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.young.aircraft.gui.dialogs.showThemed
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
@@ -176,7 +177,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
                 createQrToolNotification()
             }
             .setNegativeButton(R.string.history_cancel, null)
-            .show()
+            .showThemed()
     }
 
     private fun createQrToolNotification() {

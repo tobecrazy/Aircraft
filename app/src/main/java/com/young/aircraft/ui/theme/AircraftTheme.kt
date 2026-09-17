@@ -41,6 +41,8 @@ val FlashCritical = Color(0xFFFF6F7E)
 internal fun themeAccent(theme: String): Color = when (theme) {
     SettingsRepository.THEME_BLUE -> Color(0xFF64B5FF)
     SettingsRepository.THEME_PURPLE -> Color(0xFFC4A0FF)
+    SettingsRepository.THEME_YELLOW -> Color(0xFFFFD54F)
+    SettingsRepository.THEME_RED -> Color(0xFFFF5252)
     else -> Color(0xFF00FF88)
 }
 
@@ -51,6 +53,7 @@ internal fun aircraftColorScheme(theme: String) = themeAccent(theme).let { accen
     onPrimaryContainer = accent,
     surface = BackgroundDark,
     surfaceVariant = FlashSurface,
+    surfaceContainerHigh = FlashSurface,
     onSurface = TextBright,
     onSurfaceVariant = TextSubtle,
     outline = accent.copy(alpha = 0x44 / 255f),

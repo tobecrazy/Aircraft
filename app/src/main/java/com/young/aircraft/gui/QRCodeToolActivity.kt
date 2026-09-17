@@ -49,6 +49,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -74,6 +75,7 @@ import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
+import com.young.aircraft.gui.dialogs.showThemed
 import com.young.aircraft.utils.FilePickerHelper
 import com.young.aircraft.viewmodel.QRCodeToolViewModel
 import com.young.aircraft.viewmodel.QRCodeToolUiState
@@ -222,7 +224,7 @@ class QRCodeToolActivity : AppCompatActivity() {
                             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                         .setNegativeButton(R.string.history_cancel, null)
-                        .show()
+                        .showThemed()
                 } else {
                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
@@ -690,15 +692,10 @@ class QRCodeToolActivity : AppCompatActivity() {
 
 private val SheetTopShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
 private val QrSheetBackground = Color(0xFF161A26)
-private val QrSheetBorder = Color(0x4400FF88)
-private val SheetHandle = Color(0x4400FF88)
 private val StatusPillContainer = Color(0x18253333)
 private val ResultCardContainer = Color(0x18FFFFFF)
-private val ResultLabelColor = Color(0x9900FF88)
 private val ResultTextColor = Color(0xE6FFFFFF)
-private val CopyButtonContainer = Color(0x885DFFD0)
 private val CopyButtonText = Color(0xFF08121A)
-private val DismissButtonContainer = Color(0x3300FF88)
 
 @Composable
 private fun ScanResultSheetContent(
@@ -706,30 +703,33 @@ private fun ScanResultSheetContent(
     onCopy: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val accent = MaterialTheme.colorScheme.primary
+    val outline = MaterialTheme.colorScheme.outline
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(QrSheetBackground, SheetTopShape)
-            .border(1.dp, QrSheetBorder, SheetTopShape)
+            .border(1.dp, outline, SheetTopShape)
             .padding(start = 24.dp, end = 24.dp, top = 14.dp, bottom = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .size(width = 44.dp, height = 5.dp)
-                .background(SheetHandle, RoundedCornerShape(999.dp))
+                .background(outline, RoundedCornerShape(999.dp))
         )
 
         Text(
             text = stringResource(R.string.qr_code_tool_scan_result),
-            color = Color(0xFF00FF88),
+            color = accent,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
             modifier = Modifier
                 .padding(top = 18.dp)
                 .background(StatusPillContainer, RoundedCornerShape(999.dp))
-                .border(1.dp, QrSheetBorder, RoundedCornerShape(999.dp))
+                .border(1.dp, outline, RoundedCornerShape(999.dp))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         )
 
@@ -742,7 +742,7 @@ private fun ScanResultSheetContent(
         ) {
             Text(
                 text = stringResource(R.string.qr_code_tool_scan_result_label),
-                color = ResultLabelColor,
+                color = accent.copy(alpha = 0x99 / 255f),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace
@@ -761,7 +761,7 @@ private fun ScanResultSheetContent(
 
         SheetButton(
             text = stringResource(R.string.qr_code_tool_copy_result),
-            container = CopyButtonContainer,
+            container = accent.copy(alpha = 0.6f),
             textColor = CopyButtonText,
             onClick = { onCopy(result) },
             modifier = Modifier
@@ -770,7 +770,7 @@ private fun ScanResultSheetContent(
         )
         SheetButton(
             text = stringResource(android.R.string.ok),
-            container = DismissButtonContainer,
+            container = accent.copy(alpha = 0x33 / 255f),
             textColor = Color.White,
             onClick = onDismiss,
             modifier = Modifier

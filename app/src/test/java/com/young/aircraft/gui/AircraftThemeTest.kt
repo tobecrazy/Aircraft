@@ -18,6 +18,34 @@ class AircraftThemeTest {
     }
 
     @Test
+    fun `dialog palette and material surfaces follow all five themes`() {
+        listOf(
+            SettingsRepository.THEME_GREEN,
+            SettingsRepository.THEME_BLUE,
+            SettingsRepository.THEME_PURPLE,
+            SettingsRepository.THEME_YELLOW,
+            SettingsRepository.THEME_RED
+        ).forEach { theme ->
+            val colors = aircraftColorScheme(theme)
+            val palette = com.young.aircraft.gui.dialogs.gameDialogPalette(colors.primary)
+            assertEquals(themeAccent(theme), palette.titleColor)
+            assertEquals(colors.primary, palette.positiveButtonContainer)
+            assertEquals(colors.primary.copy(alpha = 0.4f), palette.badgeBorder)
+            assertEquals(com.young.aircraft.ui.theme.FlashSurface, colors.surfaceContainerHigh)
+        }
+    }
+
+    @Test
+    fun `star field particle follows theme and unknown values fall back to green`() {
+        assertEquals("❉" to 0xFF00FF88.toInt(), StarFieldView.particleFor(SettingsRepository.THEME_GREEN))
+        assertEquals("♣" to 0xFF64B5FF.toInt(), StarFieldView.particleFor(SettingsRepository.THEME_BLUE))
+        assertEquals("♦" to 0xFFC4A0FF.toInt(), StarFieldView.particleFor(SettingsRepository.THEME_PURPLE))
+        assertEquals("⭐" to 0xFFFFD54F.toInt(), StarFieldView.particleFor(SettingsRepository.THEME_YELLOW))
+        assertEquals("🌹" to 0xFFFF5252.toInt(), StarFieldView.particleFor(SettingsRepository.THEME_RED))
+        assertEquals("❉" to 0xFF00FF88.toInt(), StarFieldView.particleFor("unknown"))
+    }
+
+    @Test
     fun `color scheme keeps dark surfaces and only swaps accent with outline alpha`() {
         val green = aircraftColorScheme(SettingsRepository.THEME_GREEN)
         val blue = aircraftColorScheme(SettingsRepository.THEME_BLUE)

@@ -13,11 +13,9 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
-import com.young.aircraft.gui.dialogs.DangerPalette
 import com.young.aircraft.gui.dialogs.GameDialogContent
 import com.young.aircraft.gui.dialogs.GameDialogStat
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
-import androidx.compose.ui.graphics.Color
 import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.viewmodel.SettingsViewModel
@@ -82,11 +80,9 @@ class SettingsActivity : AppCompatActivity() {
         dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
         dialog.window?.setDimAmount(0.7f)
 
-        // Danger palette with the legacy per-slot overrides: softer title red, mixed stat cards.
         dialog.setDialogComposeContent(this) {
             GameDialogContent(
                 badgeText = getString(R.string.clear_cache_badge),
-                palette = DangerPalette.copy(titleColor = Color(0xFFFF6F7E)),
                 title = getString(R.string.clear_cache_dialog_title),
                 message = getString(R.string.clear_cache_dialog_message),
                 primaryStat = GameDialogStat(
@@ -95,10 +91,7 @@ class SettingsActivity : AppCompatActivity() {
                 ),
                 secondaryStat = GameDialogStat(
                     label = getString(R.string.clear_cache_keep_label),
-                    value = getString(R.string.clear_cache_keep_value),
-                    labelColor = Color(0x8800FF88),
-                    cardContainer = Color(0x18FFFFFF),
-                    cardBorder = Color(0x22FFFFFF)
+                    value = getString(R.string.clear_cache_keep_value)
                 ),
                 positiveText = getString(R.string.clear_cache_confirm),
                 onPositive = {

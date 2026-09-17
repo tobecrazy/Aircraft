@@ -2,10 +2,18 @@ package com.young.aircraft.gui.dialogs
 
 import android.app.Dialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.young.aircraft.ui.theme.AircraftTheme
+
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+
+/** Provided by every dialog host; negative buttons dismiss even without a caller callback. */
+internal val LocalDialogDismiss = staticCompositionLocalOf<(() -> Unit)?> { null }
 
 /**
  * Hosts Compose content inside a classic Dialog window by borrowing the host activity's
@@ -24,7 +32,14 @@ fun Dialog.setDialogComposeContent(
     composeView.setViewTreeLifecycleOwner(host)
     composeView.setViewTreeViewModelStoreOwner(host)
     composeView.setViewTreeSavedStateRegistryOwner(host)
-    composeView.setContent(content)
+    composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    composeView.setContent {
+        AircraftTheme {
+            CompositionLocalProvider(LocalDialogDismiss provides { dismiss() }) {
+                content()
+            }
+        }
+    }
     if (!isShowing) show()
     setContentView(composeView)
 }
