@@ -143,6 +143,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
                     onOpenRichText = { startActivity(Intent(this, RichTextEditorActivity::class.java)) },
                     onOpenAssistantTools = { startActivity(Intent(this, AndroidDevAssistantToolsActivity::class.java)) },
                     onNotificationTest = ::showNotificationConfirmationDialog,
+                    onOpenCameraScan = { startActivity(Intent(this, CameraScanActivity::class.java)) },
                     onOpenBannerItem = { item ->
                         startActivity(ShowImageDetailsActivity.createIntent(this, item))
                     }
@@ -240,6 +241,7 @@ internal fun DevelopSettingsScreen(
     onOpenRichText: () -> Unit,
     onOpenAssistantTools: () -> Unit,
     onNotificationTest: () -> Unit,
+    onOpenCameraScan: () -> Unit,
     onOpenBannerItem: (SupperBannerItem) -> Unit
 ) {
     var autoPlay by remember { mutableStateOf(true) }
@@ -510,6 +512,13 @@ internal fun DevelopSettingsScreen(
                         modifier = Modifier
                             .padding(top = 10.dp)
                             .testTag("btn_notification")
+                    )
+                    ToolButton(
+                        textRes = R.string.develop_settings_camera_scan_button,
+                        onClick = onOpenCameraScan,
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .testTag("btn_camera_scan")
                     )
                 }
             }

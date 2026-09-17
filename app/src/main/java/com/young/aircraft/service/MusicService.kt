@@ -106,7 +106,7 @@ class MusicService : Service() {
             audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()
         val streamVolumeMax: Float =
             audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat()
-        val volume: Float = streamVolumeCurrent / streamVolumeMax as Float
+        val volume: Float = streamVolumeCurrent / streamVolumeMax
         soundMap[sound]?.let { soundPool.play(it, volume, volume, 1, loop, fSpeed) }
     }
 

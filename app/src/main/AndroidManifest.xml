@@ -61,6 +61,11 @@
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
+            android:name=".gui.CameraScanActivity"
+            android:exported="false"
+            android:label="@string/camera_scan_title"
+            android:theme="@style/Theme.Aircraft.Common" />
+        <activity
             android:name=".gui.AndroidDevAssistantToolsActivity"
             android:exported="false"
             android:label="@string/android_dev_assistant_tools_title"

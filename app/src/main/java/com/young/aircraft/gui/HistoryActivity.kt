@@ -262,7 +262,7 @@ private fun SummaryCard(state: HistoryUiState) {
                 } else {
                     stringResource(
                         R.string.history_summary_with_top_pilot,
-                        state.topPilotName!!,
+                        state.topPilotName,
                         state.topPilotLevel ?: 1
                     )
                 },

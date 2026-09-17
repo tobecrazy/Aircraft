@@ -296,6 +296,14 @@
     <string name="develop_settings_assistant_unavailable">Action unavailable on this device</string>
     <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
     <string name="develop_settings_notification_button">Test QR Tool Notification</string>
+    <string name="develop_settings_camera_scan_button">Live QR Scan (CameraX)</string>
+    <string name="camera_scan_title">Live QR Scan</string>
+    <string name="camera_scan_back">Back</string>
+    <string name="camera_scan_permission_hint">Camera access is required for live QR scanning.</string>
+    <string name="camera_scan_grant">Grant Camera Access</string>
+    <string name="camera_scan_open_settings">Open Settings</string>
+    <string name="camera_scan_retry">Retry</string>
+    <string name="camera_scan_rescan">Rescan</string>
     <string name="develop_settings_notification_dialog_title">Create notification?</string>
     <string name="develop_settings_notification_dialog_message">Create a notification that opens the QR Code Tool.</string>
     <string name="develop_settings_notification_dialog_ok">OK</string>

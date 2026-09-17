@@ -281,7 +281,7 @@ class PuzzleActivity : ComponentActivity() {
                         failureReason = "Feed HTTP ${response.code}"
                         return@runCatching null
                     }
-                    response.body?.string().orEmpty()
+                    response.body.string().orEmpty()
                 }
 
                 val candidateGroups = AircraftConstants.Urls.extractPuzzleImageCandidateGroupsFromPeapixFeed(feedBody)
@@ -305,7 +305,7 @@ class PuzzleActivity : ComponentActivity() {
                             if (!response.isSuccessful) {
                                 throw java.io.IOException("HTTP ${response.code}")
                             }
-                            response.body?.bytes()
+                            response.body.bytes()
                         }
                     }
                     val bytes = attempt.getOrNull()
