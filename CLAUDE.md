@@ -44,8 +44,8 @@ Scope `--tests` to a module task (`:app:testDebugUnitTest`), not the root task: 
 
 ### Build Configuration and Prerequisites
 
-- JDK 17; Gradle wrapper version is in `gradle/wrapper/gradle-wrapper.properties` (currently 9.7.0).
-- Kotlin DSL builds; dependency/plugin versions are centralized in `gradle/libs.versions.toml` (currently AGP 9.3.2, KSP 2.3.11). AGP uses built-in Kotlin: do **not** add `org.jetbrains.kotlin.android`; the app still requires `org.jetbrains.kotlin.plugin.compose`.
+- JDK 17; use the checked-in Gradle wrapper (`gradle/wrapper/gradle-wrapper.properties`) rather than a system Gradle installation.
+- Kotlin DSL builds; dependency/plugin versions are centralized in `gradle/libs.versions.toml`. AGP uses built-in Kotlin: do **not** add `org.jetbrains.kotlin.android`; the app still requires `org.jetbrains.kotlin.plugin.compose`. Root `build.gradle.kts` also explicitly pins `kotlin-gradle-plugin` for Compose mapping artifact resolution; check both locations when upgrading Kotlin rather than assuming their versions match.
 - Both modules use compileSdk 37 and minSdk 32; the app targets SDK 37 and build tools 37.0.0. Configure the Android SDK via `local.properties` or the environment.
 - App ID/namespace: `com.young.aircraft`; library namespace: `com.young.richtext`.
 - The app enables Compose, View Binding, and BuildConfig, not Data Binding.
@@ -61,6 +61,16 @@ Scope `--tests` to a module task (`:app:testDebugUnitTest`), not the root task: 
 **Activity/UI layer:** Most non-game screens use Compose + Material3, with `viewmodel/` exposing StateFlow/LiveData state and, where needed, SharedFlow one-shot events. `data/SettingsRepository` wraps SharedPreferences; `providers/DatabaseProvider` supplies Room DAOs. Follow existing ViewModel/UiState/Factory patterns for new utilities. This is not universal: `PuzzleActivity` still owns substantial puzzle/image-loading state itself. `GameViewModel` handles game persistence/scoring, not the render loop.
 
 `MainActivity`, `QRCodeToolActivity`, and `RichTextEditorActivity` retain ViewBinding hosts. `HistoryActivity` is Compose, not a HistoryFragment/RecyclerView flow. Game dialogs and the hall-of-heroes sheet use Compose content through `gui/dialogs/` even though the game host uses Views.
+
+### Theme and Transient UI
+
+`SettingsRepository` persists five theme identifiers (green/blue/purple/yellow/red). `ui/theme/AircraftTheme.kt` maps them through `themeAccent` / `aircraftColorScheme` and listens to preference changes for live Compose updates. `AccentGreen` and `DividerGreen` are composable getters despite their legacy names: read them in composable scope, not inside Canvas draw callbacks or ordinary Activity methods. Native UI can resolve the shared color scheme from the repository.
+
+`StarFieldView` has its own preference listener and renders theme-specific glyph particles on the launch/onboarding/privacy screens. It is separate from `DrawBackground` and the combat render loop; UI theme changes must not replace combat backgrounds.
+
+- Classic dialogs/bottom sheets with Compose content use `Dialog.setDialogComposeContent(host)`. It supplies lifecycle owners, `AircraftTheme`, and `LocalDialogDismiss`, and installs content **after** showing the dialog because AppCompat otherwise replaces it. `GameDialogContent` dismisses on a negative action even without a caller callback.
+- Native confirmations use `MaterialAlertDialogBuilder.showThemed()` to share surface/outline/text colors and stateful enabled/disabled button colors. Preference listeners are removed on dismissal.
+- Foreground feedback uses `ThemedMessage.makeText(...).show()`, which presents a themed Material Snackbar, not a system Toast. It requires an attached, started Activity (including wrapped Activity contexts); it dismisses and cleans up listeners when the Activity stops. System permission prompts, pickers, and notifications remain system-styled.
 
 ### Navigation and Progression
 
@@ -90,7 +100,7 @@ Combat has ten timed levels with increasing kill targets and a boss after each t
 
 ### Rich-Text Library Boundary
 
-`richtexteditor` supplies `com.young.richtext.RichTextEditorView`; the app Activity owns mode switching, sample loading, WebView preview, and image-viewer navigation. The library has no dependency on the game.
+`richtexteditor` supplies `com.young.richtext.RichTextEditorView`; the app Activity owns mode switching, sample loading, WebView preview, and image-viewer navigation. The library has no dependency on the game. Its optional `onMessage` callback lets `RichTextEditorActivity` and `QRCodeToolActivity` route editor feedback through `ThemedMessage`; standalone AAR consumers retain a system Toast fallback. Do not import app theme classes into the library.
 
 Large unbroken/base64 content must not be inserted unchanged into the native EditText: native text layout can exhaust memory. `RichTextEditorActivity` skips oversized default content (`MAX_EDITABLE_LENGTH`) and sanitizes inline data-image tags via `makeHtmlEditable()` for JSON examples. Preserve these guards when changing content loading; use WebView preview rather than native text layout for large raw HTML.
 
@@ -98,7 +108,7 @@ Large unbroken/base64 content must not be inserted unchanged into the native Edi
 
 ### UI and Localization
 
-- Match the tactical UI: dark background `#0F1118`, header `#161A26`, green accent `#00FF88`, monospace typography, and a 52dp header. There is no shared application-wide Compose theme; inspect peer screens rather than introducing a new shell.
+- Match the tactical UI: dark background `#0F1118`, header `#161A26`, selected theme accent (green `#00FF88` by default), monospace typography, and a 52dp header. Use the shared `AircraftTheme` and its color scheme instead of hardcoding decorative green; preserve each screen's existing layout.
 - Solid-background utility activities should use `Theme.Aircraft.Common` in the manifest; the game uses `TransparentMaterialTheme`. Preserve each screen's inset handling: View roots use `fitsSystemWindows`, while Compose screens use their existing padding/Scaffold patterns (e.g. Settings header uses `statusBarsPadding`). Do not apply the XML RelativeLayout header pattern indiscriminately to Compose screens or double-apply insets.
 - Default English and `values-zh/strings.xml` must stay synchronized. `StringResourceTest` checks locale parity and unused strings. Use resources (`stringResource`, `getString`, `@string/`) rather than hardcoded UI copy; remove orphan resources after refactoring.
 - Robolectric Compose screen tests use `createAndroidComposeRule` and `@GraphicsMode(NATIVE)`. For scrollable content, follow `SettingsActivityTest`'s tall viewport (`w420dp-h2000dp`): off-window clicks may silently do nothing.

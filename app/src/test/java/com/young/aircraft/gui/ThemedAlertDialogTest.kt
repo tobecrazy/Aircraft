@@ -9,7 +9,9 @@ import androidx.compose.ui.graphics.toArgb
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.young.aircraft.R
 import com.young.aircraft.data.SettingsRepository
-import com.young.aircraft.ui.theme.themeAccent
+import com.young.aircraft.ui.theme.aircraftColorScheme
+import android.os.Looper
+import org.robolectric.Shadows.shadowOf
 import com.young.aircraft.gui.dialogs.showThemed
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -39,15 +41,28 @@ class ThemedAlertDialogTest {
 
                 assertNotNull(dialog)
                 assertTrue(dialog.isShowing)
-                val expected = themeAccent(SettingsRepository.THEME_BLUE).toArgb()
-                assertEquals(
-                    expected,
-                    dialog.findViewById<TextView>(androidx.appcompat.R.id.alertTitle)?.currentTextColor
-                )
-                assertEquals(
-                    expected,
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).currentTextColor
-                )
+                val repository = SettingsRepository(context)
+                val positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                val negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                listOf(
+                    SettingsRepository.THEME_BLUE, SettingsRepository.THEME_GREEN,
+                    SettingsRepository.THEME_PURPLE, SettingsRepository.THEME_YELLOW,
+                    SettingsRepository.THEME_RED
+                ).forEach { theme ->
+                    positive.isEnabled = false
+                    repository.setTheme(theme)
+                    shadowOf(Looper.getMainLooper()).idle()
+                    val colors = aircraftColorScheme(theme)
+                    assertEquals(colors.primary.toArgb(),
+                        dialog.findViewById<TextView>(androidx.appcompat.R.id.alertTitle)?.currentTextColor)
+                    assertEquals(colors.onSurface.toArgb(),
+                        dialog.findViewById<TextView>(android.R.id.message)?.currentTextColor)
+                    assertEquals(colors.onSurface.copy(alpha = 0.38f).toArgb(), positive.currentTextColor)
+                    assertEquals(colors.primary.toArgb(), negative.currentTextColor)
+                    positive.isEnabled = true
+                    assertEquals(colors.primary.toArgb(), positive.currentTextColor)
+                }
+                dialog.dismiss()
             }
         }
     }

@@ -94,7 +94,7 @@
   <rect x="540" y="132" width="180" height="8" fill="#a855f7"/>
   <text x="630" y="134" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">StarFieldView</text>
   <text x="630" y="155" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">CINEMATIC BG</text>
-  <text x="630" y="170" text-anchor="middle" fill="#7c3aed" font-size="8.5">65-star parallax animation</text>
+  <text x="630" y="170" text-anchor="middle" fill="#7c3aed" font-size="8.5">65-star parallax · 5 theme glyphs</text>
   <text x="630" y="183" text-anchor="middle" fill="#7c3aed" font-size="8.5">Custom View · ~20 FPS</text>
 
   <!-- First-launch navigation arrows -->
@@ -134,8 +134,8 @@
   <rect x="520" y="238" width="180" height="8" fill="#9333ea"/>
   <text x="610" y="240" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">HistoryActivity</text>
   <text x="610" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">LEADERBOARD</text>
-  <text x="610" y="275" text-anchor="middle" fill="#7c3aed" font-size="9">HistoryFragment + Adapter</text>
-  <text x="610" y="290" text-anchor="middle" fill="#7c3aed" font-size="9">RecyclerView list</text>
+  <text x="610" y="275" text-anchor="middle" fill="#7c3aed" font-size="9">Compose leaderboard UI</text>
+  <text x="610" y="290" text-anchor="middle" fill="#7c3aed" font-size="9">Top-record badge · delete</text>
 
   <!-- SettingsActivity -->
   <rect x="760" y="224" width="180" height="80" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
@@ -143,7 +143,7 @@
   <rect x="760" y="238" width="180" height="8" fill="#9333ea"/>
   <text x="850" y="240" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">SettingsActivity</text>
   <text x="850" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">PREFERENCES</text>
-  <text x="850" y="275" text-anchor="middle" fill="#7c3aed" font-size="9">Difficulty · Sound · QR / About Links</text>
+  <text x="850" y="275" text-anchor="middle" fill="#7c3aed" font-size="9">Difficulty · Sound · Theme · Cache</text>
   <text x="850" y="290" text-anchor="middle" fill="#7c3aed" font-size="9">Debug row in DEBUG builds</text>
 
   <!-- PrivacyPolicyActivity -->
@@ -172,9 +172,9 @@
   <text x="1275" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">SETTINGS DESTINATIONS</text>
   <text x="1275" y="275" text-anchor="middle" fill="#7c3aed" font-size="7.8">QR Code Tool · Flashlight (torch/SOS)</text>
   <text x="1275" y="289" text-anchor="middle" fill="#7c3aed" font-size="7.8">Image Details · Device Info · About Aircraft</text>
-  <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Me (Coil) · Privacy Policy</text>
-  <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">Develop settings · Rich Text Editor (DEBUG)</text>
-  <text x="1275" y="331" text-anchor="middle" fill="#7c3aed" font-size="7.4">Rich-text preview image tap → Image Details</text>
+  <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Me · Privacy Policy · Puzzle Game</text>
+  <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">Develop · Rich Text · Camera Scan (DEBUG)</text>
+  <text x="1275" y="331" text-anchor="middle" fill="#7c3aed" font-size="7.4">Color theme: 5 accents · live apply</text>
 
   <!-- OnboardingActivity → LaunchActivity arrow -->
   <path d="M395,198 L395,208 L130,208 L130,222" stroke="#8b5cf6" stroke-width="1.5" fill="none" marker-end="url(#arr-purple)"/>
@@ -209,7 +209,7 @@
   <rect x="185" y="388" width="130" height="7" fill="#00897b"/>
   <text x="250" y="390" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="600">SettingsViewModel</text>
   <text x="250" y="410" text-anchor="middle" fill="#00695c" font-size="8">SettingsRepository</text>
-  <text x="250" y="424" text-anchor="middle" fill="#00695c" font-size="8">difficulty + toggles</text>
+  <text x="250" y="424" text-anchor="middle" fill="#00695c" font-size="8">difficulty · toggles · theme</text>
 
   <rect x="330" y="376" width="130" height="56" rx="7" fill="#ffffff" stroke="#00897b" stroke-width="1.2" filter="url(#shadow-sm)"/>
   <rect x="330" y="376" width="130" height="19" rx="7" fill="#00897b"/>
@@ -249,9 +249,9 @@
   <rect x="1135" y="376" width="130" height="56" rx="7" fill="#ffffff" stroke="#00897b" stroke-width="1.2" filter="url(#shadow-sm)"/>
   <rect x="1135" y="376" width="130" height="19" rx="7" fill="#00897b"/>
   <rect x="1135" y="388" width="130" height="7" fill="#00897b"/>
-  <text x="1200" y="390" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">+8 more VMs</text>
-  <text x="1200" y="410" text-anchor="middle" fill="#00695c" font-size="8">AboutAircraft, AboutMe</text>
-  <text x="1200" y="424" text-anchor="middle" fill="#00695c" font-size="8">DeviceInfo, QR, Flashlight, Image</text>
+  <text x="1200" y="390" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">+9 more VMs</text>
+  <text x="1200" y="410" text-anchor="middle" fill="#00695c" font-size="8">AboutAircraft, AboutMe, Image</text>
+  <text x="1200" y="424" text-anchor="middle" fill="#00695c" font-size="8">DeviceInfo, QR, Flashlight, Camera</text>
 
   <!-- ==================== GAME ENGINE LAYER ==================== -->
   <rect x="20" y="460" width="1360" height="430" rx="10" fill="url(#g-engine)" stroke="#38bdf8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
@@ -546,7 +546,7 @@
   <text x="970" y="968" fill="#86efac" font-size="10">utils/</text>
 
   <text x="876" y="988" fill="#166534" font-size="9">ScreenUtils · BitmapUtils · FilePickerHelper</text>
-  <text x="876" y="1003" fill="#166534" font-size="9">HallOfHeroesNameUtils</text>
+  <text x="876" y="1003" fill="#166534" font-size="9">HallOfHeroesNameUtils · DataUriUtils</text>
 
   <!-- ==================== THREADING DIAGRAM ==================== -->
   <rect x="20" y="1038" width="1360" height="78" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
@@ -651,7 +651,7 @@
   <rect x="1040" y="1210" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#64748b" stroke-width="0.8"/>
   <text x="1062" y="1222" fill="#64748b" font-size="9">AAR Library</text>
 
-  <text x="1350" y="1222" text-anchor="end" fill="#94a3b8" font-size="8.5">Kotlin · Gradle Kotlin DSL + version catalog · Android SDK 37 · AGP 9.3.1</text>
+  <text x="1350" y="1222" text-anchor="end" fill="#94a3b8" font-size="8.5">Kotlin · Gradle Kotlin DSL + version catalog · Android SDK 37 · AGP 9.4.0</text>
   <!-- 2026-05-14 update: Added PuzzleActivity branch and mode-aware save/resume path (AIR_BATTLE/PUZZLE). -->
   <!-- 2026-05-17 update: Puzzle screen now uses the standard tactical 52dp header (PuzzleHeader composable, back saves progress), difficulty grids set to Easy 3×3 / Normal 4×4 / Hard 5×5, and statusBarsPadding restores correct inset behavior under enableEdgeToEdge(). -->
   <!-- 2026-05-31 update: Refreshed Room schema to 2031, utility inventory with FilePickerHelper, Image/Banner detail ViewModels, and five background assets. -->
@@ -661,4 +661,10 @@
   <!-- 2026-07-19 update: Extracted RichTextEditorView into :richtexteditor Android library/AAR consumed by :app. -->
   <!-- 2026-08-15 update: Migrated Gradle build scripts to Kotlin DSL. -->
   <!-- 2026-08-15 update: Centralized plugin and dependency versions in gradle/libs.versions.toml. -->
+  <!-- 2026-09-18 update: Five-color theme system (green/blue/purple/yellow/red) — AircraftTheme/aircraftColorScheme, themed game + native dialogs, ThemedMessage Snackbar replaces Toasts; StarFieldView particles follow the accent. -->
+  <!-- 2026-09-18 update: CameraX debug camera scanning (CameraScanActivity + CameraScanViewModel); HistoryActivity is Compose (no HistoryFragment/RecyclerView); added DataUriUtils, WideScreen, MaxWidthLinearLayout helpers; AGP 9.4.0. -->
+  <!-- Theme & transient-UI summary strip -->
+  <rect x="20" y="1248" width="1360" height="24" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="0.8"/>
+  <text x="40" y="1264" fill="#5b21b6" font-size="9" font-weight="700">THEME &amp; TRANSIENT UI</text>
+  <text x="200" y="1264" fill="#6b21a8" font-size="8">5 accents · AircraftTheme / aircraftColorScheme · gui/dialogs: GameDialogContent, showThemed · ThemedMessage Snackbar · richtexteditor onMessage (Toast fallback)</text>
 </svg>

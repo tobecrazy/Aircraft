@@ -156,10 +156,10 @@ app/src/main/java/com/young/aircraft/
 │   ├── MedicalKitState.kt              # Medical kit pickup state
 │   ├── ShieldState.kt                  # Shield pickup state
 │   ├── TimeFreezeState.kt              # Time-freeze pickup state
-│   ├── GameMode.kt                     # AIR_BATTLE / PUZZLE mode enum for save/resume routing
+│   ├── GameMode.kt                     # AIR_BATTLE / PUZZLE mode enum for persisted progress
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
-│   ├── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/puzzle-guide/install-id store
+│   ├── SettingsRepository.kt           # SharedPreferences store: privacy, onboarding, difficulty, audio, five-color theme, puzzle guide, install ID
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 │   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
 │   └── BannerDetails.kt                # In-app banner content model (name/description/source)
@@ -168,11 +168,9 @@ app/src/main/java/com/young/aircraft/
 │   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host, tactical overlay shell, pause flow, dialogs, and DB save flow
-│   ├── PuzzleActivity.kt               # Compose puzzle gate levels and progress saves
-│   ├── HistoryActivity.kt              # History screen container
-│   ├── HistoryFragment.kt              # Leaderboard fragment
-│   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
-│   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
+│   ├── PuzzleActivity.kt               # Independent ten-level Compose puzzle game, opened from Settings
+│   ├── HistoryActivity.kt              # Compose leaderboard with top-record styling and deletion
+│   ├── SettingsActivity.kt             # Difficulty, sound, color theme, cache, and navigation hub
 │   ├── SettingsScreen.kt               # Compose settings presentation and destinations
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
 │   ├── FlashlightActivity.kt           # Compose flashlight utility with torch, SOS, and brightness controls
