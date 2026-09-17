@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Aircraft 游戏应用架构",
+    "output": "aircraft-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "game-path", "label": "游戏主链路", "focus": ["mainActivity", "gameCore", "aircraft", "enemies", "boss"], "note": "从游戏宿主 Activity 到 SurfaceView 渲染循环与核心游戏对象。" },
+      { "id": "state-persistence", "label": "状态与持久化", "focus": ["gameState", "gameCore", "db", "settingsRepo"], "note": "SharedFlow 广播游戏状态，Room 保存进度，SharedPreferences 持久化设置。" },
+      { "id": "shell-layers", "label": "应用壳层", "focus": ["gui", "mainActivity", "firebase", "music"], "note": "Compose 界面层、Firebase 集成与音频服务环绕游戏核心。" }
+    ]
+  },
+  "components": [
+    { "id": "gui", "type": "frontend", "label": "Compose 界面层", "sublabel": "设置 · 历史 · 关于", "pos": [40, 70], "size": [150, 64], "tag": "Material3" },
+    { "id": "firebase", "type": "external", "label": "Firebase", "sublabel": "Analytics + Crashlytics", "pos": [40, 230], "size": [150, 64] },
+    { "id": "settingsRepo", "type": "backend", "label": "SettingsRepository", "sublabel": "SharedPreferences", "pos": [40, 380], "size": [150, 64] },
+    { "id": "music", "type": "backend", "label": "MusicService", "sublabel": "BGM · SoundPool", "pos": [300, 460], "size": [150, 64] },
+    { "id": "mainActivity", "type": "frontend", "label": "MainActivity", "sublabel": "游戏宿主 · ViewBinding", "pos": [300, 230], "size": [150, 64] },
+    { "id": "gameState", "type": "messagebus", "label": "GameStateManager", "sublabel": "SharedFlow 广播", "pos": [560, 60], "size": [170, 64] },
+    { "id": "gameCore", "type": "backend", "label": "GameCoreView", "sublabel": "30 FPS 循环 · 碰撞检测", "variant": "emphasis", "pos": [560, 230], "size": [170, 72], "tag": "渲染线程" },
+    { "id": "db", "type": "database", "label": "Room AppDatabase", "sublabel": "v2030 · player_game_data", "pos": [560, 460], "size": [170, 64] },
+    { "id": "aircraft", "type": "frontend", "label": "Aircraft", "sublabel": "玩家战机 · 自动射击", "pos": [880, 40], "size": [150, 60] },
+    { "id": "enemies", "type": "frontend", "label": "Enemies", "sublabel": "15 种精灵 · 定时成行", "pos": [880, 170], "size": [150, 60] },
+    { "id": "boss", "type": "frontend", "label": "BossEnemy", "sublabel": "关卡 BOSS · 炸弹", "pos": [880, 300], "size": [150, 60] },
+    { "id": "pickups", "type": "frontend", "label": "拾取物", "sublabel": "礼盒 · 医疗 · 护盾 · 冻结", "pos": [880, 430], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "渲染线程（30 FPS）", "wraps": ["gameCore", "aircraft", "enemies", "boss", "pickups"] },
+    { "kind": "region", "label": "主线程 · 应用层", "wraps": ["gui", "firebase", "settingsRepo", "music", "mainActivity", "gameState", "db"] }
+  ],
+  "connections": [
+    { "id": "gui-to-main", "from": "gui", "to": "mainActivity", "label": "导航", "fromSide": "right", "toSide": "top" },
+    { "id": "main-to-core", "from": "mainActivity", "to": "gameCore", "label": "挂载 SurfaceView", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "main-to-firebase", "from": "mainActivity", "to": "firebase", "label": "会话埋点", "fromSide": "left", "toSide": "right" },
+    { "id": "core-to-aircraft", "from": "gameCore", "to": "aircraft", "label": "生成 / 更新", "fromSide": "right", "toSide": "left" },
+    { "id": "core-to-enemies", "from": "gameCore", "to": "enemies", "fromSide": "right", "toSide": "left" },
+    { "id": "core-to-boss", "from": "gameCore", "to": "boss", "label": "击杀目标达成", "fromSide": "right", "toSide": "left" },
+    { "id": "core-to-pickups", "from": "gameCore", "to": "pickups", "fromSide": "right", "toSide": "left" },
+    { "id": "core-to-state", "from": "gameCore", "to": "gameState", "label": "emit 状态", "fromSide": "top", "toSide": "bottom" },
+    { "id": "state-to-gui", "from": "gameState", "to": "gui", "label": "observe 状态", "variant": "dashed", "fromSide": "left", "toSide": "right" },
+    { "id": "core-to-db", "from": "gameCore", "to": "db", "label": "saveGameData", "fromSide": "bottom", "toSide": "top" },
+    { "id": "core-to-music", "from": "gameCore", "to": "music", "label": "播放音效", "fromSide": "bottom", "toSide": "top" },
+    { "id": "settings-to-core", "from": "settingsRepo", "to": "gameCore", "label": "难度 · 无敌模式", "variant": "dashed", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "渲染引擎", "items": ["GameCoreView 拥有独立渲染线程与 30 FPS 循环", "每帧执行 12 类碰撞检测与关卡推进", "游戏对象均继承 DrawBaseObject 抽象基类"] },
+    { "dot": "emerald", "title": "状态与持久化", "items": ["GameStateManager 经 SharedFlow 广播 GameState", "Room v2030 保存关卡 / 分数 / 战机皮肤", "SettingsRepository 持久化难度与音效开关"] },
+    { "dot": "amber", "title": "应用壳层", "items": ["Compose 承担除 3 个 ViewBinding 界面外的全部 UI", "Firebase 提供埋点与崩溃收集", "MusicService 为绑定服务，SoundPool 上限 5 路"] }
+  ]
+}

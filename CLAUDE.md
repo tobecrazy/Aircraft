@@ -6,206 +6,107 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Respond in Chinese (中文回复)**: All responses and explanations should be in Chinese.
 
-## Project Overview
+## Project and Documentation
 
-Aircraft is a 2D vertical-scrolling shooter game for Android, written in Kotlin. The player controls a jet plane, fires bullets upward, and destroys enemies while avoiding collisions. The game has 10 time-based levels with scaling difficulty and a boss fight at the end of each level.
+Aircraft is a Kotlin Android vertical-scrolling shooter. Two Gradle modules: `:app` contains the game and utility screens; `:richtexteditor` is a reusable Android View library consumed by the app and distributable as an AAR.
 
-Two Gradle modules: `:app` (the game) and `:richtexteditor` (a reusable Android library providing rich-text editing, used by `RichTextEditorActivity`).
+- [README.md](README.md): project overview, features, downloads, and architecture diagrams.
+- [DOCUMENT.md](DOCUMENT.md): detailed gameplay formulas and development documentation.
+- [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md): editor integration and AAR usage.
+- [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance. No Cursor rules were found during initialization.
+- **[AGENTS.md](AGENTS.md) is a symlink to this file**; edit CLAUDE.md rather than replacing the symlink.
 
-For detailed documentation (formulas, database schema, common tasks like adding enemies/sounds/languages, and how to play), see **[DOCUMENT.md](DOCUMENT.md)**.
+Some documentation is stale: README/Copilot describe interleaved puzzle gates, but current `MainActivity` advances directly to the next combat level. `PuzzleActivity` is a separate Settings entry with its own ten-level progression. Verify behavior against code before propagating documentation claims.
 
-**[AGENTS.md](AGENTS.md) is a symlink to this file — editing CLAUDE.md updates both automatically.**
+## Build, Lint, and Tests
 
-## Build Commands
+Run from the repository root:
 
 ```bash
-./gradlew assembleDebug          # Build debug APK
-./gradlew assembleRelease        # Build release APK
-./gradlew test                   # Run unit tests (Robolectric + JUnit)
-./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"  # Single test class (scope to :app:)
-./gradlew connectedAndroidTest   # Instrumented tests (requires device/emulator)
-./gradlew clean                  # Clean build
-./gradlew lint                   # Lint check
-./gradlew lintDebug              # Lint debug variant only (matches CI)
+./gradlew assembleDebug                         # Debug APK
+./gradlew assembleRelease                       # Release APK; requires signing configuration
+./gradlew :richtexteditor:assembleRelease        # Library AAR in richtexteditor/build/outputs/aar/
+./gradlew testDebugUnitTest                      # Debug unit tests across modules
+./gradlew test                                   # All unit-test variants
+./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"
+./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.gui.SettingsActivityTest"
+./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.StringResourceTest"
+./gradlew connectedAndroidTest                  # Requires device/emulator
+./gradlew lintDebug                             # Debug lint, as in CI
+./gradlew lint                                  # All lint variants
+./gradlew clean
+./gradlew assembleDebug lintDebug testDebugUnitTest  # CI-equivalent verification
 ```
 
-## Build Configuration
+Scope `--tests` to a module task (`:app:testDebugUnitTest`), not the root task: the library does not contain app test classes. Unit tests use JUnit, Robolectric, Mockito, and Compose UI testing; module builds enable Android resources for local tests.
 
-- **Gradle:** 9.7.0, AGP 9.3.1 (built-in Kotlin — do NOT add `org.jetbrains.kotlin.android` plugin separately; the `org.jetbrains.kotlin.plugin.compose` plugin IS still required for Compose), KSP 2.3.11
-- **Build files:** Kotlin DSL (`build.gradle.kts`), dependency versions centralized in `gradle/libs.versions.toml`
-- **SDK:** compileSdk 37, minSdk 30, targetSdk 37, buildToolsVersion 37.0.0
-- **Java:** 17
-- **Room:** 2.8.4
-- **Compose BOM:** 2026.08.00 (material3, foundation, activity-compose 1.13.0); Coil for Compose image loading
-- **Firebase:** BOM 34.18.0 (Analytics + Crashlytics)
-- **ZXing:** 3.5.4 (QR code generation/decoding)
-- **Networking:** Retrofit 3.0.0, OkHttp 5.5.0
-- **Test stack:** JUnit 4.13.2, Robolectric 4.16.1, Mockito 5.23.0/Kotlin 6.3.0, Compose UI test
-- **App ID:** `com.young.aircraft`
-- View Binding and Data Binding are both enabled
-- **R8:** release build has `isMinifyEnabled = true` + `isShrinkResources = true` (`proguard-rules.pro`)
-- Release signing reads from `keystore.properties` in project root (not checked in)
+`.github/workflows/android.yml` runs debug assembly, lint, and unit tests on pushes/PRs to `main`, with Temurin JDK 17. Do not infer Gradle success from the exit code of a downstream command in a shell pipeline.
+
+### Build Configuration and Prerequisites
+
+- JDK 17; Gradle wrapper version is in `gradle/wrapper/gradle-wrapper.properties` (currently 9.7.0).
+- Kotlin DSL builds; dependency/plugin versions are centralized in `gradle/libs.versions.toml` (currently AGP 9.3.2, KSP 2.3.11). AGP uses built-in Kotlin: do **not** add `org.jetbrains.kotlin.android`; the app still requires `org.jetbrains.kotlin.plugin.compose`.
+- Both modules use compileSdk 37 and minSdk 32; the app targets SDK 37 and build tools 37.0.0. Configure the Android SDK via `local.properties` or the environment.
+- App ID/namespace: `com.young.aircraft`; library namespace: `com.young.richtext`.
+- The app enables Compose, View Binding, and BuildConfig, not Data Binding.
+- Release enables R8 minification/resource shrinking via `app/proguard-rules.pro`. Signing loads root `keystore.properties` when present; it is not tracked.
+- Firebase Analytics and Crashlytics are configured in `app/build.gradle.kts`; `app/google-services.json` supplies the Firebase configuration.
 
 ## Architecture
 
-### Game Engine (SurfaceView-based)
+### Two Different State Models
 
-The game runs on a custom `SurfaceView` (`GameCoreView`) with a dedicated rendering thread at 30 FPS. This is **not** a Compose or standard View-based UI — it draws directly to a `Canvas`.
+**Game engine:** `MainActivity` hosts `ui/GameCoreView`, a `SurfaceView` implementing `SurfaceHolder.Callback` and `Runnable`. It owns a dedicated 30 FPS Canvas loop, game-object composition, collision detection, timers, and boss/level progression. Drawable objects derive from `DrawBaseObject`; `GameCoreView` itself does not. Mutable state models live in `data/`. Do not refactor this rendering hierarchy as if it were a Compose/MVVM screen.
 
-**Rendering hierarchy — all extend `DrawBaseObject` (abstract base with `onDraw`, `updateGame`, `getEnemyBounds`):**
-- `GameCoreView` (SurfaceView + Runnable) — owns the game loop, coordinates all drawing, collision detection, and level progression
-- `Aircraft` (ui/) — player jet with auto-firing bullets, touch-based movement
-- `DrawBackground` — seamless double-buffer scrolling background
-- `DrawHeader` — HUD overlay (level, HP, timer, kill count)
-- `Enemies` — timed row spawning with per-enemy Y tracking, 15 sprite types
-- `BossEnemy` — end-of-level boss with AI movement, bomb attacks, multi-explosion death
-- `RedEnvelopes` — collectible power-up: gift boxes that launch AoE rockets on detonation
-- `MedicalKits` — collectible health pickups: heart items that restore HP to max
-- `Shields` — collectible shield power-up: grants 10s invincibility with blink effect (spawns once per level, probability 90%→5% by level)
-- `TimeFreezes` — collectible time freeze: player pickup freezes enemies for 5s, enemy pickup freezes player for 5s (max 3 per level, probability 80%→20% by level)
-- `ExplosionEffect` — particle-based death animation (flash, fireball, debris, smoke phases)
+**Activity/UI layer:** Most non-game screens use Compose + Material3, with `viewmodel/` exposing StateFlow/LiveData state and, where needed, SharedFlow one-shot events. `data/SettingsRepository` wraps SharedPreferences; `providers/DatabaseProvider` supplies Room DAOs. Follow existing ViewModel/UiState/Factory patterns for new utilities. This is not universal: `PuzzleActivity` still owns substantial puzzle/image-loading state itself. `GameViewModel` handles game persistence/scoring, not the render loop.
 
-### Level System (Time-Based + Boss)
+`MainActivity`, `QRCodeToolActivity`, and `RichTextEditorActivity` retain ViewBinding hosts. `HistoryActivity` is Compose, not a HistoryFragment/RecyclerView flow. Game dialogs and the hall-of-heroes sheet use Compose content through `gui/dialogs/` even though the game host uses Views.
 
-Level duration **decreases** with progression (300s→120s); required kills **increase** (100→190). After the kill target is met, a Boss spawns — the level only completes when the Boss is defeated. Timer pauses during boss fights. All formulas are in `GameCoreView` and `Enemies` companion objects.
+### Navigation and Progression
 
-### Collision Detection
+First launch: `PrivacyPolicyAcceptActivity` → `OnboardingActivity` → `LaunchActivity` → `MainActivity`. Privacy/onboarding preferences skip completed gates. The launch hub also opens history, settings, and QR utilities; developer tools are exposed from Settings only in debug builds.
 
-Twelve checks run every frame in `GameCoreView.checkCollision()`:
-1. Player vs enemy sprites (RectF intersection, with cooldown)
-2. Enemy bullets vs player (shield absorbs)
-3. Player bullets vs enemies (increments both `enemiesDestroyedThisLevel` and `totalKills`)
-4. Player bullets vs red envelopes (consumed on hit, rocket on detonation)
-5. Rockets vs enemies (AoE blast on impact)
-6. Player vs boss body (instant death; shield absorbs)
-7. Boss bombs vs player (proximity detonation, 20 HP damage; shield absorbs)
-8. Player bullets vs boss (10 damage per hit)
-9. Rockets vs boss (10 damage via `bossEnemy.hitBoss()`)
-10. Medical kit pickup (player or boss can collect → HP restored to max)
-11. Shield pickup (bullet consumed, 10s invincibility activated)
-12. Time freeze pickup (player pickup → enemies frozen 5s; enemy pickup → player frozen 5s)
+Combat has ten timed levels with increasing kill targets and a boss after each target. The timer pauses during boss fights; defeating the boss completes the level. `MainActivity.onLevelComplete` saves the next level, then calls `coreView.advanceToNextLevel()`; final victory opens the hall-of-heroes sheet. `GameCoreView` and `Enemies` companion objects hold the difficulty/level formulas.
 
-### Scoring & Persistence (Room Database)
+`LaunchViewModel` offers continuation only when `(level > 1 || score > 0)` and `gameMode == AIR_BATTLE`. Launch/Main use `AircraftConstants.IntentExtras` to transfer starting level, jet resource/index, and total kills. Preserve kills when resuming so cumulative score survives.
 
-- **Score:** 100 points per kill, cumulative across all levels in a session
-- **Database:** Room (`AppDatabase`, version 2030) with `fallbackToDestructiveMigration(true)`. Migrations exist for 2027→2028→2029→2030. Table: `player_game_data` (playerId, level, score, jetPlaneRes, difficulty, timestamp). Access via `DatabaseProvider` singleton (providers/).
-- **Critical:** `finish()` must be called inside the coroutine *after* the DB write completes in `saveGameData()`, never alongside — otherwise `lifecycleScope` cancels the write.
+`SettingsActivity` opens the independent Compose drag-and-drop `PuzzleActivity`. It saves puzzle level/score using `GameViewModel` with `GameMode.PUZZLE`; do not assume a stored mode implies the launch hub can resume it.
 
-### Activity Flow
+### Thread and Event Boundaries
 
-Most GUI activities now use Jetpack Compose (`setContent`) — the `migrate to compose` commit converted nearly all of `gui/` off XML layouts. Only three activities still use ViewBinding: `MainActivity` (game host), `QRCodeToolActivity`, and `RichTextEditorActivity`. A handful of layout XMLs remain (bottom sheets, the three ViewBinding screens).
+- The game thread performs frame updates/drawing under the SurfaceHolder lock. Keep new mutable game-object work coordinated with that loop, rather than introducing unsynchronized Activity-side mutations.
+- `GameCoreView.post { ... }` dispatches game-over/level-complete/win callbacks **to the main/UI thread**. It is not a queue onto the game thread. Existing Activity entry points include pause/resume and level advancement; inspect their synchronization when changing them.
+- `common/GameStateManager` exposes a SharedFlow of `data/GameState` and the debug invincibility flag. `MainActivity` currently observes the flow for low-memory handling; normal completion dialogs use the direct callbacks above.
+- `GameCoreView` propagates time-freeze state into the player, enemies, and boss before updates. Changes to movement or projectiles must preserve freeze behavior across these objects.
+- `MusicService` is a bound MediaPlayer/SoundPool service with synchronized playback methods. `FlashlightService` separately owns the camera torch as a foreground service and holds a partial wake lock during SOS; this work must outlive the screen as designed.
 
-```
-PrivacyPolicyAcceptActivity (entry point, MAIN LAUNCHER, Theme.Aircraft.Common)
-  ├─→ [Already accepted?] → skips to OnboardingActivity
-  └─→ [Not accepted] → cinematic privacy policy (StarFieldView + WebView)
-       ├─→ [Accept] → saves pref → OnboardingActivity
-       └─→ [Reject] → finishAffinity() (exits app)
+### Persistence and Scoring
 
-OnboardingActivity (Theme.Aircraft.Common)
-  ├─→ [Already completed?] → skips to LaunchActivity
-  └─→ [Not completed] → Compose HorizontalPager carousel (ControlsPage + PowerupsPage)
-       ├─→ [Skip / Launch] → saves pref → LaunchActivity
-       └─→ LaunchActivity
+`DatabaseProvider` builds `aircraft_game.db` with `AppDatabase` (version 2031), registering migrations 2027→2028→2029→2030→2031. **There is no destructive-migration fallback in the current provider.** Schema changes need an explicit migration and registration.
 
-LaunchActivity (Theme.AppCompat.NoActionBar)
-  ├─→ [Start Game] → checks DB for saved progress
-  │     ├─→ saved data exists (level > 1) → dialog: Continue / New Game
-  │     └─→ no saved data → starts at level 1
-  ├─→ MainActivity (TransparentMaterialTheme) → GameCoreView (full-screen immersive game)
-  │     Intent extras: "start_level" (Int), "jet_plane_res" (Int)
-  ├─→ HistoryActivity (Theme.Aircraft.Common) → HistoryFragment → RecyclerView
-  ├─→ QRCodeToolActivity (Theme.Aircraft.Common) → QR scan/generate utility
-  └─→ SettingsActivity (Theme.Aircraft.Common)
-       ├─→ DeviceInfoActivity (device hardware/software info)
-       ├─→ QRCodeToolActivity
-       ├─→ FlashlightActivity (camera-flash torch utility)
-       ├─→ PuzzleActivity (sliding-puzzle minigame)
-       ├─→ AboutAircraftActivity
-       │     └─→ ShowImageDetailsActivity (project image viewer)
-       ├─→ AboutMeActivity (Compose-based developer profile)
-       ├─→ PrivacyPolicyActivity (WebView)
-       └─→ DevelopSettingsActivity (debug builds only — crash testing, invincible-mode toggle)
-             ├─→ RichTextEditorActivity
-             └─→ AndroidDevAssistantToolsActivity (tools hub)
-                   ├─→ DeviceInfoActivity
-                   └─→ HistoryActivity
+`PlayerGameData` / `PlayerGameDataDao` represent `player_game_data`. Records include combat and puzzle levels/scores, mode, total kills, player name, jet resource/index, and difficulty. `GameViewModel` uses an install ID from SettingsRepository to identify the current player. Combat score is `totalKills * 100`; `saveAirBattleData()` preserves existing puzzle level/score while saving combat progress.
 
-BannerDetailsActivity is launched from in-app banners (see SupperBannerView) rather than the main flow.
-```
+**Save before finishing:** keep `finish()` inside the `lifecycleScope` coroutine after the suspend save completes, as in `MainActivity.saveCurrentProgress()` callers and `PuzzleActivity`. Finishing alongside the coroutine can cancel the Room write.
 
-### Game State Broadcasting
+### Rich-Text Library Boundary
 
-`GameStateManager` (common/) broadcasts `GameState` enum values (defined in data/GameState.kt: `PLAYING`, `PAUSED`, `GAME_OVER`, `LEVEL_COMPLETE`, `GAME_WON`, `LOW_MEMORY`) via a Kotlin `SharedFlow`. Emit with `GameStateManager.emit(state)`, observe with `GameStateManager.gameState`.
+`richtexteditor` supplies `com.young.richtext.RichTextEditorView`; the app Activity owns mode switching, sample loading, WebView preview, and image-viewer navigation. The library has no dependency on the game.
 
-### Difficulty System
+Large unbroken/base64 content must not be inserted unchanged into the native EditText: native text layout can exhaust memory. `RichTextEditorActivity` skips oversized default content (`MAX_EDITABLE_LENGTH`) and sanitizes inline data-image tags via `makeHtmlEditable()` for JSON examples. Preserve these guards when changing content loading; use WebView preview rather than native text layout for large raw HTML.
 
-User-selectable via SharedPreferences (`"difficulty"` key): Easy (`"1.2"`), Normal (`"1.0"`), Hard (`"0.8"`). The multiplier controls the player's fire rate accumulator in `Aircraft` (ui/). The `GameDifficulty` enum (data/) maps these strings to `fireRateMultiplier` values.
+## Repository-Specific Conventions
 
-### Audio
+### UI and Localization
 
-`MusicService` is a bound Service using `MediaPlayer` for looping BGM and `SoundPool` (max 5 streams) for SFX. Sound IDs are hex constants (0x002-0x005). Sound toggles (background_sound, combat_sound) via SharedPreferences.
+- Match the tactical UI: dark background `#0F1118`, header `#161A26`, green accent `#00FF88`, monospace typography, and a 52dp header. There is no shared application-wide Compose theme; inspect peer screens rather than introducing a new shell.
+- Solid-background utility activities should use `Theme.Aircraft.Common` in the manifest; the game uses `TransparentMaterialTheme`. Preserve each screen's inset handling: View roots use `fitsSystemWindows`, while Compose screens use their existing padding/Scaffold patterns (e.g. Settings header uses `statusBarsPadding`). Do not apply the XML RelativeLayout header pattern indiscriminately to Compose screens or double-apply insets.
+- Default English and `values-zh/strings.xml` must stay synchronized. `StringResourceTest` checks locale parity and unused strings. Use resources (`stringResource`, `getString`, `@string/`) rather than hardcoded UI copy; remove orphan resources after refactoring.
+- Robolectric Compose screen tests use `createAndroidComposeRule` and `@GraphicsMode(NATIVE)`. For scrollable content, follow `SettingsActivityTest`'s tall viewport (`w420dp-h2000dp`): off-window clicks may silently do nothing.
 
-### Threading Model
+### Implementation Traps
 
-- **Main thread:** Activity lifecycle, UI, service binding, database access via `lifecycleScope`
-- **Game thread:** Dedicated thread in `GameCoreView` for the 30 FPS render loop (synchronized on SurfaceHolder)
-- **Service:** `MusicService` bound service with @Synchronized playback methods
-- **Never touch game objects from the main thread.** The main thread communicates via callbacks using `post {}`.
-
-### Frozen State (Time Freeze Mechanic)
-
-`TimeFreezes` sets a `frozen: Boolean` property on `Aircraft` (ui/), `Enemies`, and `BossEnemy` each frame. When `frozen = true`, the object skips movement and bullet updates. This is a cross-cutting state — `GameCoreView` propagates it from `TimeFreezes` to all affected objects during the render loop.
-
-### Compose UI Layer
-
-Jetpack Compose (`setContent` + Material3) is now the primary UI layer for non-game activities — the exceptions are `MainActivity`, `QRCodeToolActivity`, and `RichTextEditorActivity`, which still use ViewBinding. There is no shared Compose theme — screens use hardcoded color constants matching the tactical theme (BackgroundDark `#0F1118`, AccentGreen `#00FF88`, HeaderBg `#161A26`). `StarFieldView` (a custom Canvas animation view) is wrapped via `AndroidView` composable in activities that need it (PrivacyPolicyAcceptActivity, OnboardingActivity). Tests use `createAndroidComposeRule` with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` for Robolectric Compose testing; when clicking rows inside `verticalScroll` content, use a tall viewport qualifier (e.g. `w420dp-h2000dp`) — clicks on nodes below the fold land outside the window and silently no-op.
-
-### MVVM (non-game activities)
-
-Most non-game activities follow MVVM with a `ViewModel` in `viewmodel/` (e.g. `SettingsViewModel`, `LaunchViewModel`, `FlashlightViewModel`, `BannerDetailsViewModel`, `QRCodeToolViewModel`). UI state is typically a dedicated `*UiState` data class exposed via `StateFlow`/`LiveData`; one-shot effects use `SharedFlow` events (see `BannerDetailsEvent`). The Activity observes state and forwards user actions to the ViewModel — DB and SharedPreferences access goes through `providers/` (e.g. `SettingsRepository`, `DatabaseProvider`), not the Activity directly. The **game core (`GameCoreView` and its `DrawBaseObject` hierarchy) does NOT use this pattern** — it owns its own state on the render thread. When adding a new utility activity, mirror the existing ViewModel/UiState/Repository structure rather than putting logic in the Activity.
-
-## Key Gotchas
-
-### UI Consistency
-All UI interfaces must maintain a consistent style. When adding or modifying activities, match the existing patterns: standard 52dp header, color scheme (`#0F1118` background, `#161A26` header, `#00FF88` accent), monospace typography, `fitsSystemWindows="true"`, and the shared drawable/theme conventions. Never introduce novel layout structures or color values without checking how peer screens are built.
-
-### Null Safety (avoid `!!`)
-Never use the `!!` not-null assertion operator in Kotlin — it throws `NullPointerException` at runtime. Handle nullable variables safely instead: use `?.` safe calls, `?:` Elvis with a sensible default, `let`/`run` scope functions, early-return guards (`val x = foo ?: return`), or `requireNotNull(x) { "message" }` / `checkNotNull(x)` when a null genuinely indicates a programming error (these give a clear message instead of a bare NPE).
-
-### Naming Collision
-Two files named `Aircraft.kt`: `data/PlayerAircraft.kt` (data class, renamed from Aircraft) and `ui/Aircraft.kt` (rendering class). Code disambiguates with `import com.young.aircraft.data.PlayerAircraft as AircraftData`.
-
-### Bitmap Density
-All game object bitmaps must have `bitmap.density = screenDensity` set for correct canvas density scaling. Forgetting this causes incorrect rendering sizes.
-
-### Themes
-- `TransparentTheme` (app default) — translucent window, AppCompat-based, used as the application-level theme
-- `TransparentMaterialTheme` — translucent window with MaterialComponents, used by MainActivity (game host)
-- `Theme.Aircraft.Common` — MaterialComponents DayNight NoActionBar with dark background (#1B1F2B), used by most non-game activities
-- `Theme.Aircraft` — MaterialComponents DayNight DarkActionBar, not currently assigned to any activity in the manifest
-- Activities needing a solid background **must** set `android:theme="@style/Theme.Aircraft.Common"` in the manifest
-
-### Localization
-English (default) and Chinese (`values-zh/strings.xml`). A `StringResourceTest` verifies locale parity and usage coverage — when adding/removing strings, ensure both locales stay in sync to avoid test failures. Unused strings in `strings.xml` will also cause test failures; clean up orphans after refactors. If there are any String changes, ensure that all Strings are i18n-compatible and properly referenced (no hardcoded text in layouts or code — always use `@string/` in XML and `getString(R.string.*)` in Kotlin).
-
-### CI
-GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug lintDebug testDebugUnitTest` on push/PR to `main`, using JDK 17 (temurin). CI runs compile + lint + unit tests — keep tests passing locally before pushing.
-
-### Settings & Debug
-`SettingsRepository` (providers/) wraps SharedPreferences for difficulty, sound toggles, privacy acceptance, hit-shake effect, and a debug invincible-mode flag. `GameStateManager.isInvincible` exposes this flag to the game loop. Debug builds expose `DevelopSettingsActivity` (crash testing, invincible-mode toggle) from `SettingsActivity`.
-
-### Firebase
-Firebase Analytics and Crashlytics are integrated via the Firebase BOM. The `google-services.json` config file is required in `app/` for Firebase to initialize. Crashlytics plugin is applied in `app/build.gradle`.
-
-### QR Code Inverted Colors
-Generated QR codes use **white modules on dark background** (`#0F1118`) for the tactical theme. This is the inverse of standard QR codes (black on white). When decoding these images from file, ZXing's binarizer must try `source.invert()` as a fallback, otherwise decode always fails. See `decodeQrFromBitmap()` in `QRCodeToolActivity`.
-
-### Bottom Sheet Dialogs
-`BottomSheetDialog` with transparent background is used in `MainActivity` (hall of heroes) and `QRCodeToolActivity` (scan results). Each has a matching `ThemeOverlay` style in `themes.xml` and a custom layout in `res/layout/bottom_sheet_*.xml`. The pattern: create dialog with theme → inflate layout → `setContentView` → set `design_bottom_sheet` background to transparent in `setOnShowListener`.
-
-### Standard Activity Header Pattern
-Non-game activities share a consistent header: **52dp RelativeLayout** (`#161A26` background) with a 48dp back ImageButton (start-aligned) and a centered title TextView (`#00FF88`, 16sp, bold, monospace, letterSpacing 0.25). A 1dp green divider (`#4400FF88`) separates it from content. The root layout uses `android:fitsSystemWindows="true"` for status bar handling — do NOT use manual `WindowCompat.setDecorFitsSystemWindows(window, false)` + inset listeners in these activities.
-
-### FileProvider
-A `FileProvider` is registered in the manifest with authority `${applicationId}.fileprovider`. Path configuration in `res/xml/file_paths.xml` exposes `external-files-path` (Pictures/) and `cache-path`. The `FilePickerHelper` utility (utils/) provides `getUriForFile()`, `createQrImageFile()`, `copyUriToCache()`, and `queryFileInfo()`. Used by `QRCodeToolActivity` for sharing QR codes via `Intent.ACTION_SEND` with `FLAG_GRANT_READ_URI_PERMISSION`.
+- Never use Kotlin `!!`; use safe calls, explicit null guards, or `requireNotNull`/`checkNotNull` for programming errors.
+- Distinguish `data/PlayerAircraft.kt` (often aliased as `AircraftData`) from the rendered `ui/Aircraft.kt`.
+- Preserve `bitmap.density = screenDensity` for game sprites or Canvas scaling will be incorrect.
+- Generated QR codes are light-on-dark. Keep ZXing's inverted-source fallback when decoding them (`decodeQrFromBitmap` in QRCodeToolActivity).
+- File sharing uses the existing `${applicationId}.fileprovider`, `res/xml/file_paths.xml`, and `FilePickerHelper`; share content URIs with `FLAG_GRANT_READ_URI_PERMISSION`.
