@@ -263,7 +263,6 @@ private fun LivePreview(
                 .build()
         )
     }
-    val lastDelivered = remember { mutableStateOf<String?>(null) }
     var controller by remember { mutableStateOf<LifecycleCameraController?>(null) }
 
     DisposableEffect(locked) {
@@ -285,11 +284,7 @@ private fun LivePreview(
                         ) { result ->
                             val barcode = result?.getValue(barcodeScanner)?.firstOrNull()
                                 ?: return@MlKitAnalyzer
-                            val value = barcode.rawValue ?: return@MlKitAnalyzer
-                            if (value != lastDelivered.value) {
-                                lastDelivered.value = value
-                                onBarcode(value)
-                            }
+                            barcode.rawValue?.let(onBarcode)
                         }
                     )
                 }
