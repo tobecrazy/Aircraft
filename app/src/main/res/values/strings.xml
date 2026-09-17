@@ -1,4 +1,8 @@
 <resources>
+    <string name="theme_settings_title">Color theme</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_blue">Blue</string>
+    <string name="theme_purple">Purple</string>
     <string name="app_name">Aircraft</string>
     <string name="exit_warning_msg">Press again to save and exit</string>
     <string name="pause_title">GAME PAUSED</string>

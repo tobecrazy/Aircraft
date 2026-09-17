@@ -22,6 +22,11 @@ class SettingsViewModel(
     private val _uiState = MutableStateFlow(computeState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
+    fun setTheme(theme: String) {
+        repository.setTheme(theme)
+        _uiState.value = computeState()
+    }
+
     fun setDifficulty(difficulty: GameDifficulty) {
         repository.setDifficulty(difficulty)
         _uiState.value = computeState()
@@ -63,6 +68,7 @@ class SettingsViewModel(
         val enabledCount = listOf(bgSound, combatSound, hitShake).count { it }
 
         return SettingsUiState(
+            theme = repository.getTheme(),
             difficulty = repository.getDifficulty(),
             bgSoundEnabled = bgSound,
             combatSoundEnabled = combatSound,

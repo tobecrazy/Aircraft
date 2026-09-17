@@ -23,6 +23,7 @@ class SettingsViewModelTest {
     fun setUp() {
         repository = mock()
         gameDataDao = mock()
+        whenever(repository.getTheme()).thenReturn(SettingsRepository.THEME_GREEN)
         whenever(repository.getDifficulty()).thenReturn(GameDifficulty.NORMAL)
         whenever(repository.isBackgroundSoundEnabled()).thenReturn(true)
         whenever(repository.isCombatSoundEnabled()).thenReturn(true)

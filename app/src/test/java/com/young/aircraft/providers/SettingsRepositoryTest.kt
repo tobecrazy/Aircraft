@@ -56,6 +56,20 @@ class SettingsRepositoryTest {
     }
 
     @Test
+    fun `theme defaults to green persists and falls back for unknown values`() {
+        val repository = SettingsRepository(context)
+        assertEquals(SettingsRepository.THEME_GREEN, repository.getTheme())
+        listOf(SettingsRepository.THEME_BLUE, SettingsRepository.THEME_PURPLE, SettingsRepository.THEME_GREEN)
+            .forEach { theme ->
+                repository.setTheme(theme)
+                assertEquals(theme, SettingsRepository(context).getTheme())
+            }
+        context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(SettingsRepository.KEY_THEME, "unknown").commit()
+        assertEquals(SettingsRepository.THEME_GREEN, repository.getTheme())
+    }
+
+    @Test
     fun `install id is generated once and then reused`() {
         val repository = SettingsRepository(context)
 

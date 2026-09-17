@@ -173,7 +173,7 @@ private val Yellow = Color(0xFFFFFF00)
 private fun pctColor(pct: Int): Color = when {
     pct >= 80 -> Red
     pct >= 50 -> Yellow
-    else -> AccentGreen
+    else -> Color(0xFF00FF88)
 }
 
 private fun batteryPctColor(pct: Int): Color = when {

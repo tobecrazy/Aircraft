@@ -3,6 +3,7 @@ package com.young.aircraft.gui
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -45,6 +46,7 @@ class SettingsActivityTest {
         override fun before() {
             val context = ApplicationProvider.getApplicationContext<Context>()
             repository = SettingsRepository(context)
+            repository.setTheme(SettingsRepository.THEME_GREEN)
             repository.setDifficulty(GameDifficulty.NORMAL)
             repository.setBackgroundSoundEnabled(true)
             repository.setCombatSoundEnabled(true)
@@ -69,6 +71,21 @@ class SettingsActivityTest {
         composeRule.waitForIdle()
 
         assertTrue(composeRule.activity.isFinishing)
+    }
+
+    @Test
+    fun `selecting theme persists across activity recreation`() {
+        listOf(
+            SettingsRepository.THEME_BLUE to R.string.theme_blue,
+            SettingsRepository.THEME_PURPLE to R.string.theme_purple,
+            SettingsRepository.THEME_GREEN to R.string.theme_green
+        ).forEach { (theme, label) ->
+            val text = composeRule.activity.getString(label)
+            composeRule.onNodeWithText(text).performScrollTo().performClick().assertIsSelected()
+            assertEquals(theme, repository().getTheme())
+            composeRule.activityRule.scenario.recreate()
+            composeRule.onNodeWithText(text).performScrollTo().assertIsSelected()
+        }
     }
 
     @Test

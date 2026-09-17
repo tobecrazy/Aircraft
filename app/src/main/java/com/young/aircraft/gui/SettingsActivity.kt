@@ -39,6 +39,7 @@ class SettingsActivity : AppCompatActivity() {
                     state = state,
                     soundOptionCount = soundOptionCount,
                     onBack = { finish() },
+                    onThemeSelected = viewModel::setTheme,
                     onDifficultySelected = viewModel::setDifficulty,
                     onBgSoundToggled = viewModel::setBgSoundEnabled,
                     onCombatSoundToggled = viewModel::setCombatSoundEnabled,

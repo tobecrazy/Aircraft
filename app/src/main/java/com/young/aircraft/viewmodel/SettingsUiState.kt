@@ -4,6 +4,7 @@ import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.SettingsRepository
 
 data class SettingsUiState(
+    val theme: String = SettingsRepository.THEME_GREEN,
     val difficulty: GameDifficulty = GameDifficulty.NORMAL,
     val bgSoundEnabled: Boolean = true,
     val combatSoundEnabled: Boolean = true,

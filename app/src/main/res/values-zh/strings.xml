@@ -1,4 +1,8 @@
 <resources>
+    <string name="theme_settings_title">主题配色</string>
+    <string name="theme_green">绿色</string>
+    <string name="theme_blue">蓝色</string>
+    <string name="theme_purple">紫色</string>
     <string name="app_name">飞机大战</string>
     <string name="exit_warning_msg">再按一次保存进度并退出</string>
     <string name="pause_title">游戏暂停</string>
