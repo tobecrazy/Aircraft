@@ -59,7 +59,8 @@ class SettingsRepositoryTest {
     fun `theme defaults to green persists and falls back for unknown values`() {
         val repository = SettingsRepository(context)
         assertEquals(SettingsRepository.THEME_GREEN, repository.getTheme())
-        listOf(SettingsRepository.THEME_BLUE, SettingsRepository.THEME_PURPLE, SettingsRepository.THEME_GREEN)
+        listOf(SettingsRepository.THEME_BLUE, SettingsRepository.THEME_PURPLE,
+            SettingsRepository.THEME_YELLOW, SettingsRepository.THEME_RED, SettingsRepository.THEME_GREEN)
             .forEach { theme ->
                 repository.setTheme(theme)
                 assertEquals(theme, SettingsRepository(context).getTheme())

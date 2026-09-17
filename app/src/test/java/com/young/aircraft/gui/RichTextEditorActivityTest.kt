@@ -21,7 +21,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.Shadows
-import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -112,7 +111,7 @@ class RichTextEditorActivityTest {
                 assertFalse(content.contains("data:image/png;base64"))
                 assertEquals(
                     context.getString(R.string.rich_text_example_json_loaded),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
@@ -127,10 +126,10 @@ class RichTextEditorActivityTest {
         assertEquals("<p><span>[embedded image omitted]</span></p><p>keep</p>", editable)
     }
 
-    // ── Formatting without selection shows toast ─────────────
+    // ── Formatting without selection shows snackbar ─────────────
 
     @Test
-    fun `bold without selection shows toast`() {
+    fun `bold without selection shows snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editor = findEditor(activity)
@@ -140,14 +139,14 @@ class RichTextEditorActivityTest {
                 activity.findViewById<View>(RichTextR.id.rich_btn_bold).performClick()
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_select_text),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
     }
 
     @Test
-    fun `italic without selection shows toast`() {
+    fun `italic without selection shows snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editor = findEditor(activity)
@@ -157,14 +156,14 @@ class RichTextEditorActivityTest {
                 activity.findViewById<View>(RichTextR.id.rich_btn_italic).performClick()
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_select_text),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
     }
 
     @Test
-    fun `underline without selection shows toast`() {
+    fun `underline without selection shows snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editor = findEditor(activity)
@@ -174,7 +173,7 @@ class RichTextEditorActivityTest {
                 activity.findViewById<View>(RichTextR.id.rich_btn_underline).performClick()
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_select_text),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
@@ -238,20 +237,20 @@ class RichTextEditorActivityTest {
     // ── Markdown toggle ──────────────────────────────────────
 
     @Test
-    fun `markdown toggle shows enabled toast`() {
+    fun `markdown toggle shows enabled snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 activity.findViewById<View>(RichTextR.id.rich_btn_markdown).performClick()
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_md_on),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
     }
 
     @Test
-    fun `markdown double toggle shows disabled toast`() {
+    fun `markdown double toggle shows disabled snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val btn = activity.findViewById<View>(RichTextR.id.rich_btn_markdown)
@@ -259,7 +258,7 @@ class RichTextEditorActivityTest {
                 btn.performClick() // OFF
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_md_off),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }

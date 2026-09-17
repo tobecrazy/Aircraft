@@ -85,6 +85,22 @@ The demo above walks through the end-to-end player experience on a real device:
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
 
+## Color Themes
+
+Open **Settings → Color theme**, above **Other settings**, to choose Green, Blue, Purple, Yellow, or Red. The selection is saved locally and applied live without restarting; dark backgrounds are retained.
+
+| Theme | Accent | Starfield particle |
+|-------|--------|--------------------|
+| Green | `#00FF88` | Green ❉ |
+| Blue | `#64B5FF` | Blue ♣ |
+| Purple | `#C4A0FF` | Purple ♦ |
+| Yellow | `#FFD54F` | ⭐ |
+| Red | `#FF5252` | 🌹 |
+
+`StarFieldView` uses larger, slower-moving particles on the launch hub and first-launch screens. Emoji appearance depends on the device's emoji font. This does **not** replace the scrolling combat backgrounds or alter game rendering.
+
+Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, and the QR-result and Hall of Heroes bottom sheets use the selected accent. Foreground feedback uses themed Snackbars instead of system-styled Toasts. Android-owned UI, such as permission prompts, file pickers, and notifications, keeps its system styling. The standalone rich-text AAR retains a Toast fallback and exposes an optional `onMessage` callback for host-specific feedback.
+
 ## Gameplay
 
 - **Progression**: 10 combat levels with timers decreasing from 300s to 120s, plus 9 puzzle levels gated between combat levels

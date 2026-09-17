@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -114,7 +113,7 @@ class FlashlightActivity : AppCompatActivity() {
     ) { granted ->
         hasCameraPermission = granted
         if (!granted) {
-            Toast.makeText(this, R.string.flashlight_permission_denied, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.flashlight_permission_denied, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 
@@ -138,7 +137,7 @@ class FlashlightActivity : AppCompatActivity() {
                 val uiState by viewModel.uiState.collectAsState()
                 LaunchedEffect(uiState.errorMessage) {
                     uiState.errorMessage?.let {
-                        Toast.makeText(this@FlashlightActivity, it, Toast.LENGTH_SHORT).show()
+                        ThemedMessage.makeText(this@FlashlightActivity, it, ThemedMessage.LENGTH_SHORT).show()
                         viewModel.clearError()
                     }
                 }
@@ -214,7 +213,7 @@ class FlashlightActivity : AppCompatActivity() {
         runCatching { startActivity(list) }
             .recoverCatching { startActivity(perApp) }
             .onFailure {
-                Toast.makeText(this, it.message ?: "Settings unavailable", Toast.LENGTH_SHORT).show()
+                ThemedMessage.makeText(this, it.message ?: "Settings unavailable", ThemedMessage.LENGTH_SHORT).show()
             }
     }
 

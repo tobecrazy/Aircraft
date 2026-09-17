@@ -25,7 +25,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
-import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -157,14 +156,14 @@ class QRCodeToolActivityTest {
     // ── Generate QR Code ─────────────────────────────────────
 
     @Test
-    fun `generate with empty content shows toast`() {
+    fun `generate with empty content shows snackbar`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 activity.findViewById<View>(R.id.btn_generate_qr).performClick()
 
                 assertEquals(
                     context.getString(R.string.qr_code_tool_no_content),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
@@ -334,7 +333,7 @@ class QRCodeToolActivityTest {
     }
 
     @Test
-    fun `clicking Copy button shows copied toast`() {
+    fun `clicking Copy button shows copied snackbar`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 invokeOnScanResult(activity, "toast test")
@@ -343,7 +342,7 @@ class QRCodeToolActivityTest {
 
                 assertEquals(
                     context.getString(R.string.qr_code_tool_copied),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }

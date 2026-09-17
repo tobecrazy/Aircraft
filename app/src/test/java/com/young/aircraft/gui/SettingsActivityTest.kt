@@ -78,6 +78,8 @@ class SettingsActivityTest {
         listOf(
             SettingsRepository.THEME_BLUE to R.string.theme_blue,
             SettingsRepository.THEME_PURPLE to R.string.theme_purple,
+            SettingsRepository.THEME_YELLOW to R.string.theme_yellow,
+            SettingsRepository.THEME_RED to R.string.theme_red,
             SettingsRepository.THEME_GREEN to R.string.theme_green
         ).forEach { (theme, label) ->
             val text = composeRule.activity.getString(label)

@@ -3,7 +3,6 @@ package com.young.aircraft.gui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -127,10 +126,10 @@ class BannerDetailsActivity : AppCompatActivity() {
                 viewModel.events.collect { event ->
                     when (event) {
                         is BannerDetailsEvent.SaveCompleted -> {
-                            Toast.makeText(
+                            ThemedMessage.makeText(
                                 this@BannerDetailsActivity,
                                 if (event.saved) R.string.banner_details_save_success else R.string.banner_details_save_failed,
-                                Toast.LENGTH_SHORT
+                                ThemedMessage.LENGTH_SHORT
                             ).show()
                         }
                     }

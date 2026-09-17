@@ -12,7 +12,6 @@ import android.view.WindowInsetsController
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.OnBackPressedCallback
@@ -371,9 +370,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun exitApp() {
         if ((System.currentTimeMillis() - exitTime) > 2000) {
-            Toast.makeText(
+            ThemedMessage.makeText(
                 this, getString(R.string.exit_warning_msg),
-                Toast.LENGTH_SHORT
+                ThemedMessage.LENGTH_SHORT
             ).show()
             exitTime = System.currentTimeMillis()
         } else {

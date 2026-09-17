@@ -25,7 +25,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.SurfaceHolder
 import android.view.View
-import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -108,11 +107,11 @@ class QRCodeToolActivity : AppCompatActivity() {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         } ?: false
         if (saved) {
-            Toast.makeText(this, R.string.qr_code_tool_save_success, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.qr_code_tool_save_success, ThemedMessage.LENGTH_SHORT).show()
             viewModel.onSaveSuccess(uri)
             binding.btnShareQr.visibility = View.VISIBLE
         } else {
-            Toast.makeText(this, R.string.qr_code_tool_save_failed, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.qr_code_tool_save_failed, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 
@@ -138,8 +137,8 @@ class QRCodeToolActivity : AppCompatActivity() {
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) startScanning() else Toast.makeText(
-            this, R.string.qr_code_tool_camera_permission_denied, Toast.LENGTH_SHORT
+        if (granted) startScanning() else ThemedMessage.makeText(
+            this, R.string.qr_code_tool_camera_permission_denied, ThemedMessage.LENGTH_SHORT
         ).show()
     }
 
@@ -158,6 +157,9 @@ class QRCodeToolActivity : AppCompatActivity() {
 
         binding = ActivityQrCodeToolBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.richEditor.onMessage = { message ->
+            ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
+        }
 
         binding.surfaceCamera.holder.addCallback(scanSurfaceCallback)
 
@@ -276,10 +278,10 @@ class QRCodeToolActivity : AppCompatActivity() {
         if (cameraId == null) {
             isCameraOpening = false
             runOnUiThread {
-                Toast.makeText(
+                ThemedMessage.makeText(
                     this,
                     R.string.qr_code_tool_camera_error,
-                    Toast.LENGTH_SHORT
+                    ThemedMessage.LENGTH_SHORT
                 ).show()
                 stopScanning()
             }
@@ -336,10 +338,10 @@ class QRCodeToolActivity : AppCompatActivity() {
                     camera.close()
                     cameraDevice = null
                     runOnUiThread {
-                        Toast.makeText(
+                        ThemedMessage.makeText(
                             this@QRCodeToolActivity,
                             R.string.qr_code_tool_camera_error,
-                            Toast.LENGTH_SHORT
+                            ThemedMessage.LENGTH_SHORT
                         ).show()
                         stopScanning()
                     }
@@ -348,10 +350,10 @@ class QRCodeToolActivity : AppCompatActivity() {
         } catch (_: CameraAccessException) {
             isCameraOpening = false
             runOnUiThread {
-                Toast.makeText(
+                ThemedMessage.makeText(
                     this,
                     R.string.qr_code_tool_camera_error,
-                    Toast.LENGTH_SHORT
+                    ThemedMessage.LENGTH_SHORT
                 ).show()
                 stopScanning()
             }
@@ -402,10 +404,10 @@ class QRCodeToolActivity : AppCompatActivity() {
 
                 override fun onConfigureFailed(session: CameraCaptureSession) {
                     runOnUiThread {
-                        Toast.makeText(
+                        ThemedMessage.makeText(
                             this@QRCodeToolActivity,
                             R.string.qr_code_tool_camera_error,
-                            Toast.LENGTH_SHORT
+                            ThemedMessage.LENGTH_SHORT
                         ).show()
                         stopScanning()
                     }
@@ -444,7 +446,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     private fun copyScanResult(result: String) {
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
-        Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
+        ThemedMessage.makeText(this, R.string.qr_code_tool_copied, ThemedMessage.LENGTH_SHORT).show()
     }
 
     private fun releaseCamera() {
@@ -581,10 +583,10 @@ class QRCodeToolActivity : AppCompatActivity() {
                 }
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.qr_code_tool_share_button)))
             } catch (_: Exception) {
-                Toast.makeText(
+                ThemedMessage.makeText(
                     this@QRCodeToolActivity,
                     R.string.qr_code_tool_save_failed,
-                    Toast.LENGTH_SHORT
+                    ThemedMessage.LENGTH_SHORT
                 ).show()
             }
         }
@@ -626,10 +628,10 @@ class QRCodeToolActivity : AppCompatActivity() {
                     } else rawBitmap
                 }
                 if (bitmap == null) {
-                    Toast.makeText(
+                    ThemedMessage.makeText(
                         this@QRCodeToolActivity,
                         R.string.qr_code_tool_pick_failed,
-                        Toast.LENGTH_SHORT
+                        ThemedMessage.LENGTH_SHORT
                     ).show()
                     return@launch
                 }
@@ -637,13 +639,13 @@ class QRCodeToolActivity : AppCompatActivity() {
                 if (result != null) {
                     onScanResult(result)
                 } else {
-                    Toast.makeText(this@QRCodeToolActivity, R.string.qr_code_tool_invalid_qr, Toast.LENGTH_SHORT).show()
+                    ThemedMessage.makeText(this@QRCodeToolActivity, R.string.qr_code_tool_invalid_qr, ThemedMessage.LENGTH_SHORT).show()
                 }
             } catch (_: Exception) {
-                Toast.makeText(
+                ThemedMessage.makeText(
                     this@QRCodeToolActivity,
                     R.string.qr_code_tool_pick_failed,
-                    Toast.LENGTH_SHORT
+                    ThemedMessage.LENGTH_SHORT
                 ).show()
             }
         }
@@ -655,7 +657,7 @@ class QRCodeToolActivity : AppCompatActivity() {
         binding.btnGenerateQr.setOnClickListener {
             val content = binding.richEditor.plainText.trim()
             if (content.isEmpty()) {
-                Toast.makeText(this, R.string.qr_code_tool_no_content, Toast.LENGTH_SHORT).show()
+                ThemedMessage.makeText(this, R.string.qr_code_tool_no_content, ThemedMessage.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             generateQrCode(content)
@@ -668,7 +670,7 @@ class QRCodeToolActivity : AppCompatActivity() {
             binding.ivQrCode.setImageBitmap(bitmap)
             renderContentState()
         } else {
-            Toast.makeText(this, R.string.qr_code_tool_content_too_long, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.qr_code_tool_content_too_long, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 

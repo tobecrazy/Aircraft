@@ -3,7 +3,6 @@ package com.young.aircraft.gui
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.Formatter
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -122,7 +121,7 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 R.string.clear_cache_failed
             }
-            Toast.makeText(this@SettingsActivity, messageRes, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this@SettingsActivity, messageRes, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 }

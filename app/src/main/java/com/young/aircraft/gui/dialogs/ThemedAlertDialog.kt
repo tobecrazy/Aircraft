@@ -31,11 +31,9 @@ fun MaterialAlertDialogBuilder.showThemed(): AlertDialog {
     val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == null || key == SettingsRepository.KEY_THEME) applyTheme()
     }
-    dialog.setOnShowListener {
-        repository.registerListener(listener)
-        applyTheme()
-    }
     dialog.setOnDismissListener { repository.unregisterListener(listener) }
     dialog.show()
+    repository.registerListener(listener)
+    applyTheme()
     return dialog
 }

@@ -41,7 +41,7 @@ private val SecondaryButtonBorder = Color(0x44FFFFFF)
 private val SecondaryButtonText = Color(0xFFD8E0EF)
 private val MessageColor = Color(0xFFD8E0EF)
 
-/** Per-tone colors; SettingsActivity's clear-cache dialog copies + overrides individual slots. */
+/** Dialog colors derived from the current theme's accent. */
 data class GameDialogPalette(
     val titleColor: Color,
     val dividerColor: Color,

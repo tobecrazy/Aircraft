@@ -5,12 +5,21 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Persisted Green, Blue, Purple, Yellow, and Red themes selectable above Other settings, with live accent updates and synchronized English/Chinese labels
+- Theme-specific starfield particles: Green ❉, Blue ♣, Purple ♦, Yellow ⭐, and Red 🌹; emoji appearance follows the device's font
+- Optional `RichTextEditorView.onMessage` callback so app hosts can theme editor feedback while standalone AAR consumers retain the default Toast behavior
+- Regression coverage for theme palettes, starfield changes, native dialog colors, and clear-cache cancellation
 - Enabled R8 code shrinking and resource shrinking for release builds (`isMinifyEnabled = true`, `isShrinkResources = true`), reducing the release APK from ~45 MB to ~16 MB; Crashlytics receives the R8 mapping file automatically so obfuscated release stack traces remain retraceable
 
 ### Fixed
+- Clear-cache Cancel now dismisses the dialog even when no negative-action callback is supplied; shared dialog hosts provide the dismissal action
+- Dialogs hosted in separate Compose roots now inherit the saved theme rather than default Material colors
 - Release builds failed at `produceReleaseComposeMapping` with `Could not find org.jetbrains.kotlin:compose-group-mapping:2.2.10` (AGP's bundled KGP version; that artifact is only published from KGP 2.3.0+). Fixed by raising the built-in Kotlin Gradle plugin to `2.4.10` via a `buildscript` classpath dependency, matching the Compose compiler plugin version
 
 ### Changed
+- Enlarged starfield particles and slowed their movement for longer screen traversal; combat scrolling backgrounds are unchanged
+- Game/clear-cache dialogs, native confirmations, and Hall of Heroes/QR-result bottom sheets now follow the selected theme; Material3 surface and accent slots retain the dark tactical appearance
+- Replaced foreground app Toast feedback with themed Snackbars; system-owned permission prompts, pickers, and notifications remain system-styled
 - Migrated `SettingsActivity` from its XML layout to the Compose-based `SettingsScreen`; difficulty, sound, cache-clearing, and utility navigation behavior are preserved while the obsolete settings drawables and layout were removed
 - Fixed ProGuard keep-rule syntax in `app/proguard-rules.pro`: `-keepclassmembers enum class X` → `-keepclassmembers enum X` for `GameDifficulty` and `GameState` (the old form fails to parse under the R8 bundled with AGP 9)
 - Completed AGP 9 built-in-Kotlin migration: removed the obsolete `android.disallowKotlinSourceSets=false` flag from `gradle.properties` (not needed with KSP 2.3.11); confirmed the Compose Compiler Gradle plugin (`org.jetbrains.kotlin.plugin.compose`) is still required alongside built-in Kotlin

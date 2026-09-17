@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -131,7 +130,7 @@ class CameraScanActivity : ComponentActivity() {
     private fun copyScanResult(result: String) {
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
-        Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
+        ThemedMessage.makeText(this, R.string.qr_code_tool_copied, ThemedMessage.LENGTH_SHORT).show()
     }
 }
 

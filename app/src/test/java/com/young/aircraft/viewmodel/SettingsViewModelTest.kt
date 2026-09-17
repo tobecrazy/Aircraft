@@ -46,6 +46,22 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `setTheme persists all five choices and updates state`() {
+        viewModel = createViewModel()
+        assertEquals(SettingsRepository.THEME_GREEN, viewModel.uiState.value.theme)
+        listOf(
+            SettingsRepository.THEME_GREEN, SettingsRepository.THEME_BLUE,
+            SettingsRepository.THEME_PURPLE, SettingsRepository.THEME_YELLOW,
+            SettingsRepository.THEME_RED
+        ).forEach { theme ->
+            whenever(repository.getTheme()).thenReturn(theme)
+            viewModel.setTheme(theme)
+            verify(repository).setTheme(theme)
+            assertEquals(theme, viewModel.uiState.value.theme)
+        }
+    }
+
+    @Test
     fun `setDifficulty persists and updates state`() {
         viewModel = createViewModel()
 

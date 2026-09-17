@@ -5,7 +5,6 @@ import android.text.Html
 import android.text.Spanned
 import android.view.View
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModelProvider
@@ -33,6 +32,9 @@ class RichTextEditorActivity : AppCompatActivity() {
 
         binding = ActivityRichTextEditorBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.richEditor.onMessage = { message ->
+            ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
+        }
 
         binding.btnBack.setOnClickListener { finish() }
         setupModeToggle()
@@ -80,10 +82,10 @@ class RichTextEditorActivity : AppCompatActivity() {
             true
         }.getOrDefault(false)
 
-        Toast.makeText(
+        ThemedMessage.makeText(
             this,
             if (loaded) R.string.rich_text_example_json_loaded else R.string.rich_text_example_json_failed,
-            Toast.LENGTH_SHORT
+            ThemedMessage.LENGTH_SHORT
         ).show()
     }
 
