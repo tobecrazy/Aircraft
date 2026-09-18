@@ -6,10 +6,13 @@ import android.text.Spanned
 import android.view.View
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.toColorInt
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.R
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.databinding.ActivityRichTextEditorBinding
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.themeAccent
 import com.young.aircraft.utils.DataUriUtils
 import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.RichTextEditorViewModel
@@ -20,6 +23,7 @@ class RichTextEditorActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRichTextEditorBinding
     private lateinit var viewModel: RichTextEditorViewModel
+    private var accentArgb: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +39,7 @@ class RichTextEditorActivity : AppCompatActivity() {
         binding.richEditor.onMessage = { message ->
             ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
         }
+        applyThemeColors()
 
         binding.btnBack.setOnClickListener { finish() }
         setupModeToggle()
@@ -89,10 +94,30 @@ class RichTextEditorActivity : AppCompatActivity() {
         ).show()
     }
 
+    /** Applies the persisted accent to the chrome; dark surfaces stay constant by design. */
+    private fun applyThemeColors() {
+        val accent = themeAccent(SettingsRepository(this).getTheme())
+        accentArgb = accent.toArgb()
+        binding.btnBack.setColorFilter(accentArgb)
+        binding.tvHeaderTitle.setTextColor(accentArgb)
+        binding.dividerTop.setBackgroundColor(accent.copy(alpha = 0x44 / 255f).toArgb())
+        binding.dividerBottom.setBackgroundColor(accent.copy(alpha = 0x44 / 255f).toArgb())
+        binding.richEditor.markdownActiveColor = accentArgb
+        renderModeToggle()
+    }
+
+    private fun renderModeToggle() {
+        binding.btnEditMode.setTextColor(
+            if (viewModel.isEditMode) accentArgb else MODE_INACTIVE_COLOR
+        )
+        binding.btnPreviewMode.setTextColor(
+            if (viewModel.isEditMode) MODE_INACTIVE_COLOR else accentArgb
+        )
+    }
+
     private fun switchToEditMode() {
         viewModel.switchToEditMode()
-        binding.btnEditMode.setTextColor("#00FF88".toColorInt())
-        binding.btnPreviewMode.setTextColor("#66FFFFFF".toColorInt())
+        renderModeToggle()
         binding.richEditor.visibility = View.VISIBLE
         binding.wvPreview.visibility = View.GONE
     }
@@ -101,8 +126,7 @@ class RichTextEditorActivity : AppCompatActivity() {
         val html = buildPreviewHtml()
 
         viewModel.switchToPreviewMode()
-        binding.btnEditMode.setTextColor("#66FFFFFF".toColorInt())
-        binding.btnPreviewMode.setTextColor("#00FF88".toColorInt())
+        renderModeToggle()
         binding.richEditor.visibility = View.GONE
         binding.wvPreview.visibility = View.VISIBLE
 
@@ -116,7 +140,7 @@ class RichTextEditorActivity : AppCompatActivity() {
         binding.wvPreview.settings.javaScriptEnabled = false
         binding.wvPreview.settings.loadWithOverviewMode = true
         binding.wvPreview.settings.useWideViewPort = true
-        binding.wvPreview.setBackgroundColor("#0F1118".toColorInt())
+        binding.wvPreview.setBackgroundColor(BackgroundDark.toArgb())
         binding.wvPreview.setWebViewClient(object : android.webkit.WebViewClient() {
             @Deprecated("Deprecated in Java")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
@@ -167,6 +191,7 @@ class RichTextEditorActivity : AppCompatActivity() {
 
     private fun wrapHtml(body: String): String {
         val clickableBody = RichTextEditorView.makeImagesClickable(body)
+        val accentHex = "#%06X".format(accentArgb and 0xFFFFFF)
         return """
             <!DOCTYPE html>
             <html>
@@ -184,7 +209,7 @@ class RichTextEditorActivity : AppCompatActivity() {
                     word-wrap: break-word;
                 }
                 h1, h2, h3, h4, h5, h6 {
-                    color: #00FF88;
+                    color: $accentHex;
                     margin: 12px 0 6px 0;
                 }
                 a {
@@ -201,7 +226,7 @@ class RichTextEditorActivity : AppCompatActivity() {
                     background: #1E2233;
                     padding: 2px 6px;
                     border-radius: 3px;
-                    color: #00FF88;
+                    color: $accentHex;
                     font-size: 13px;
                 }
                 pre {
@@ -212,7 +237,7 @@ class RichTextEditorActivity : AppCompatActivity() {
                 }
                 hr {
                     border: none;
-                    border-top: 1px solid #4400FF88;
+                    border-top: 1px solid ${accentHex}44;
                     margin: 12px 0;
                 }
                 li {
@@ -246,6 +271,7 @@ class RichTextEditorActivity : AppCompatActivity() {
         private const val DEFAULT_CONTENT_ASSET = "rich_text_default.html"
         private const val EXAMPLE_JSON_ASSET = "example.json"
         private const val EXAMPLE_JSON_HTML_KEY = "sectDesc"
+        private const val MODE_INACTIVE_COLOR = 0x66FFFFFF
 
         // Content above this length is not seeded into the editor. Editing very large content
         // (e.g. a long unbreakable base64 image token) in an EditText makes native text layout

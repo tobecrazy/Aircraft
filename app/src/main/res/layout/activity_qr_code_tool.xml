@@ -26,6 +26,7 @@
             android:src="@drawable/ic_header_back" />
 
         <TextView
+            android:id="@+id/tv_header_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
@@ -38,6 +39,7 @@
     </RelativeLayout>
 
     <View
+        android:id="@+id/divider_header"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#4400FF88" />
@@ -67,6 +69,7 @@
                 android:visibility="gone" />
 
             <View
+                android:id="@+id/scan_frame"
                 android:layout_width="220dp"
                 android:layout_height="220dp"
                 android:layout_gravity="center"
@@ -410,6 +413,7 @@
                 android:orientation="horizontal">
 
                 <View
+                    android:id="@+id/generate_marker"
                     android:layout_width="3dp"
                     android:layout_height="14dp"
                     android:background="#00FF88" />

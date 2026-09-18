@@ -51,6 +51,9 @@ class RichTextEditorView @JvmOverloads constructor(
     var isMarkdownMode = false
         private set
 
+    /** Accent used for the active Markdown toggle; hosts can set it to follow their theme. */
+    var markdownActiveColor: Int = 0xFF00FF88.toInt()
+
     val text: Editable?
         get() = editor.text
 
@@ -191,7 +194,7 @@ class RichTextEditorView @JvmOverloads constructor(
     private fun toggleMarkdownMode() {
         isMarkdownMode = !isMarkdownMode
         (btnMarkdown as? TextView)?.setTextColor(
-            if (isMarkdownMode) "#00FF88".toColorInt() else "#66FFFFFF".toColorInt()
+            if (isMarkdownMode) markdownActiveColor else "#66FFFFFF".toColorInt()
         )
         val msg = if (isMarkdownMode) R.string.rich_text_md_on else R.string.rich_text_md_off
         showMessage(msg)

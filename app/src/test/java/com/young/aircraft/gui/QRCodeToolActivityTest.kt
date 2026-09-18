@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -16,6 +17,8 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
+import com.young.aircraft.data.SettingsRepository
+import com.young.aircraft.ui.theme.themeAccent
 import com.young.richtext.RichTextEditorView
 import org.junit.Assert.*
 import org.junit.Before
@@ -628,6 +631,30 @@ class QRCodeToolActivityTest {
                 val scanLine = activity.findViewById<View>(R.id.scan_line)
                 assertNotNull("Scan line should exist", scanLine)
                 assertEquals(View.GONE, scanLine.visibility)
+            }
+        }
+    }
+
+    // ── Theme accent ────────────────────────────────────────────
+
+    @Test
+    fun `chrome colors follow the persisted theme`() {
+        SettingsRepository(context).setTheme(SettingsRepository.THEME_RED)
+        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val accent = themeAccent(SettingsRepository.THEME_RED).toArgb()
+                assertEquals(
+                    accent,
+                    activity.findViewById<TextView>(R.id.tv_header_title).currentTextColor
+                )
+                assertEquals(
+                    accent,
+                    activity.findViewById<TextView>(R.id.tv_hero_status).currentTextColor
+                )
+                assertEquals(
+                    accent,
+                    activity.findViewById<TextView>(R.id.btn_generate_qr).backgroundTintList?.defaultColor
+                )
             }
         }
     }

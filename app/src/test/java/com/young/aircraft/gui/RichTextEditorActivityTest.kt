@@ -7,10 +7,14 @@ import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
+import androidx.compose.ui.graphics.toArgb
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.R
+import com.young.aircraft.data.SettingsRepository
+import com.young.aircraft.ui.theme.themeAccent
 import com.young.richtext.RichTextEditorView
 import com.young.richtext.R as RichTextR
 import org.junit.Assert.*
@@ -53,6 +57,26 @@ class RichTextEditorActivityTest {
                 assertTrue(editor.isEnabled)
                 assertTrue(editor.isFocusable)
                 assertNotNull(editor.keyListener)
+            }
+        }
+    }
+
+    @Test
+    fun `chrome and mode toggle colors follow the persisted theme`() {
+        SettingsRepository(context).setTheme(SettingsRepository.THEME_RED)
+        ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val accent = themeAccent(SettingsRepository.THEME_RED).toArgb()
+                assertEquals(
+                    accent,
+                    activity.findViewById<TextView>(R.id.tv_header_title).currentTextColor
+                )
+                // Activity opens in edit mode: active toggle is themed, inactive stays dim.
+                assertEquals(
+                    accent,
+                    activity.findViewById<TextView>(R.id.btn_edit_mode).currentTextColor
+                )
+                assertEquals(0x66FFFFFF, activity.findViewById<TextView>(R.id.btn_preview_mode).currentTextColor)
             }
         }
     }

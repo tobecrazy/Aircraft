@@ -7,6 +7,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
@@ -54,6 +55,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -72,9 +74,11 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
 import com.young.aircraft.gui.dialogs.showThemed
+import com.young.aircraft.ui.theme.themeAccent
 import com.young.aircraft.utils.FilePickerHelper
 import com.young.aircraft.viewmodel.QRCodeToolViewModel
 import com.young.aircraft.viewmodel.QRCodeToolUiState
@@ -160,6 +164,7 @@ class QRCodeToolActivity : AppCompatActivity() {
         binding.richEditor.onMessage = { message ->
             ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
         }
+        applyThemeColors()
 
         binding.surfaceCamera.holder.addCallback(scanSurfaceCallback)
 
@@ -194,6 +199,34 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     private fun setupHeader() {
         binding.btnBack.setOnClickListener { finish() }
+    }
+
+    /**
+     * Applies the persisted accent to the chrome and accent-drawn surfaces. Dark panels, the
+     * dark stop-action button and QR content colors stay constant by design.
+     */
+    private fun applyThemeColors() {
+        val accent = themeAccent(SettingsRepository(this).getTheme())
+        val accentArgb = accent.toArgb()
+        binding.btnBack.setColorFilter(accentArgb)
+        binding.tvHeaderTitle.setTextColor(accentArgb)
+        binding.dividerHeader.setBackgroundColor(accent.copy(alpha = 0x44 / 255f).toArgb())
+        binding.generateMarker.setBackgroundColor(accentArgb)
+        binding.scanLine.setBackgroundColor(accent.copy(alpha = 0x88 / 255f).toArgb())
+        binding.tvScanStatus.setTextColor(accentArgb)
+        binding.tvHeroStatus.setTextColor(accentArgb)
+
+        // Flat accent shapes tint cleanly (SRC_IN keeps per-pixel alpha); gradient drawables
+        // must not be tinted or they flatten, so secondary/preview frames keep their XML colors.
+        val flatTint = ColorStateList.valueOf(accentArgb)
+        binding.scanFrame.backgroundTintList = flatTint
+        listOf(binding.tvScanStatus, binding.tvHeroStatus, binding.btnSaveQr, binding.btnShareQr)
+            .forEach { it.backgroundTintList = flatTint }
+        binding.btnGenerateQr.backgroundTintList = ColorStateList(
+            arrayOf(intArrayOf(android.R.attr.state_pressed), intArrayOf()),
+            intArrayOf(accent.copy(alpha = 0.72f).toArgb(), accentArgb)
+        )
+        binding.richEditor.markdownActiveColor = accentArgb
     }
 
     private fun setupEditor() {
