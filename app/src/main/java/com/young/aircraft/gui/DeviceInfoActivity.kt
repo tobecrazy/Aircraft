@@ -8,7 +8,6 @@ import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -173,7 +172,7 @@ private val Yellow = Color(0xFFFFFF00)
 private fun pctColor(pct: Int): Color = when {
     pct >= 80 -> Red
     pct >= 50 -> Yellow
-    else -> AccentGreen
+    else -> Color(0xFF00FF88)
 }
 
 private fun batteryPctColor(pct: Int): Color = when {

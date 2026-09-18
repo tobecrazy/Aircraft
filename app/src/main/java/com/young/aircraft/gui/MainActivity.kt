@@ -12,7 +12,6 @@ import android.view.WindowInsetsController
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.OnBackPressedCallback
@@ -28,11 +27,8 @@ import com.young.aircraft.service.MusicService
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.utils.HallOfHeroesNameUtils
-import com.young.aircraft.gui.dialogs.DangerPalette
-import com.young.aircraft.gui.dialogs.GameDialogPalette
 import com.young.aircraft.gui.dialogs.GameDialogStat
 import com.young.aircraft.gui.dialogs.GameDialogContent
-import com.young.aircraft.gui.dialogs.SuccessPalette
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -141,7 +137,6 @@ class MainActivity : AppCompatActivity() {
             val score = viewModel.calculateScore(coreView.totalKills)
             showGameDialog(
                 badgeText = getString(R.string.game_over_badge),
-                tone = DangerPalette,
                 title = getString(R.string.game_over_title),
                 message = getString(R.string.game_over_message, coreView.level, score),
                 positiveText = getString(R.string.game_over_save),
@@ -166,7 +161,6 @@ class MainActivity : AppCompatActivity() {
             val score = viewModel.calculateScore(coreView.totalKills)
             showGameDialog(
                 badgeText = getString(R.string.level_complete_badge),
-                tone = SuccessPalette,
                 title = getString(R.string.level_complete, completedLevel),
                 message = getString(R.string.level_complete_message, completedLevel),
                 positiveText = getString(R.string.next_level),
@@ -288,7 +282,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showGameDialog(
         badgeText: String,
-        tone: GameDialogPalette,
         title: String,
         message: String,
         positiveText: String,
@@ -308,7 +301,6 @@ class MainActivity : AppCompatActivity() {
         dialog.setDialogComposeContent(this) {
             GameDialogContent(
                 badgeText = badgeText,
-                palette = tone,
                 title = title,
                 message = message,
                 primaryStat = GameDialogStat(
@@ -327,7 +319,7 @@ class MainActivity : AppCompatActivity() {
                     onPositive()
                 },
                 negativeText = negativeText,
-                onNegative = onNegative?.let { callback -> { dialog.dismiss(); callback() } }
+                onNegative = onNegative
             )
         }
     }
@@ -378,9 +370,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun exitApp() {
         if ((System.currentTimeMillis() - exitTime) > 2000) {
-            Toast.makeText(
+            ThemedMessage.makeText(
                 this, getString(R.string.exit_warning_msg),
-                Toast.LENGTH_SHORT
+                ThemedMessage.LENGTH_SHORT
             ).show()
             exitTime = System.currentTimeMillis()
         } else {
@@ -453,24 +445,26 @@ class MainActivity : AppCompatActivity() {
 
 // ── Hall of Heroes bottom-sheet content (Compose in a BottomSheetDialog shell) ──
 
-private val SheetGradient = Brush.verticalGradient(listOf(Color(0xFF1A231C), Color(0xFF141A16)))
-private val SheetBorder = Color(0x4438E08D)
 private val SheetTopShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
-private val SheetHandle = Color(0x4400FF88)
-private val MedalBadgeContainer = Color(0x2900FF88)
-private val MedalBadgeBorder = Color(0x6600FF88)
-private val MedalBadgeText = Color(0xFFFFD9FFEC)
-private val SheetTitleColor = Color(0xFF7DFFBB)
-private val SheetMessageColor = Color(0xE6FFFFFF)
-private val SheetPromptColor = Color(0xFF997DFFBB)
-private val InputBackground = Color(0xFF101713)
-private val InputBorder = Color(0x6600FF88)
-private val InputHintColor = Color(0x66FFFFFF)
-private val RecordButtonContainer = Color(0xCCDBFFEF)
-private val RecordButtonText = Color(0xFF13221E)
 
 @Composable
 private fun HallOfHeroesContent(hint: String, onRecord: (String) -> Unit) {
+    val colors = androidx.compose.material3.MaterialTheme.colorScheme
+    val accent = colors.primary
+    val SheetGradient = Brush.verticalGradient(listOf(colors.surfaceContainerHigh, colors.surface))
+    val SheetBorder = colors.outline
+    val SheetHandle = colors.outline
+    val MedalBadgeContainer = colors.primaryContainer
+    val MedalBadgeBorder = accent.copy(alpha = 0.4f)
+    val MedalBadgeText = accent
+    val SheetTitleColor = accent
+    val SheetMessageColor = colors.onSurface
+    val SheetPromptColor = accent.copy(alpha = 0.8f)
+    val InputBackground = colors.surface
+    val InputBorder = accent.copy(alpha = 0.4f)
+    val InputHintColor = colors.onSurfaceVariant
+    val RecordButtonContainer = accent
+    val RecordButtonText = colors.onPrimary
     var heroName by remember { mutableStateOf("") }
 
     Column(
@@ -565,7 +559,7 @@ private fun HallOfHeroesContent(hint: String, onRecord: (String) -> Unit) {
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(onDone = { onRecord(heroName) }),
-                    cursorBrush = SolidColor(Color(0xFF00FF88)),
+                    cursorBrush = SolidColor(accent),
                     modifier = Modifier.fillMaxWidth(),
                     decorationBox = { inner ->
                         if (heroName.isEmpty()) {

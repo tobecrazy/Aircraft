@@ -236,7 +236,7 @@ private fun PolicyWebViewCard(onContentEndReached: () -> Unit, modifier: Modifie
                             // If content is short enough to fit without scrolling,
                             // unlock immediately
                             view?.postDelayed({
-                                if (view != null && !view.canScrollVertically(1)) {
+                                if (!view.canScrollVertically(1)) {
                                     onContentEndReached()
                                 }
                             }, 500)

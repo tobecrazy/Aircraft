@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Aircraft · 代码架构",
+    "quality_profile": "showcase",
+    "viewBox": [1380, 670],
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "frontend": { "label": "界面与交互" },
+        "backend": { "label": "本地逻辑" },
+        "database": { "label": "本地存储" }
+      }
+    }
+  },
+  "components": [
+    { "id": "preferences", "type": "database", "label": "设置存储", "sublabel": "SettingsRepository", "pos": [40, 60], "size": [240, 80] },
+    { "id": "screen-models", "type": "backend", "label": "界面状态与存档", "sublabel": "ViewModel · GameViewModel", "pos": [390, 60], "size": [240, 80] },
+    { "id": "room-store", "type": "database", "label": "Room 数据库", "sublabel": "DatabaseProvider · DAO", "pos": [740, 60], "size": [240, 80] },
+    { "id": "launch-hub", "type": "frontend", "label": "启动与导航", "sublabel": "隐私 → 引导 → LaunchActivity", "pos": [40, 280], "size": [240, 80] },
+    { "id": "game-host", "type": "frontend", "label": "MainActivity", "sublabel": "游戏宿主 · 暂停与结算", "pos": [390, 280], "size": [240, 80] },
+    { "id": "render-core", "type": "backend", "label": "GameCoreView", "sublabel": "SurfaceView · 30 FPS", "pos": [740, 280], "size": [240, 80] },
+    { "id": "draw-objects", "type": "backend", "label": "游戏对象", "sublabel": "玩家 · 敌机 · Boss · 道具", "pos": [1090, 280], "size": [240, 80] },
+    { "id": "utility-screens", "type": "frontend", "label": "设置与工具界面", "sublabel": "Compose 为主 · 独立拼图", "pos": [40, 500], "size": [240, 80] },
+    { "id": "editor-library", "type": "frontend", "label": "富文本编辑库", "sublabel": ":richtexteditor · View / AAR", "pos": [390, 500], "size": [240, 80] },
+    { "id": "audio-service", "type": "backend", "label": "MusicService", "sublabel": "MediaPlayer · SoundPool", "pos": [740, 500], "size": [240, 80] }
+  ],
+  "connections": [
+    { "id": "launch-combat", "from": "launch-hub", "to": "game-host", "label": "启动 / 续玩", "variant": "emphasis" },
+    { "id": "host-surface", "from": "game-host", "to": "render-core", "label": "承载", "variant": "emphasis" },
+    { "id": "frame-update", "from": "render-core", "to": "draw-objects", "label": "逐帧更新", "variant": "emphasis" },
+    { "id": "host-save", "from": "game-host", "to": "screen-models", "label": "保存进度" },
+    { "id": "models-settings", "from": "screen-models", "to": "preferences", "label": "偏好读写" },
+    { "id": "models-room", "from": "screen-models", "to": "room-store", "label": "挂起读写" },
+    { "id": "launch-tools", "from": "launch-hub", "to": "utility-screens", "label": "打开工具", "labelDy": 70 },
+    { "id": "tools-editor", "from": "utility-screens", "to": "editor-library", "label": "编辑器集成" },
+    { "id": "engine-audio", "from": "render-core", "to": "audio-service", "label": "播放音效", "labelDy": 70 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "两套状态模型", "items": ["Activity / ViewModel 管理界面与存档；渲染线程管理战斗。", "GameCoreView 的 post 回调返回主线程，不是游戏线程队列。"] },
+    { "dot": "emerald", "title": "关卡与持久化", "items": ["战斗通关直接进入下一战斗关；拼图从设置独立进入。", "Room 2031 使用显式迁移；写入完成后才能 finish。"] },
+    { "dot": "violet", "title": "模块与服务边界", "items": [":app 集成编辑库；大段原始 HTML 不应直接塞入 EditText。", "FlashlightService 独立管理手电与 SOS，不属于游戏音频。"] }
+  ]
+}

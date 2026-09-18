@@ -25,6 +25,7 @@
                 android:src="@drawable/ic_header_back" />
 
             <TextView
+                android:id="@+id/tv_header_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
@@ -37,6 +38,7 @@
         </RelativeLayout>
 
         <View
+            android:id="@+id/divider_top"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#4400FF88" />
@@ -58,6 +60,7 @@
 
         <!-- Bottom Bar: Edit / Preview toggle -->
         <View
+            android:id="@+id/divider_bottom"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#4400FF88" />

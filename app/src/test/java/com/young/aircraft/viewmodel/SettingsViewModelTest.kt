@@ -23,6 +23,7 @@ class SettingsViewModelTest {
     fun setUp() {
         repository = mock()
         gameDataDao = mock()
+        whenever(repository.getTheme()).thenReturn(SettingsRepository.THEME_GREEN)
         whenever(repository.getDifficulty()).thenReturn(GameDifficulty.NORMAL)
         whenever(repository.isBackgroundSoundEnabled()).thenReturn(true)
         whenever(repository.isCombatSoundEnabled()).thenReturn(true)
@@ -42,6 +43,22 @@ class SettingsViewModelTest {
         assertTrue(state.combatSoundEnabled)
         assertTrue(state.hitShakeEnabled)
         assertEquals(3, state.enabledSoundCount)
+    }
+
+    @Test
+    fun `setTheme persists all five choices and updates state`() {
+        viewModel = createViewModel()
+        assertEquals(SettingsRepository.THEME_GREEN, viewModel.uiState.value.theme)
+        listOf(
+            SettingsRepository.THEME_GREEN, SettingsRepository.THEME_BLUE,
+            SettingsRepository.THEME_PURPLE, SettingsRepository.THEME_YELLOW,
+            SettingsRepository.THEME_RED
+        ).forEach { theme ->
+            whenever(repository.getTheme()).thenReturn(theme)
+            viewModel.setTheme(theme)
+            verify(repository).setTheme(theme)
+            assertEquals(theme, viewModel.uiState.value.theme)
+        }
     }
 
     @Test

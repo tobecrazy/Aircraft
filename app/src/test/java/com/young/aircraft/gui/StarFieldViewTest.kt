@@ -3,6 +3,7 @@ package com.young.aircraft.gui
 import android.content.Context
 import android.view.View
 import androidx.test.core.app.ApplicationProvider
+import com.young.aircraft.data.SettingsRepository
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -26,6 +27,35 @@ class StarFieldViewTest {
     @Test
     fun `view initializes without crash`() {
         assertNotNull(starFieldView)
+    }
+
+    @Test
+    fun `star colors follow persisted theme changes live`() {
+        val prefs = context.getSharedPreferences(
+            SettingsRepository.PREFS_NAME,
+            Context.MODE_PRIVATE
+        )
+        prefs.edit().putString(SettingsRepository.KEY_THEME, SettingsRepository.THEME_GREEN).commit()
+        val liveView = StarFieldView(context)
+        assertEquals("❉", liveView.particle.first)
+
+        prefs.edit().putString(SettingsRepository.KEY_THEME, SettingsRepository.THEME_BLUE).commit()
+        liveView.themeListener.onSharedPreferenceChanged(prefs, SettingsRepository.KEY_THEME)
+        assertEquals("♣", liveView.particle.first)
+
+        prefs.edit().putString(SettingsRepository.KEY_THEME, SettingsRepository.THEME_PURPLE).commit()
+        liveView.themeListener.onSharedPreferenceChanged(prefs, SettingsRepository.KEY_THEME)
+        assertEquals("♦", liveView.particle.first)
+
+        prefs.edit().putString(SettingsRepository.KEY_THEME, SettingsRepository.THEME_YELLOW).commit()
+        liveView.themeListener.onSharedPreferenceChanged(prefs, SettingsRepository.KEY_THEME)
+        assertEquals("⭐", liveView.particle.first)
+
+        prefs.edit().putString(SettingsRepository.KEY_THEME, SettingsRepository.THEME_RED).commit()
+        liveView.themeListener.onSharedPreferenceChanged(prefs, SettingsRepository.KEY_THEME)
+        assertEquals("🌹", liveView.particle.first)
+
+        prefs.edit().remove(SettingsRepository.KEY_THEME).commit()
     }
 
     @Test

@@ -3,7 +3,6 @@ package com.young.aircraft.gui
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.Formatter
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -13,11 +12,9 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
-import com.young.aircraft.gui.dialogs.DangerPalette
 import com.young.aircraft.gui.dialogs.GameDialogContent
 import com.young.aircraft.gui.dialogs.GameDialogStat
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
-import androidx.compose.ui.graphics.Color
 import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.viewmodel.SettingsViewModel
@@ -39,6 +36,7 @@ class SettingsActivity : AppCompatActivity() {
                     state = state,
                     soundOptionCount = soundOptionCount,
                     onBack = { finish() },
+                    onThemeSelected = viewModel::setTheme,
                     onDifficultySelected = viewModel::setDifficulty,
                     onBgSoundToggled = viewModel::setBgSoundEnabled,
                     onCombatSoundToggled = viewModel::setCombatSoundEnabled,
@@ -81,11 +79,9 @@ class SettingsActivity : AppCompatActivity() {
         dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
         dialog.window?.setDimAmount(0.7f)
 
-        // Danger palette with the legacy per-slot overrides: softer title red, mixed stat cards.
         dialog.setDialogComposeContent(this) {
             GameDialogContent(
                 badgeText = getString(R.string.clear_cache_badge),
-                palette = DangerPalette.copy(titleColor = Color(0xFFFF6F7E)),
                 title = getString(R.string.clear_cache_dialog_title),
                 message = getString(R.string.clear_cache_dialog_message),
                 primaryStat = GameDialogStat(
@@ -94,10 +90,7 @@ class SettingsActivity : AppCompatActivity() {
                 ),
                 secondaryStat = GameDialogStat(
                     label = getString(R.string.clear_cache_keep_label),
-                    value = getString(R.string.clear_cache_keep_value),
-                    labelColor = Color(0x8800FF88),
-                    cardContainer = Color(0x18FFFFFF),
-                    cardBorder = Color(0x22FFFFFF)
+                    value = getString(R.string.clear_cache_keep_value)
                 ),
                 positiveText = getString(R.string.clear_cache_confirm),
                 onPositive = {
@@ -128,7 +121,7 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 R.string.clear_cache_failed
             }
-            Toast.makeText(this@SettingsActivity, messageRes, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this@SettingsActivity, messageRes, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 }

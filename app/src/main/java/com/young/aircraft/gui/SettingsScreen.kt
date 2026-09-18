@@ -20,10 +20,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,6 +45,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.DividerGreen
+import com.young.aircraft.ui.theme.themeAccent
 import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.SettingsRepository
@@ -62,23 +68,28 @@ enum class SettingsDestination {
 // Visuals lifted from settings_* / difficulty_* / badge_* / switch_* drawables (XML→Compose migration).
 private val ScreenBg = Color(0xFF0F1118)
 private val HeaderBg = Color(0xFF161A26)
-private val AccentGreen = Color(0xFF00FF88)
-private val DividerGreen = Color(0x4400FF88)
 private val HeroGradient = Brush.linearGradient(listOf(Color(0x2E162033), Color(0x1F15242F)))
-private val HeroBorder = Color(0x3300FF88)
+private val HeroBorder: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x33 / 255f)
 private val TileBg = Color(0x22252A3A)
-private val TileBorder = Color(0x2200FF88)
+private val TileBorder: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x22 / 255f)
 private val TilePressedBg = Color(0xFF2A2E44)
-private val TilePressedBorder = Color(0x4400FF88)
+private val TilePressedBorder: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x44 / 255f)
 private val ChipBg = Color(0x18FFFFFF)
 private val ChipBorder = Color(0x28FFFFFF)
-private val ChipActiveBg = Color(0x2600FF88)
-private val ChipActiveBorder = Color(0x6600FF88)
+private val ChipActiveBg: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x26 / 255f)
+private val ChipActiveBorder: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x66 / 255f)
 private val ChipText = Color(0xFFD8E0EF)
 private val OptionBg = Color(0x10FFFFFF)
 private val OptionBorder = Color(0x22FFFFFF)
-private val OptionSelectedBg = Color(0x2200FF88)
-private val OptionSelectedBorder = Color(0xAA00FF88)
+private val OptionSelectedBg: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x22 / 255f)
+private val OptionSelectedBorder: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0xAA / 255f)
 private val TitleWhite = Color(0xFFFFFFFF)
 private val SummaryColor = Color(0xFFAAB4C8)
 private val BannerSummaryColor = Color(0xFFCDD2E0)
@@ -92,7 +103,8 @@ private val DangerText = Color(0xFFFF808D)
 // SwitchCompat's default track tint renders white in this theme regardless of the drawable's
 // checked color — replicate the rendered result (white track, thumb swaps white→green).
 private val SwitchTrack = Color(0xFFFFFFFF)
-private val SwitchThumbChecked = Color(0xFF00FF88)
+private val SwitchThumbChecked: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0xFF / 255f)
 private val SwitchThumbUnchecked = Color(0x88FFFFFF)
 
 private val Mono = FontFamily.Monospace
@@ -113,7 +125,8 @@ fun SettingsScreen(
     onBgmFormatSelected: (String) -> Unit,
     onNavigate: (SettingsDestination) -> Unit,
     onClearCache: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onThemeSelected: (String) -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxSize().background(ScreenBg)) {
         SettingsHeader(onBack = onBack)
@@ -175,6 +188,7 @@ fun SettingsScreen(
                     checked = state.hitShakeEnabled,
                     onToggle = onHitShakeToggled
                 )
+                ThemeCard(state.theme, onThemeSelected)
                 SectionLabel(
                     label = stringResource(R.string.settings_support_header),
                     topMargin = 22,
@@ -265,6 +279,43 @@ fun SettingsScreen(
                     summary = stringResource(R.string.privacy_policy_summary),
                     bottomMargin = 20,
                     onClick = { onNavigate(SettingsDestination.PRIVACY_POLICY) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeCard(selectedTheme: String, onSelected: (String) -> Unit) {
+    SectionLabel(label = stringResource(R.string.theme_settings_title), topMargin = 22)
+    Row(
+        modifier = Modifier.padding(top = 10.dp).fillMaxWidth().selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(
+            SettingsRepository.THEME_GREEN to R.string.theme_green,
+            SettingsRepository.THEME_BLUE to R.string.theme_blue,
+            SettingsRepository.THEME_PURPLE to R.string.theme_purple,
+            SettingsRepository.THEME_YELLOW to R.string.theme_yellow,
+            SettingsRepository.THEME_RED to R.string.theme_red
+        ).forEach { (theme, label) ->
+            val selected = theme == selectedTheme
+            val accent = themeAccent(theme)
+            Column(
+                modifier = Modifier.weight(1f)
+                    .background(if (selected) accent.copy(alpha = 0.15f) else TileBg, TileShape)
+                    .border(1.dp, if (selected) accent else TileBorder, TileShape)
+                    .selectable(selected = selected, role = Role.RadioButton, onClick = { onSelected(theme) })
+                    .padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(Modifier.size(18.dp).background(accent, CircleShape))
+                Text(
+                    text = stringResource(label),
+                    color = if (selected) accent else TitleWhite,
+                    fontFamily = Mono,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
         }

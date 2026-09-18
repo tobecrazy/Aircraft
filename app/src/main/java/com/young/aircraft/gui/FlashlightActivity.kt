@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -114,7 +113,7 @@ class FlashlightActivity : AppCompatActivity() {
     ) { granted ->
         hasCameraPermission = granted
         if (!granted) {
-            Toast.makeText(this, R.string.flashlight_permission_denied, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.flashlight_permission_denied, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 
@@ -138,7 +137,7 @@ class FlashlightActivity : AppCompatActivity() {
                 val uiState by viewModel.uiState.collectAsState()
                 LaunchedEffect(uiState.errorMessage) {
                     uiState.errorMessage?.let {
-                        Toast.makeText(this@FlashlightActivity, it, Toast.LENGTH_SHORT).show()
+                        ThemedMessage.makeText(this@FlashlightActivity, it, ThemedMessage.LENGTH_SHORT).show()
                         viewModel.clearError()
                     }
                 }
@@ -214,7 +213,7 @@ class FlashlightActivity : AppCompatActivity() {
         runCatching { startActivity(list) }
             .recoverCatching { startActivity(perApp) }
             .onFailure {
-                Toast.makeText(this, it.message ?: "Settings unavailable", Toast.LENGTH_SHORT).show()
+                ThemedMessage.makeText(this, it.message ?: "Settings unavailable", ThemedMessage.LENGTH_SHORT).show()
             }
     }
 
@@ -484,6 +483,7 @@ internal fun TorchHero(
     enabled: Boolean,
     onToggleFlashlight: () -> Unit
 ) {
+    val accent = AccentGreen
     val infiniteTransition = rememberInfiniteTransition(label = "flashlight_pulse_loop")
     val activePulse by infiniteTransition.animateFloat(
         initialValue = 0.68f,
@@ -530,15 +530,15 @@ internal fun TorchHero(
         ) {
             Canvas(modifier = Modifier.size(204.dp)) {
                 val radius = size.minDimension / 2f
-                drawCircle(AccentGreen.copy(alpha = glowAlpha * 0.12f), radius = radius, style = Fill)
-                drawCircle(AccentGreen.copy(alpha = glowAlpha * 0.22f), radius = radius * 0.74f, style = Fill)
+                drawCircle(accent.copy(alpha = glowAlpha * 0.12f), radius = radius, style = Fill)
+                drawCircle(accent.copy(alpha = glowAlpha * 0.22f), radius = radius * 0.74f, style = Fill)
                 drawCircle(
-                    color = AccentGreen.copy(alpha = if (isOn) glowAlpha else 0.28f),
+                    color = accent.copy(alpha = if (isOn) glowAlpha else 0.28f),
                     radius = radius * 0.42f,
                     style = Fill
                 )
                 drawCircle(
-                    color = AccentGreen.copy(alpha = 0.70f),
+                    color = accent.copy(alpha = 0.70f),
                     radius = radius * 0.86f,
                     style = Stroke(width = 3.dp.toPx())
                 )
@@ -551,7 +551,7 @@ internal fun TorchHero(
                 // pill at the bottom of the parent Box (prevents the beam line from
                 // bleeding through the pill's semi-transparent background).
                 drawLine(
-                    color = AccentGreen.copy(alpha = if (isOn) glowAlpha * 0.65f else 0.12f),
+                    color = accent.copy(alpha = if (isOn) glowAlpha * 0.65f else 0.12f),
                     start = center.copy(y = center.y + radius * 0.44f),
                     end = center.copy(y = size.height * 0.86f),
                     strokeWidth = 9.dp.toPx()

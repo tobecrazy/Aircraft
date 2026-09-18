@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -134,10 +133,10 @@ class ShowImageDetailsActivity : AppCompatActivity() {
                 viewModel.events.collect { event ->
                     when (event) {
                         is ImageDetailsEvent.SaveCompleted -> {
-                            Toast.makeText(
+                            ThemedMessage.makeText(
                                 this@ShowImageDetailsActivity,
                                 if (event.saved) R.string.banner_details_save_success else R.string.banner_details_save_failed,
-                                Toast.LENGTH_SHORT
+                                ThemedMessage.LENGTH_SHORT
                             ).show()
                         }
                     }

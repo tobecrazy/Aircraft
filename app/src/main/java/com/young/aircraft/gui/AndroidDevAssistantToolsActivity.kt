@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -109,12 +108,12 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
         val msg =
             if (enabled) R.string.develop_settings_assistant_module_on
             else R.string.develop_settings_assistant_module_off
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        ThemedMessage.makeText(this, msg, ThemedMessage.LENGTH_SHORT).show()
     }
 
     internal fun openModule(prefKey: String) {
         if (!isModuleEnabled(prefKey)) {
-            Toast.makeText(this, R.string.develop_settings_assistant_module_off, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.develop_settings_assistant_module_off, ThemedMessage.LENGTH_SHORT).show()
             return
         }
         when (prefKey) {
@@ -124,14 +123,14 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
                 val launched = launchSafely(Intent(Settings.ACTION_SETTINGS)) ||
                     launchSafely(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
                 if (!launched) {
-                    Toast.makeText(this, R.string.develop_settings_assistant_unavailable, Toast.LENGTH_SHORT).show()
+                    ThemedMessage.makeText(this, R.string.develop_settings_assistant_unavailable, ThemedMessage.LENGTH_SHORT).show()
                 }
             }
 
             MODULE_APP_BROWSER -> {
                 val launched = launchSafely(Intent(Settings.ACTION_MANAGE_ALL_APPLICATIONS_SETTINGS))
                 if (!launched) {
-                    Toast.makeText(this, R.string.develop_settings_assistant_unavailable, Toast.LENGTH_SHORT).show()
+                    ThemedMessage.makeText(this, R.string.develop_settings_assistant_unavailable, ThemedMessage.LENGTH_SHORT).show()
                 }
             }
 

@@ -3,6 +3,7 @@ package com.young.aircraft.gui
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -45,6 +46,7 @@ class SettingsActivityTest {
         override fun before() {
             val context = ApplicationProvider.getApplicationContext<Context>()
             repository = SettingsRepository(context)
+            repository.setTheme(SettingsRepository.THEME_GREEN)
             repository.setDifficulty(GameDifficulty.NORMAL)
             repository.setBackgroundSoundEnabled(true)
             repository.setCombatSoundEnabled(true)
@@ -69,6 +71,23 @@ class SettingsActivityTest {
         composeRule.waitForIdle()
 
         assertTrue(composeRule.activity.isFinishing)
+    }
+
+    @Test
+    fun `selecting theme persists across activity recreation`() {
+        listOf(
+            SettingsRepository.THEME_BLUE to R.string.theme_blue,
+            SettingsRepository.THEME_PURPLE to R.string.theme_purple,
+            SettingsRepository.THEME_YELLOW to R.string.theme_yellow,
+            SettingsRepository.THEME_RED to R.string.theme_red,
+            SettingsRepository.THEME_GREEN to R.string.theme_green
+        ).forEach { (theme, label) ->
+            val text = composeRule.activity.getString(label)
+            composeRule.onNodeWithText(text).performScrollTo().performClick().assertIsSelected()
+            assertEquals(theme, repository().getTheme())
+            composeRule.activityRule.scenario.recreate()
+            composeRule.onNodeWithText(text).performScrollTo().assertIsSelected()
+        }
     }
 
     @Test
@@ -134,14 +153,15 @@ class SettingsActivityTest {
 
         val dialog = ShadowDialog.getLatestDialog()
         assertNotNull("Clear cache confirmation should be shown", dialog)
-        assertTrue(dialog!!.isShowing)
+        val shownDialog = requireNotNull(dialog)
+        assertTrue(shownDialog.isShowing)
         // Drain the looper so the dialog's ComposeView attaches and composes.
         repeat(2) { shadowOf(Looper.getMainLooper()).idle() }
 
         // Dialog content is Compose — assert via its semantics tree.
-        val nodes = findAllNodes(
-            dialog.window!!.decorView.findSemanticsOwner()!!.rootSemanticsNode
-        ).mapNotNull { it.displayText() }
+        val root = requireNotNull(requireNotNull(shownDialog.window).decorView.findSemanticsOwner())
+            .rootSemanticsNode
+        val nodes = findAllNodes(root).mapNotNull { it.displayText() }
 
         assertTrue(nodes.contains(composeRule.activity.getString(R.string.clear_cache_badge)))
         val sizeLabelIndex =
@@ -150,5 +170,10 @@ class SettingsActivityTest {
         // The size value is the node right after its label (DFS order).
         assertFalse(nodes.getOrNull(sizeLabelIndex + 1).isNullOrBlank())
         assertTrue(nodes.contains(composeRule.activity.getString(R.string.clear_cache_keep_value)))
+
+        // Regression: Cancel dismisses even though showClearCacheDialog passes no onNegative.
+        assertTrue("Cancel button should dismiss the dialog", root.clickOnText(composeRule.activity.getString(R.string.history_cancel)))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertFalse(shownDialog.isShowing)
     }
 }

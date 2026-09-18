@@ -40,8 +40,19 @@ class RichTextEditorView @JvmOverloads constructor(
     val toolbarDivider: View
     val editor: EditText
 
+    /** Optional host presentation for transient messages; standalone AAR users keep system Toasts. */
+    var onMessage: ((CharSequence) -> Unit)? = null
+
+    private fun showMessage(messageRes: Int) {
+        val message = context.getText(messageRes)
+        onMessage?.invoke(message) ?: Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     var isMarkdownMode = false
         private set
+
+    /** Accent used for the active Markdown toggle; hosts can set it to follow their theme. */
+    var markdownActiveColor: Int = 0xFF00FF88.toInt()
 
     val text: Editable?
         get() = editor.text
@@ -109,7 +120,7 @@ class RichTextEditorView @JvmOverloads constructor(
         val start = minOf(rawStart, rawEnd)
         val end = maxOf(rawStart, rawEnd)
         if (start < 0 || start == end) {
-            Toast.makeText(context, R.string.rich_text_select_text, Toast.LENGTH_SHORT).show()
+            showMessage(R.string.rich_text_select_text)
             return
         }
         val spannable = editor.text as SpannableStringBuilder
@@ -120,7 +131,7 @@ class RichTextEditorView @JvmOverloads constructor(
         val start = minOf(editor.selectionStart, editor.selectionEnd)
         val end = maxOf(editor.selectionStart, editor.selectionEnd)
         if (start < 0 || start == end) {
-            Toast.makeText(context, R.string.rich_text_select_text, Toast.LENGTH_SHORT).show()
+            showMessage(R.string.rich_text_select_text)
             return null
         }
         return start to end
@@ -183,10 +194,10 @@ class RichTextEditorView @JvmOverloads constructor(
     private fun toggleMarkdownMode() {
         isMarkdownMode = !isMarkdownMode
         (btnMarkdown as? TextView)?.setTextColor(
-            if (isMarkdownMode) "#00FF88".toColorInt() else "#66FFFFFF".toColorInt()
+            if (isMarkdownMode) markdownActiveColor else "#66FFFFFF".toColorInt()
         )
         val msg = if (isMarkdownMode) R.string.rich_text_md_on else R.string.rich_text_md_off
-        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        showMessage(msg)
     }
 
     private fun insertHtmlSnippet() {

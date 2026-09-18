@@ -7,6 +7,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
@@ -25,7 +26,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.SurfaceHolder
 import android.view.View
-import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -49,11 +49,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -72,8 +74,11 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.databinding.ActivityQrCodeToolBinding
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
+import com.young.aircraft.gui.dialogs.showThemed
+import com.young.aircraft.ui.theme.themeAccent
 import com.young.aircraft.utils.FilePickerHelper
 import com.young.aircraft.viewmodel.QRCodeToolViewModel
 import com.young.aircraft.viewmodel.QRCodeToolUiState
@@ -106,11 +111,11 @@ class QRCodeToolActivity : AppCompatActivity() {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         } ?: false
         if (saved) {
-            Toast.makeText(this, R.string.qr_code_tool_save_success, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.qr_code_tool_save_success, ThemedMessage.LENGTH_SHORT).show()
             viewModel.onSaveSuccess(uri)
             binding.btnShareQr.visibility = View.VISIBLE
         } else {
-            Toast.makeText(this, R.string.qr_code_tool_save_failed, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.qr_code_tool_save_failed, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 
@@ -136,8 +141,8 @@ class QRCodeToolActivity : AppCompatActivity() {
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) startScanning() else Toast.makeText(
-            this, R.string.qr_code_tool_camera_permission_denied, Toast.LENGTH_SHORT
+        if (granted) startScanning() else ThemedMessage.makeText(
+            this, R.string.qr_code_tool_camera_permission_denied, ThemedMessage.LENGTH_SHORT
         ).show()
     }
 
@@ -156,6 +161,10 @@ class QRCodeToolActivity : AppCompatActivity() {
 
         binding = ActivityQrCodeToolBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.richEditor.onMessage = { message ->
+            ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
+        }
+        applyThemeColors()
 
         binding.surfaceCamera.holder.addCallback(scanSurfaceCallback)
 
@@ -192,6 +201,34 @@ class QRCodeToolActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
     }
 
+    /**
+     * Applies the persisted accent to the chrome and accent-drawn surfaces. Dark panels, the
+     * dark stop-action button and QR content colors stay constant by design.
+     */
+    private fun applyThemeColors() {
+        val accent = themeAccent(SettingsRepository(this).getTheme())
+        val accentArgb = accent.toArgb()
+        binding.btnBack.setColorFilter(accentArgb)
+        binding.tvHeaderTitle.setTextColor(accentArgb)
+        binding.dividerHeader.setBackgroundColor(accent.copy(alpha = 0x44 / 255f).toArgb())
+        binding.generateMarker.setBackgroundColor(accentArgb)
+        binding.scanLine.setBackgroundColor(accent.copy(alpha = 0x88 / 255f).toArgb())
+        binding.tvScanStatus.setTextColor(accentArgb)
+        binding.tvHeroStatus.setTextColor(accentArgb)
+
+        // Flat accent shapes tint cleanly (SRC_IN keeps per-pixel alpha); gradient drawables
+        // must not be tinted or they flatten, so secondary/preview frames keep their XML colors.
+        val flatTint = ColorStateList.valueOf(accentArgb)
+        binding.scanFrame.backgroundTintList = flatTint
+        listOf(binding.tvScanStatus, binding.tvHeroStatus, binding.btnSaveQr, binding.btnShareQr)
+            .forEach { it.backgroundTintList = flatTint }
+        binding.btnGenerateQr.backgroundTintList = ColorStateList(
+            arrayOf(intArrayOf(android.R.attr.state_pressed), intArrayOf()),
+            intArrayOf(accent.copy(alpha = 0.72f).toArgb(), accentArgb)
+        )
+        binding.richEditor.markdownActiveColor = accentArgb
+    }
+
     private fun setupEditor() {
         binding.richEditor.setHint(getString(R.string.qr_code_tool_input_hint))
         binding.richEditor.setEditorBackground(R.drawable.qr_tool_preview_frame_bg)
@@ -222,7 +259,7 @@ class QRCodeToolActivity : AppCompatActivity() {
                             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                         .setNegativeButton(R.string.history_cancel, null)
-                        .show()
+                        .showThemed()
                 } else {
                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
@@ -274,10 +311,10 @@ class QRCodeToolActivity : AppCompatActivity() {
         if (cameraId == null) {
             isCameraOpening = false
             runOnUiThread {
-                Toast.makeText(
+                ThemedMessage.makeText(
                     this,
                     R.string.qr_code_tool_camera_error,
-                    Toast.LENGTH_SHORT
+                    ThemedMessage.LENGTH_SHORT
                 ).show()
                 stopScanning()
             }
@@ -334,10 +371,10 @@ class QRCodeToolActivity : AppCompatActivity() {
                     camera.close()
                     cameraDevice = null
                     runOnUiThread {
-                        Toast.makeText(
+                        ThemedMessage.makeText(
                             this@QRCodeToolActivity,
                             R.string.qr_code_tool_camera_error,
-                            Toast.LENGTH_SHORT
+                            ThemedMessage.LENGTH_SHORT
                         ).show()
                         stopScanning()
                     }
@@ -346,10 +383,10 @@ class QRCodeToolActivity : AppCompatActivity() {
         } catch (_: CameraAccessException) {
             isCameraOpening = false
             runOnUiThread {
-                Toast.makeText(
+                ThemedMessage.makeText(
                     this,
                     R.string.qr_code_tool_camera_error,
-                    Toast.LENGTH_SHORT
+                    ThemedMessage.LENGTH_SHORT
                 ).show()
                 stopScanning()
             }
@@ -400,10 +437,10 @@ class QRCodeToolActivity : AppCompatActivity() {
 
                 override fun onConfigureFailed(session: CameraCaptureSession) {
                     runOnUiThread {
-                        Toast.makeText(
+                        ThemedMessage.makeText(
                             this@QRCodeToolActivity,
                             R.string.qr_code_tool_camera_error,
-                            Toast.LENGTH_SHORT
+                            ThemedMessage.LENGTH_SHORT
                         ).show()
                         stopScanning()
                     }
@@ -442,7 +479,7 @@ class QRCodeToolActivity : AppCompatActivity() {
     private fun copyScanResult(result: String) {
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("QR Result", result))
-        Toast.makeText(this, R.string.qr_code_tool_copied, Toast.LENGTH_SHORT).show()
+        ThemedMessage.makeText(this, R.string.qr_code_tool_copied, ThemedMessage.LENGTH_SHORT).show()
     }
 
     private fun releaseCamera() {
@@ -579,10 +616,10 @@ class QRCodeToolActivity : AppCompatActivity() {
                 }
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.qr_code_tool_share_button)))
             } catch (_: Exception) {
-                Toast.makeText(
+                ThemedMessage.makeText(
                     this@QRCodeToolActivity,
                     R.string.qr_code_tool_save_failed,
-                    Toast.LENGTH_SHORT
+                    ThemedMessage.LENGTH_SHORT
                 ).show()
             }
         }
@@ -624,10 +661,10 @@ class QRCodeToolActivity : AppCompatActivity() {
                     } else rawBitmap
                 }
                 if (bitmap == null) {
-                    Toast.makeText(
+                    ThemedMessage.makeText(
                         this@QRCodeToolActivity,
                         R.string.qr_code_tool_pick_failed,
-                        Toast.LENGTH_SHORT
+                        ThemedMessage.LENGTH_SHORT
                     ).show()
                     return@launch
                 }
@@ -635,13 +672,13 @@ class QRCodeToolActivity : AppCompatActivity() {
                 if (result != null) {
                     onScanResult(result)
                 } else {
-                    Toast.makeText(this@QRCodeToolActivity, R.string.qr_code_tool_invalid_qr, Toast.LENGTH_SHORT).show()
+                    ThemedMessage.makeText(this@QRCodeToolActivity, R.string.qr_code_tool_invalid_qr, ThemedMessage.LENGTH_SHORT).show()
                 }
             } catch (_: Exception) {
-                Toast.makeText(
+                ThemedMessage.makeText(
                     this@QRCodeToolActivity,
                     R.string.qr_code_tool_pick_failed,
-                    Toast.LENGTH_SHORT
+                    ThemedMessage.LENGTH_SHORT
                 ).show()
             }
         }
@@ -653,7 +690,7 @@ class QRCodeToolActivity : AppCompatActivity() {
         binding.btnGenerateQr.setOnClickListener {
             val content = binding.richEditor.plainText.trim()
             if (content.isEmpty()) {
-                Toast.makeText(this, R.string.qr_code_tool_no_content, Toast.LENGTH_SHORT).show()
+                ThemedMessage.makeText(this, R.string.qr_code_tool_no_content, ThemedMessage.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             generateQrCode(content)
@@ -666,7 +703,7 @@ class QRCodeToolActivity : AppCompatActivity() {
             binding.ivQrCode.setImageBitmap(bitmap)
             renderContentState()
         } else {
-            Toast.makeText(this, R.string.qr_code_tool_content_too_long, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.qr_code_tool_content_too_long, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 
@@ -690,15 +727,10 @@ class QRCodeToolActivity : AppCompatActivity() {
 
 private val SheetTopShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
 private val QrSheetBackground = Color(0xFF161A26)
-private val QrSheetBorder = Color(0x4400FF88)
-private val SheetHandle = Color(0x4400FF88)
 private val StatusPillContainer = Color(0x18253333)
 private val ResultCardContainer = Color(0x18FFFFFF)
-private val ResultLabelColor = Color(0x9900FF88)
 private val ResultTextColor = Color(0xE6FFFFFF)
-private val CopyButtonContainer = Color(0x885DFFD0)
 private val CopyButtonText = Color(0xFF08121A)
-private val DismissButtonContainer = Color(0x3300FF88)
 
 @Composable
 private fun ScanResultSheetContent(
@@ -706,30 +738,33 @@ private fun ScanResultSheetContent(
     onCopy: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val accent = MaterialTheme.colorScheme.primary
+    val outline = MaterialTheme.colorScheme.outline
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(QrSheetBackground, SheetTopShape)
-            .border(1.dp, QrSheetBorder, SheetTopShape)
+            .border(1.dp, outline, SheetTopShape)
             .padding(start = 24.dp, end = 24.dp, top = 14.dp, bottom = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .size(width = 44.dp, height = 5.dp)
-                .background(SheetHandle, RoundedCornerShape(999.dp))
+                .background(outline, RoundedCornerShape(999.dp))
         )
 
         Text(
             text = stringResource(R.string.qr_code_tool_scan_result),
-            color = Color(0xFF00FF88),
+            color = accent,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
             modifier = Modifier
                 .padding(top = 18.dp)
                 .background(StatusPillContainer, RoundedCornerShape(999.dp))
-                .border(1.dp, QrSheetBorder, RoundedCornerShape(999.dp))
+                .border(1.dp, outline, RoundedCornerShape(999.dp))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         )
 
@@ -742,7 +777,7 @@ private fun ScanResultSheetContent(
         ) {
             Text(
                 text = stringResource(R.string.qr_code_tool_scan_result_label),
-                color = ResultLabelColor,
+                color = accent.copy(alpha = 0x99 / 255f),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace
@@ -761,7 +796,7 @@ private fun ScanResultSheetContent(
 
         SheetButton(
             text = stringResource(R.string.qr_code_tool_copy_result),
-            container = CopyButtonContainer,
+            container = accent.copy(alpha = 0.6f),
             textColor = CopyButtonText,
             onClick = { onCopy(result) },
             modifier = Modifier
@@ -770,7 +805,7 @@ private fun ScanResultSheetContent(
         )
         SheetButton(
             text = stringResource(android.R.string.ok),
-            container = DismissButtonContainer,
+            container = accent.copy(alpha = 0x33 / 255f),
             textColor = Color.White,
             onClick = onDismiss,
             modifier = Modifier

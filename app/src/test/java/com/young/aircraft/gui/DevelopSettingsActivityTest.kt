@@ -25,7 +25,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
-import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
 // w420dp-h920dp: room for the scrollable hero + panels so all tags are composed.
@@ -66,7 +65,7 @@ class DevelopSettingsActivityTest {
                 assertTrue(GameStateManager.isInvincible)
                 assertEquals(
                     context.getString(R.string.invincible_mode_on),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
 
                 // Another 8 clicks - should toggle OFF
@@ -77,7 +76,7 @@ class DevelopSettingsActivityTest {
                 assertFalse(GameStateManager.isInvincible)
                 assertEquals(
                     context.getString(R.string.invincible_mode_off),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }

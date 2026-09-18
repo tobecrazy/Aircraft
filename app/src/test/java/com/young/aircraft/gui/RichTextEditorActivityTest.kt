@@ -7,10 +7,14 @@ import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
+import androidx.compose.ui.graphics.toArgb
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.R
+import com.young.aircraft.data.SettingsRepository
+import com.young.aircraft.ui.theme.themeAccent
 import com.young.richtext.RichTextEditorView
 import com.young.richtext.R as RichTextR
 import org.junit.Assert.*
@@ -21,7 +25,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.Shadows
-import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -54,6 +57,26 @@ class RichTextEditorActivityTest {
                 assertTrue(editor.isEnabled)
                 assertTrue(editor.isFocusable)
                 assertNotNull(editor.keyListener)
+            }
+        }
+    }
+
+    @Test
+    fun `chrome and mode toggle colors follow the persisted theme`() {
+        SettingsRepository(context).setTheme(SettingsRepository.THEME_RED)
+        ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val accent = themeAccent(SettingsRepository.THEME_RED).toArgb()
+                assertEquals(
+                    accent,
+                    activity.findViewById<TextView>(R.id.tv_header_title).currentTextColor
+                )
+                // Activity opens in edit mode: active toggle is themed, inactive stays dim.
+                assertEquals(
+                    accent,
+                    activity.findViewById<TextView>(R.id.btn_edit_mode).currentTextColor
+                )
+                assertEquals(0x66FFFFFF, activity.findViewById<TextView>(R.id.btn_preview_mode).currentTextColor)
             }
         }
     }
@@ -112,7 +135,7 @@ class RichTextEditorActivityTest {
                 assertFalse(content.contains("data:image/png;base64"))
                 assertEquals(
                     context.getString(R.string.rich_text_example_json_loaded),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
@@ -127,10 +150,10 @@ class RichTextEditorActivityTest {
         assertEquals("<p><span>[embedded image omitted]</span></p><p>keep</p>", editable)
     }
 
-    // ── Formatting without selection shows toast ─────────────
+    // ── Formatting without selection shows snackbar ─────────────
 
     @Test
-    fun `bold without selection shows toast`() {
+    fun `bold without selection shows snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editor = findEditor(activity)
@@ -140,14 +163,14 @@ class RichTextEditorActivityTest {
                 activity.findViewById<View>(RichTextR.id.rich_btn_bold).performClick()
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_select_text),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
     }
 
     @Test
-    fun `italic without selection shows toast`() {
+    fun `italic without selection shows snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editor = findEditor(activity)
@@ -157,14 +180,14 @@ class RichTextEditorActivityTest {
                 activity.findViewById<View>(RichTextR.id.rich_btn_italic).performClick()
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_select_text),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
     }
 
     @Test
-    fun `underline without selection shows toast`() {
+    fun `underline without selection shows snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val editor = findEditor(activity)
@@ -174,7 +197,7 @@ class RichTextEditorActivityTest {
                 activity.findViewById<View>(RichTextR.id.rich_btn_underline).performClick()
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_select_text),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
@@ -238,20 +261,20 @@ class RichTextEditorActivityTest {
     // ── Markdown toggle ──────────────────────────────────────
 
     @Test
-    fun `markdown toggle shows enabled toast`() {
+    fun `markdown toggle shows enabled snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 activity.findViewById<View>(RichTextR.id.rich_btn_markdown).performClick()
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_md_on),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }
     }
 
     @Test
-    fun `markdown double toggle shows disabled toast`() {
+    fun `markdown double toggle shows disabled snackbar`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val btn = activity.findViewById<View>(RichTextR.id.rich_btn_markdown)
@@ -259,7 +282,7 @@ class RichTextEditorActivityTest {
                 btn.performClick() // OFF
                 assertEquals(
                     context.getString(RichTextR.string.rich_text_md_off),
-                    ShadowToast.getTextOfLatestToast()
+                    snackbarText(activity)
                 )
             }
         }

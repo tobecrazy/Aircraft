@@ -85,6 +85,22 @@ The demo above walks through the end-to-end player experience on a real device:
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
 
+## Color Themes
+
+Open **Settings → Color theme**, above **Other settings**, to choose Green, Blue, Purple, Yellow, or Red. The selection is saved locally and applied live without restarting; dark backgrounds are retained.
+
+| Theme | Accent | Starfield particle |
+|-------|--------|--------------------|
+| Green | `#00FF88` | Green ❉ |
+| Blue | `#64B5FF` | Blue ♣ |
+| Purple | `#C4A0FF` | Purple ♦ |
+| Yellow | `#FFD54F` | ⭐ |
+| Red | `#FF5252` | 🌹 |
+
+`StarFieldView` uses larger, slower-moving particles on the launch hub and first-launch screens. Emoji appearance depends on the device's emoji font. This does **not** replace the scrolling combat backgrounds or alter game rendering.
+
+Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, and the QR-result and Hall of Heroes bottom sheets use the selected accent. Foreground feedback uses themed Snackbars instead of system-styled Toasts. Android-owned UI, such as permission prompts, file pickers, and notifications, keeps its system styling. The standalone rich-text AAR retains a Toast fallback and exposes an optional `onMessage` callback for host-specific feedback.
+
 ## Gameplay
 
 - **Progression**: 10 combat levels with timers decreasing from 300s to 120s, plus 9 puzzle levels gated between combat levels
@@ -140,10 +156,10 @@ app/src/main/java/com/young/aircraft/
 │   ├── MedicalKitState.kt              # Medical kit pickup state
 │   ├── ShieldState.kt                  # Shield pickup state
 │   ├── TimeFreezeState.kt              # Time-freeze pickup state
-│   ├── GameMode.kt                     # AIR_BATTLE / PUZZLE mode enum for save/resume routing
+│   ├── GameMode.kt                     # AIR_BATTLE / PUZZLE mode enum for persisted progress
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
-│   ├── SettingsRepository.kt           # SharedPreferences-backed privacy/difficulty/puzzle-guide/install-id store
+│   ├── SettingsRepository.kt           # SharedPreferences store: privacy, onboarding, difficulty, audio, five-color theme, puzzle guide, install ID
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 │   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
 │   └── BannerDetails.kt                # In-app banner content model (name/description/source)
@@ -152,11 +168,9 @@ app/src/main/java/com/young/aircraft/
 │   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host, tactical overlay shell, pause flow, dialogs, and DB save flow
-│   ├── PuzzleActivity.kt               # Compose puzzle gate levels and progress saves
-│   ├── HistoryActivity.kt              # History screen container
-│   ├── HistoryFragment.kt              # Leaderboard fragment
-│   ├── HistoryAdapter.kt               # RecyclerView adapter for saved runs
-│   ├── SettingsActivity.kt             # Difficulty, sound, and navigation hub
+│   ├── PuzzleActivity.kt               # Independent ten-level Compose puzzle game, opened from Settings
+│   ├── HistoryActivity.kt              # Compose leaderboard with top-record styling and deletion
+│   ├── SettingsActivity.kt             # Difficulty, sound, color theme, cache, and navigation hub
 │   ├── SettingsScreen.kt               # Compose settings presentation and destinations
 │   ├── QRCodeToolActivity.kt           # QR scan/generate utility with camera preview, gallery import, save-to-device, and rich-text encoding
 │   ├── FlashlightActivity.kt           # Compose flashlight utility with torch, SOS, and brightness controls

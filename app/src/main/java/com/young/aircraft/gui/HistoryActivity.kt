@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.young.aircraft.gui.dialogs.showThemed
 import com.young.aircraft.R
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.PlayerGameData
@@ -121,7 +122,7 @@ class HistoryActivity : AppCompatActivity() {
                 viewModel.deleteRecord(item)
             }
             .setNegativeButton(getString(R.string.history_cancel), null)
-            .show()
+            .showThemed()
     }
 }
 
@@ -262,7 +263,7 @@ private fun SummaryCard(state: HistoryUiState) {
                 } else {
                     stringResource(
                         R.string.history_summary_with_top_pilot,
-                        state.topPilotName!!,
+                        state.topPilotName,
                         state.topPilotLevel ?: 1
                     )
                 },

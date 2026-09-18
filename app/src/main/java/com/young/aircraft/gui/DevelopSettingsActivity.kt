@@ -10,7 +10,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -65,6 +64,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.young.aircraft.gui.dialogs.showThemed
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
@@ -117,7 +117,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
         if (granted) {
             showQrToolNotification()
         } else {
-            Toast.makeText(this, R.string.develop_settings_notification_permission_denied, Toast.LENGTH_SHORT).show()
+            ThemedMessage.makeText(this, R.string.develop_settings_notification_permission_denied, ThemedMessage.LENGTH_SHORT).show()
         }
     }
 
@@ -143,6 +143,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
                     onOpenRichText = { startActivity(Intent(this, RichTextEditorActivity::class.java)) },
                     onOpenAssistantTools = { startActivity(Intent(this, AndroidDevAssistantToolsActivity::class.java)) },
                     onNotificationTest = ::showNotificationConfirmationDialog,
+                    onOpenCameraScan = { startActivity(Intent(this, CameraScanActivity::class.java)) },
                     onOpenBannerItem = { item ->
                         startActivity(ShowImageDetailsActivity.createIntent(this, item))
                     }
@@ -164,7 +165,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
         invincible = enabled
 
         val msg = if (enabled) R.string.invincible_mode_on else R.string.invincible_mode_off
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        ThemedMessage.makeText(this, msg, ThemedMessage.LENGTH_SHORT).show()
     }
 
     private fun showNotificationConfirmationDialog() {
@@ -175,7 +176,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
                 createQrToolNotification()
             }
             .setNegativeButton(R.string.history_cancel, null)
-            .show()
+            .showThemed()
     }
 
     private fun createQrToolNotification() {
@@ -240,6 +241,7 @@ internal fun DevelopSettingsScreen(
     onOpenRichText: () -> Unit,
     onOpenAssistantTools: () -> Unit,
     onNotificationTest: () -> Unit,
+    onOpenCameraScan: () -> Unit,
     onOpenBannerItem: (SupperBannerItem) -> Unit
 ) {
     var autoPlay by remember { mutableStateOf(true) }
@@ -387,10 +389,10 @@ internal fun DevelopSettingsScreen(
                                     transitionInput.toLongOrNull() ?: SupperBannerConfig.DEFAULT_TRANSITION_TIME_MS
                                 )
                                 transitionInput = coercedTime.toString()
-                                Toast.makeText(
+                                ThemedMessage.makeText(
                                     context,
                                     transitionAppliedTemplate.format(coercedTime),
-                                    Toast.LENGTH_SHORT
+                                    ThemedMessage.LENGTH_SHORT
                                 ).show()
                             },
                             modifier = Modifier.weight(1f)
@@ -510,6 +512,13 @@ internal fun DevelopSettingsScreen(
                         modifier = Modifier
                             .padding(top = 10.dp)
                             .testTag("btn_notification")
+                    )
+                    ToolButton(
+                        textRes = R.string.develop_settings_camera_scan_button,
+                        onClick = onOpenCameraScan,
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .testTag("btn_camera_scan")
                     )
                 }
             }

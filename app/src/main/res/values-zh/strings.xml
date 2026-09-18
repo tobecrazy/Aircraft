@@ -1,4 +1,10 @@
 <resources>
+    <string name="theme_settings_title">主题配色</string>
+    <string name="theme_green">绿色</string>
+    <string name="theme_blue">蓝色</string>
+    <string name="theme_purple">紫色</string>
+    <string name="theme_yellow">黄色</string>
+    <string name="theme_red">红色</string>
     <string name="app_name">飞机大战</string>
     <string name="exit_warning_msg">再按一次保存进度并退出</string>
     <string name="pause_title">游戏暂停</string>
@@ -296,6 +302,14 @@
     <string name="develop_settings_assistant_unavailable">当前设备不支持此操作</string>
     <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
     <string name="develop_settings_notification_button">测试 QR 工具通知</string>
+    <string name="develop_settings_camera_scan_button">实时扫码 (CameraX)</string>
+    <string name="camera_scan_title">实时扫码</string>
+    <string name="camera_scan_back">返回</string>
+    <string name="camera_scan_permission_hint">实时扫码需要相机权限。</string>
+    <string name="camera_scan_grant">授予相机权限</string>
+    <string name="camera_scan_open_settings">打开设置</string>
+    <string name="camera_scan_retry">重试</string>
+    <string name="camera_scan_rescan">重新扫描</string>
     <string name="develop_settings_notification_dialog_title">创建通知？</string>
     <string name="develop_settings_notification_dialog_message">创建一条点击后打开 QR Code Tool 的通知。</string>
     <string name="develop_settings_notification_dialog_ok">OK</string>
