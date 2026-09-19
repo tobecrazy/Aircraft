@@ -118,5 +118,5 @@ Large unbroken/base64 content must not be inserted unchanged into the native Edi
 - Never use Kotlin `!!`; use safe calls, explicit null guards, or `requireNotNull`/`checkNotNull` for programming errors.
 - Distinguish `data/PlayerAircraft.kt` (often aliased as `AircraftData`) from the rendered `ui/Aircraft.kt`.
 - Preserve `bitmap.density = screenDensity` for game sprites or Canvas scaling will be incorrect.
-- Generated QR codes are light-on-dark. Keep ZXing's inverted-source fallback when decoding them (`decodeQrFromBitmap` in QRCodeToolActivity).
+- Generated QR codes are light-on-dark. Keep ZXing's inverted-source fallback when decoding them (`decodeQrFromBitmap` in QRCodeToolActivity). There are two decode paths: picked images go through ZXing, while live camera scanning is `CameraScanActivity` (CameraX `MlKitAnalyzer`, a debug-only entry from `DevelopSettingsActivity`).
 - File sharing uses the existing `${applicationId}.fileprovider`, `res/xml/file_paths.xml`, and `FilePickerHelper`; share content URIs with `FLAG_GRANT_READ_URI_PERMISSION`.
