@@ -32,8 +32,8 @@ android {
         applicationId = "com.young.aircraft"
         minSdk = 32
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.3.1"
+        versionCode = 5
+        versionName = "1.3.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
