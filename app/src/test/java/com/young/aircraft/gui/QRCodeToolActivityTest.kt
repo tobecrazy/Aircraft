@@ -4,12 +4,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Looper
-import android.view.SurfaceView
-import android.view.View
-import android.widget.ImageView
-import android.widget.ScrollView
-import android.widget.TextView
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -17,9 +11,7 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
-import com.young.aircraft.data.SettingsRepository
-import com.young.aircraft.ui.theme.themeAccent
-import com.young.richtext.RichTextEditorView
+import com.young.aircraft.viewmodel.QRCodeToolViewModel
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -27,7 +19,9 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowChoreographer
 import org.robolectric.shadows.ShadowDialog
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -49,13 +43,38 @@ class QRCodeToolActivityTest {
         repeat(2) { shadowOf(Looper.getMainLooper()).idle() }
     }
 
-    // Scan-result sheet content is Compose — traverse its semantics tree.
-    private fun sheetRoot() =
-        ShadowDialog.getLatestDialog()!!.window!!.decorView
-            .findSemanticsOwner()!!.rootSemanticsNode
+    private fun viewModelOf(activity: QRCodeToolActivity): QRCodeToolViewModel {
+        val field = QRCodeToolActivity::class.java.getDeclaredField("viewModel")
+        field.isAccessible = true
+        return field.get(activity) as QRCodeToolViewModel
+    }
 
-    private fun SemanticsNode.hasTag(tag: String): Boolean =
-        findAllNodes(this).any { it.config.getOrNull(SemanticsProperties.TestTag) == tag }
+    private fun setEditorText(activity: QRCodeToolActivity, text: String) {
+        requireNotNull(activity.richEditorView).editor.setText(text)
+    }
+
+    private fun generateQr(activity: QRCodeToolActivity, content: String): SemanticsNode {
+        setEditorText(activity, content)
+        assertTrue(screenRoot(activity).clickOnTag("btn_generate_qr"))
+        shadowOf(Looper.getMainLooper()).idle()
+        return screenRoot(activity)
+    }
+
+    // Activity screen content is Compose — traverse the window's semantics tree.
+    private fun screenRoot(activity: QRCodeToolActivity): SemanticsNode =
+        requireNotNull(activity.window.decorView.findSemanticsOwner()).rootSemanticsNode
+
+    // Scan-result sheet content is Compose — traverse its semantics tree.
+    private fun sheetRoot(): SemanticsNode {
+        val dialog = requireNotNull(ShadowDialog.getLatestDialog())
+        val decorView = requireNotNull(dialog.window?.decorView)
+        return requireNotNull(decorView.findSemanticsOwner()).rootSemanticsNode
+    }
+
+    private fun SemanticsNode.findNodeWithTag(tag: String): SemanticsNode? =
+        findAllNodes(this).firstOrNull { it.config.getOrNull(SemanticsProperties.TestTag) == tag }
+
+    private fun SemanticsNode.hasTag(tag: String): Boolean = findNodeWithTag(tag) != null
 
     // ── Activity lifecycle ───────────────────────────────────
 
@@ -72,7 +91,7 @@ class QRCodeToolActivityTest {
     fun `back button finishes activity`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_back).performClick()
+                assertTrue(screenRoot(activity).clickOnTag("btn_back"))
                 assertTrue(activity.isFinishing)
             }
         }
@@ -81,77 +100,28 @@ class QRCodeToolActivityTest {
     // ── Initial layout state ─────────────────────────────────
 
     @Test
-    fun `initial state shows ScrollView and hides camera views`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val scrollContent = activity.findViewById<ScrollView>(R.id.scroll_content)
-                val surfaceCamera = activity.findViewById<SurfaceView>(R.id.surface_camera)
-                val scanStatus = activity.findViewById<TextView>(R.id.tv_scan_status)
-                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
-
-                assertEquals(View.VISIBLE, scrollContent.visibility)
-                assertEquals(View.GONE, surfaceCamera.visibility)
-                assertEquals(View.GONE, scanStatus.visibility)
-                assertEquals(View.VISIBLE, ivQrCode.visibility)
-            }
-        }
-    }
-
-    @Test
     fun `initial state shows ready preview messaging`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val heroStatus = activity.findViewById<TextView>(R.id.tv_hero_status)
-                val previewTitle = activity.findViewById<TextView>(R.id.tv_preview_title)
-                val placeholder = activity.findViewById<TextView>(R.id.tv_qr_placeholder)
-
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_status_ready),
-                    heroStatus.text.toString()
+                val texts = findAllNodes(screenRoot(activity)).mapNotNull { it.displayText() }
+                assertTrue(
+                    texts.contains(context.getString(R.string.qr_code_tool_status_ready))
                 )
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_preview_idle_title),
-                    previewTitle.text.toString()
+                assertTrue(
+                    texts.contains(context.getString(R.string.qr_code_tool_preview_idle_title))
                 )
-                assertEquals(View.VISIBLE, placeholder.visibility)
             }
         }
     }
 
     @Test
-    fun `SurfaceView is not inside ScrollView`() {
+    fun `initial state hides scan pane and QR overlay`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val surfaceCamera = activity.findViewById<SurfaceView>(R.id.surface_camera)
-                val scrollContent = activity.findViewById<ScrollView>(R.id.scroll_content)
-
-                var parent = surfaceCamera.parent
-                while (parent != null) {
-                    assertNotSame(
-                        "SurfaceView must not be a descendant of ScrollView",
-                        scrollContent, parent
-                    )
-                    parent = (parent as? View)?.parent
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `scan status TextView is not inside ScrollView`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val scanStatus = activity.findViewById<TextView>(R.id.tv_scan_status)
-                val scrollContent = activity.findViewById<ScrollView>(R.id.scroll_content)
-
-                var parent = scanStatus.parent
-                while (parent != null) {
-                    assertNotSame(
-                        "Scan status must not be a descendant of ScrollView",
-                        scrollContent, parent
-                    )
-                    parent = (parent as? View)?.parent
-                }
+                val root = screenRoot(activity)
+                assertFalse("Scan pane must not be composed while idle", root.hasTag("btn_pick_qr"))
+                assertFalse("QR image must not exist without a generated bitmap", root.hasTag("iv_qr_code"))
+                assertFalse("Save button must not exist without a generated bitmap", root.hasTag("btn_save_qr"))
             }
         }
     }
@@ -162,7 +132,7 @@ class QRCodeToolActivityTest {
     fun `generate with empty content shows snackbar`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
+                assertTrue(screenRoot(activity).clickOnTag("btn_generate_qr"))
 
                 assertEquals(
                     context.getString(R.string.qr_code_tool_no_content),
@@ -173,33 +143,30 @@ class QRCodeToolActivityTest {
     }
 
     @Test
-    fun `generate with English content sets ImageView bitmap`() {
+    fun `generate with English content shows generated preview`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("Hello World")
+                val root = generateQr(activity, "Hello World")
 
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                val iv = activity.findViewById<ImageView>(R.id.iv_qr_code)
-                assertEquals(View.VISIBLE, iv.visibility)
-                assertNotNull(iv.drawable)
+                val texts = findAllNodes(root).mapNotNull { it.displayText() }
+                assertTrue(
+                    texts.contains(context.getString(R.string.qr_code_tool_status_generated))
+                )
+                assertTrue(
+                    texts.contains(context.getString(R.string.qr_code_tool_preview_generated_title))
+                )
+                assertTrue("QR image should exist after generation", root.hasTag("iv_qr_code"))
             }
         }
     }
 
     @Test
-    fun `generate with Chinese content sets ImageView bitmap`() {
+    fun `generate with Chinese content shows generated preview`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("你好世界")
+                val root = generateQr(activity, "你好世界")
 
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                val iv = activity.findViewById<ImageView>(R.id.iv_qr_code)
-                assertEquals(View.VISIBLE, iv.visibility)
-                assertNotNull(iv.drawable)
+                assertTrue("QR image should exist after generation", root.hasTag("iv_qr_code"))
             }
         }
     }
@@ -208,56 +175,26 @@ class QRCodeToolActivityTest {
     fun `generate with mixed Chinese English content succeeds`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("Aircraft 飞机大战 v1.2.6")
+                val root = generateQr(activity, "Aircraft 飞机大战 v1.2.6")
 
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                val iv = activity.findViewById<ImageView>(R.id.iv_qr_code)
-                assertEquals(View.VISIBLE, iv.visibility)
-                assertNotNull(iv.drawable)
+                assertTrue("QR image should exist after generation", root.hasTag("iv_qr_code"))
             }
         }
     }
 
     @Test
-    fun `generate ensures ScrollView is visible and camera views are hidden`() {
+    fun `preview hint includes save hint after generation`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("test content")
+                val root = generateQr(activity, "hint test")
 
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                assertEquals(View.VISIBLE, activity.findViewById<ScrollView>(R.id.scroll_content).visibility)
-                assertEquals(View.GONE, activity.findViewById<SurfaceView>(R.id.surface_camera).visibility)
-                assertEquals(View.GONE, activity.findViewById<TextView>(R.id.tv_scan_status).visibility)
-            }
-        }
-    }
-
-    @Test
-    fun `generate updates preview state and hides placeholder`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("https://young.example/qr")
-
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                val heroStatus = activity.findViewById<TextView>(R.id.tv_hero_status)
-                val previewTitle = activity.findViewById<TextView>(R.id.tv_preview_title)
-                val placeholder = activity.findViewById<TextView>(R.id.tv_qr_placeholder)
-
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_status_generated),
-                    heroStatus.text.toString()
+                val texts = findAllNodes(root).mapNotNull { it.displayText() }
+                assertTrue(
+                    "Preview hint should contain save hint after generation",
+                    texts.any {
+                        it.contains(context.getString(R.string.qr_code_tool_save_hint))
+                    }
                 )
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_preview_generated_title),
-                    previewTitle.text.toString()
-                )
-                assertEquals(View.GONE, placeholder.visibility)
             }
         }
     }
@@ -268,10 +205,9 @@ class QRCodeToolActivityTest {
     fun `scan button initially shows scan label`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btnScan = activity.findViewById<TextView>(R.id.btn_scan_qr)
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_scan_button),
-                    btnScan.text.toString()
+                val texts = findAllNodes(screenRoot(activity)).mapNotNull { it.displayText() }
+                assertTrue(
+                    texts.contains(context.getString(R.string.qr_code_tool_scan_button))
                 )
             }
         }
@@ -287,7 +223,7 @@ class QRCodeToolActivityTest {
 
                 val dialog = ShadowDialog.getLatestDialog()
                 assertNotNull("Bottom sheet dialog should be shown", dialog)
-                assertTrue(dialog!!.isShowing)
+                assertTrue(requireNotNull(dialog).isShowing)
             }
         }
     }
@@ -370,19 +306,22 @@ class QRCodeToolActivityTest {
         ActivityScenario.launch(SettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val title = activity.getString(R.string.qr_code_tool_title)
-                val root = activity.window.decorView.findSemanticsOwner()!!.rootSemanticsNode
+                val root = requireNotNull(activity.window.decorView.findSemanticsOwner()).rootSemanticsNode
                 // The clickable row merges its Text children, so match by containment.
                 val row = findAllNodes(root).firstOrNull { node ->
                     node.displayText()?.contains(title) == true &&
                         node.config.getOrNull(SemanticsActions.OnClick) != null
                 }
                 assertNotNull("Settings row for QR Code Tool not found", row)
-                row!!.config.getOrNull(SemanticsActions.OnClick)!!.action!!.invoke()
+                val onClick = requireNotNull(
+                    requireNotNull(row).config.getOrNull(SemanticsActions.OnClick)
+                )
+                requireNotNull(onClick.action).invoke()
                 val intent = shadowOf(activity).nextStartedActivity
                 assertNotNull(intent)
                 assertEquals(
                     QRCodeToolActivity::class.java.name,
-                    intent.component?.className
+                    requireNotNull(intent).component?.className
                 )
             }
         }
@@ -394,179 +333,67 @@ class QRCodeToolActivityTest {
     fun `editor has hint text set`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
+                val editor = requireNotNull(activity.richEditorView).editor
                 assertEquals(
                     context.getString(R.string.qr_code_tool_input_hint),
-                    editor.editor.hint.toString()
+                    editor.hint.toString()
                 )
             }
         }
     }
 
-    // ── Pick from Gallery button ────────────────────────────
+    // ── Pick from Gallery buttons ────────────────────────────
 
     @Test
-    fun `pick button exists in layout`() {
+    fun `idle gallery pick button has correct label`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btnPick = activity.findViewById<TextView>(R.id.btn_pick_qr)
-                assertNotNull("Pick from Gallery button should exist", btnPick)
-            }
-        }
-    }
-
-    @Test
-    fun `pick button is inside camera container`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val btnPick = activity.findViewById<View>(R.id.btn_pick_qr)
-                val cameraContainer = activity.findViewById<View>(R.id.camera_container)
-
-                var parent = btnPick.parent
-                var found = false
-                while (parent != null) {
-                    if (parent === cameraContainer) {
-                        found = true
-                        break
-                    }
-                    parent = (parent as? View)?.parent
-                }
-                assertTrue("Pick button must be a descendant of camera_container", found)
-            }
-        }
-    }
-
-    @Test
-    fun `pick button has correct label`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val btnPick = activity.findViewById<TextView>(R.id.btn_pick_qr)
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_pick_gallery),
-                    btnPick.text.toString()
-                )
-            }
-        }
-    }
-
-    // ── Long-press save ─────────────────────────────────────
-
-    @Test
-    fun `QR image has long click listener`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
-                assertTrue("ivQrCode should be long clickable", ivQrCode.isLongClickable)
-            }
-        }
-    }
-
-    @Test
-    fun `long click without generated bitmap returns false`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
-                val consumed = ivQrCode.performLongClick()
-                assertFalse("Long click should not be consumed without a generated bitmap", consumed)
-            }
-        }
-    }
-
-    @Test
-    fun `long click after generating QR code is consumed`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("save test")
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
-                val consumed = ivQrCode.performLongClick()
-                assertTrue("Long click should be consumed after QR generation", consumed)
-            }
-        }
-    }
-
-    @Test
-    fun `long click after generating QR launches save file picker`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("save picker test")
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                val ivQrCode = activity.findViewById<ImageView>(R.id.iv_qr_code)
-                ivQrCode.performLongClick()
-
-                val intent = shadowOf(activity).nextStartedActivityForResult
-                assertNotNull("File picker intent should be launched", intent)
-            }
-        }
-    }
-
-    // ── Preview hint includes save hint after generation ─────
-
-    @Test
-    fun `preview hint includes save hint after generation`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("hint test")
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                val previewHint = activity.findViewById<TextView>(R.id.tv_preview_hint)
+                val root = screenRoot(activity)
+                assertTrue("Idle gallery pick button should exist", root.hasTag("btn_pick_gallery_idle"))
+                val texts = findAllNodes(root).mapNotNull { it.displayText() }
                 assertTrue(
-                    "Preview hint should contain save hint after generation",
-                    previewHint.text.toString().contains(
-                        context.getString(R.string.qr_code_tool_save_hint)
-                    )
+                    texts.contains(context.getString(R.string.qr_code_tool_pick_gallery))
                 )
             }
         }
     }
 
-    // ── decodeQrFromBitmap ──────────────────────────────────
-
     @Test
-    fun `decodeQrFromBitmap with non-QR bitmap shows invalid toast`() {
+    fun `scan pane exposes gallery pick button`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val nonQrBitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+                // The scan line is an infinite animation. With the default (unpaused)
+                // choreographer every vsync request is answered inline and the callback
+                // chain never terminates, so no idle/idleFor call can ever drain it.
+                // Pausing makes frames fire only on bounded clock advances below.
+                ShadowChoreographer.setPaused(true)
+                viewModelOf(activity).startScanning()
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
 
-                val vmField = QRCodeToolActivity::class.java
-                    .getDeclaredField("viewModel")
-                vmField.isAccessible = true
-                val viewModel = vmField.get(activity) as com.young.aircraft.viewmodel.QRCodeToolViewModel
-                val result = viewModel.decodeQrFromBitmap(nonQrBitmap)
+                val root = screenRoot(activity)
+                assertTrue("Scan pane pick button should exist while scanning", root.hasTag("btn_pick_qr"))
+                val texts = findAllNodes(root).mapNotNull { it.displayText() }
+                assertTrue(
+                    texts.contains(context.getString(R.string.qr_code_tool_pick_gallery))
+                )
 
-                assertNull("Should return null for non-QR bitmap", result)
+                // Exit the pane fully (infinite animation disposed) before teardown.
+                viewModelOf(activity).stopScanning()
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
             }
         }
     }
 
-    // ── Save button overlay ─────────────────────────────────────
+    // ── Save overlay and long-press ────────────────────────────
 
     @Test
-    fun `save button is hidden initially`() {
+    fun `save and share buttons appear after generating QR`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btnSave = activity.findViewById<ImageView>(R.id.btn_save_qr)
-                assertNotNull("Save button should exist", btnSave)
-                assertEquals(View.GONE, btnSave.visibility)
-            }
-        }
-    }
+                val root = generateQr(activity, "save button test")
 
-    @Test
-    fun `save button is visible after generating QR`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("save button test")
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
-
-                val btnSave = activity.findViewById<ImageView>(R.id.btn_save_qr)
-                assertEquals(View.VISIBLE, btnSave.visibility)
+                assertTrue("Save button should exist after generation", root.hasTag("btn_save_qr"))
+                assertTrue("Share button should exist after generation", root.hasTag("btn_share_qr"))
             }
         }
     }
@@ -575,11 +402,9 @@ class QRCodeToolActivityTest {
     fun `save button click launches save file picker`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editor = activity.findViewById<RichTextEditorView>(R.id.rich_editor)
-                editor.editor.setText("save icon test")
-                activity.findViewById<View>(R.id.btn_generate_qr).performClick()
+                generateQr(activity, "save icon test")
 
-                activity.findViewById<View>(R.id.btn_save_qr).performClick()
+                assertTrue(screenRoot(activity).clickOnTag("btn_save_qr"))
 
                 val intent = shadowOf(activity).nextStartedActivityForResult
                 assertNotNull("File picker intent should be launched", intent)
@@ -587,74 +412,31 @@ class QRCodeToolActivityTest {
         }
     }
 
-    // ── Idle gallery pick button ───────────────────────────────
-
     @Test
-    fun `idle gallery pick button exists`() {
+    fun `long press QR image launches save file picker`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btn = activity.findViewById<TextView>(R.id.btn_pick_gallery_idle)
-                assertNotNull("Idle gallery pick button should exist", btn)
+                val root = generateQr(activity, "save picker test")
+
+                val node = requireNotNull(root.findNodeWithTag("iv_qr_code"))
+                val longClick = requireNotNull(node.config.getOrNull(SemanticsActions.OnLongClick))
+                requireNotNull(longClick.action).invoke()
+
+                val intent = shadowOf(activity).nextStartedActivityForResult
+                assertNotNull("File picker intent should be launched", intent)
             }
         }
     }
 
-    @Test
-    fun `idle gallery pick button is visible`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val btn = activity.findViewById<TextView>(R.id.btn_pick_gallery_idle)
-                assertEquals(View.VISIBLE, btn.visibility)
-            }
-        }
-    }
+    // ── decodeQrFromBitmap ──────────────────────────────────
 
     @Test
-    fun `idle gallery pick button has correct label`() {
+    fun `decodeQrFromBitmap with non-QR bitmap returns null`() {
         ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val btn = activity.findViewById<TextView>(R.id.btn_pick_gallery_idle)
-                assertEquals(
-                    context.getString(R.string.qr_code_tool_pick_gallery),
-                    btn.text.toString()
-                )
-            }
-        }
-    }
+                val nonQrBitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
 
-    // ── Scan line ───────────────────────────────────────────────
-
-    @Test
-    fun `scan line view exists and is hidden initially`() {
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val scanLine = activity.findViewById<View>(R.id.scan_line)
-                assertNotNull("Scan line should exist", scanLine)
-                assertEquals(View.GONE, scanLine.visibility)
-            }
-        }
-    }
-
-    // ── Theme accent ────────────────────────────────────────────
-
-    @Test
-    fun `chrome colors follow the persisted theme`() {
-        SettingsRepository(context).setTheme(SettingsRepository.THEME_RED)
-        ActivityScenario.launch(QRCodeToolActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val accent = themeAccent(SettingsRepository.THEME_RED).toArgb()
-                assertEquals(
-                    accent,
-                    activity.findViewById<TextView>(R.id.tv_header_title).currentTextColor
-                )
-                assertEquals(
-                    accent,
-                    activity.findViewById<TextView>(R.id.tv_hero_status).currentTextColor
-                )
-                assertEquals(
-                    accent,
-                    activity.findViewById<TextView>(R.id.btn_generate_qr).backgroundTintList?.defaultColor
-                )
+                assertNull("Should return null for non-QR bitmap", viewModelOf(activity).decodeQrFromBitmap(nonQrBitmap))
             }
         }
     }

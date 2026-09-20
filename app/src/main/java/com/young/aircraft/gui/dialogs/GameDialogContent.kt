@@ -33,13 +33,17 @@ import androidx.compose.animation.core.tween
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
-// Visuals lifted from dialog_background / dialog_badge_*_bg / dialog_stat_card*_bg /
-// dialog_button_primary* / dialog_button_secondary drawables.
-private val DialogGradient = Brush.linearGradient(listOf(Color(0xF11C2432), Color(0xE4141D26)))
-private val SecondaryButtonContainer = Color(0x16FFFFFF)
-private val SecondaryButtonBorder = Color(0x44FFFFFF)
-private val SecondaryButtonText = Color(0xFFD8E0EF)
-private val MessageColor = Color(0xFFD8E0EF)
+/** Tactical gradient over the shared surface slots so the dialog follows the color scheme. */
+@Composable
+private fun dialogGradient(): Brush {
+    val colors = MaterialTheme.colorScheme
+    return Brush.linearGradient(
+        listOf(
+            colors.surfaceContainer.copy(alpha = 0xF1 / 255f),
+            colors.surface.copy(alpha = 0xE4 / 255f)
+        )
+    )
+}
 
 /** Dialog colors derived from the current theme's accent. */
 data class GameDialogPalette(
@@ -86,11 +90,12 @@ fun GameDialogContent(
     negativeText: String? = null,
     onNegative: (() -> Unit)? = null
 ) {
-    val palette = gameDialogPalette(MaterialTheme.colorScheme.primary)
+    val colors = MaterialTheme.colorScheme
+    val palette = gameDialogPalette(colors.primary)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DialogGradient, RoundedCornerShape(20.dp))
+            .background(dialogGradient(), RoundedCornerShape(20.dp))
             .border(
                 1.5.dp,
                 MaterialTheme.colorScheme.primary.copy(alpha = 0x66 / 255f),
@@ -101,7 +106,7 @@ fun GameDialogContent(
     ) {
         Text(
             text = badgeText,
-            color = Color.White,
+            color = colors.onSurface,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
@@ -131,7 +136,7 @@ fun GameDialogContent(
 
         Text(
             text = message,
-            color = MessageColor,
+            color = colors.onSurface,
             fontSize = 15.sp,
             lineHeight = 19.sp,
             fontFamily = FontFamily.Monospace,
@@ -159,9 +164,9 @@ fun GameDialogContent(
                 val dismiss = LocalDialogDismiss.current
                 DialogButton(
                     text = negativeText,
-                    textColor = SecondaryButtonText,
-                    container = SecondaryButtonContainer,
-                    border = SecondaryButtonBorder,
+                    textColor = colors.onSurface,
+                    container = colors.onSurface.copy(alpha = 0.08f),
+                    border = colors.onSurface.copy(alpha = 0x44 / 255f),
                     onClick = {
                         dismiss?.invoke()
                         onNegative?.invoke()
@@ -206,7 +211,7 @@ private fun StatCard(stat: GameDialogStat, palette: GameDialogPalette, modifier:
         )
         Text(
             text = animateIfNeeded(stat),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,

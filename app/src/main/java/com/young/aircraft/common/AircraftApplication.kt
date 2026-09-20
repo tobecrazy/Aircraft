@@ -36,6 +36,7 @@ class AircraftApplication : Application() {
         })
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     private fun applyOrientation(activity: Activity) {
         if (activity.resources.configuration.smallestScreenWidthDp < 600) {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
