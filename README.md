@@ -4,9 +4,9 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Download
 
-Latest release APK (V1.3.2):
+Latest release APK (V1.3.3):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.3.2/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.3.3/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
@@ -293,7 +293,7 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.3.2`
+- **Version**: `1.3.3`
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `30`
