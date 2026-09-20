@@ -981,8 +981,7 @@ private fun QrIconOverlay(
         Icon(
             painter = painterResource(iconRes),
             contentDescription = contentDescription,
-            // Keep the intrinsic artwork color; the XML never tinted these icons.
-            tint = Color.Unspecified,
+            tint = accent,
             modifier = Modifier.size(24.dp)
         )
     }

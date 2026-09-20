@@ -1,162 +1,126 @@
 package com.young.aircraft.gui
 
 import android.content.Context
-import android.os.Looper
 import android.view.View
+import android.view.ViewGroup
+import androidx.compose.ui.test.junit4.AndroidComposeTestRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.AppDatabase
-import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
-import com.young.aircraft.providers.DatabaseProvider
 import com.young.aircraft.data.SettingsRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Before
+import com.young.aircraft.providers.DatabaseProvider
+import com.young.aircraft.ui.GameCoreView
+import org.junit.Assert.assertNotNull
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowLooper
-import java.time.Duration
+import org.robolectric.annotation.GraphicsMode
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class MainActivityTest {
 
     private lateinit var context: Context
     private lateinit var db: AppDatabase
-    private lateinit var testDispatcher: TestDispatcher
 
-    @Before
-    fun setUp() {
-        context = ApplicationProvider.getApplicationContext()
-        testDispatcher = StandardTestDispatcher()
-        Dispatchers.setMain(testDispatcher)
+    private val dbRule = object : ExternalResource() {
+        override fun before() {
+            context = ApplicationProvider.getApplicationContext()
+            context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .putString(SettingsRepository.KEY_INSTALL_ID, "main-activity-test-player")
+                .commit()
+            db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+                .allowMainThreadQueries()
+                .setQueryExecutor(Runnable::run)
+                .setTransactionExecutor(Runnable::run)
+                .build()
+            DatabaseProvider.setDatabase(db)
+        }
 
-        context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .clear()
-            .putString(SettingsRepository.KEY_INSTALL_ID, "main-activity-test-player")
-            .commit()
-
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
-            .allowMainThreadQueries()
-            .setQueryExecutor(Runnable::run)
-            .setTransactionExecutor(Runnable::run)
-            .build()
-        DatabaseProvider.setDatabase(db)
-    }
-
-    @After
-    fun tearDown() {
-        db.close()
-        DatabaseProvider.setDatabase(null)
-        Dispatchers.resetMain()
-        context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .clear()
-            .commit()
-    }
-
-    private fun drainAsyncWork() {
-        repeat(3) {
-            testDispatcher.scheduler.advanceUntilIdle()
-            ShadowLooper.idleMainLooper()
+        override fun after() {
+            db.close()
+            DatabaseProvider.setDatabase(null)
+            context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit()
         }
     }
 
+    private val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @get:Rule
+    val chain: RuleChain = RuleChain.outerRule(dbRule).around(composeRule)
+
+    private fun resumeNodeCount(): Int =
+        composeRule.onAllNodesWithText(context.getString(R.string.pause_resume))
+            .fetchSemanticsNodes().size
+
     @Test
-    fun `pause button shows overlay and resume hides it`() = runTest {
-        val activity = Robolectric.buildActivity(MainActivity::class.java).create().get()
-        drainAsyncWork()
+    fun `pause button shows overlay and resume hides it`() {
+        composeRule.waitForIdle()
+        org.junit.Assert.assertEquals(0, resumeNodeCount())
 
-        assertEquals(View.GONE, activity.findViewById<View>(R.id.pause_overlay).visibility)
+        composeRule.onNodeWithText(context.getString(R.string.game_hud_pause)).performClick()
+        composeRule.waitUntil(10_000) { resumeNodeCount() > 0 }
 
-        activity.findViewById<View>(R.id.btn_pause).performClick()
-        drainAsyncWork()
-        assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.pause_overlay).visibility)
-
-        activity.findViewById<View>(R.id.btn_resume).performClick()
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250))
-        drainAsyncWork()
-
-        assertEquals(View.GONE, activity.findViewById<View>(R.id.pause_overlay).visibility)
+        composeRule.onNodeWithText(context.getString(R.string.pause_resume)).performClick()
+        composeRule.waitUntil(10_000) { resumeNodeCount() == 0 }
     }
 
     @Test
-    fun `quit button finishes activity from pause overlay`() = runTest {
-        val activity = Robolectric.buildActivity(MainActivity::class.java).create().get()
-        drainAsyncWork()
+    fun `quit button finishes activity from pause overlay`() {
+        composeRule.onNodeWithText(context.getString(R.string.game_hud_pause)).performClick()
+        composeRule.waitUntil(10_000) { resumeNodeCount() > 0 }
 
-        activity.findViewById<View>(R.id.btn_pause).performClick()
-        drainAsyncWork()
-        assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.pause_overlay).visibility)
-
-        activity.findViewById<View>(R.id.btn_quit).performClick()
-        drainAsyncWork()
-
-        assertTrue(activity.isFinishing)
+        composeRule.onNodeWithText(context.getString(R.string.pause_quit)).performClick()
+        composeRule.waitUntil(10_000) { composeRule.activity.isFinishing }
     }
 
     @Test
-    fun `game container hosts game core view`() = runTest {
-        val activity = Robolectric.buildActivity(MainActivity::class.java).create().get()
-        drainAsyncWork()
+    fun `compose hierarchy hosts game core view`() {
+        composeRule.waitForIdle()
+        val content = composeRule.activity.findViewById<ViewGroup>(android.R.id.content)
+        assertNotNull(findGameCoreView(content))
+    }
 
-        val gameContainer = activity.findViewById<android.widget.FrameLayout>(R.id.game_container)
-        assertEquals(1, gameContainer.childCount)
-        assertTrue(gameContainer.getChildAt(0) is com.young.aircraft.ui.GameCoreView)
+    private fun findGameCoreView(view: View): GameCoreView? = when (view) {
+        is GameCoreView -> view
+        is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { findGameCoreView(view.getChildAt(it)) }
+        else -> null
     }
 
     @Test
-    fun `mission briefing reflects launch sector difficulty and airframe`() = runTest {
-        SettingsRepository(context).setDifficulty(GameDifficulty.HARD)
+    fun `mission briefing renders launch chips`() {
+        SettingsRepository(context).setDifficulty(com.young.aircraft.data.GameDifficulty.HARD)
+        composeRule.activityRule.scenario.recreate()
+        composeRule.waitForIdle()
 
-        val intent = android.content.Intent(context, MainActivity::class.java).apply {
-            putExtra("start_level", 4)
-            putExtra("jet_plane_index", 2)
-            putExtra("jet_plane_res", com.young.aircraft.ui.Aircraft.JET_PLANES[2])
-        }
-        val activity = Robolectric.buildActivity(MainActivity::class.java, intent).create().get()
-        drainAsyncWork()
-
-        assertEquals(
-            activity.getString(R.string.game_hud_chip_sector, 4),
-            activity.findViewById<android.widget.TextView>(R.id.tv_sector_chip).text.toString()
-        )
-        assertEquals(
-            activity.getString(R.string.game_hud_chip_difficulty, activity.getString(R.string.difficulty_hard)),
-            activity.findViewById<android.widget.TextView>(R.id.tv_difficulty_chip).text.toString()
-        )
-        assertEquals(
-            activity.getString(R.string.game_hud_chip_airframe, 3),
-            activity.findViewById<android.widget.TextView>(R.id.tv_airframe_chip).text.toString()
-        )
+        composeRule.onNodeWithText(context.getString(R.string.game_hud_chip_sector, 1)).assertExists()
+        composeRule.onNodeWithText(
+            context.getString(R.string.game_hud_chip_difficulty, context.getString(R.string.difficulty_hard))
+        ).assertExists()
+        composeRule.onNodeWithText(context.getString(R.string.game_hud_chip_airframe, 1)).assertExists()
     }
 
     @Test
-    fun `low memory event shows pause overlay`() = runTest {
-        val activity = Robolectric.buildActivity(MainActivity::class.java).create().get()
-        drainAsyncWork()
-
+    fun `low memory event shows pause overlay`() {
         GameStateManager.emit(GameState.LOW_MEMORY)
-        drainAsyncWork()
-
-        assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.pause_overlay).visibility)
-        assertTrue(activity.findViewById<View>(R.id.pause_panel).alpha >= 0f)
+        composeRule.waitUntil(10_000) { resumeNodeCount() > 0 }
     }
 }

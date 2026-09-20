@@ -11,20 +11,25 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.OnBackPressedCallback
-import androidx.core.view.isVisible
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameState
-import com.young.aircraft.databinding.ActivityMainBinding
+import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.GameCoreView
+import com.young.aircraft.ui.theme.AircraftTheme
+import com.young.aircraft.ui.theme.themeAccent
 import com.young.aircraft.utils.HallOfHeroesNameUtils
 import com.young.aircraft.gui.dialogs.GameDialogStat
 import com.young.aircraft.gui.dialogs.GameDialogContent
@@ -54,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -75,7 +81,7 @@ import kotlinx.coroutines.launch
  */
 class MainActivity : AppCompatActivity() {
     private lateinit var mService: MusicService
-    private lateinit var binding: ActivityMainBinding
+    private val hudState = GameHudState()
     private lateinit var coreView: GameCoreView
     private lateinit var viewModel: GameViewModel
     private var exitTime: Long = 0
@@ -84,7 +90,7 @@ class MainActivity : AppCompatActivity() {
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
-            val binder = service as MusicService.MusicBinder
+            val binder = service as? MusicService.MusicBinder ?: return
             mService = binder.getService()
             isServiceBound = true
             coreView.musicService = mService
@@ -106,14 +112,13 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (binding.pauseOverlay.isVisible) {
+                if (hudState.paused) {
                     hidePauseOverlay()
                 } else {
                     exitApp()
                 }
             }
         })
-        binding = ActivityMainBinding.inflate(layoutInflater)
         coreView = GameCoreView(this)
         val startLevel = intent.getIntExtra(AircraftConstants.IntentExtras.START_LEVEL, 1)
         val jetPlaneRes = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, R.drawable.jet_plane_2)
@@ -122,15 +127,35 @@ class MainActivity : AppCompatActivity() {
         coreView.level = startLevel
         coreView.jetPlaneResId = jetPlaneRes
         coreView.jetPlaneIndex = jetPlaneIndex
-        setContentView(binding.root)
-        binding.gameContainer.addView(
-            coreView,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
-        )
-        configureOverlayUi(startLevel = startLevel, jetPlaneIndex = jetPlaneIndex)
+        val difficultyLabel = when (viewModel.getDifficulty()) {
+            GameDifficulty.EASY -> getString(R.string.difficulty_easy)
+            GameDifficulty.NORMAL -> getString(R.string.difficulty_normal)
+            GameDifficulty.HARD -> getString(R.string.difficulty_hard)
+        }
+        // Read once: themes change only from Settings, which exits the game (same accepted
+        // staleness as RichTextEditorActivity.accentArgb).
+        val accent = themeAccent(SettingsRepository(this).getTheme())
+        setContent {
+            AircraftTheme {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF020611))
+                ) {
+                    AndroidView(factory = { coreView }, modifier = Modifier.fillMaxSize())
+                    GameHudOverlay(
+                        state = hudState,
+                        sectorChip = getString(R.string.game_hud_chip_sector, startLevel),
+                        difficultyChip = getString(R.string.game_hud_chip_difficulty, difficultyLabel),
+                        airframeChip = getString(R.string.game_hud_chip_airframe, jetPlaneIndex + 1),
+                        accent = accent,
+                        onPause = ::showPauseOverlay,
+                        onResume = { hidePauseOverlay() },
+                        onQuit = ::quitFromPauseOverlay
+                    )
+                }
+            }
+        }
         coreView.totalKills = startKills
         coreView.onGameOver = {
             val score = viewModel.calculateScore(coreView.totalKills)
@@ -197,76 +222,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun configureOverlayUi(startLevel: Int, jetPlaneIndex: Int) {
-        bindMissionBriefing(startLevel, jetPlaneIndex)
-        binding.btnPause.setOnClickListener {
-            showPauseOverlay()
-        }
-        binding.btnResume.setOnClickListener {
-            hidePauseOverlay()
-        }
-        binding.btnQuit.setOnClickListener {
-            quitFromPauseOverlay()
-        }
-        binding.gameTipCard.postDelayed({
-            if (!isFinishing && !isDestroyed && binding.gameTipCard.isVisible) {
-                binding.gameTipCard.animate()
-                    .alpha(0f)
-                    .translationY(binding.gameTipCard.height / 3f)
-                    .setDuration(280)
-                    .withEndAction {
-                        binding.gameTipCard.isVisible = false
-                    }
-                    .start()
-            }
-        }, 4200)
-    }
-
-    private fun bindMissionBriefing(startLevel: Int, jetPlaneIndex: Int) {
-        val difficultyLabel = when (viewModel.getDifficulty()) {
-            GameDifficulty.EASY -> getString(R.string.difficulty_easy)
-            GameDifficulty.NORMAL -> getString(R.string.difficulty_normal)
-            GameDifficulty.HARD -> getString(R.string.difficulty_hard)
-        }
-        binding.tvSectorChip.text = getString(R.string.game_hud_chip_sector, startLevel)
-        binding.tvDifficultyChip.text = getString(R.string.game_hud_chip_difficulty, difficultyLabel)
-        binding.tvAirframeChip.text = getString(R.string.game_hud_chip_airframe, jetPlaneIndex + 1)
-    }
-
     private fun showPauseOverlay() {
-        if (binding.pauseOverlay.isVisible) return
+        if (hudState.paused) return
         coreView.pauseGame()
-        binding.pauseOverlay.apply {
-            alpha = 0f
-            isVisible = true
-            animate()
-                .alpha(1f)
-                .setDuration(180)
-                .start()
-        }
-        binding.pausePanel.apply {
-            alpha = 0f
-            scaleX = 0.94f
-            scaleY = 0.94f
-            animate()
-                .alpha(1f)
-                .scaleX(1f)
-                .scaleY(1f)
-                .setDuration(220)
-                .setInterpolator(DecelerateInterpolator())
-                .start()
-        }
+        hudState.paused = true
     }
 
     private fun hidePauseOverlay(shouldResumeGame: Boolean = true) {
-        if (!binding.pauseOverlay.isVisible) return
-        binding.pauseOverlay.animate()
-            .alpha(0f)
-            .setDuration(160)
-            .withEndAction {
-                binding.pauseOverlay.isVisible = false
-            }
-            .start()
+        if (!hudState.paused) return
+        hudState.paused = false
         if (shouldResumeGame) {
             coreView.resumeGame()
         }
@@ -428,10 +392,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        if (binding.pauseOverlay.isVisible) {
-            binding.pauseOverlay.clearAnimation()
-            binding.pauseOverlay.isVisible = false
-        }
+        hidePauseOverlay(shouldResumeGame = false)
         if (isServiceBound) {
             mService.backgroundSoundStop()
             unbindService(connection)
