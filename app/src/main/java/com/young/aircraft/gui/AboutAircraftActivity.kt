@@ -63,14 +63,19 @@ import com.young.aircraft.viewmodel.ImageLoadState
 
 // Panel visuals lifted from device_info_hero_bg / device_info_card_bg /
 // device_info_item_bg / the legacy outlined MaterialButton styling.
-private val HeroBg = Color(0x3300FF88)
+// Accent-tinted slots derive from the live theme accent instead of hardcoded green.
+private val HeroBg: Color
+    @Composable get() = AccentGreen.copy(alpha = 0x33 / 255f)
 private val CardBg = Color(0x20252A3A)
-private val CardBorder = Color(0x2200FF88)
+private val CardBorder: Color
+    @Composable get() = AccentGreen.copy(alpha = 0x22 / 255f)
 private val ItemBg = Color(0x1A252A3A)
 private val ItemBorder = Color(0x33FFFFFF)
 private val GaugeBg = Color(0x18FFFFFF)
-private val CtaBg = Color(0x2600FF88)
-private val CtaBorder = Color(0x6600FF88)
+private val CtaBg: Color
+    @Composable get() = AccentGreen.copy(alpha = 0x26 / 255f)
+private val CtaBorder: Color
+    @Composable get() = AccentGreen.copy(alpha = 0x66 / 255f)
 private val SpecLabel = Color(0x88FFFFFF)
 private val SectionLabel = Color(0x66FFFFFF)
 private val SpecDivider = Color(0x10FFFFFF)

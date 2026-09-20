@@ -145,6 +145,17 @@ class PrivacyPolicyAcceptActivityTest {
     }
 
     @Test
+    fun `accept and reject buttons have equal width`() {
+        tick()
+
+        val acceptWidth = composeTestRule.onNodeWithTag("btn_accept")
+            .fetchSemanticsNode().boundsInRoot.width
+        val rejectWidth = composeTestRule.onNodeWithTag("btn_reject")
+            .fetchSemanticsNode().boundsInRoot.width
+        assertEquals(acceptWidth, rejectWidth, 1f)
+    }
+
+    @Test
     fun `reaching document end unlocks accept which saves pref and routes to onboarding`() {
         tick()
 

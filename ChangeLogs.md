@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Enabled R8 code shrinking and resource shrinking for release builds (`isMinifyEnabled = true`, `isShrinkResources = true`), reducing the release APK from ~45 MB to ~16 MB; Crashlytics receives the R8 mapping file automatically so obfuscated release stack traces remain retraceable
 
 ### Fixed
+- Privacy policy accept and reject buttons now share equal width (`Modifier.weight(1f)`) instead of accept stretching to fill remaining space
 - Clear-cache Cancel now dismisses the dialog even when no negative-action callback is supplied; shared dialog hosts provide the dismissal action
 - Dialogs hosted in separate Compose roots now inherit the saved theme rather than default Material colors
 - Release builds failed at `produceReleaseComposeMapping` with `Could not find org.jetbrains.kotlin:compose-group-mapping:2.2.10` (AGP's bundled KGP version; that artifact is only published from KGP 2.3.0+). Fixed by raising the built-in Kotlin Gradle plugin to `2.4.10` via a `buildscript` classpath dependency, matching the Compose compiler plugin version

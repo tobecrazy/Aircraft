@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -61,14 +62,14 @@ class GameHudState {
     var paused by mutableStateOf(false)
 }
 
-private val ChipGradientStart = Color(0xF019B565)
-private val ChipGradientEnd = Color(0xF0107A4A)
-private val ChipStroke = Color(0x9938E08D)
+// Pure default-theme green, kept as the preview accent reference.
 private val ChipTextGreen = Color(0xFF00FF88)
-private val HintCardTop = Color(0xE6112E21)
-private val HintCardBottom = Color(0xCC07150F)
-private val HintCardStroke = Color(0x4D39D17A)
-private val MetaChipFill = Color(0x201AFF8A)
+
+// HUD accent-tinted slots derive from the theme accent. Dark blends keep the
+// original translucent card look over the game surface.
+private val HudDarkBase = Color(0xFF0C1116)
+private fun accentBlend(accent: Color, mix: Float, alpha: Float = 1f) =
+    lerp(HudDarkBase, accent, mix).copy(alpha = alpha)
 
 /**
  * Fullscreen HUD overlay on top of the GameCoreView surface: top scrim,
@@ -97,7 +98,7 @@ fun GameHudOverlay(
         Box(modifier = Modifier.align(Alignment.TopEnd).padding(top = 84.dp, end = 18.dp)) {
             Text(
                 text = stringResource(R.string.game_hud_pause),
-                color = ChipTextGreen,
+                color = accent,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -120,23 +121,37 @@ fun GameHudOverlay(
                 delay(4200)
                 state.showTip = false
             }
-            MissionBriefingCard(sectorChip, difficultyChip, airframeChip)
+            MissionBriefingCard(accent, sectorChip, difficultyChip, airframeChip)
         }
         PauseOverlay(state, accent, onResume, onQuit)
     }
 }
 
 @Composable
-private fun MissionBriefingCard(sectorChip: String, difficultyChip: String, airframeChip: String) {
+private fun MissionBriefingCard(
+    accent: Color,
+    sectorChip: String,
+    difficultyChip: String,
+    airframeChip: String
+) {
+    val cardGradient = listOf(
+        accentBlend(accent, 0.13f, 0xE6 / 255f),
+        accentBlend(accent, 0.05f, 0xCC / 255f)
+    )
+    val cardStroke = accent.copy(alpha = 0x4D / 255f)
+    val badgeGradient = listOf(
+        lerp(accent, Color.Black, 0.28f).copy(alpha = 0xF0 / 255f),
+        lerp(accent, Color.Black, 0.52f).copy(alpha = 0xF0 / 255f)
+    )
     Column(
         Modifier
             .fillMaxWidth()
             .shadow(8.dp, RoundedCornerShape(20.dp))
             .background(
-                Brush.verticalGradient(listOf(HintCardTop, HintCardBottom)),
+                Brush.verticalGradient(cardGradient),
                 RoundedCornerShape(20.dp)
             )
-            .border(1.dp, HintCardStroke, RoundedCornerShape(20.dp))
+            .border(1.dp, cardStroke, RoundedCornerShape(20.dp))
             .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = 14.dp)
     ) {
         Text(
@@ -147,10 +162,10 @@ private fun MissionBriefingCard(sectorChip: String, difficultyChip: String, airf
             fontFamily = FontFamily.Monospace,
             modifier = Modifier
                 .background(
-                    Brush.horizontalGradient(listOf(ChipGradientStart, ChipGradientEnd)),
+                    Brush.horizontalGradient(badgeGradient),
                     RoundedCornerShape(22.dp)
                 )
-                .border(1.dp, ChipStroke, RoundedCornerShape(22.dp))
+                .border(1.dp, accent.copy(alpha = 0x99 / 255f), RoundedCornerShape(22.dp))
                 .padding(start = 10.dp, top = 5.dp, end = 10.dp, bottom = 5.dp)
         )
         Text(
@@ -166,7 +181,7 @@ private fun MissionBriefingCard(sectorChip: String, difficultyChip: String, airf
         )
         Text(
             text = stringResource(R.string.game_hud_tip_subtitle),
-            color = Color(0xB8E8D0),
+            color = Color.White.copy(alpha = 0xB8 / 255f),
             fontSize = 12.sp,
             fontFamily = FontFamily.Monospace,
             modifier = Modifier
@@ -180,15 +195,15 @@ private fun MissionBriefingCard(sectorChip: String, difficultyChip: String, airf
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MetaChip(sectorChip)
-            MetaChip(difficultyChip)
-            MetaChip(airframeChip)
+            MetaChip(accent, sectorChip)
+            MetaChip(accent, difficultyChip)
+            MetaChip(accent, airframeChip)
         }
     }
 }
 
 @Composable
-private fun MetaChip(text: String) {
+private fun MetaChip(accent: Color, text: String) {
     Text(
         text = text,
         color = Color(0xFFE8FFF2),
@@ -196,8 +211,8 @@ private fun MetaChip(text: String) {
         fontWeight = FontWeight.Bold,
         fontFamily = FontFamily.Monospace,
         modifier = Modifier
-            .background(MetaChipFill, RoundedCornerShape(16.dp))
-            .border(1.dp, HintCardStroke, RoundedCornerShape(16.dp))
+            .background(accent.copy(alpha = 0x20 / 255f), RoundedCornerShape(16.dp))
+            .border(1.dp, accent.copy(alpha = 0x4D / 255f), RoundedCornerShape(16.dp))
             .padding(start = 12.dp, top = 7.dp, end = 12.dp, bottom = 7.dp)
     )
 }

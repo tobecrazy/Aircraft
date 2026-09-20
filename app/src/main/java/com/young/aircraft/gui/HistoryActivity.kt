@@ -424,6 +424,8 @@ private fun RecordCard(
 ) {
     val isTopRecord = index == 0
     val accent = if (isTopRecord) TopGold else RAINBOW_COLORS[index % RAINBOW_COLORS.size]
+    // TOP RUN pill follows the live theme accent; gold/rainbow card accents are medal semantics.
+    val themeAccent = MaterialTheme.colorScheme.primary
 
     Surface(
         modifier = modifier,
@@ -470,12 +472,12 @@ private fun RecordCard(
                             modifier = Modifier
                                 .padding(start = 8.dp)
                                 .background(
-                                    color = Color(0x2900FF88),
+                                    color = themeAccent.copy(alpha = 0x29 / 255f),
                                     shape = RoundedCornerShape(percent = 50)
                                 )
                                 .border(
                                     width = 1.dp,
-                                    color = Color(0x6600FF88),
+                                    color = themeAccent.copy(alpha = 0x66 / 255f),
                                     shape = RoundedCornerShape(percent = 50)
                                 )
                                 .padding(start = 8.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
