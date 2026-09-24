@@ -12,7 +12,6 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RawRes
-import com.young.aircraft.R
 import com.young.aircraft.data.SettingsRepository
 /**
  * Create by Young
@@ -67,6 +66,14 @@ class MusicService : Service() {
                 val wasPlaying = bgMediaPlayer != null
                 bgMediaPlayer?.release()
                 bgMediaPlayer = null
+                // Also reload combat sounds in the new format.
+                soundPool.release()
+                val attribution = AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_GAME)
+                    .build()
+                soundPool = SoundPool.Builder().setMaxStreams(MAX_STREAMS).setAudioAttributes(attribution).build()
+                loadCombatSounds()
                 if (wasPlaying && backgroundSoundEnabled) {
                     backgroundSoundPlay()
                 }
@@ -87,10 +94,7 @@ class MusicService : Service() {
                 .build()
         soundPool = SoundPool.Builder().setMaxStreams(MAX_STREAMS).setAudioAttributes(attribution).build()
         soundMap = hashMapOf()
-        soundMap[0x002] = soundPool.load(this, R.raw.fire, 1)
-        soundMap[0x003] = soundPool.load(this, R.raw.be_hit, 1)
-        soundMap[0x004] = soundPool.load(this, R.raw.enemy_be_hit, 1)
-        soundMap[0x005] = soundPool.load(this, R.raw.game_over, 1)
+        loadCombatSounds()
         audioFocusRequest =
             AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setAudioAttributes(attribution)
@@ -166,32 +170,44 @@ class MusicService : Service() {
     }
 
     /**
-     * Picks the configured BGM track. When OGG is selected but the asset cannot be
-     * opened (e.g. missing during integration), falls back to the MP3 track so the
-     * game still has music.
+     * Picks the configured BGM track. Falls back to MP3 if the preferred format
+     * cannot be loaded.
      */
     private fun createBgMediaPlayer(): MediaPlayer? {
-        val preferredRes = currentBgmRawRes()
+        val preferredRes = resolveSoundRes(BGM_NAME)
         if (preferredRes != 0) {
             MediaPlayer.create(this, preferredRes)?.let { return it }
         }
-        if (preferredRes != FALLBACK_BGM_RES) {
+        val fallbackRes = resolveSoundRes(BGM_NAME, preferMp3 = true)
+        if (fallbackRes != 0 && fallbackRes != preferredRes) {
             Log.w(TAG, "Failed to load BGM res=$preferredRes, falling back to MP3")
-            return MediaPlayer.create(this, FALLBACK_BGM_RES)
+            return MediaPlayer.create(this, fallbackRes)
         }
         return null
     }
 
+    /**
+     * Load combat sound effects into SoundPool using the current format setting.
+     */
+    private fun loadCombatSounds() {
+        soundMap.clear()
+        soundMap[0x002] = soundPool.load(this, resolveSoundRes(FIRE_NAME), 1)
+        soundMap[0x003] = soundPool.load(this, resolveSoundRes(BE_HIT_NAME), 1)
+        soundMap[0x004] = soundPool.load(this, resolveSoundRes(ENEMY_BE_HIT_NAME), 1)
+        soundMap[0x005] = soundPool.load(this, resolveSoundRes(GAME_OVER_NAME), 1)
+    }
+
+    /**
+     * Resolve a raw resource by name and current audio format.
+     * Looks up "{name}_{mp3|ogg}". When [preferMp3] is true, forces MP3 regardless
+     * of setting (used as fallback).
+     */
     @RawRes
-    private fun currentBgmRawRes(): Int =
-        when (settingsRepository.getBgmFormat()) {
-            SettingsRepository.BGM_FORMAT_OGG -> {
-                // Runtime lookup so the project still compiles before bgm_main.ogg is added.
-                val id = resources.getIdentifier(OGG_BGM_NAME, "raw", packageName)
-                if (id == 0) FALLBACK_BGM_RES else id
-            }
-            else -> FALLBACK_BGM_RES
-        }
+    private fun resolveSoundRes(name: String, preferMp3: Boolean = false): Int {
+        val fmt = if (preferMp3) SettingsRepository.BGM_FORMAT_MP3 else settingsRepository.getBgmFormat()
+        val resName = "${name}_${fmt}"
+        return resources.getIdentifier(resName, "raw", packageName)
+    }
 
     private fun requestAudioFocus(): Boolean {
         if (hasAudioFocus) return true
@@ -216,9 +232,10 @@ class MusicService : Service() {
 
     companion object {
         private const val TAG = "MusicService"
-        private const val OGG_BGM_NAME = "bgm_main"
-
-        @RawRes
-        private val FALLBACK_BGM_RES = R.raw.background1
+        private const val BGM_NAME = "background1"
+        private const val FIRE_NAME = "fire"
+        private const val BE_HIT_NAME = "be_hit"
+        private const val ENEMY_BE_HIT_NAME = "enemy_be_hit"
+        private const val GAME_OVER_NAME = "game_over"
     }
 }
