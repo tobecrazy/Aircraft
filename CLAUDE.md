@@ -16,7 +16,11 @@ Aircraft is a Kotlin Android vertical-scrolling shooter. Two Gradle modules: `:a
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance. No Cursor rules were found during initialization.
 - **[AGENTS.md](AGENTS.md) is a symlink to this file**; edit CLAUDE.md rather than replacing the symlink.
 
-Some documentation is stale: README/Copilot describe interleaved puzzle gates, but current `MainActivity` advances directly to the next combat level. `PuzzleActivity` is a separate Settings entry with its own ten-level progression. Verify behavior against code before propagating documentation claims.
+Some documentation is stale; verify behavior against code before propagating documentation claims:
+
+- README/Copilot describe interleaved puzzle gates, but current `MainActivity` advances directly to the next combat level. `PuzzleActivity` is a separate Settings entry with its own ten-level progression.
+- README says min SDK 30; `app/build.gradle.kts` actually sets minSdk 32.
+- Copilot claims Room uses `fallbackToDestructiveMigration(true)`; `DatabaseProvider` registers explicit migrations only, with no fallback (see Persistence below).
 
 ## Build, Lint, and Tests
 
@@ -28,7 +32,7 @@ Run from the repository root:
 ./gradlew :richtexteditor:assembleRelease        # Library AAR in richtexteditor/build/outputs/aar/
 ./gradlew testDebugUnitTest                      # Debug unit tests across modules
 ./gradlew test                                   # All unit-test variants
-./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ExampleUnitTest"
+./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ui.GameCoreViewFormulaTest"
 ./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.gui.SettingsActivityTest"
 ./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.StringResourceTest"
 ./gradlew connectedAndroidTest                  # Requires device/emulator
@@ -89,6 +93,10 @@ Combat has ten timed levels with increasing kill targets and a boss after each t
 - `common/GameStateManager` exposes a SharedFlow of `data/GameState` and the debug invincibility flag. `MainActivity` currently observes the flow for low-memory handling; normal completion dialogs use the direct callbacks above.
 - `GameCoreView` propagates time-freeze state into the player, enemies, and boss before updates. Changes to movement or projectiles must preserve freeze behavior across these objects.
 - `MusicService` is a bound MediaPlayer/SoundPool service with synchronized playback methods. `FlashlightService` separately owns the camera torch as a foreground service and holds a partial wake lock during SOS; this work must outlive the screen as designed.
+
+### Networking
+
+There is no Retrofit usage despite the declared dependency — network calls are direct OkHttp requests inside `BannerDetailsViewModel`, `ShowImageDetailsViewModel`, and `PuzzleActivity`. The Bing wallpaper (peapix) feed in `PuzzleActivity` is parsed by regex in `AircraftConstants`, not a JSON parser. Follow this pattern (no DI framework, no Retrofit service layer) unless asked otherwise.
 
 ### Persistence and Scoring
 
