@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.3] - 2026-09-20
+
+### Fixed
+- Privacy policy accept and reject buttons now share equal width (`Modifier.weight(1f)`) instead of accept stretching to fill remaining space
+
 ## [Unreleased]
 
 ### Added

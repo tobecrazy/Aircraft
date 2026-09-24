@@ -1,17 +1,60 @@
 package com.young.aircraft.gui
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Html
 import android.text.Spanned
-import android.view.View
 import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.R
 import com.young.aircraft.data.SettingsRepository
-import com.young.aircraft.databinding.ActivityRichTextEditorBinding
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.themeAccent
 import com.young.aircraft.utils.DataUriUtils
 import com.young.aircraft.utils.DebugTools
@@ -19,11 +62,18 @@ import com.young.aircraft.viewmodel.RichTextEditorViewModel
 import com.young.richtext.RichTextEditorView
 import org.json.JSONObject
 
+private val ModeInactiveColor = Color(0x66FFFFFF)
+
 class RichTextEditorActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRichTextEditorBinding
     private lateinit var viewModel: RichTextEditorViewModel
     private var accentArgb: Int = 0
+
+    // Hosted inside AndroidView; the activity keeps references for content plumbing and tests.
+    internal var richEditorView: RichTextEditorView? = null
+        private set
+    internal var previewWebView: WebView? = null
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,57 +83,81 @@ class RichTextEditorActivity : AppCompatActivity() {
         }
 
         viewModel = ViewModelProvider(this, RichTextEditorViewModel.Factory())[RichTextEditorViewModel::class.java]
+        accentArgb = themeAccent(SettingsRepository(this).getTheme()).toArgb()
+        enableEdgeToEdge()
 
-        binding = ActivityRichTextEditorBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.richEditor.onMessage = { message ->
-            ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
+        setContent {
+            AircraftTheme {
+                var editMode by remember { mutableStateOf(viewModel.isEditMode) }
+                var previewHtml by remember { mutableStateOf("") }
+
+                RichTextEditorScreen(
+                    editMode = editMode,
+                    previewHtml = previewHtml,
+                    onBack = { finish() },
+                    onSwitchToEdit = {
+                        viewModel.switchToEditMode()
+                        editMode = true
+                    },
+                    onSwitchToPreview = {
+                        previewHtml = buildPreviewHtml()
+                        viewModel.switchToPreviewMode()
+                        editMode = false
+                    },
+                    onLoadExampleJson = {
+                        if (loadExampleJson()) editMode = true
+                    },
+                    onEditorCreated = { view ->
+                        richEditorView = view
+                        seedDefaultContent(view)
+                    },
+                    onEditorMessage = { message ->
+                        ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
+                    },
+                    onPreviewWebViewCreated = { webView ->
+                        previewWebView?.destroy()
+                        previewWebView = webView
+                    },
+                    onPreviewWebViewDestroyed = {
+                        previewWebView?.destroy()
+                        previewWebView = null
+                    },
+                    onImageTap = ::openImageDetails
+                )
+            }
         }
-        applyThemeColors()
+    }
 
-        binding.btnBack.setOnClickListener { finish() }
-        setupModeToggle()
-        setupWebView()
-
-        loadDefaultContent()
-
-        if (viewModel.isEditMode) {
-            switchToEditMode()
-        } else {
-            switchToPreviewMode()
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        previewWebView?.destroy()
+        previewWebView = null
     }
 
     /**
      * Seeds sample rich text only when it is small enough for native EditText layout. Oversized
      * samples are skipped so the screen still opens as an editable rich-text surface.
      */
-    private fun loadDefaultContent() {
-        if (binding.richEditor.text?.isNotEmpty() == true) return
+    private fun seedDefaultContent(editorView: RichTextEditorView) {
+        if (editorView.text?.isNotEmpty() == true) return
         val default = runCatching {
             assets.open(DEFAULT_CONTENT_ASSET).bufferedReader().use { it.readText() }
         }.getOrNull()
-        if (default.isNullOrEmpty()) return
-        if (default.length > MAX_EDITABLE_LENGTH) {
+        if (default.isNullOrEmpty() || default.length > MAX_EDITABLE_LENGTH) {
             return
         }
-        binding.richEditor.editor.setText(default)
+        editorView.editor.setText(default)
     }
 
-    private fun setupModeToggle() {
-        binding.btnEditMode.setOnClickListener { switchToEditMode() }
-        binding.btnPreviewMode.setOnClickListener { switchToPreviewMode() }
-        binding.btnLoadExampleJson.setOnClickListener { loadExampleJson() }
-    }
-
-    private fun loadExampleJson() {
+    /** Returns whether the example JSON was loaded into the editor; the mode flip is caller's. */
+    private fun loadExampleJson(): Boolean {
         val loaded = runCatching {
             val rawJson = assets.open(EXAMPLE_JSON_ASSET).bufferedReader().use { it.readText() }
             val html = JSONObject(rawJson).optString(EXAMPLE_JSON_HTML_KEY)
             if (html.isBlank()) return@runCatching false
-            binding.richEditor.editor.setText(makeHtmlEditable(html))
-            binding.richEditor.editor.setSelection(binding.richEditor.editor.text?.length ?: 0)
-            switchToEditMode()
+            val editor = requireNotNull(richEditorView).editor
+            editor.setText(makeHtmlEditable(html))
+            editor.setSelection(editor.text?.length ?: 0)
             true
         }.getOrDefault(false)
 
@@ -92,77 +166,13 @@ class RichTextEditorActivity : AppCompatActivity() {
             if (loaded) R.string.rich_text_example_json_loaded else R.string.rich_text_example_json_failed,
             ThemedMessage.LENGTH_SHORT
         ).show()
-    }
-
-    /** Applies the persisted accent to the chrome; dark surfaces stay constant by design. */
-    private fun applyThemeColors() {
-        val accent = themeAccent(SettingsRepository(this).getTheme())
-        accentArgb = accent.toArgb()
-        binding.btnBack.setColorFilter(accentArgb)
-        binding.tvHeaderTitle.setTextColor(accentArgb)
-        binding.dividerTop.setBackgroundColor(accent.copy(alpha = 0x44 / 255f).toArgb())
-        binding.dividerBottom.setBackgroundColor(accent.copy(alpha = 0x44 / 255f).toArgb())
-        binding.richEditor.markdownActiveColor = accentArgb
-        renderModeToggle()
-    }
-
-    private fun renderModeToggle() {
-        binding.btnEditMode.setTextColor(
-            if (viewModel.isEditMode) accentArgb else MODE_INACTIVE_COLOR
-        )
-        binding.btnPreviewMode.setTextColor(
-            if (viewModel.isEditMode) MODE_INACTIVE_COLOR else accentArgb
-        )
-    }
-
-    private fun switchToEditMode() {
-        viewModel.switchToEditMode()
-        renderModeToggle()
-        binding.richEditor.visibility = View.VISIBLE
-        binding.wvPreview.visibility = View.GONE
-    }
-
-    private fun switchToPreviewMode() {
-        val html = buildPreviewHtml()
-
-        viewModel.switchToPreviewMode()
-        renderModeToggle()
-        binding.richEditor.visibility = View.GONE
-        binding.wvPreview.visibility = View.VISIBLE
-
-        binding.wvPreview.post {
-            binding.wvPreview.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
-        }
-    }
-
-    @Suppress("DEPRECATION")
-    private fun setupWebView() {
-        binding.wvPreview.settings.javaScriptEnabled = false
-        binding.wvPreview.settings.loadWithOverviewMode = true
-        binding.wvPreview.settings.useWideViewPort = true
-        binding.wvPreview.setBackgroundColor(BackgroundDark.toArgb())
-        binding.wvPreview.setWebViewClient(object : android.webkit.WebViewClient() {
-            @Deprecated("Deprecated in Java")
-            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                url?.let {
-                    if (RichTextEditorView.isImageTapUrl(it)) {
-                        openImageDetails(it)
-                        return true
-                    }
-                    val intent = android.content.Intent(
-                        android.content.Intent.ACTION_VIEW, android.net.Uri.parse(it)
-                    )
-                    startActivity(intent)
-                }
-                return true
-            }
-        })
+        return loaded
     }
 
     private fun buildPreviewHtml(): String {
-        val editable = binding.richEditor.text ?: return wrapHtml("")
+        val editable = richEditorView?.text ?: return wrapHtml("")
 
-        if (binding.richEditor.isMarkdownMode) {
+        if (richEditorView?.isMarkdownMode == true) {
             val content = RichTextEditorView.processMarkdown(editable.toString())
             return wrapHtml(content)
         }
@@ -271,7 +281,6 @@ class RichTextEditorActivity : AppCompatActivity() {
         private const val DEFAULT_CONTENT_ASSET = "rich_text_default.html"
         private const val EXAMPLE_JSON_ASSET = "example.json"
         private const val EXAMPLE_JSON_HTML_KEY = "sectDesc"
-        private const val MODE_INACTIVE_COLOR = 0x66FFFFFF
 
         // Content above this length is not seeded into the editor. Editing very large content
         // (e.g. a long unbreakable base64 image token) in an EditText makes native text layout
@@ -289,5 +298,240 @@ class RichTextEditorActivity : AppCompatActivity() {
         fun makeHtmlEditable(html: String): String {
             return DATA_IMAGE_TAG.replace(html, "<span>[embedded image omitted]</span>")
         }
+    }
+}
+
+@Composable
+internal fun RichTextEditorScreen(
+    editMode: Boolean,
+    previewHtml: String,
+    onBack: () -> Unit,
+    onSwitchToEdit: () -> Unit,
+    onSwitchToPreview: () -> Unit,
+    onLoadExampleJson: () -> Unit,
+    onEditorCreated: (RichTextEditorView) -> Unit,
+    onEditorMessage: (CharSequence) -> Unit,
+    onPreviewWebViewCreated: (WebView) -> Unit,
+    onPreviewWebViewDestroyed: () -> Unit,
+    onImageTap: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundDark)
+            .safeDrawingPadding()
+    ) {
+        EditorHeader(onBack = onBack)
+        NeonDivider()
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            // Captured once at factory time; the editor keeps it across later theme
+            // changes (same staleness as the pre-migration accentArgb capture).
+            val editorAccent = MaterialTheme.colorScheme.primary.toArgb()
+            // The editor stays composed underneath the preview so drafts (text + spans)
+            // survive preview round-trips, mirroring the XML GONE/VISIBLE switching.
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    RichTextEditorView(context).apply {
+                        onMessage = onEditorMessage
+                        markdownActiveColor = editorAccent
+                        onEditorCreated(this)
+                    }
+                }
+            )
+
+            if (!editMode) {
+                PreviewWebView(
+                    html = previewHtml,
+                    onImageTap = onImageTap,
+                    onCreated = onPreviewWebViewCreated,
+                    onDestroyed = onPreviewWebViewDestroyed,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+
+        NeonDivider()
+
+        EditorModeBar(
+            editMode = editMode,
+            onSwitchToEdit = onSwitchToEdit,
+            onSwitchToPreview = onSwitchToPreview,
+            onLoadExampleJson = onLoadExampleJson
+        )
+    }
+}
+
+@Composable
+private fun EditorHeader(onBack: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .background(HeaderBackground)
+    ) {
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .testTag("btn_back")
+                .padding(start = 4.dp)
+                .size(48.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_header_back),
+                contentDescription = stringResource(R.string.history_cancel),
+                tint = AccentGreen
+            )
+        }
+        Text(
+            text = stringResource(R.string.rich_text_editor_title),
+            modifier = Modifier.align(Alignment.Center),
+            color = AccentGreen,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 0.25.sp
+        )
+    }
+}
+
+@Composable
+private fun PreviewWebView(
+    html: String,
+    onImageTap: (String) -> Unit,
+    onCreated: (WebView) -> Unit,
+    onDestroyed: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var webView by remember { mutableStateOf<WebView?>(null) }
+
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            WebView(context).apply {
+                settings.javaScriptEnabled = false
+                settings.loadWithOverviewMode = true
+                settings.useWideViewPort = true
+                setBackgroundColor(BackgroundDark.toArgb())
+                webViewClient = object : WebViewClient() {
+                    @Deprecated("Deprecated in Java")
+                    @Suppress("DEPRECATION")
+                    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                        url?.let {
+                            if (RichTextEditorView.isImageTapUrl(it)) {
+                                onImageTap(it)
+                                return true
+                            }
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it)))
+                        }
+                        return true
+                    }
+                }
+                onCreated(this)
+                webView = this
+            }
+        }
+    )
+
+    LaunchedEffect(webView, html) {
+        webView?.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { onDestroyed() }
+    }
+}
+
+@Composable
+private fun EditorModeBar(
+    editMode: Boolean,
+    onSwitchToEdit: () -> Unit,
+    onSwitchToPreview: () -> Unit,
+    onLoadExampleJson: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .background(HeaderBackground)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ModeButton(
+            label = stringResource(R.string.rich_text_mode_edit),
+            active = editMode,
+            onClick = onSwitchToEdit,
+            modifier = Modifier
+                .weight(1f)
+                .testTag("btn_edit_mode")
+        )
+        ModeButton(
+            label = stringResource(R.string.rich_text_load_example_json),
+            active = false,
+            onClick = onLoadExampleJson,
+            modifier = Modifier
+                .weight(1f)
+                .testTag("btn_load_example_json")
+        )
+        ModeButton(
+            label = stringResource(R.string.rich_text_mode_preview),
+            active = !editMode,
+            onClick = onSwitchToPreview,
+            modifier = Modifier
+                .weight(1f)
+                .testTag("btn_preview_mode")
+        )
+    }
+}
+
+@Composable
+private fun ModeButton(
+    label: String,
+    active: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .height(36.dp)
+            .background(Color(0x18FFFFFF), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = if (active) AccentGreen else ModeInactiveColor,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F1118, widthDp = 412, heightDp = 892)
+@Composable
+private fun RichTextEditorScreenPreview() {
+    AircraftTheme {
+        RichTextEditorScreen(
+            editMode = true,
+            previewHtml = "",
+            onBack = {},
+            onSwitchToEdit = {},
+            onSwitchToPreview = {},
+            onLoadExampleJson = {},
+            onEditorCreated = {},
+            onEditorMessage = {},
+            onPreviewWebViewCreated = {},
+            onPreviewWebViewDestroyed = {},
+            onImageTap = {}
+        )
     }
 }

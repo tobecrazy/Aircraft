@@ -303,7 +303,8 @@ internal fun BottomActions(unlocked: Boolean, onAccept: () -> Unit, onReject: ()
                 contentColor = RejectRed,
                 border = BorderStroke(1.dp, RejectRed),
                 onClick = onReject,
-                testTag = "btn_reject"
+                testTag = "btn_reject",
+                modifier = Modifier.weight(1f)
             )
         }
     }

@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -229,12 +230,13 @@ private fun HistoryHeader(onBack: () -> Unit) {
 
 @Composable
 private fun SummaryCard(state: HistoryUiState) {
+    val accent = MaterialTheme.colorScheme.primary
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
         shape = RoundedCornerShape(18.dp),
-        color = Color(0x3300FF88)
+        color = accent.copy(alpha = 0x33 / 255f)
     ) {
         Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp)) {
             Text(
@@ -304,18 +306,22 @@ private fun SummaryCard(state: HistoryUiState) {
     }
 }
 
-/** settings_chip_active_bg (#2600FF88/#6600FF88 pill) vs settings_chip_bg (#18FFFFFF/#28FFFFFF pill). */
-private fun Modifier.chipModifier(active: Boolean): Modifier = this
-    .background(
-        color = if (active) Color(0x2600FF88) else Color(0x18FFFFFF),
-        shape = RoundedCornerShape(percent = 50)
-    )
-    .border(
-        width = 1.dp,
-        color = if (active) Color(0x6600FF88) else Color(0x28FFFFFF),
-        shape = RoundedCornerShape(percent = 50)
-    )
-    .padding(horizontal = 12.dp, vertical = 6.dp)
+/** settings_chip_active_bg (accent-tinted pill) vs settings_chip_bg (#18FFFFFF/#28FFFFFF pill). */
+@Composable
+private fun Modifier.chipModifier(active: Boolean): Modifier {
+    val accent = MaterialTheme.colorScheme.primary
+    return this
+        .background(
+            color = if (active) accent.copy(alpha = 0x26 / 255f) else Color(0x18FFFFFF),
+            shape = RoundedCornerShape(percent = 50)
+        )
+        .border(
+            width = 1.dp,
+            color = if (active) accent.copy(alpha = 0x66 / 255f) else Color(0x28FFFFFF),
+            shape = RoundedCornerShape(percent = 50)
+        )
+        .padding(horizontal = 12.dp, vertical = 6.dp)
+}
 
 @Composable
 private fun RecordsSectionHeader() {
@@ -418,6 +424,8 @@ private fun RecordCard(
 ) {
     val isTopRecord = index == 0
     val accent = if (isTopRecord) TopGold else RAINBOW_COLORS[index % RAINBOW_COLORS.size]
+    // TOP RUN pill follows the live theme accent; gold/rainbow card accents are medal semantics.
+    val themeAccent = MaterialTheme.colorScheme.primary
 
     Surface(
         modifier = modifier,
@@ -464,12 +472,12 @@ private fun RecordCard(
                             modifier = Modifier
                                 .padding(start = 8.dp)
                                 .background(
-                                    color = Color(0x2900FF88),
+                                    color = themeAccent.copy(alpha = 0x29 / 255f),
                                     shape = RoundedCornerShape(percent = 50)
                                 )
                                 .border(
                                     width = 1.dp,
-                                    color = Color(0x6600FF88),
+                                    color = themeAccent.copy(alpha = 0x66 / 255f),
                                     shape = RoundedCornerShape(percent = 50)
                                 )
                                 .padding(start = 8.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),

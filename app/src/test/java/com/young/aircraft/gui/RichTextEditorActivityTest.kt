@@ -2,19 +2,16 @@ package com.young.aircraft.gui
 
 import android.content.Context
 import android.graphics.Typeface
+import android.os.Looper
 import android.text.Spanned
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.view.View
 import android.widget.EditText
-import android.widget.TextView
-import androidx.compose.ui.graphics.toArgb
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.aircraft.R
-import com.young.aircraft.data.SettingsRepository
-import com.young.aircraft.ui.theme.themeAccent
+import com.young.aircraft.data.ImageDetailsIntentContract
 import com.young.richtext.RichTextEditorView
 import com.young.richtext.R as RichTextR
 import org.junit.Assert.*
@@ -22,9 +19,9 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import org.robolectric.Shadows
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -37,11 +34,16 @@ class RichTextEditorActivityTest {
         context = ApplicationProvider.getApplicationContext()
     }
 
-    private fun findEditor(activity: RichTextEditorActivity): EditText =
-        activity.findViewById<RichTextEditorView>(R.id.rich_editor).editor
+    private fun idle() {
+        shadowOf(Looper.getMainLooper()).idle()
+    }
 
-    private fun findRichEditor(activity: RichTextEditorActivity): RichTextEditorView =
-        activity.findViewById(R.id.rich_editor)
+    // Screen content is Compose — traverse the window's semantics tree.
+    private fun screenRoot(activity: RichTextEditorActivity) =
+        requireNotNull(activity.window.decorView.findSemanticsOwner()).rootSemanticsNode
+
+    private fun findEditor(activity: RichTextEditorActivity): EditText =
+        requireNotNull(activity.richEditorView).editor
 
     // ── Activity lifecycle ───────────────────────────────────
 
@@ -49,34 +51,12 @@ class RichTextEditorActivityTest {
     fun `activity launches in edit mode with editable rich text input`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val editorView = findRichEditor(activity)
                 val editor = findEditor(activity)
-                val preview = activity.findViewById<View>(R.id.wv_preview)
-                assertEquals(View.VISIBLE, editorView.visibility)
-                assertEquals(View.GONE, preview.visibility)
                 assertTrue(editor.isEnabled)
                 assertTrue(editor.isFocusable)
                 assertNotNull(editor.keyListener)
-            }
-        }
-    }
-
-    @Test
-    fun `chrome and mode toggle colors follow the persisted theme`() {
-        SettingsRepository(context).setTheme(SettingsRepository.THEME_RED)
-        ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val accent = themeAccent(SettingsRepository.THEME_RED).toArgb()
-                assertEquals(
-                    accent,
-                    activity.findViewById<TextView>(R.id.tv_header_title).currentTextColor
-                )
-                // Activity opens in edit mode: active toggle is themed, inactive stays dim.
-                assertEquals(
-                    accent,
-                    activity.findViewById<TextView>(R.id.btn_edit_mode).currentTextColor
-                )
-                assertEquals(0x66FFFFFF, activity.findViewById<TextView>(R.id.btn_preview_mode).currentTextColor)
+                // Edit mode: no preview WebView is attached yet.
+                assertNull(activity.previewWebView)
             }
         }
     }
@@ -85,7 +65,7 @@ class RichTextEditorActivityTest {
     fun `back button finishes activity`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_back).performClick()
+                assertTrue(screenRoot(activity).clickOnTag("btn_back"))
                 assertTrue(activity.isFinishing)
             }
         }
@@ -94,27 +74,19 @@ class RichTextEditorActivityTest {
     // ── Mode toggle ──────────────────────────────────────────
 
     @Test
-    fun `clicking preview hides editor`() {
+    fun `clicking preview swaps in a WebView and back restores the editor`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_preview_mode).performClick()
+                assertTrue(screenRoot(activity).clickOnTag("btn_preview_mode"))
+                idle()
+                val webView = requireNotNull(activity.previewWebView)
 
-                assertEquals(View.GONE, findRichEditor(activity).visibility)
-                assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.wv_preview).visibility)
-            }
-        }
-    }
-
-    @Test
-    fun `clicking edit after preview shows editable rich text input`() {
-        ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_preview_mode).performClick()
-                activity.findViewById<View>(R.id.btn_edit_mode).performClick()
+                assertTrue(screenRoot(activity).clickOnTag("btn_edit_mode"))
+                idle()
+                // Leaving preview disposes the WebView (destroyed via onDispose callback).
+                assertNull(activity.previewWebView)
 
                 val editor = findEditor(activity)
-                assertEquals(View.VISIBLE, findRichEditor(activity).visibility)
-                assertEquals(View.GONE, activity.findViewById<View>(R.id.wv_preview).visibility)
                 assertTrue(editor.isEnabled)
                 assertNotNull(editor.keyListener)
             }
@@ -125,11 +97,11 @@ class RichTextEditorActivityTest {
     fun `clicking json loads editable example content`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                activity.findViewById<View>(R.id.btn_load_example_json).performClick()
+                assertTrue(screenRoot(activity).clickOnTag("btn_load_example_json"))
+                idle()
 
                 val editor = findEditor(activity)
                 val content = editor.text.toString()
-                assertEquals(View.VISIBLE, findRichEditor(activity).visibility)
                 assertTrue(content.contains("a good day"))
                 assertTrue(content.contains("https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png"))
                 assertFalse(content.contains("data:image/png;base64"))
@@ -295,14 +267,14 @@ class RichTextEditorActivityTest {
         ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 assertTrue(
-                    activity.window.decorView.findSemanticsOwner()!!.rootSemanticsNode
+                    requireNotNull(activity.window.decorView.findSemanticsOwner()).rootSemanticsNode
                         .clickOnTag("btn_test_rich_text")
                 )
                 val intent = shadowOf(activity).nextStartedActivity
                 assertNotNull(intent)
                 assertEquals(
                     RichTextEditorActivity::class.java.name,
-                    intent.component?.className
+                    requireNotNull(intent).component?.className
                 )
             }
         }
@@ -312,22 +284,26 @@ class RichTextEditorActivityTest {
     fun `clicking image in preview opens ShowImageDetailsActivity`() {
         ActivityScenario.launch(RichTextEditorActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val webView = activity.findViewById<android.webkit.WebView>(R.id.wv_preview)
-                val url = RichTextEditorView.buildImageTapUrl("https://example.com/pic.png")
+                // The WebView only exists in preview mode.
+                assertTrue(screenRoot(activity).clickOnTag("btn_preview_mode"))
+                idle()
+                val webView = requireNotNull(activity.previewWebView)
 
-                val handled = Shadows.shadowOf(webView).webViewClient.shouldOverrideUrlLoading(webView, url)
+                val url = RichTextEditorView.buildImageTapUrl("https://example.com/pic.png")
+                val handled = Shadows.shadowOf(webView).webViewClient
+                    .shouldOverrideUrlLoading(webView, url)
                 val intent = shadowOf(activity).nextStartedActivity
 
                 assertTrue(handled)
                 assertNotNull(intent)
                 assertEquals(
                     ShowImageDetailsActivity::class.java.name,
-                    intent.component?.className
+                    requireNotNull(intent).component?.className
                 )
-                assertEquals("pic.png", intent.getStringExtra(ImageDetailsIntentContract.EXTRA_NAME))
-                assertEquals("https://example.com/pic.png", intent.getStringExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION))
-                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, intent.getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE))
-                assertEquals("https://example.com/pic.png", intent.getStringExtra(ImageDetailsIntentContract.EXTRA_URL))
+                assertEquals("pic.png", requireNotNull(intent).getStringExtra(ImageDetailsIntentContract.EXTRA_NAME))
+                assertEquals("https://example.com/pic.png", requireNotNull(intent).getStringExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION))
+                assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, requireNotNull(intent).getStringExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE))
+                assertEquals("https://example.com/pic.png", requireNotNull(intent).getStringExtra(ImageDetailsIntentContract.EXTRA_URL))
             }
         }
     }

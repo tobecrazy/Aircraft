@@ -38,7 +38,7 @@
     { "id": "home-history", "from": "home", "to": "history", "label": "工具" },
     { "id": "viewmodel-game", "from": "viewmodel", "to": "game", "label": "游戏状态", "labelDy": 24, "labelDx": 48 },
     { "id": "viewmodel-data", "from": "viewmodel", "to": "data", "label": "读写", "fromSide": "bottom", "toSide": "top", "labelDy": -18 },
-    { "id": "viewmodel-room", "from": "viewmodel", "to": "room", "label": "Retrofit / Coil", "fromSide": "bottom", "toSide": "top", "labelDy": -18 },
+    { "id": "viewmodel-room", "from": "viewmodel", "to": "room", "label": "DAO", "fromSide": "bottom", "toSide": "top", "labelDy": -18 },
     { "id": "data-room", "from": "data", "to": "room", "label": "SQL", "fromSide": "bottom", "toSide": "bottom", "via": [[255, 470], [745, 470]], "labelDy": -14 }
   ],
   "cards": [

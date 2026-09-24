@@ -1,13 +1,10 @@
 package com.young.aircraft.gui
 
 import android.Manifest
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
@@ -25,46 +22,84 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.SurfaceHolder
-import android.view.View
+import android.view.SurfaceView
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
@@ -74,24 +109,37 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.young.aircraft.R
-import com.young.aircraft.data.SettingsRepository
-import com.young.aircraft.databinding.ActivityQrCodeToolBinding
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
 import com.young.aircraft.gui.dialogs.showThemed
-import com.young.aircraft.ui.theme.themeAccent
+import com.young.aircraft.ui.maxContentWidth
+import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.AircraftTheme
+import com.young.aircraft.ui.theme.BackgroundDark
+import com.young.aircraft.ui.theme.HeaderBackground
+import com.young.aircraft.ui.theme.NeonDivider
+import com.young.aircraft.ui.theme.TextBody
+import com.young.aircraft.ui.theme.TextBright
+import com.young.aircraft.ui.theme.TextMuted
+import com.young.aircraft.ui.theme.TextSubtle
 import com.young.aircraft.utils.FilePickerHelper
-import com.young.aircraft.viewmodel.QRCodeToolViewModel
 import com.young.aircraft.viewmodel.QRCodeToolUiState
-import com.young.aircraft.viewmodel.QrToolMode
+import com.young.aircraft.viewmodel.QRCodeToolViewModel
+import com.young.richtext.RichTextEditorView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
+import kotlin.math.roundToInt
 
 class QRCodeToolActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityQrCodeToolBinding
     private lateinit var viewModel: QRCodeToolViewModel
+
+    // Hosted inside AndroidView; the activity keeps references for camera plumbing and tests.
+    internal var scanSurfaceView: SurfaceView? = null
+        private set
+    internal var richEditorView: RichTextEditorView? = null
+        private set
 
     private var cameraDevice: CameraDevice? = null
     private var captureSession: CameraCaptureSession? = null
@@ -100,7 +148,6 @@ class QRCodeToolActivity : AppCompatActivity() {
     private var backgroundHandler: Handler? = null
     private var isCameraOpening = false
     private var frameCounter = 0
-    private var scanLineAnimator: ObjectAnimator? = null
 
     private val createDocumentLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("image/png")
@@ -113,7 +160,6 @@ class QRCodeToolActivity : AppCompatActivity() {
         if (saved) {
             ThemedMessage.makeText(this, R.string.qr_code_tool_save_success, ThemedMessage.LENGTH_SHORT).show()
             viewModel.onSaveSuccess(uri)
-            binding.btnShareQr.visibility = View.VISIBLE
         } else {
             ThemedMessage.makeText(this, R.string.qr_code_tool_save_failed, ThemedMessage.LENGTH_SHORT).show()
         }
@@ -158,148 +204,82 @@ class QRCodeToolActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         viewModel = ViewModelProvider(this, QRCodeToolViewModel.Factory())[QRCodeToolViewModel::class.java]
+        enableEdgeToEdge()
 
-        binding = ActivityQrCodeToolBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.richEditor.onMessage = { message ->
-            ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
-        }
-        applyThemeColors()
-
-        binding.surfaceCamera.holder.addCallback(scanSurfaceCallback)
-
-        setupHeader()
-        setupScanButton()
-        setupGenerateButton()
-        setupEditor()
-        setupQrLongPress()
-        setupPickButton()
-        setupSaveButton()
-        setupShareButton()
-        setupIdleGalleryPickButton()
-        setupAccessibility()
-        renderContentState()
-    }
-
-    private fun setupAccessibility() {
-        val buttonDelegate = object : androidx.core.view.AccessibilityDelegateCompat() {
-            override fun onInitializeAccessibilityNodeInfo(
-                host: View,
-                info: AccessibilityNodeInfoCompat
-            ) {
-                super.onInitializeAccessibilityNodeInfo(host, info)
-                info.className = "android.widget.Button"
+        setContent {
+            AircraftTheme {
+                val state by viewModel.uiState.collectAsState()
+                QrCodeToolScreen(
+                    state = state,
+                    onBack = { finish() },
+                    onScanToggle = ::onScanButtonClicked,
+                    onGenerate = ::generateFromEditor,
+                    onPickFromGallery = { pickFileLauncher.launch("image/*") },
+                    onPickFromGalleryIdle = {
+                        pickMediaLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    onSave = ::saveQrToGallery,
+                    onShare = ::shareQrCode,
+                    onEditorCreated = { view -> richEditorView = view },
+                    onEditorMessage = { message ->
+                        ThemedMessage.makeText(this, message, ThemedMessage.LENGTH_SHORT).show()
+                    },
+                    onScanSurfaceCreated = ::attachScanSurface
+                )
             }
         }
-        ViewCompat.setAccessibilityDelegate(binding.btnGenerateQr, buttonDelegate)
-        ViewCompat.setAccessibilityDelegate(binding.btnScanQr, buttonDelegate)
-        ViewCompat.setAccessibilityDelegate(binding.btnPickQr, buttonDelegate)
-        ViewCompat.setAccessibilityDelegate(binding.btnPickGalleryIdle, buttonDelegate)
     }
 
-    private fun setupHeader() {
-        binding.btnBack.setOnClickListener { finish() }
-    }
-
-    /**
-     * Applies the persisted accent to the chrome and accent-drawn surfaces. Dark panels, the
-     * dark stop-action button and QR content colors stay constant by design.
-     */
-    private fun applyThemeColors() {
-        val accent = themeAccent(SettingsRepository(this).getTheme())
-        val accentArgb = accent.toArgb()
-        binding.btnBack.setColorFilter(accentArgb)
-        binding.tvHeaderTitle.setTextColor(accentArgb)
-        binding.dividerHeader.setBackgroundColor(accent.copy(alpha = 0x44 / 255f).toArgb())
-        binding.generateMarker.setBackgroundColor(accentArgb)
-        binding.scanLine.setBackgroundColor(accent.copy(alpha = 0x88 / 255f).toArgb())
-        binding.tvScanStatus.setTextColor(accentArgb)
-        binding.tvHeroStatus.setTextColor(accentArgb)
-
-        // Flat accent shapes tint cleanly (SRC_IN keeps per-pixel alpha); gradient drawables
-        // must not be tinted or they flatten, so secondary/preview frames keep their XML colors.
-        val flatTint = ColorStateList.valueOf(accentArgb)
-        binding.scanFrame.backgroundTintList = flatTint
-        listOf(binding.tvScanStatus, binding.tvHeroStatus, binding.btnSaveQr, binding.btnShareQr)
-            .forEach { it.backgroundTintList = flatTint }
-        binding.btnGenerateQr.backgroundTintList = ColorStateList(
-            arrayOf(intArrayOf(android.R.attr.state_pressed), intArrayOf()),
-            intArrayOf(accent.copy(alpha = 0.72f).toArgb(), accentArgb)
-        )
-        binding.richEditor.markdownActiveColor = accentArgb
-    }
-
-    private fun setupEditor() {
-        binding.richEditor.setHint(getString(R.string.qr_code_tool_input_hint))
-        binding.richEditor.setEditorBackground(R.drawable.qr_tool_preview_frame_bg)
-        binding.richEditor.setEditorHeight(
-            (192 * resources.displayMetrics.density).toInt()
-        )
+    internal fun attachScanSurface(view: SurfaceView) {
+        scanSurfaceView = view
+        view.holder.addCallback(scanSurfaceCallback)
     }
 
     // ── Scan QR Code ───────────────────────────────────────
 
-    private fun setupScanButton() {
-        binding.btnScanQr.setOnClickListener {
-            if (viewModel.uiState.value.isScanning) {
-                stopScanning()
-            } else {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                    == PackageManager.PERMISSION_GRANTED
-                ) {
-                    startScanning()
-                } else if (ActivityCompat.shouldShowRequestPermissionRationale(
-                        this, Manifest.permission.CAMERA
-                    )
-                ) {
-                    MaterialAlertDialogBuilder(this)
-                        .setTitle(R.string.qr_code_tool_camera_rationale_title)
-                        .setMessage(R.string.qr_code_tool_camera_rationale_message)
-                        .setPositiveButton(R.string.qr_code_tool_camera_rationale_ok) { _, _ ->
-                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                        }
-                        .setNegativeButton(R.string.history_cancel, null)
-                        .showThemed()
-                } else {
+    private fun onScanButtonClicked() {
+        if (viewModel.uiState.value.isScanning) {
+            stopScanning()
+            return
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            startScanning()
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(
+                this, Manifest.permission.CAMERA
+            )
+        ) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.qr_code_tool_camera_rationale_title)
+                .setMessage(R.string.qr_code_tool_camera_rationale_message)
+                .setPositiveButton(R.string.qr_code_tool_camera_rationale_ok) { _, _ ->
                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
-            }
+                .setNegativeButton(R.string.history_cancel, null)
+                .showThemed()
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
     private fun startScanning() {
         viewModel.startScanning()
         frameCounter = 0
-        renderScanningState()
         startBackgroundThread()
 
-        val scanLine = binding.scanLine
-        scanLine.visibility = View.VISIBLE
-        scanLine.post {
-            val parent = scanLine.parent as? View ?: return@post
-            val topOfFrame = 0f
-            val bottomOfFrame = (parent.height - scanLine.height).toFloat()
-            scanLineAnimator = ObjectAnimator.ofFloat(scanLine, "y", topOfFrame, bottomOfFrame).apply {
-                duration = 2000
-                repeatCount = ValueAnimator.INFINITE
-                repeatMode = ValueAnimator.REVERSE
-                start()
-            }
-        }
-
-        if (binding.surfaceCamera.holder.surface.isValid) {
-            openCamera()
-        }
+        // A still-composing scan pane reports surfaceCreated and opens the camera from there;
+        // a surface kept from an interrupted exit animation must be used directly.
+        val surface = scanSurfaceView?.holder?.surface
+        if (surface != null && surface.isValid) openCamera()
     }
 
     private fun stopScanning() {
         viewModel.stopScanning()
-        scanLineAnimator?.cancel()
-        scanLineAnimator = null
-        binding.scanLine.visibility = View.GONE
         releaseCamera()
         stopBackgroundThread()
-        renderContentState()
     }
 
     @Suppress("MissingPermission")
@@ -405,8 +385,8 @@ class QRCodeToolActivity : AppCompatActivity() {
     private fun createPreviewSession() {
         val camera = cameraDevice ?: return
         val reader = imageReader ?: return
-        val previewSurface = binding.surfaceCamera.holder.surface
-        if (!previewSurface.isValid) return
+        val previewSurface = scanSurfaceView?.holder?.surface
+        if (previewSurface == null || !previewSurface.isValid) return
 
         try {
             val outputConfigs = listOf(
@@ -505,96 +485,11 @@ class QRCodeToolActivity : AppCompatActivity() {
         backgroundHandler = null
     }
 
-    private fun renderScanningState() {
-        binding.cameraContainer.alpha = 0f
-        binding.cameraContainer.visibility = View.VISIBLE
-        binding.surfaceCamera.visibility = View.VISIBLE
-        binding.tvScanStatus.visibility = View.VISIBLE
-        binding.tvScanStatus.text = getString(R.string.qr_code_tool_scanning)
-
-        binding.scrollContent.animate().alpha(0f).setDuration(200).withEndAction {
-            binding.scrollContent.visibility = View.GONE
-            binding.cameraContainer.animate().alpha(1f).setDuration(200).start()
-        }.start()
-
-        updateScanButton()
-    }
-
-    private fun renderContentState() {
-        val hasQrPreview = viewModel.uiState.value.generatedBitmap != null
-        if (binding.cameraContainer.visibility == View.VISIBLE) {
-            binding.cameraContainer.animate().alpha(0f).setDuration(200).withEndAction {
-                binding.cameraContainer.visibility = View.GONE
-                showContentArea(hasQrPreview, animate = true)
-            }.start()
-        } else {
-            binding.cameraContainer.visibility = View.GONE
-            showContentArea(hasQrPreview, animate = false)
-        }
-        updateScanButton()
-    }
-
-    private fun showContentArea(hasQrPreview: Boolean, animate: Boolean = false) {
-        binding.surfaceCamera.visibility = View.GONE
-        binding.tvScanStatus.visibility = View.GONE
-        if (animate) {
-            binding.scrollContent.alpha = 0f
-            binding.scrollContent.visibility = View.VISIBLE
-            binding.scrollContent.animate().alpha(1f).setDuration(200).start()
-        } else {
-            binding.scrollContent.alpha = 1f
-            binding.scrollContent.visibility = View.VISIBLE
-        }
-        binding.tvHeroStatus.text = getString(
-            if (hasQrPreview) R.string.qr_code_tool_status_generated
-            else R.string.qr_code_tool_status_ready
-        )
-        binding.tvPreviewTitle.text = getString(
-            if (hasQrPreview) R.string.qr_code_tool_preview_generated_title
-            else R.string.qr_code_tool_preview_idle_title
-        )
-        binding.tvPreviewHint.text = if (hasQrPreview)
-            "${getString(R.string.qr_code_tool_preview_generated_hint)}\n${getString(R.string.qr_code_tool_save_hint)}"
-        else getString(R.string.qr_code_tool_preview_idle_hint)
-        binding.qrPreviewContainer.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
-        binding.tvQrPlaceholder.visibility = if (hasQrPreview) View.GONE else View.VISIBLE
-        binding.btnSaveQr.visibility = if (hasQrPreview) View.VISIBLE else View.GONE
-        binding.btnShareQr.visibility = if (hasQrPreview && viewModel.uiState.value.savedFileUri != null) View.VISIBLE else View.GONE
-    }
-
-    private fun updateScanButton() {
-        val isScanning = viewModel.uiState.value.isScanning
-        binding.btnScanQr.text = getString(
-            if (isScanning) R.string.qr_code_tool_stop_scan else R.string.qr_code_tool_scan_button
-        )
-        binding.btnScanQr.setBackgroundResource(
-            if (isScanning) R.drawable.qr_tool_stop_action_bg
-            else R.drawable.qr_tool_secondary_action_bg
-        )
-        binding.btnGenerateQr.visibility = if (isScanning) View.GONE else View.VISIBLE
-        binding.btnPickGalleryIdle.visibility = if (isScanning) View.GONE else View.VISIBLE
-    }
-
     // ── Save QR Code ────────────────────────────────────────
-
-    private fun setupQrLongPress() {
-        binding.ivQrCode.setOnLongClickListener {
-            if (viewModel.uiState.value.generatedBitmap != null) {
-                saveQrToGallery()
-                true
-            } else false
-        }
-    }
 
     private fun saveQrToGallery() {
         if (viewModel.uiState.value.generatedBitmap == null) return
         createDocumentLauncher.launch("QRCode_${System.currentTimeMillis()}.png")
-    }
-
-    private fun setupShareButton() {
-        binding.btnShareQr.setOnClickListener {
-            shareQrCode()
-        }
     }
 
     private fun shareQrCode() {
@@ -626,24 +521,6 @@ class QRCodeToolActivity : AppCompatActivity() {
     }
 
     // ── Pick QR from Gallery ──────────────────────────────────
-
-    private fun setupPickButton() {
-        binding.btnPickQr.setOnClickListener {
-            pickFileLauncher.launch("image/*")
-        }
-    }
-
-    private fun setupSaveButton() {
-        binding.btnSaveQr.setOnClickListener { saveQrToGallery() }
-    }
-
-    private fun setupIdleGalleryPickButton() {
-        binding.btnPickGalleryIdle.setOnClickListener {
-            pickMediaLauncher.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-            )
-        }
-    }
 
     private fun handlePickedFileUri(uri: Uri) {
         lifecycleScope.launch {
@@ -686,23 +563,13 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     // ── Generate QR Code ───────────────────────────────────
 
-    private fun setupGenerateButton() {
-        binding.btnGenerateQr.setOnClickListener {
-            val content = binding.richEditor.plainText.trim()
-            if (content.isEmpty()) {
-                ThemedMessage.makeText(this, R.string.qr_code_tool_no_content, ThemedMessage.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            generateQrCode(content)
+    private fun generateFromEditor() {
+        val content = richEditorView?.plainText?.trim().orEmpty()
+        if (content.isEmpty()) {
+            ThemedMessage.makeText(this, R.string.qr_code_tool_no_content, ThemedMessage.LENGTH_SHORT).show()
+            return
         }
-    }
-
-    private fun generateQrCode(content: String) {
-        val bitmap = viewModel.generateQrCode(content)
-        if (bitmap != null) {
-            binding.ivQrCode.setImageBitmap(bitmap)
-            renderContentState()
-        } else {
+        if (viewModel.generateQrCode(content) == null) {
             ThemedMessage.makeText(this, R.string.qr_code_tool_content_too_long, ThemedMessage.LENGTH_SHORT).show()
         }
     }
@@ -716,11 +583,636 @@ class QRCodeToolActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        scanLineAnimator?.cancel()
-        scanLineAnimator = null
         releaseCamera()
         stopBackgroundThread()
     }
+}
+
+// ── Screen (Compose) ──────────────────────────────────────────
+
+// ponytail: angle-135 gradients from the XML drawables are approximated as top-left →
+// bottom-right linear gradients; the stops are too dark to distinguish direction visually.
+private val HeroGradient = Brush.linearGradient(listOf(Color(0x2E152033), Color(0x1E162B28)))
+private val SurfacePanelGradient = Brush.linearGradient(listOf(Color(0xFF1D2A38), Color(0xFF18202C)))
+private val PreviewFrameGradient = Brush.linearGradient(listOf(Color(0xFF17232E), Color(0xFF101824)))
+private val QrButtonShape = RoundedCornerShape(18.dp)
+private val SecondaryButtonGradient = Brush.horizontalGradient(listOf(Color(0xFF22303F), Color(0xFF1B2531)))
+private val SecondaryButtonGradientPressed = Brush.horizontalGradient(listOf(Color(0xFF304761), Color(0xFF25354A)))
+private val SecondaryButtonStroke = Color(0x3300FF88)
+private val SecondaryButtonStrokePressed = Color(0x5500FF88)
+
+@Composable
+internal fun QrCodeToolScreen(
+    state: QRCodeToolUiState,
+    onBack: () -> Unit,
+    onScanToggle: () -> Unit,
+    onGenerate: () -> Unit,
+    onPickFromGallery: () -> Unit,
+    onPickFromGalleryIdle: () -> Unit,
+    onSave: () -> Unit,
+    onShare: () -> Unit,
+    onEditorCreated: (RichTextEditorView) -> Unit,
+    onEditorMessage: (CharSequence) -> Unit,
+    onScanSurfaceCreated: (SurfaceView) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundDark)
+            .safeDrawingPadding()
+    ) {
+        QrToolHeader(onBack = onBack)
+        NeonDivider()
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            // Content pane stays composed under the scan pane so the rich-text draft
+            // (text + spans) survives scan round-trips, mirroring the XML GONE/VISIBLE pair.
+            ContentPane(
+                state = state,
+                onEditorCreated = onEditorCreated,
+                onEditorMessage = onEditorMessage,
+                onSave = onSave,
+                onShare = onShare,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // Fully qualified: the outer ColumnScope receiver would otherwise capture
+            // the ColumnScope.AnimatedVisibility overload, which is illegal here.
+            androidx.compose.animation.AnimatedVisibility(
+                visible = state.isScanning,
+                enter = fadeIn(animationSpec = tween(200)),
+                exit = fadeOut(animationSpec = tween(200)),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                ScanPane(
+                    onPickFromGallery = onPickFromGallery,
+                    onScanSurfaceCreated = onScanSurfaceCreated,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        // Consume taps on bare panel areas so the occluded content
+                        // pane underneath cannot be touched while scanning.
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { }
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 14.dp, end = 14.dp)
+                .padding(top = 12.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (!state.isScanning) {
+                val accent = MaterialTheme.colorScheme.primary
+                QrActionButton(
+                    text = stringResource(R.string.qr_code_tool_generate_button),
+                    // The XML tinted the primary gradient with the live accent, flattening it.
+                    container = Brush.horizontalGradient(listOf(accent, accent)),
+                    pressedContainer = Brush.horizontalGradient(listOf(accent.copy(alpha = 0.72f), accent.copy(alpha = 0.72f))),
+                    stroke = accent.copy(alpha = 0x88 / 255f),
+                    pressedStroke = accent.copy(alpha = 0x66 / 255f),
+                    textColor = Color(0xFF08121A),
+                    onClick = onGenerate,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .testTag("btn_generate_qr")
+                )
+                QrActionButton(
+                    text = stringResource(R.string.qr_code_tool_pick_gallery),
+                    container = SecondaryButtonGradient,
+                    pressedContainer = SecondaryButtonGradientPressed,
+                    stroke = SecondaryButtonStroke,
+                    pressedStroke = SecondaryButtonStrokePressed,
+                    textColor = Color.White,
+                    onClick = onPickFromGalleryIdle,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .testTag("btn_pick_gallery_idle")
+                )
+            }
+            QrActionButton(
+                text = stringResource(
+                    if (state.isScanning) R.string.qr_code_tool_stop_scan
+                    else R.string.qr_code_tool_scan_button
+                ),
+                container = if (state.isScanning) {
+                    Brush.horizontalGradient(listOf(Color(0xFFD46262), Color(0xFF913737)))
+                } else SecondaryButtonGradient,
+                pressedContainer = if (state.isScanning) {
+                    Brush.horizontalGradient(listOf(Color(0xFFE97E7E), Color(0xFFB84B4B)))
+                } else SecondaryButtonGradientPressed,
+                stroke = if (state.isScanning) Color(0x55FF9F9F) else SecondaryButtonStroke,
+                pressedStroke = if (state.isScanning) Color(0x66FF9F9F) else SecondaryButtonStrokePressed,
+                textColor = Color.White,
+                onClick = onScanToggle,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .testTag("btn_scan_qr")
+            )
+        }
+    }
+}
+
+@Composable
+private fun QrToolHeader(onBack: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .background(HeaderBackground)
+    ) {
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .testTag("btn_back")
+                .padding(start = 4.dp)
+                .size(48.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_header_back),
+                contentDescription = stringResource(R.string.history_cancel),
+                tint = AccentGreen
+            )
+        }
+        Text(
+            text = stringResource(R.string.qr_code_tool_title),
+            modifier = Modifier.align(Alignment.Center),
+            color = AccentGreen,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 0.25.sp
+        )
+    }
+}
+
+@Composable
+private fun ContentPane(
+    state: QRCodeToolUiState,
+    onEditorCreated: (RichTextEditorView) -> Unit,
+    onEditorMessage: (CharSequence) -> Unit,
+    onSave: () -> Unit,
+    onShare: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .maxContentWidth()
+                .padding(horizontal = 14.dp)
+                .padding(bottom = 24.dp)
+        ) {
+            HeroCard(state = state)
+            PreviewCard(state = state, onSave = onSave, onShare = onShare)
+            GenerateSectionHeader()
+            EditorCard(
+                onEditorCreated = onEditorCreated,
+                onEditorMessage = onEditorMessage
+            )
+        }
+    }
+}
+
+@Composable
+private fun HeroCard(state: QRCodeToolUiState) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp)
+            .background(HeroGradient, RoundedCornerShape(18.dp))
+            .border(1.dp, Color(0x3300FF88), RoundedCornerShape(18.dp))
+            .padding(horizontal = 18.dp, vertical = 18.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            StatusPill(text = stringResource(R.string.qr_code_tool_hero_badge), tinted = false)
+            Spacer(modifier = Modifier.weight(1f))
+            val hasPreview = state.generatedBitmap != null
+            StatusPill(
+                text = stringResource(
+                    if (hasPreview) R.string.qr_code_tool_status_generated
+                    else R.string.qr_code_tool_status_ready
+                ),
+                tinted = true,
+                textColor = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Text(
+            text = stringResource(R.string.qr_code_tool_title),
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(top = 14.dp)
+        )
+
+        Text(
+            text = stringResource(R.string.qr_code_tool_hero_description),
+            color = TextBody,
+            fontSize = 13.sp,
+            lineHeight = 17.sp,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(top = 10.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            HintCard(
+                label = stringResource(R.string.qr_code_tool_scan_section),
+                hint = stringResource(R.string.qr_code_tool_scan_card_hint),
+                modifier = Modifier.weight(1f)
+            )
+            HintCard(
+                label = stringResource(R.string.qr_code_tool_generate_section),
+                hint = stringResource(R.string.qr_code_tool_generate_card_hint),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun HintCard(label: String, hint: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .background(Color(0x1A252A3A), RoundedCornerShape(8.dp))
+            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(8.dp))
+            .padding(horizontal = 12.dp, vertical = 12.dp)
+    ) {
+        Text(
+            text = label,
+            color = TextMuted,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace
+        )
+        Text(
+            text = hint,
+            color = Color.White,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+    }
+}
+
+@Composable
+private fun PreviewCard(state: QRCodeToolUiState, onSave: () -> Unit, onShare: () -> Unit) {
+    val hasQr = state.generatedBitmap != null
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 18.dp)
+            .background(Color(0x20252A3A), RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0x2200FF88), RoundedCornerShape(12.dp))
+            .padding(16.dp)
+    ) {
+        StatusPill(text = stringResource(R.string.qr_code_tool_preview_section), tinted = false)
+
+        Text(
+            text = stringResource(
+                if (hasQr) R.string.qr_code_tool_preview_generated_title
+                else R.string.qr_code_tool_preview_idle_title
+            ),
+            color = Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(top = 14.dp)
+        )
+
+        Text(
+            text = if (hasQr) {
+                stringResource(R.string.qr_code_tool_preview_generated_hint) + "\n" +
+                    stringResource(R.string.qr_code_tool_save_hint)
+            } else {
+                stringResource(R.string.qr_code_tool_preview_idle_hint)
+            },
+            color = TextSubtle,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+
+        val bitmap = state.generatedBitmap
+        if (bitmap != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 14.dp)
+                    .height(260.dp)
+                    .background(PreviewFrameGradient, RoundedCornerShape(18.dp))
+                    .border(1.dp, Color(0x3300FF88), RoundedCornerShape(18.dp))
+            ) {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = stringResource(R.string.qr_code_tool_qr_placeholder),
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(220.dp)
+                        .padding(16.dp)
+                        .combinedClickable(onClick = {}, onLongClick = onSave)
+                        .testTag("iv_qr_code")
+                )
+
+                QrIconOverlay(
+                    iconRes = R.drawable.ic_qr_save,
+                    contentDescription = stringResource(R.string.qr_code_tool_save_button),
+                    onClick = onSave,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .testTag("btn_save_qr")
+                )
+                QrIconOverlay(
+                    iconRes = android.R.drawable.ic_menu_share,
+                    contentDescription = stringResource(R.string.qr_code_tool_share_button),
+                    onClick = onShare,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .testTag("btn_share_qr")
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QrIconOverlay(
+    iconRes: Int,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val accent = MaterialTheme.colorScheme.primary
+    Box(
+        modifier = modifier
+            .padding(8.dp)
+            .size(44.dp)
+            .background(accent.copy(alpha = 0x18 / 255f), RoundedCornerShape(999.dp))
+            .border(1.dp, accent.copy(alpha = 0x44 / 255f), RoundedCornerShape(999.dp))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(iconRes),
+            contentDescription = contentDescription,
+            tint = accent,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+private fun GenerateSectionHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 22.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .height(14.dp)
+                .background(MaterialTheme.colorScheme.primary)
+        )
+        Text(
+            text = stringResource(R.string.qr_code_tool_generate_section),
+            color = Color(0x66FFFFFF),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 0.2.sp,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun EditorCard(
+    onEditorCreated: (RichTextEditorView) -> Unit,
+    onEditorMessage: (CharSequence) -> Unit
+) {
+    // Captured once at factory time; the editor keeps it across later theme changes
+    // (same staleness as the pre-migration accentArgb capture).
+    val editorAccent = MaterialTheme.colorScheme.primary.toArgb()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .background(Color(0x20252A3A), RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0x2200FF88), RoundedCornerShape(12.dp))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.qr_code_tool_editor_helper),
+            color = TextSubtle,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            fontFamily = FontFamily.Monospace
+        )
+
+        AndroidView(
+            factory = { context ->
+                RichTextEditorView(context).apply {
+                    onMessage = onEditorMessage
+                    setHint(context.getString(R.string.qr_code_tool_input_hint))
+                    setEditorBackground(R.drawable.qr_tool_preview_frame_bg)
+                    setEditorHeight((192 * context.resources.displayMetrics.density).toInt())
+                    markdownActiveColor = editorAccent
+                }.also(onEditorCreated)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        )
+    }
+}
+
+@Composable
+private fun ScanPane(
+    onPickFromGallery: () -> Unit,
+    onScanSurfaceCreated: (SurfaceView) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val accent = MaterialTheme.colorScheme.primary
+    var panelHeightPx by remember { mutableIntStateOf(0) }
+    val scanLineTransition = rememberInfiniteTransition(label = "scanLine")
+    val scanLineProgress by scanLineTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scanLineProgress"
+    )
+
+    Box(modifier.padding(start = 14.dp, top = 16.dp, end = 14.dp, bottom = 12.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(SurfacePanelGradient, RoundedCornerShape(20.dp))
+                .border(1.dp, Color(0x3300FF88), RoundedCornerShape(20.dp))
+                .padding(14.dp)
+                .onSizeChanged { panelHeightPx = it.height }
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context -> SurfaceView(context).also(onScanSurfaceCreated) }
+            )
+
+            // Reticle; the XML tinted this flat drawable with the live accent.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(220.dp)
+                    .background(accent.copy(alpha = 0x12 / 255f), RoundedCornerShape(24.dp))
+                    .border(2.dp, accent.copy(alpha = 0xAA / 255f), RoundedCornerShape(24.dp))
+            )
+
+            // Sweeping scan line (was an ObjectAnimator on View#y).
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset {
+                        IntOffset(0, (scanLineProgress * (panelHeightPx - 2.dp.toPx())).roundToInt())
+                    }
+                    .width(220.dp)
+                    .height(2.dp)
+                    .background(accent.copy(alpha = 0x88 / 255f))
+            )
+
+            StatusPill(
+                text = stringResource(R.string.qr_code_tool_scan_section),
+                tinted = false,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                StatusPill(
+                    text = stringResource(R.string.qr_code_tool_scanning),
+                    tinted = true,
+                    textColor = accent,
+                    fontSize = 11.sp
+                )
+                Text(
+                    text = stringResource(R.string.qr_code_tool_scan_hint),
+                    color = TextBright,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+                QrActionButton(
+                    text = stringResource(R.string.qr_code_tool_pick_gallery),
+                    container = SecondaryButtonGradient,
+                    pressedContainer = SecondaryButtonGradientPressed,
+                    stroke = SecondaryButtonStroke,
+                    pressedStroke = SecondaryButtonStrokePressed,
+                    textColor = Color.White,
+                    fontSize = 12.sp,
+                    onClick = onPickFromGallery,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .testTag("btn_pick_qr")
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QrActionButton(
+    text: String,
+    container: Brush,
+    pressedContainer: Brush,
+    stroke: Color,
+    pressedStroke: Color,
+    textColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit = 14.sp
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = modifier
+            .background(if (pressed) pressedContainer else container, QrButtonShape)
+            .border(1.dp, if (pressed) pressedStroke else stroke, QrButtonShape)
+            .clickable(interactionSource = interactionSource, indication = ripple(), onClick = onClick)
+            .semantics { role = Role.Button },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            fontSize = fontSize,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+/** Status pill; [tinted] mirrors the XML backgroundTintList accent treatment on flat shapes. */
+@Composable
+private fun StatusPill(
+    text: String,
+    tinted: Boolean,
+    modifier: Modifier = Modifier,
+    textColor: Color = TextBright,
+    fontSize: TextUnit = 10.sp
+) {
+    val accent = MaterialTheme.colorScheme.primary
+    Text(
+        text = text,
+        color = textColor,
+        fontSize = fontSize,
+        fontWeight = FontWeight.Bold,
+        fontFamily = FontFamily.Monospace,
+        modifier = modifier
+            .background(
+                if (tinted) accent.copy(alpha = 0x18 / 255f) else Color(0x18253333),
+                RoundedCornerShape(999.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = if (tinted) accent.copy(alpha = 0x44 / 255f) else Color(0x4400FF88),
+                shape = RoundedCornerShape(999.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+    )
 }
 
 // ── Scan-result bottom-sheet content (Compose in a BottomSheetDialog shell) ──
@@ -839,6 +1331,26 @@ private fun SheetButton(
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F1118, widthDp = 412, heightDp = 1200)
+@Composable
+private fun QrCodeToolScreenPreview() {
+    AircraftTheme {
+        QrCodeToolScreen(
+            state = QRCodeToolUiState(),
+            onBack = {},
+            onScanToggle = {},
+            onGenerate = {},
+            onPickFromGallery = {},
+            onPickFromGalleryIdle = {},
+            onSave = {},
+            onShare = {},
+            onEditorCreated = {},
+            onEditorMessage = {},
+            onScanSurfaceCreated = {}
         )
     }
 }

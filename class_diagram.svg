@@ -387,8 +387,8 @@
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- prefs / legacyPrefs: SharedPreferences</text>
     <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ 9 keys: difficulty, sounds, shake, invincible,</text>
-    <text x="10" y="90" font-size="10" fill="#333">  privacy, onboarding, puzzle guide, install-id</text>
+    <text x="10" y="77" font-size="10" fill="#333">+ 11 keys: theme (5 accents), difficulty,</text>
+    <text x="10" y="90" font-size="10" fill="#333">  sounds, shake, invincible, gates, install-id</text>
     <text x="10" y="103" font-size="9" fill="#888">Legacy migration from androidx.preference</text>
   </g>
 
@@ -917,47 +917,11 @@
     <text x="105" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">HistoryActivity</text>
     <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
     <line x1="5" y1="44" x2="205" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="62" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="62" font-size="10" fill="#333">+ setContent { HistoryScreen(...) }</text>
+    <text x="10" y="70" font-size="9" fill="#888">Compose UI — no Fragment/Adapter</text>
   </g>
 
-  <!-- HistoryFragment -->
-  <g transform="translate(640, 1800)" filter="url(#shadow)">
-    <rect width="230" height="130" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
-    <rect width="230" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="230" height="6" fill="#9c27b0"/>
-    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">HistoryFragment</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends Fragment</text>
-    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- binding: FragmentHistoryBinding</text>
-    <text x="10" y="70" font-size="10" fill="#333">- adapter: HistoryAdapter?</text>
-    <line x1="5" y1="76" x2="225" y2="76" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="89" font-size="10" fill="#333">- loadHistory()</text>
-    <text x="10" y="102" font-size="10" fill="#333">- confirmDelete(item, position)</text>
-    <text x="10" y="115" font-size="10" fill="#333">- deleteRecord(item, position)</text>
-  </g>
-
-  <!-- HistoryActivity -> HistoryFragment composition -->
-  <line x1="740" y1="1775" x2="750" y2="1800" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
-
-  <!-- HistoryAdapter -->
-  <g transform="translate(900, 1800)" filter="url(#shadow)">
-    <rect width="260" height="145" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
-    <rect width="260" height="22" rx="6" fill="#9c27b0"/>
-    <rect y="16" width="260" height="6" fill="#9c27b0"/>
-    <text x="130" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">HistoryAdapter</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — RecyclerView.Adapter&lt;ViewHolder&gt;</text>
-    <line x1="5" y1="44" x2="255" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- items: MutableList&lt;PlayerGameData&gt;</text>
-    <text x="10" y="70" font-size="10" fill="#333">- onDelete: (PlayerGameData, Int) → Unit</text>
-    <line x1="5" y1="76" x2="255" y2="76" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="89" font-size="10" fill="#333">+ onCreateViewHolder() / onBindViewHolder()</text>
-    <text x="10" y="102" font-size="10" fill="#333">+ getItemCount(): Int</text>
-    <text x="10" y="118" font-size="9" fill="#888">inner: ViewHolder (RecyclerView.ViewHolder)</text>
-    <text x="10" y="131" font-size="9" fill="#888">Displays: rank, score, level, difficulty badge</text>
-  </g>
-
-  <!-- HistoryFragment -> HistoryAdapter composition -->
-  <line x1="870" y1="1860" x2="900" y2="1860" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>
+  <!-- HistoryFragment / HistoryAdapter removed 2026-09-19: HistoryActivity is Compose now -->
 
   <!-- SettingsActivity -->
   <g transform="translate(30, 1860)" filter="url(#shadow)">
@@ -970,8 +934,8 @@
     <text x="10" y="57" font-size="10" fill="#333">- binding / viewModel: SettingsViewModel</text>
     <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="77" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
-    <text x="10" y="93" font-size="9" fill="#888">Difficulty + bg/combat/hit-shake toggles</text>
-    <text x="10" y="106" font-size="9" fill="#888">Links to privacy, QR, about, device, and debug screens</text>
+    <text x="10" y="93" font-size="9" fill="#888">Difficulty + theme + bg/combat/hit-shake toggles</text>
+    <text x="10" y="106" font-size="9" fill="#888">Links to puzzle, privacy, QR, about, device, debug screens</text>
   </g>
 
   <!-- QRCodeToolActivity -->
@@ -1392,7 +1356,7 @@
     <text x="10" y="57" font-size="9" fill="#333">+ history: StateFlow</text>
     <text x="10" y="70" font-size="9" fill="#333">+ deleteRecord()</text>
     <text x="10" y="83" font-size="9" fill="#333">+ loadHistory()</text>
-    <text x="10" y="96" font-size="9" fill="#888">Used by: HistoryFragment</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: HistoryActivity</text>
   </g>
 
   <!-- OnboardingViewModel -->
@@ -1528,6 +1492,32 @@
     <text x="10" y="96" font-size="9" fill="#888">Used by: FlashlightActivity</text>
   </g>
 
+  <!-- CameraScanViewModel (2026-09) -->
+  <g transform="translate(30, 2920)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="9" font-weight="bold" fill="white">CameraScanViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ scan result state</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="9" fill="#333">+ scannedCode: StateFlow</text>
+    <text x="10" y="70" font-size="9" fill="#333">+ onResult(code)</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: CameraScanActivity</text>
+  </g>
+
+  <!-- BannerDetailsViewModel (2026-09) -->
+  <g transform="translate(235, 2920)" filter="url(#shadow)">
+    <rect width="190" height="100" rx="6" fill="url(#grad-provider)" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="190" height="6" fill="#00897b"/>
+    <text x="95" y="15" text-anchor="middle" font-size="9" font-weight="bold" fill="white">BannerDetailsViewModel</text>
+    <text x="10" y="38" font-size="9" fill="#555">→ BannerDetailsUiState</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="9" fill="#333">+ uiState: StateFlow</text>
+    <text x="10" y="70" font-size="9" fill="#333">+ saveImage(uri) → Event</text>
+    <text x="10" y="96" font-size="9" fill="#888">Used by: BannerDetailsActivity</text>
+  </g>
+
   <!-- Update gui/ boundary box height -->
   <rect x="20" y="1680" width="1420" height="940" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <!-- 2026-05-14 update: Added puzzle progression layer (PuzzleActivity, GameMode, mode-aware save fields). -->
@@ -1535,4 +1525,279 @@
   <!-- 2026-05-31 update: Refreshed Room schema to 2031, PlayerGameData mode-aware fields, SettingsRepository location/keys, and current image-details ViewModel inventory. -->
   <!-- 2026-05-31 update: Added FlashlightActivity and FlashlightViewModel for Camera2 torch, SOS blink, brightness, and settings navigation. -->
   <!-- 2026-05-31 update: Added FlashlightService (foreground · camera) — START_STICKY service that owns the torch, runs the SOS coroutine on Dispatchers.Default, and holds a PARTIAL_WAKE_LOCK while SOS is active. FlashlightViewModel now drives it via Intent commands; torch state syncs via CameraManager.TorchCallback, SOS state via FlashlightService.isSosRunning. -->
+
+  <!-- ==================== 2026-09 SYNC BAND ==================== -->
+  <rect x="20" y="3070" width="1760" height="560" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="35" y="3085" font-size="11" font-weight="bold" fill="#9c27b0" opacity="0.8">gui/ + support — classes added in the 2026-09 sync</text>
+
+  <!-- ===== Row A: new activities + AAR view ===== -->
+
+  <!-- PuzzleActivity -->
+  <g transform="translate(30, 3090)" filter="url(#shadow)">
+    <rect width="270" height="185" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.5"/>
+    <rect width="270" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="270" height="6" fill="#9c27b0"/>
+    <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">PuzzleActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends ComponentActivity</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- viewModel: GameViewModel</text>
+    <text x="10" y="70" font-size="10" fill="#333">- image cache / drag-drop state (self-owned)</text>
+    <line x1="5" y1="78" x2="265" y2="78" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="91" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="104" font-size="10" fill="#333">- persistPuzzleProgress(level, score)</text>
+    <text x="10" y="117" font-size="10" fill="#333">- loadPuzzleImageWithCache(level)</text>
+    <text x="10" y="130" font-size="10" fill="#333">- showPuzzleCongratsAndFinish(score)</text>
+    <text x="10" y="146" font-size="9" fill="#888">Saves GameMode.PUZZLE via GameViewModel</text>
+    <text x="10" y="159" font-size="9" fill="#888">gridSize: EASY=3, NORMAL=4, HARD=5</text>
+    <text x="10" y="172" font-size="9" fill="#888">Opened from SettingsActivity</text>
+  </g>
+
+  <!-- CameraScanActivity -->
+  <g transform="translate(330, 3090)" filter="url(#shadow)">
+    <rect width="270" height="150" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="270" height="6" fill="#9c27b0"/>
+    <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">CameraScanActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends ComponentActivity (Compose)</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- controller: LifecycleCameraController</text>
+    <text x="10" y="70" font-size="10" fill="#333">- scanResult state / permission launcher</text>
+    <line x1="5" y1="76" x2="265" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="102" font-size="10" fill="#333">- copyScanResult(result) → clipboard</text>
+    <text x="10" y="118" font-size="9" fill="#888">Debug-only live QR scan (CameraX + MlKitAnalyzer)</text>
+    <text x="10" y="131" font-size="9" fill="#888">Opened from DevelopSettingsActivity</text>
+  </g>
+
+  <!-- BannerDetailsActivity -->
+  <g transform="translate(630, 3090)" filter="url(#shadow)">
+    <rect width="250" height="150" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="250" height="6" fill="#9c27b0"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">BannerDetailsActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- viewModel: BannerDetailsViewModel</text>
+    <text x="10" y="70" font-size="10" fill="#333">- via BannerDetailsIntentContract extras</text>
+    <line x1="5" y1="76" x2="245" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="102" font-size="10" fill="#333">+ saveImage(uri) → CreateDocument</text>
+    <text x="10" y="118" font-size="9" fill="#888">Opened from AboutAircraft banner tap</text>
+    <text x="10" y="131" font-size="9" fill="#888">Renders BannerDetails (local / network)</text>
+  </g>
+
+  <!-- AndroidDevAssistantToolsActivity -->
+  <g transform="translate(910, 3090)" filter="url(#shadow)">
+    <rect width="280" height="115" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="280" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="280" height="6" fill="#9c27b0"/>
+    <text x="140" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">AndroidDevAssistantToolsActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends ComponentActivity (Compose)</text>
+    <line x1="5" y1="44" x2="275" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="73" font-size="9" fill="#888">Debug-only assistant tools hub</text>
+    <text x="10" y="86" font-size="9" fill="#888">Opened from DevelopSettingsActivity</text>
+  </g>
+
+  <!-- RichTextEditorView (AAR) -->
+  <g transform="translate(1220, 3090)" filter="url(#shadow)">
+    <rect width="280" height="150" rx="6" fill="#e0f2f1" stroke="#00897b" stroke-width="1.5"/>
+    <rect width="280" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="280" height="6" fill="#00897b"/>
+    <text x="140" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">RichTextEditorView</text>
+    <text x="10" y="38" font-size="10" fill="#555">richtexteditor/ — reusable View (AAR)</text>
+    <line x1="5" y1="44" x2="275" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ onMessage: ((CharSequence) -> Unit)?</text>
+    <text x="10" y="70" font-size="10" fill="#333">+ isMarkdownMode / markdownActiveColor</text>
+    <line x1="5" y1="76" x2="275" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ setHint() / setEditorBackground()</text>
+    <text x="10" y="102" font-size="10" fill="#333">+ setEditorHeight(heightPx)</text>
+    <text x="10" y="118" font-size="9" fill="#888">No dependency on the game app</text>
+    <text x="10" y="131" font-size="9" fill="#888">onMessage → ThemedMessage via host Activity</text>
+    <text x="10" y="144" font-size="9" fill="#888">Consumed by RichTextEditor / QR tools</text>
+  </g>
+
+  <!-- ===== Row B: data + theme + dialog + transient UI support ===== -->
+
+  <!-- GameMode -->
+  <g transform="translate(30, 3310)" filter="url(#shadow)">
+    <rect width="190" height="85" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="190" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="190" height="6" fill="#ff9800"/>
+    <text x="95" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«enum» GameMode</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/GameMode.kt</text>
+    <line x1="5" y1="44" x2="185" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">AIR_BATTLE, PUZZLE</text>
+    <text x="10" y="73" font-size="9" fill="#888">persisted in PlayerGameData.gameMode</text>
+  </g>
+
+  <!-- BannerDetails -->
+  <g transform="translate(250, 3310)" filter="url(#shadow)">
+    <rect width="230" height="150" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="230" height="6" fill="#ff9800"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«data» BannerDetails</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/BannerDetails.kt</text>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- name / description</text>
+    <text x="10" y="70" font-size="10" fill="#333">- source: BannerDetailsSource</text>
+    <text x="10" y="83" font-size="10" fill="#333">- sealed: Local(resId) / Network(url)</text>
+    <line x1="5" y1="89" x2="225" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">+ downloadFileName: String</text>
+    <text x="10" y="115" font-size="10" fill="#333">+ toImageModel(ctx): Any</text>
+    <text x="10" y="131" font-size="9" fill="#888">BannerDetailsIntentContract extras:</text>
+    <text x="10" y="144" font-size="9" fill="#888">NAME, DESCRIPTION, SOURCE_TYPE, RES_ID</text>
+  </g>
+
+  <!-- AircraftTheme -->
+  <g transform="translate(510, 3310)" filter="url(#shadow)">
+    <rect width="220" height="130" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="220" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="220" height="6" fill="#2196f3"/>
+    <text x="110" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">AircraftTheme</text>
+    <text x="10" y="38" font-size="10" fill="#555">ui/theme/AircraftTheme.kt</text>
+    <line x1="5" y1="44" x2="215" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- themeAccent(theme): Color</text>
+    <text x="10" y="70" font-size="10" fill="#333">- aircraftColorScheme(theme)</text>
+    <text x="10" y="83" font-size="10" fill="#333">+ AircraftTheme(content)</text>
+    <text x="10" y="96" font-size="10" fill="#333">+ NeonDivider()</text>
+    <text x="10" y="112" font-size="9" fill="#888">5 accents, live preference listener</text>
+  </g>
+
+  <!-- DialogCompose -->
+  <g transform="translate(760, 3310)" filter="url(#shadow)">
+    <rect width="240" height="110" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="240" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="240" height="6" fill="#9c27b0"/>
+    <text x="120" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DialogCompose</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/dialogs/DialogCompose.kt</text>
+    <line x1="5" y1="44" x2="235" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ Dialog.setDialogComposeContent(host)</text>
+    <text x="10" y="73" font-size="9" fill="#888">lifecycle + AircraftTheme + LocalDialogDismiss</text>
+    <text x="10" y="86" font-size="9" fill="#888">content installed after show()</text>
+  </g>
+
+  <!-- GameDialogContent -->
+  <g transform="translate(1030, 3310)" filter="url(#shadow)">
+    <rect width="240" height="130" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="240" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="240" height="6" fill="#9c27b0"/>
+    <text x="120" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">GameDialogContent</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/dialogs/GameDialogContent.kt</text>
+    <line x1="5" y1="44" x2="235" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ GameDialogContent(stats)</text>
+    <text x="10" y="70" font-size="10" fill="#333">- dismisses on negative action</text>
+    <text x="10" y="86" font-size="9" fill="#888">inner: StatCard / GameDialogPalette</text>
+    <text x="10" y="99" font-size="9" fill="#888">Level-complete, game-over, victory sheet</text>
+  </g>
+
+  <!-- ThemedMessage -->
+  <g transform="translate(1300, 3310)" filter="url(#shadow)">
+    <rect width="230" height="110" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="230" height="6" fill="#9c27b0"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">ThemedMessage</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ThemedMessage.kt</text>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ makeText(...).show() — Snackbar</text>
+    <text x="10" y="73" font-size="9" fill="#888">requires attached, started Activity</text>
+    <text x="10" y="86" font-size="9" fill="#888">dismiss + cleanup on Activity stop</text>
+  </g>
+
+  <!-- WideScreen -->
+  <g transform="translate(1560, 3310)" filter="url(#shadow)">
+    <rect width="220" height="85" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="220" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="220" height="6" fill="#2196f3"/>
+    <text x="110" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">WideScreen</text>
+    <text x="10" y="38" font-size="10" fill="#555">ui/WideScreen.kt</text>
+    <line x1="5" y1="44" x2="215" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ Modifier.maxContentWidth()</text>
+    <text x="10" y="73" font-size="9" fill="#888">caps columns to 640dp on wide windows</text>
+  </g>
+
+  <!-- ===== Row C: utils + banner ===== -->
+
+  <!-- FilePickerHelper -->
+  <g transform="translate(30, 3500)" filter="url(#shadow)">
+    <rect width="230" height="85" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
+    <rect width="230" height="22" rx="6" fill="#689f38"/>
+    <rect y="16" width="230" height="6" fill="#689f38"/>
+    <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» FilePickerHelper</text>
+    <text x="10" y="38" font-size="10" fill="#555">utils/FilePickerHelper.kt</text>
+    <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ getUriForFile(ctx, file): Uri</text>
+    <text x="10" y="73" font-size="9" fill="#888">${applicationId}.fileprovider</text>
+  </g>
+
+  <!-- DataUriUtils -->
+  <g transform="translate(290, 3500)" filter="url(#shadow)">
+    <rect width="240" height="100" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
+    <rect width="240" height="22" rx="6" fill="#689f38"/>
+    <rect y="16" width="240" height="6" fill="#689f38"/>
+    <text x="120" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» DataUriUtils</text>
+    <text x="10" y="38" font-size="10" fill="#555">utils/DataUriUtils.kt</text>
+    <line x1="5" y1="44" x2="235" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">RFC 2397 data: URI parsing</text>
+    <text x="10" y="70" font-size="10" fill="#333">data:image/&lt;subtype&gt;;base64 payloads</text>
+    <text x="10" y="88" font-size="9" fill="#888">rich-text inline images (Minikin OOM guard)</text>
+  </g>
+
+  <!-- HallOfHeroesNameUtils -->
+  <g transform="translate(560, 3500)" filter="url(#shadow)">
+    <rect width="240" height="85" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
+    <rect width="240" height="22" rx="6" fill="#689f38"/>
+    <rect y="16" width="240" height="6" fill="#689f38"/>
+    <text x="120" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» HallOfHeroesNameUtils</text>
+    <text x="10" y="38" font-size="10" fill="#555">utils/HallOfHeroesNameUtils.kt</text>
+    <line x1="5" y1="44" x2="235" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ resolveSubmittedName(raw, anonymous)</text>
+    <text x="10" y="70" font-size="10" fill="#333">+ getDisplayName(record)</text>
+  </g>
+
+  <!-- SupperBannerView -->
+  <g transform="translate(830, 3500)" filter="url(#shadow)">
+    <rect width="250" height="115" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="250" height="6" fill="#9c27b0"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">SupperBannerView</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends FrameLayout</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- items: List&lt;SupperBannerItem&gt;</text>
+    <text x="10" y="70" font-size="10" fill="#333">- BannerAdapter + ViewPager2 + auto-play</text>
+    <text x="10" y="83" font-size="10" fill="#333">+ onBannerClickListener</text>
+    <text x="10" y="99" font-size="9" fill="#888">AboutAircraft banner → BannerDetailsActivity</text>
+  </g>
+
+  <!-- ===== 2026-09 NAVIGATION ARROWS ===== -->
+
+  <!-- SettingsActivity -> PuzzleActivity navigation -->
+  <line x1="280" y1="1940" x2="165" y2="3090" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="215" y="2030" font-size="9" fill="#888">puzzle</text>
+
+  <!-- DevelopSettingsActivity -> CameraScanActivity navigation -->
+  <line x1="620" y1="2175" x2="465" y2="3090" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="540" y="2620" font-size="9" fill="#888">navigates (debug)</text>
+
+  <!-- DevelopSettingsActivity -> AndroidDevAssistantToolsActivity navigation -->
+  <line x1="870" y1="2115" x2="1050" y2="3090" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="925" y="2620" font-size="9" fill="#888">navigates</text>
+
+  <!-- AboutAircraftActivity -> BannerDetailsActivity navigation -->
+  <line x1="450" y1="2175" x2="755" y2="3090" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="560" y="2620" font-size="9" fill="#888">banner tap</text>
+
+  <!-- RichTextEditorActivity -> RichTextEditorView (AAR) -->
+  <line x1="880" y1="2290" x2="1360" y2="3090" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1060" y="2620" font-size="9" fill="#888">hosts AAR view</text>
+
+  <!-- BannerDetailsActivity -> BannerDetails association -->
+  <line x1="630" y1="3200" x2="480" y2="3380" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="545" y="3300" font-size="9" fill="#888">parses extras</text>
+
+  <!-- PuzzleActivity -> GameMode association -->
+  <line x1="165" y1="3275" x2="165" y2="3310" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="170" y="3300" font-size="9" fill="#888">GameMode.PUZZLE</text>
+
+  <!-- 2026-09-19 update: Synced with code — removed stale HistoryFragment/HistoryAdapter (HistoryActivity is Compose now); added PuzzleActivity, CameraScanActivity (CameraX + MlKitAnalyzer), BannerDetailsActivity + BannerDetails/BannerDetailsViewModel, AndroidDevAssistantToolsActivity, RichTextEditorView (AAR), GameMode, AircraftTheme, DialogCompose/GameDialogContent/ThemedMessage, WideScreen, SupperBannerView, FilePickerHelper/DataUriUtils/HallOfHeroesNameUtils, and CameraScanViewModel; SettingsRepository keys now 11 incl. theme. -->
 </svg>
