@@ -125,6 +125,10 @@
     <string name="about_source_cta">Open Repo</string>
     <string name="about_description">A 2D vertical-scrolling shooter game for Android, written in Kotlin. Control a jet plane, fire bullets upward, and destroy enemies while avoiding collisions. Features 10 time-based levels with scaling difficulty, boss fights, and multiple power-up systems.</string>
 
+    <!-- Game Settings page -->
+    <string name="game_settings_title">Game Settings</string>
+    <string name="game_settings_summary">Difficulty and game effects</string>
+
     <!-- Difficulty Preferences -->
     <string name="difficulty_settings_header">Difficulty Settings</string>
     <string name="settings_banner_title">Prepare Your Flight Profile</string>

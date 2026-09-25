@@ -125,6 +125,10 @@
     <string name="about_source_cta">打开仓库</string>
     <string name="about_description">一款使用 Kotlin 编写的 Android 2D 纵向卷轴射击游戏。操控战斗机向上发射子弹，消灭敌机并避免碰撞。游戏包含 10 个基于时间的关卡，难度递增，每关末尾有 Boss 战，以及多种道具系统。</string>
 
+    <!-- Game Settings page -->
+    <string name="game_settings_title">游戏设置</string>
+    <string name="game_settings_summary">难度与游戏特效设置</string>
+
     <!-- Difficulty Preferences -->
     <string name="difficulty_settings_header">难度设置</string>
     <string name="settings_banner_title">准备你的飞行配置</string>

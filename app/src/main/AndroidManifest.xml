@@ -99,6 +99,12 @@
             android:theme="@style/Theme.Aircraft.Common" />
 
         <activity
+            android:name=".gui.GameSettingsActivity"
+            android:exported="false"
+            android:label="@string/game_settings_title"
+            android:theme="@style/Theme.Aircraft.Common" />
+
+        <activity
             android:name=".gui.PrivacyPolicyAcceptActivity"
             android:exported="true"
             android:theme="@style/Theme.Aircraft.Common">

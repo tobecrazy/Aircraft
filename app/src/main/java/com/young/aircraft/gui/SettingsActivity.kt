@@ -21,7 +21,6 @@ import com.young.aircraft.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
-    private val soundOptionCount = 3
     private lateinit var viewModel: SettingsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,14 +33,8 @@ class SettingsActivity : AppCompatActivity() {
                 val state by viewModel.uiState.collectAsState()
                 SettingsScreen(
                     state = state,
-                    soundOptionCount = soundOptionCount,
                     onBack = { finish() },
                     onThemeSelected = viewModel::setTheme,
-                    onDifficultySelected = viewModel::setDifficulty,
-                    onBgSoundToggled = viewModel::setBgSoundEnabled,
-                    onCombatSoundToggled = viewModel::setCombatSoundEnabled,
-                    onHitShakeToggled = viewModel::setHitShakeEnabled,
-                    onBgmFormatSelected = viewModel::setBgmFormat,
                     onNavigate = ::navigateTo,
                     onClearCache = ::showClearCacheDialog
                 )
@@ -49,8 +42,15 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Hero card chips show difficulty/sound state that may have changed on GameSettingsActivity.
+        viewModel.refresh()
+    }
+
     private fun navigateTo(destination: SettingsDestination) {
         val target = when (destination) {
+            SettingsDestination.GAME_SETTINGS -> GameSettingsActivity::class.java
             SettingsDestination.DEVICE_INFO -> DeviceInfoActivity::class.java
             SettingsDestination.QR_CODE_TOOL -> QRCodeToolActivity::class.java
             SettingsDestination.FLASHLIGHT -> FlashlightActivity::class.java

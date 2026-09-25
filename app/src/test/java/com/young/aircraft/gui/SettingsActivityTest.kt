@@ -91,43 +91,10 @@ class SettingsActivityTest {
     }
 
     @Test
-    fun `selecting difficulty updates repository`() {
-        assertEquals(GameDifficulty.NORMAL, repository().getDifficulty())
-
-        composeRule.onNodeWithText(composeRule.activity.getString(R.string.difficulty_easy)).performClick()
-        assertEquals(GameDifficulty.EASY, repository().getDifficulty())
-
-        composeRule.onNodeWithText(composeRule.activity.getString(R.string.difficulty_hard)).performClick()
-        assertEquals(GameDifficulty.HARD, repository().getDifficulty())
-    }
-
-    @Test
-    fun `toggling sound rows updates repository`() {
-        assertTrue(repository().isBackgroundSoundEnabled())
-
-        composeRule.onNodeWithText(composeRule.activity.getString(R.string.background_sound_title)).performClick()
-        assertFalse(repository().isBackgroundSoundEnabled())
-
-        composeRule.onNodeWithText(composeRule.activity.getString(R.string.combat_sound_title)).performClick()
-        assertFalse(repository().isCombatSoundEnabled())
-
-        composeRule.onNodeWithText(composeRule.activity.getString(R.string.hit_shake_effect_title)).performClick()
-        assertFalse(repository().isHitShakeEffectEnabled())
-    }
-
-    @Test
-    fun `selecting bgm format updates repository`() {
-        composeRule.onNodeWithText(composeRule.activity.getString(R.string.bgm_format_ogg)).performClick()
-        assertEquals(SettingsRepository.BGM_FORMAT_OGG, repository().getBgmFormat())
-
-        composeRule.onNodeWithText(composeRule.activity.getString(R.string.bgm_format_mp3)).performClick()
-        assertEquals(SettingsRepository.BGM_FORMAT_MP3, repository().getBgmFormat())
-    }
-
-    @Test
     fun `clicking navigation rows starts correct activities`() {
         val activity = composeRule.activity
         val cases = mapOf(
+            activity.getString(R.string.game_settings_title) to GameSettingsActivity::class.java,
             activity.getString(R.string.device_info_title) to DeviceInfoActivity::class.java,
             activity.getString(R.string.flashlight_title) to FlashlightActivity::class.java,
             activity.getString(R.string.puzzle_game_title) to PuzzleActivity::class.java,
