@@ -105,6 +105,12 @@
             android:theme="@style/Theme.Aircraft.Common" />
 
         <activity
+            android:name=".gui.LanguageSettingsActivity"
+            android:exported="false"
+            android:label="@string/language_settings_title"
+            android:theme="@style/Theme.Aircraft.Common" />
+
+        <activity
             android:name=".gui.PrivacyPolicyAcceptActivity"
             android:exported="true"
             android:theme="@style/Theme.Aircraft.Common">
@@ -138,6 +144,16 @@
             android:name=".service.MusicService"
             android:enabled="true"
             android:exported="false" />
+
+        <!-- Lets AppCompat persist AppCompatDelegate application locales on API < 33. -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
 
         <service
             android:name=".service.FlashlightService"

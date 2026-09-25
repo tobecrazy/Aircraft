@@ -55,6 +55,7 @@ class SettingsActivity : AppCompatActivity() {
             SettingsDestination.QR_CODE_TOOL -> QRCodeToolActivity::class.java
             SettingsDestination.FLASHLIGHT -> FlashlightActivity::class.java
             SettingsDestination.PUZZLE -> PuzzleActivity::class.java
+            SettingsDestination.LANGUAGE -> LanguageSettingsActivity::class.java
             SettingsDestination.ABOUT_AIRCRAFT -> AboutAircraftActivity::class.java
             SettingsDestination.ABOUT_ME -> AboutMeActivity::class.java
             SettingsDestination.PRIVACY_POLICY -> PrivacyPolicyActivity::class.java

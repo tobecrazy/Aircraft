@@ -95,6 +95,7 @@ class SettingsActivityTest {
         val activity = composeRule.activity
         val cases = mapOf(
             activity.getString(R.string.game_settings_title) to GameSettingsActivity::class.java,
+            activity.getString(R.string.language_settings_title) to LanguageSettingsActivity::class.java,
             activity.getString(R.string.device_info_title) to DeviceInfoActivity::class.java,
             activity.getString(R.string.flashlight_title) to FlashlightActivity::class.java,
             activity.getString(R.string.puzzle_game_title) to PuzzleActivity::class.java,

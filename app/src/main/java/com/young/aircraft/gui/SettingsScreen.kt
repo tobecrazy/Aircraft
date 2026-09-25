@@ -60,6 +60,7 @@ enum class SettingsDestination {
     QR_CODE_TOOL,
     FLASHLIGHT,
     PUZZLE,
+    LANGUAGE,
     ABOUT_AIRCRAFT,
     ABOUT_ME,
     PRIVACY_POLICY,
@@ -69,11 +70,12 @@ enum class SettingsDestination {
 // Visuals lifted from settings_* / difficulty_* / badge_* / switch_* drawables (XML→Compose migration).
 // ScreenBg is shared with GameSettingsScreen (same package).
 internal val ScreenBg = Color(0xFF0F1118)
+internal val TileBg = Color(0x22252A3A)
+internal val TitleWhite = Color(0xFFFFFFFF)
 private val HeaderBg = Color(0xFF161A26)
 private val HeroGradient = Brush.linearGradient(listOf(Color(0x2E162033), Color(0x1F15242F)))
 private val HeroBorder: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x33 / 255f)
-private val TileBg = Color(0x22252A3A)
 private val TileBorder: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x22 / 255f)
 private val TilePressedBg = Color(0xFF2A2E44)
@@ -92,7 +94,6 @@ private val OptionSelectedBg: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x22 / 255f)
 private val OptionSelectedBorder: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0xAA / 255f)
-private val TitleWhite = Color(0xFFFFFFFF)
 private val SummaryColor = Color(0xFFAAB4C8)
 private val BannerSummaryColor = Color(0xFFCDD2E0)
 private val SectionLabelColor = Color(0x66FFFFFF)
@@ -151,6 +152,12 @@ fun SettingsScreen(
                     startContent = {
                         SmallChip(text = stringResource(R.string.other_settings_header))
                     }
+                )
+                NavRow(
+                    title = stringResource(R.string.language_settings_title),
+                    summary = stringResource(R.string.language_settings_summary),
+                    topMargin = 10,
+                    onClick = { onNavigate(SettingsDestination.LANGUAGE) }
                 )
                 NavRow(
                     title = stringResource(R.string.device_info_title),
@@ -279,7 +286,11 @@ private fun ThemeCard(selectedTheme: String, onSelected: (String) -> Unit) {
 }
 
 @Composable
-internal fun SettingsHeader(title: String, onBack: () -> Unit) {
+internal fun SettingsHeader(
+    title: String,
+    onBack: () -> Unit,
+    endContent: (@Composable () -> Unit)? = null
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -309,6 +320,15 @@ internal fun SettingsHeader(title: String, onBack: () -> Unit) {
                 contentDescription = stringResource(R.string.history_cancel),
                 tint = AccentGreen
             )
+        }
+        if (endContent != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 4.dp)
+            ) {
+                endContent()
+            }
         }
     }
 }

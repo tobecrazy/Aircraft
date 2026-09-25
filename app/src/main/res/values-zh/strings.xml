@@ -129,6 +129,17 @@
     <string name="game_settings_title">游戏设置</string>
     <string name="game_settings_summary">难度与游戏特效设置</string>
 
+    <!-- Language Settings page -->
+    <string name="language_settings_title">语言设置</string>
+    <string name="language_settings_summary">选择应用显示语言</string>
+    <string name="language_save">保存</string>
+    <string name="language_follow_system">跟随系统</string>
+    <!-- 语言名称在所有语言下保持一致，保证每一行以自身语言显示。 -->
+    <string name="language_simplified_chinese">简体中文</string>
+    <string name="language_traditional_taiwan">繁體中文 (台灣)</string>
+    <string name="language_traditional_hongkong">繁體中文 (香港)</string>
+    <string name="language_english">English</string>
+
     <!-- Difficulty Preferences -->
     <string name="difficulty_settings_header">难度设置</string>
     <string name="settings_banner_title">准备你的飞行配置</string>
