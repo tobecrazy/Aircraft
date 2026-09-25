@@ -64,7 +64,7 @@ Scope `--tests` to a module task (`:app:testDebugUnitTest`), not the root task: 
 
 **Activity/UI layer:** Most non-game screens use Compose + Material3, with `viewmodel/` exposing StateFlow/LiveData state and, where needed, SharedFlow one-shot events. `data/SettingsRepository` wraps SharedPreferences; `providers/DatabaseProvider` supplies Room DAOs. Follow existing ViewModel/UiState/Factory patterns for new utilities. This is not universal: `PuzzleActivity` still owns substantial puzzle/image-loading state itself. `GameViewModel` handles game persistence/scoring, not the render loop.
 
-`MainActivity`, `QRCodeToolActivity`, and `RichTextEditorActivity` retain ViewBinding hosts. `HistoryActivity` is Compose, not a HistoryFragment/RecyclerView flow. Game dialogs and the hall-of-heroes sheet use Compose content through `gui/dialogs/` even though the game host uses Views.
+All `gui/` activities are Compose (`setContent`); there are no ViewBinding hosts despite the build enabling View Binding. `HistoryActivity` is Compose, not a HistoryFragment/RecyclerView flow. Game dialogs and the hall-of-heroes sheet use Compose content through `gui/dialogs/` even though the game host uses Views.
 
 ### Theme and Transient UI
 
@@ -117,7 +117,7 @@ Large unbroken/base64 content must not be inserted unchanged into the native Edi
 ### UI and Localization
 
 - Match the tactical UI: dark background `#0F1118`, header `#161A26`, selected theme accent (green `#00FF88` by default), monospace typography, and a 52dp header. Use the shared `AircraftTheme` and its color scheme instead of hardcoding decorative green; preserve each screen's existing layout.
-- Solid-background utility activities should use `Theme.Aircraft.Common` in the manifest; the game uses `TransparentMaterialTheme`. Preserve each screen's inset handling: View roots use `fitsSystemWindows`, while Compose screens use their existing padding/Scaffold patterns (e.g. Settings header uses `statusBarsPadding`). Do not apply the XML RelativeLayout header pattern indiscriminately to Compose screens or double-apply insets.
+- Solid-background utility activities should use `Theme.Aircraft.Common` in the manifest; the game uses `TransparentMaterialTheme`. Preserve each screen's inset handling: Compose screens use `safeDrawingPadding`/`statusBarsPadding`/`navigationBarsPadding` or Scaffold `contentWindowInsets` patterns (e.g. Settings header uses `statusBarsPadding`). Do not double-apply insets.
 - Default English and `values-zh/strings.xml` must stay synchronized. `StringResourceTest` checks locale parity and unused strings. Use resources (`stringResource`, `getString`, `@string/`) rather than hardcoded UI copy; remove orphan resources after refactoring.
 - Robolectric Compose screen tests use `createAndroidComposeRule` and `@GraphicsMode(NATIVE)`. For scrollable content, follow `SettingsActivityTest`'s tall viewport (`w420dp-h2000dp`): off-window clicks may silently do nothing.
 

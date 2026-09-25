@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -103,12 +104,13 @@ private val EasyColor = Color(0xFF00FF88)
 private val NormalColor = Color(0xFFFFFF00)
 private val HardColor = Color(0xFFFF4444)
 private val DangerText = Color(0xFFFF808D)
-// SwitchCompat's default track tint renders white in this theme regardless of the drawable's
-// checked color — replicate the rendered result (white track, thumb swaps white→green).
+// Checked track replicates SwitchCompat's rendered white track (thumb white→green);
+// unchecked uses the dark pill track with a gray thumb per the design mock.
 private val SwitchTrack = Color(0xFFFFFFFF)
+private val SwitchTrackOff = Color(0xFF1F2330)
 private val SwitchThumbChecked: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0xFF / 255f)
-private val SwitchThumbUnchecked = Color(0x88FFFFFF)
+private val SwitchThumbUnchecked = Color(0xFF8F939E)
 
 private val Mono = FontFamily.Monospace
 private val ChipShape = RoundedCornerShape(50)
@@ -132,6 +134,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .navigationBarsPadding()
                 .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -586,7 +589,7 @@ private fun SettingsSwitch(checked: Boolean, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .size(width = 44.dp, height = 26.dp)
-            .background(SwitchTrack, RoundedCornerShape(12.dp)),
+            .background(if (checked) SwitchTrack else SwitchTrackOff, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.CenterStart
     ) {
         Box(
