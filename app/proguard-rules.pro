@@ -8,22 +8,28 @@
 -keep @androidx.room.Entity class *
 -keep @androidx.room.Dao interface *
 
-# Room uses reflection to access migrations by name
+# Room migrations live in AppDatabase.Companion (registered in DatabaseProvider)
 -keepclassmembers class com.young.aircraft.data.AppDatabase$Companion {
     ** MIGRATION_*;
 }
 
 # ============================================================
-# Android Components (referenced by name in manifest/layout XML)
+# Android Components (referenced by name in the manifest)
 # ============================================================
 -keep class com.young.aircraft.service.MusicService { *; }
 -keep class com.young.aircraft.service.MusicService$MusicBinder { *; }
+-keep class com.young.aircraft.service.FlashlightService { *; }
 -keep class com.young.aircraft.gui.StarFieldView { *; }
--keep class com.young.aircraft.gui.HistoryFragment { *; }
 
 # ============================================================
-# Enums (GameDifficulty has constructor params accessed reflectively)
+# Enums (GameMode/GameDifficulty are persisted by name and
+# restored via valueOf; GameState is state-machine data)
 # ============================================================
+-keepclassmembers enum com.young.aircraft.data.GameMode {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+    *;
+}
 -keepclassmembers enum com.young.aircraft.data.GameDifficulty {
     public static **[] values();
     public static ** valueOf(java.lang.String);
@@ -66,18 +72,6 @@
 -keep class com.google.firebase.** { *; }
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.firebase.**
-
-# ============================================================
-# AndroidX & View Binding
-# ============================================================
--keep class * extends androidx.appcompat.app.AppCompatActivity { *; }
--keep class * extends androidx.fragment.app.Fragment { *; }
--keepclassmembers class * extends androidx.recyclerview.widget.RecyclerView.Adapter {
-    *;
-}
--keepclassmembers class * implements android.view.View$OnClickListener {
-    public void onClick(android.view.View);
-}
 
 # ============================================================
 # General Android rules

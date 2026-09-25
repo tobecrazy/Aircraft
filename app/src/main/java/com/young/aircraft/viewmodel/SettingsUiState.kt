@@ -10,6 +10,7 @@ data class SettingsUiState(
     val combatSoundEnabled: Boolean = true,
     val hitShakeEnabled: Boolean = true,
     val enabledSoundCount: Int = 3,
+    val soundOptionCount: Int = 3,
     val showDevelopSettings: Boolean = false,
     val bgmFormat: String = SettingsRepository.BGM_FORMAT_MP3
 )

@@ -52,6 +52,11 @@ class SettingsViewModel(
         _uiState.value = computeState()
     }
 
+    /** Re-reads preferences so callers coming back from other screens show fresh state. */
+    fun refresh() {
+        _uiState.value = computeState()
+    }
+
     suspend fun clearCachedGameData() = withContext(Dispatchers.IO) {
         gameDataDao?.deleteAll()
         repository.clearCachedGameData()
@@ -65,7 +70,7 @@ class SettingsViewModel(
         val bgSound = repository.isBackgroundSoundEnabled()
         val combatSound = repository.isCombatSoundEnabled()
         val hitShake = repository.isHitShakeEffectEnabled()
-        val enabledCount = listOf(bgSound, combatSound, hitShake).count { it }
+        val soundOptions = listOf(bgSound, combatSound, hitShake)
 
         return SettingsUiState(
             theme = repository.getTheme(),
@@ -73,7 +78,8 @@ class SettingsViewModel(
             bgSoundEnabled = bgSound,
             combatSoundEnabled = combatSound,
             hitShakeEnabled = hitShake,
-            enabledSoundCount = enabledCount,
+            enabledSoundCount = soundOptions.count { it },
+            soundOptionCount = soundOptions.size,
             showDevelopSettings = DebugTools.isEnabled,
             bgmFormat = repository.getBgmFormat()
         )

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rich_text_hint">在此輸入\u2026 使用工具欄格式化文本，點擊 MD 啓用 Markdown 模式。</string>
+    <string name="rich_text_btn_size">字號</string>
+    <string name="rich_text_btn_color">顏色</string>
+    <string name="rich_text_select_text">請先選擇文本</string>
+    <string name="rich_text_size_small">小號 (12sp)</string>
+    <string name="rich_text_size_medium">中號 (16sp)</string>
+    <string name="rich_text_size_large">大號 (22sp)</string>
+    <string name="rich_text_size_xlarge">特大號 (30sp)</string>
+    <string name="rich_text_color_green">綠色</string>
+    <string name="rich_text_color_red">紅色</string>
+    <string name="rich_text_color_blue">藍色</string>
+    <string name="rich_text_color_yellow">黃色</string>
+    <string name="rich_text_color_white">白色</string>
+    <string name="rich_text_md_on">Markdown 模式已開啓</string>
+    <string name="rich_text_md_off">Markdown 模式已關閉</string>
+    <string name="rich_text_html_image">圖片標籤 %s</string>
+    <string name="rich_text_html_link">超鏈接標籤</string>
+    <string name="rich_text_html_heading">標題標籤</string>
+</resources>

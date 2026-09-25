@@ -55,10 +55,12 @@ import com.young.aircraft.viewmodel.SettingsUiState
 
 /** Screens reachable from the settings list (clear-cache is an action, not a destination). */
 enum class SettingsDestination {
+    GAME_SETTINGS,
     DEVICE_INFO,
     QR_CODE_TOOL,
     FLASHLIGHT,
     PUZZLE,
+    LANGUAGE,
     ABOUT_AIRCRAFT,
     ABOUT_ME,
     PRIVACY_POLICY,
@@ -66,12 +68,14 @@ enum class SettingsDestination {
 }
 
 // Visuals lifted from settings_* / difficulty_* / badge_* / switch_* drawables (XML→Compose migration).
-private val ScreenBg = Color(0xFF0F1118)
+// ScreenBg is shared with GameSettingsScreen (same package).
+internal val ScreenBg = Color(0xFF0F1118)
+internal val TileBg = Color(0x22252A3A)
+internal val TitleWhite = Color(0xFFFFFFFF)
 private val HeaderBg = Color(0xFF161A26)
 private val HeroGradient = Brush.linearGradient(listOf(Color(0x2E162033), Color(0x1F15242F)))
 private val HeroBorder: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x33 / 255f)
-private val TileBg = Color(0x22252A3A)
 private val TileBorder: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x22 / 255f)
 private val TilePressedBg = Color(0xFF2A2E44)
@@ -90,7 +94,6 @@ private val OptionSelectedBg: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0x22 / 255f)
 private val OptionSelectedBorder: Color
     @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0xAA / 255f)
-private val TitleWhite = Color(0xFFFFFFFF)
 private val SummaryColor = Color(0xFFAAB4C8)
 private val BannerSummaryColor = Color(0xFFCDD2E0)
 private val SectionLabelColor = Color(0x66FFFFFF)
@@ -116,20 +119,14 @@ private val BadgeShape = RoundedCornerShape(12.dp)
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
-    soundOptionCount: Int,
     onBack: () -> Unit,
-    onDifficultySelected: (GameDifficulty) -> Unit,
-    onBgSoundToggled: (Boolean) -> Unit,
-    onCombatSoundToggled: (Boolean) -> Unit,
-    onHitShakeToggled: (Boolean) -> Unit,
-    onBgmFormatSelected: (String) -> Unit,
     onNavigate: (SettingsDestination) -> Unit,
     onClearCache: () -> Unit,
     modifier: Modifier = Modifier,
     onThemeSelected: (String) -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxSize().background(ScreenBg)) {
-        SettingsHeader(onBack = onBack)
+        SettingsHeader(title = stringResource(R.string.title_activity_settings), onBack = onBack)
         Box(Modifier.fillMaxWidth().height(1.dp).background(DividerGreen))
         Column(
             modifier = Modifier
@@ -141,52 +138,12 @@ fun SettingsScreen(
             Column(
                 modifier = Modifier.widthIn(max = 640.dp).padding(horizontal = 14.dp)
             ) {
-                HeroCard(state, soundOptionCount)
-                SectionLabel(
-                    label = stringResource(R.string.difficulty_settings_header),
-                    topMargin = 22
-                )
-                DifficultyCard(state, onDifficultySelected)
-                SectionLabel(
-                    label = stringResource(R.string.sound_settings_header),
-                    topMargin = 22,
-                    endContent = {
-                        SoundCountChip(
-                            text = stringResource(R.string.settings_sound_active_count, state.enabledSoundCount, soundOptionCount),
-                            active = state.enabledSoundCount > 0
-                        )
-                    }
-                )
-                ToggleRow(
-                    title = stringResource(R.string.background_sound_title),
-                    status = stringResource(
-                        if (state.bgSoundEnabled) R.string.background_sound_summary_on
-                        else R.string.background_sound_summary_off
-                    ),
-                    topMargin = 10,
-                    checked = state.bgSoundEnabled,
-                    onToggle = onBgSoundToggled
-                )
-                MusicFormatCard(state, onBgmFormatSelected)
-                ToggleRow(
-                    title = stringResource(R.string.combat_sound_title),
-                    status = stringResource(
-                        if (state.combatSoundEnabled) R.string.combat_sound_summary_on
-                        else R.string.combat_sound_summary_off
-                    ),
-                    topMargin = 12,
-                    checked = state.combatSoundEnabled,
-                    onToggle = onCombatSoundToggled
-                )
-                ToggleRow(
-                    title = stringResource(R.string.hit_shake_effect_title),
-                    status = stringResource(
-                        if (state.hitShakeEnabled) R.string.hit_shake_effect_summary_on
-                        else R.string.hit_shake_effect_summary_off
-                    ),
-                    topMargin = 12,
-                    checked = state.hitShakeEnabled,
-                    onToggle = onHitShakeToggled
+                HeroCard(state)
+                NavRow(
+                    title = stringResource(R.string.game_settings_title),
+                    summary = stringResource(R.string.game_settings_summary),
+                    topMargin = 16,
+                    onClick = { onNavigate(SettingsDestination.GAME_SETTINGS) }
                 )
                 ThemeCard(state.theme, onThemeSelected)
                 SectionLabel(
@@ -195,6 +152,12 @@ fun SettingsScreen(
                     startContent = {
                         SmallChip(text = stringResource(R.string.other_settings_header))
                     }
+                )
+                NavRow(
+                    title = stringResource(R.string.language_settings_title),
+                    summary = stringResource(R.string.language_settings_summary),
+                    topMargin = 10,
+                    onClick = { onNavigate(SettingsDestination.LANGUAGE) }
                 )
                 NavRow(
                     title = stringResource(R.string.device_info_title),
@@ -323,7 +286,11 @@ private fun ThemeCard(selectedTheme: String, onSelected: (String) -> Unit) {
 }
 
 @Composable
-private fun SettingsHeader(onBack: () -> Unit) {
+internal fun SettingsHeader(
+    title: String,
+    onBack: () -> Unit,
+    endContent: (@Composable () -> Unit)? = null
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -333,7 +300,7 @@ private fun SettingsHeader(onBack: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = stringResource(R.string.title_activity_settings),
+            text = title,
             color = AccentGreen,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
@@ -354,11 +321,20 @@ private fun SettingsHeader(onBack: () -> Unit) {
                 tint = AccentGreen
             )
         }
+        if (endContent != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 4.dp)
+            ) {
+                endContent()
+            }
+        }
     }
 }
 
 @Composable
-private fun HeroCard(state: SettingsUiState, soundOptionCount: Int) {
+private fun HeroCard(state: SettingsUiState) {
     Column(
         modifier = Modifier
             .padding(top = 16.dp)
@@ -402,7 +378,7 @@ private fun HeroCard(state: SettingsUiState, soundOptionCount: Int) {
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             )
             SoundCountChip(
-                text = stringResource(R.string.settings_sound_profile_chip, state.enabledSoundCount, soundOptionCount),
+                text = stringResource(R.string.settings_sound_profile_chip, state.enabledSoundCount, state.soundOptionCount),
                 active = state.enabledSoundCount > 0,
                 modifier = Modifier.padding(start = 8.dp)
             )
@@ -411,7 +387,7 @@ private fun HeroCard(state: SettingsUiState, soundOptionCount: Int) {
 }
 
 @Composable
-private fun DifficultyCard(state: SettingsUiState, onSelected: (GameDifficulty) -> Unit) {
+internal fun DifficultyCard(state: SettingsUiState, onSelected: (GameDifficulty) -> Unit) {
     Column(
         modifier = Modifier
             .padding(top = 10.dp)
@@ -556,7 +532,7 @@ private fun GameDifficulty.labelRes(): Int = when (this) {
 }
 
 @Composable
-private fun ToggleRow(
+internal fun ToggleRow(
     title: String,
     status: String,
     topMargin: Int,
@@ -623,7 +599,7 @@ private fun SettingsSwitch(checked: Boolean, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun MusicFormatCard(state: SettingsUiState, onFormatSelected: (String) -> Unit) {
+internal fun MusicFormatCard(state: SettingsUiState, onFormatSelected: (String) -> Unit) {
     val isOgg = state.bgmFormat == SettingsRepository.BGM_FORMAT_OGG
     val alpha = if (state.bgSoundEnabled) 1f else 0.5f
     Column(
@@ -769,7 +745,7 @@ private fun Chevron(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SectionLabel(
+internal fun SectionLabel(
     label: String,
     topMargin: Int,
     startContent: (@Composable () -> Unit)? = null,
@@ -817,7 +793,7 @@ private fun SmallChip(text: String) {
 }
 
 @Composable
-private fun SoundCountChip(text: String, active: Boolean, modifier: Modifier = Modifier) {
+internal fun SoundCountChip(text: String, active: Boolean, modifier: Modifier = Modifier) {
     Text(
         text = text,
         color = TitleWhite,
@@ -836,13 +812,7 @@ private fun SoundCountChip(text: String, active: Boolean, modifier: Modifier = M
 private fun SettingsScreenPreview() {
     SettingsScreen(
         state = SettingsUiState(),
-        soundOptionCount = 3,
         onBack = {},
-        onDifficultySelected = {},
-        onBgSoundToggled = {},
-        onCombatSoundToggled = {},
-        onHitShakeToggled = {},
-        onBgmFormatSelected = {},
         onNavigate = {},
         onClearCache = {}
     )

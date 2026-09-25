@@ -9,20 +9,26 @@ import org.w3c.dom.Document
 class StringResourceTest {
 
     @Test
-    fun testAllStringsInDefaultStringsXmlAreTranslatedInValuesZh() {
+    fun testAllStringsInDefaultStringsXmlAreTranslatedInAllLocaleDirs() {
         val projectDir = findProjectRoot()
         val resDir = File(projectDir, "app/src/main/res")
-        val valuesDir = File(resDir, "values")
-        val valuesZhDir = File(resDir, "values-zh")
 
-        val defaultStrings = loadStringsFromXml(File(valuesDir, "strings.xml"))
-        val zhStrings = loadStringsFromXml(File(valuesZhDir, "strings.xml"))
+        val defaultStrings = loadStringsFromXml(File(resDir, "values/strings.xml"))
 
-        val missingInZh = defaultStrings.keys - zhStrings.keys
-        assertTrue(
-            "Strings missing in values-zh/strings.xml: $missingInZh",
-            missingInZh.isEmpty()
-        )
+        // Every values-* dir containing a strings.xml must define the full default set.
+        resDir.listFiles { file -> file.isDirectory && file.name.startsWith("values") }!!
+            .filter { it.name != "values" }
+            .forEach { localeDir ->
+                val stringsFile = File(localeDir, "strings.xml")
+                if (stringsFile.exists()) {
+                    val localeStrings = loadStringsFromXml(stringsFile)
+                    val missing = defaultStrings.keys - localeStrings.keys
+                    assertTrue(
+                        "Strings missing in ${localeDir.name}/strings.xml: $missing",
+                        missing.isEmpty()
+                    )
+                }
+            }
     }
 
     @Test
