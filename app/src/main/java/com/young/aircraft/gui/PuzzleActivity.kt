@@ -1,9 +1,7 @@
 package com.young.aircraft.gui
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -52,12 +50,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -83,13 +81,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
 import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.GameMode
-import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.ui.theme.AccentGreen
@@ -99,14 +97,9 @@ import com.young.aircraft.ui.theme.DividerGreen
 import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.TextSubtle
 import com.young.aircraft.viewmodel.GameViewModel
-import kotlinx.coroutines.Dispatchers
+import com.young.aircraft.viewmodel.PuzzleImageViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.io.File
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -114,43 +107,20 @@ import kotlin.math.roundToInt
 class PuzzleActivity : ComponentActivity() {
     companion object {
         private const val MAX_PUZZLE_LEVEL = 10
-        private const val CACHE_PREFS = "puzzle_image_cache"
-        private const val KEY_CACHE_FILE_PREFIX = "cached_image_file_"
-        private const val CACHE_FILE_NAME_PREFIX = "puzzle_cached_image_level_"
-        private const val TAG = "PuzzleActivity"
-        private const val USER_AGENT = "AircraftPuzzle/1.0 (Android)"
         private const val KEY_ACTIVE_PUZZLE_IMAGE_LEVEL = "active_puzzle_image_level"
     }
 
     private val viewModel: GameViewModel by viewModels { GameViewModel.Factory(this) }
+    private lateinit var imageViewModel: PuzzleImageViewModel
     private var puzzleLevel: Int = 1
     private var puzzleScore: Long = 0L
     private var totalKills: Int = 0
     private var jetPlaneRes: Int = R.drawable.jet_plane_2
     private var jetPlaneIndex: Int = 0
-    private lateinit var settingsRepository: SettingsRepository
-
-    private val puzzleImageModels = mutableStateMapOf<Int, Any>()
-    private var activePuzzleImageLevel by mutableIntStateOf(1)
-    private var loadingPuzzleImageLevel by mutableStateOf<Int?>(null)
-    private var hasPuzzleScreenStarted by mutableStateOf(false)
-    private var isImageLoading by mutableStateOf(true)
-    private var imageLoadFailed by mutableStateOf(false)
-    private var imageLoadErrorDetail by mutableStateOf<String?>(null)
-    private var shouldShowGuide by mutableStateOf(false)
-    private val httpClient: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
-        .writeTimeout(20, TimeUnit.SECONDS)
-        .callTimeout(30, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        settingsRepository = SettingsRepository(this)
-        shouldShowGuide = !settingsRepository.isPuzzleGuideCompleted()
         puzzleLevel = intent.getIntExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, 1).coerceIn(1, MAX_PUZZLE_LEVEL)
         puzzleScore = intent.getLongExtra(AircraftConstants.IntentExtras.PUZZLE_SCORE, 0L)
         totalKills = intent.getIntExtra(AircraftConstants.IntentExtras.TOTAL_KILLS, 0)
@@ -159,54 +129,40 @@ class PuzzleActivity : ComponentActivity() {
 
         // Restore the image level the restored board is actually on (may differ from intent
         // after the user advanced levels) — otherwise recreation shows the wrong level's image
-        activePuzzleImageLevel =
-            savedInstanceState?.getInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, puzzleLevel) ?: puzzleLevel
-        loadPuzzleImageWithCache(activePuzzleImageLevel)
+        val activeImageLevel = savedInstanceState?.getInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, puzzleLevel) ?: puzzleLevel
+        imageViewModel = ViewModelProvider(
+            this,
+            PuzzleImageViewModel.Factory(this, activeImageLevel)
+        )[PuzzleImageViewModel::class.java]
 
         setContent {
             AircraftTheme {
-                if (hasPuzzleScreenStarted) {
-                    val activePuzzleImageModel = puzzleImageModels[activePuzzleImageLevel]
+                val imageState by imageViewModel.uiState.collectAsState()
+                if (imageState.hasStarted) {
                     PuzzleScreen(
                         startLevel = puzzleLevel,
                         startScore = puzzleScore,
                         difficulty = viewModel.getDifficulty(),
-                        puzzleImageUrl = activePuzzleImageModel?.toString(),
-                        isImageLoading = isImageLoading && loadingPuzzleImageLevel == activePuzzleImageLevel,
-                        imageLoadFailed = imageLoadFailed && loadingPuzzleImageLevel == activePuzzleImageLevel,
-                        imageLoadErrorDetail = imageLoadErrorDetail,
-                        onLevelImageNeeded = { level ->
-                            activePuzzleImageLevel = level.coerceIn(1, MAX_PUZZLE_LEVEL)
-                            if (!puzzleImageModels.containsKey(activePuzzleImageLevel)) {
-                                loadPuzzleImageWithCache(activePuzzleImageLevel)
-                            }
-                        },
-                        onRetryImage = { level ->
-                            activePuzzleImageLevel = level.coerceIn(1, MAX_PUZZLE_LEVEL)
-                            loadPuzzleImageWithCache(activePuzzleImageLevel, forceRefresh = true)
-                        },
+                        puzzleImageUrl = imageState.activeImage?.toString(),
+                        isImageLoading = imageState.isActiveLoading,
+                        imageLoadFailed = imageState.activeImageError != null,
+                        imageLoadErrorDetail = imageState.activeImageError,
+                        onLevelImageNeeded = imageViewModel::ensureLevelImage,
+                        onRetryImage = imageViewModel::retryLevelImage,
                         onSaveAndExit = { level, score ->
                             savePuzzleProgress(level, score, finishAfterSave = true)
                         },
                         onProgressSaved = { level, score -> persistPuzzleProgress(level, score) },
                         onAllLevelsCleared = { score -> showPuzzleCongratsAndFinish(score) },
-                        showGuide = shouldShowGuide,
-                        onGuideDismiss = {
-                            shouldShowGuide = false
-                            settingsRepository.setPuzzleGuideCompleted(true)
-                        }
+                        showGuide = imageState.showGuide,
+                        onGuideDismiss = imageViewModel::dismissGuide
                     )
                 } else {
                     PuzzleLoadingScreen(
-                        isLoading = isImageLoading,
-                        hasError = imageLoadFailed,
-                        errorDetail = imageLoadErrorDetail,
-                        onRetry = {
-                            imageLoadFailed = false
-                            imageLoadErrorDetail = null
-                            isImageLoading = true
-                            loadPuzzleImageWithCache(activePuzzleImageLevel, forceRefresh = true)
-                        }
+                        isLoading = imageState.isActiveLoading,
+                        hasError = imageState.activeImageError != null,
+                        errorDetail = imageState.activeImageError,
+                        onRetry = { imageViewModel.retryLevelImage(imageState.activeImageLevel) }
                     )
                 }
             }
@@ -215,7 +171,7 @@ class PuzzleActivity : ComponentActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, activePuzzleImageLevel)
+        outState.putInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, imageViewModel.uiState.value.activeImageLevel)
     }
 
     private fun persistPuzzleProgress(level: Int, score: Long) {
@@ -252,110 +208,6 @@ class PuzzleActivity : ComponentActivity() {
             finish()
         }
     }
-
-    private fun loadPuzzleImageWithCache(level: Int, forceRefresh: Boolean = false) {
-        val targetLevel = level.coerceIn(1, MAX_PUZZLE_LEVEL)
-        loadingPuzzleImageLevel = targetLevel
-        isImageLoading = true
-        imageLoadFailed = false
-        imageLoadErrorDetail = null
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            var failureReason: String? = null
-            val loadedModel = runCatching {
-                val prefs = getSharedPreferences(CACHE_PREFS, MODE_PRIVATE)
-                val cacheKey = cacheKeyForPuzzleLevel(targetLevel)
-                val cachedFileName = prefs.getString(cacheKey, null)
-                val cachedFile = if (cachedFileName.isNullOrBlank()) null else File(cacheDir, cachedFileName)
-                if (!forceRefresh && cachedFile != null && cachedFile.exists() && cachedFile.length() > 0) {
-                    return@runCatching Uri.fromFile(cachedFile)
-                }
-
-                val feedRequest = Request.Builder()
-                    .url(AircraftConstants.Urls.PEAPIX_BING_CN_FEED)
-                    .header("User-Agent", USER_AGENT)
-                    .header("Accept", "application/json")
-                    .build()
-                val feedBody = httpClient.newCall(feedRequest).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        failureReason = "Feed HTTP ${response.code}"
-                        return@runCatching null
-                    }
-                    response.body.string().orEmpty()
-                }
-
-                val candidateGroups = AircraftConstants.Urls.extractPuzzleImageCandidateGroupsFromPeapixFeed(feedBody)
-                val candidates = puzzleImageCandidatesForLevel(candidateGroups, targetLevel)
-                if (candidates.isEmpty()) {
-                    failureReason = "No unique image URL in feed for puzzle level $targetLevel"
-                    return@runCatching null
-                }
-
-                // Try thumbUrl first (~150 KB), then imageUrl, then fullUrl. Most failures
-                // were 3.4 MB downloads stalling within OkHttp's default timeouts.
-                var imageBytes: ByteArray? = null
-                for (candidate in candidates) {
-                    val attempt = runCatching {
-                        val imageRequest = Request.Builder()
-                            .url(candidate)
-                            .header("User-Agent", USER_AGENT)
-                            .header("Accept", "image/jpeg,image/*;q=0.8")
-                            .build()
-                        httpClient.newCall(imageRequest).execute().use { response ->
-                            if (!response.isSuccessful) {
-                                throw java.io.IOException("HTTP ${response.code}")
-                            }
-                            response.body.bytes()
-                        }
-                    }
-                    val bytes = attempt.getOrNull()
-                    if (bytes != null && bytes.isNotEmpty()) {
-                        imageBytes = bytes
-                        Log.d(TAG, "Loaded puzzle level $targetLevel image from $candidate (${bytes.size} bytes)")
-                        break
-                    }
-                    val cause = attempt.exceptionOrNull()
-                    Log.w(TAG, "Failed to fetch $candidate: ${cause?.javaClass?.simpleName}: ${cause?.message}")
-                    failureReason = cause?.let { "${it.javaClass.simpleName}: ${it.message}" } ?: "Empty response"
-                }
-
-                if (imageBytes == null) {
-                    return@runCatching null
-                }
-
-                val file = File(cacheDir, cacheFileNameForPuzzleLevel(targetLevel))
-                file.outputStream().use { it.write(imageBytes) }
-                prefs.edit().putString(cacheKey, file.name).apply()
-                failureReason = null
-                Uri.fromFile(file)
-            }
-                .onFailure { throwable ->
-                    Log.w(TAG, "Puzzle image load threw", throwable)
-                    failureReason = "${throwable.javaClass.simpleName}: ${throwable.message}"
-                }
-                .getOrNull()
-
-            withContext(Dispatchers.Main) {
-                if (loadedModel != null) {
-                    puzzleImageModels[targetLevel] = loadedModel
-                    if (targetLevel == puzzleLevel) {
-                        hasPuzzleScreenStarted = true
-                    }
-                    isImageLoading = false
-                    imageLoadFailed = false
-                    imageLoadErrorDetail = null
-                } else {
-                    imageLoadFailed = true
-                    isImageLoading = false
-                    imageLoadErrorDetail = failureReason
-                }
-            }
-        }
-    }
-
-    private fun cacheKeyForPuzzleLevel(level: Int): String = "$KEY_CACHE_FILE_PREFIX$level"
-
-    private fun cacheFileNameForPuzzleLevel(level: Int): String = "$CACHE_FILE_NAME_PREFIX$level.jpg"
 
     private fun savePuzzleProgress(level: Int, score: Long, finishAfterSave: Boolean) {
         lifecycleScope.launch {
@@ -1222,15 +1074,6 @@ internal fun gridSizeForDifficulty(difficulty: GameDifficulty): Int = when (diff
  * given puzzle level so each level shows a distinct feed image when enough are available.
  * Levels beyond the number of feed entries wrap around via modulo.
  */
-internal fun puzzleImageCandidatesForLevel(
-    candidateGroups: List<List<String>>,
-    level: Int
-): List<String> {
-    if (candidateGroups.isEmpty()) return emptyList()
-    val index = ((level - 1) % candidateGroups.size + candidateGroups.size) % candidateGroups.size
-    return candidateGroups[index]
-}
-
 internal fun createPuzzlePieces(
     gridSize: Int,
     boardSizePx: Float,

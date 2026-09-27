@@ -36,13 +36,10 @@ class GameViewModel(
     ) {
         val score = calculateScore(totalKills)
         val difficulty = settingsRepository.getDifficulty().persistedValue
-        val existingRecord = dao.getByPlayerId(playerId).firstOrNull()
-        val persistedPlayerName = playerName ?: existingRecord?.playerName
-        dao.deleteByPlayerId(playerId)
-        dao.insert(
+        dao.replaceForPlayer(
             PlayerGameData(
                 playerId = playerId,
-                playerName = persistedPlayerName,
+                playerName = playerName,
                 level = level,
                 airBattleLevel = level,
                 puzzleLevel = puzzleLevel,
@@ -64,14 +61,11 @@ class GameViewModel(
         jetPlaneIndex: Int,
         playerName: String? = null
     ) {
-        val existingRecord = dao.getByPlayerId(playerId).firstOrNull()
-        val preservedPuzzleScore = existingRecord?.puzzleScore ?: 0L
-        val preservedPuzzleLevel = existingRecord?.puzzleLevel ?: 1
         saveGameData(
             level = level,
             totalKills = totalKills,
-            puzzleScore = preservedPuzzleScore,
-            puzzleLevel = preservedPuzzleLevel,
+            puzzleScore = 0L,
+            puzzleLevel = 1,
             gameMode = GameMode.AIR_BATTLE,
             jetPlaneResId = jetPlaneResId,
             jetPlaneIndex = jetPlaneIndex,
