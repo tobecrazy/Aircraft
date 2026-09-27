@@ -13,6 +13,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter. Two Gradle modules: `:a
 - [README.md](README.md): project overview, features, downloads, and architecture diagrams.
 - [DOCUMENT.md](DOCUMENT.md): detailed gameplay formulas and development documentation.
 - [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md): editor integration and AAR usage.
+- [docs/architecture-fix-plan.md](docs/architecture-fix-plan.md) and [docs/puzzle-game-redesign-plan.md](docs/puzzle-game-redesign-plan.md): working plans (untracked) that explain *why* the threading, save-transaction, and puzzle-scoring code looks the way it does. Read these before changing those areas.
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance. No Cursor rules were found during initialization.
 - **[AGENTS.md](AGENTS.md) is a symlink to this file**; edit CLAUDE.md rather than replacing the symlink.
 
@@ -21,6 +22,7 @@ Some documentation is stale; verify behavior against code before propagating doc
 - README/Copilot describe interleaved puzzle gates, but current `MainActivity` advances directly to the next combat level. `PuzzleActivity` is a separate Settings entry with its own ten-level progression.
 - README says min SDK 30; `app/build.gradle.kts` actually sets minSdk 32.
 - Copilot claims Room uses `fallbackToDestructiveMigration(true)`; `DatabaseProvider` registers explicit migrations only, with no fallback (see Persistence below).
+- Copilot says many screens still use ViewBinding/XML and that combat routes through `PuzzleActivity` between levels; both are false — View Binding is off and `MainActivity` advances straight to the next combat level.
 
 ## Build, Lint, and Tests
 
@@ -52,7 +54,7 @@ Scope `--tests` to a module task (`:app:testDebugUnitTest`), not the root task: 
 - Kotlin DSL builds; dependency/plugin versions are centralized in `gradle/libs.versions.toml`. AGP uses built-in Kotlin: do **not** add `org.jetbrains.kotlin.android`; the app still requires `org.jetbrains.kotlin.plugin.compose`. Root `build.gradle.kts` also explicitly pins `kotlin-gradle-plugin` for Compose mapping artifact resolution; check both locations when upgrading Kotlin rather than assuming their versions match.
 - Both modules use compileSdk 37 and minSdk 32; the app targets SDK 37 and build tools 37.0.0. Configure the Android SDK via `local.properties` or the environment.
 - App ID/namespace: `com.young.aircraft`; library namespace: `com.young.richtext`.
-- The app enables Compose, View Binding, and BuildConfig, not Data Binding.
+- The app enables Compose and BuildConfig. **View Binding is disabled** (removed in `a6c3b6b`; no binding classes exist) and Data Binding is not used.
 - Release enables R8 minification/resource shrinking via `app/proguard-rules.pro`. Signing loads root `keystore.properties` when present; it is not tracked.
 - Firebase Analytics and Crashlytics are configured in `app/build.gradle.kts`; `app/google-services.json` supplies the Firebase configuration.
 
@@ -62,9 +64,11 @@ Scope `--tests` to a module task (`:app:testDebugUnitTest`), not the root task: 
 
 **Game engine:** `MainActivity` hosts `ui/GameCoreView`, a `SurfaceView` implementing `SurfaceHolder.Callback` and `Runnable`. It owns a dedicated 30 FPS Canvas loop, game-object composition, collision detection, timers, and boss/level progression. Drawable objects derive from `DrawBaseObject`; `GameCoreView` itself does not. Mutable state models live in `data/`. Do not refactor this rendering hierarchy as if it were a Compose/MVVM screen.
 
-**Activity/UI layer:** Most non-game screens use Compose + Material3, with `viewmodel/` exposing StateFlow/LiveData state and, where needed, SharedFlow one-shot events. `data/SettingsRepository` wraps SharedPreferences; `providers/DatabaseProvider` supplies Room DAOs. Follow existing ViewModel/UiState/Factory patterns for new utilities. This is not universal: `PuzzleActivity` still owns substantial puzzle/image-loading state itself. `GameViewModel` handles game persistence/scoring, not the render loop.
+**Activity/UI layer:** Most non-game screens use Compose + Material3, with `viewmodel/` exposing StateFlow/LiveData state and, where needed, SharedFlow one-shot events. `data/SettingsRepository` wraps SharedPreferences; `providers/DatabaseProvider` supplies Room DAOs. Follow existing ViewModel/UiState/Factory patterns for new utilities. `GameViewModel` handles game persistence/scoring, not the render loop.
 
-All `gui/` activities are Compose (`setContent`); there are no ViewBinding hosts despite the build enabling View Binding. `HistoryActivity` is Compose, not a HistoryFragment/RecyclerView flow. Game dialogs and the hall-of-heroes sheet use Compose content through `gui/dialogs/` even though the game host uses Views.
+`PuzzleActivity` follows this pattern too: the image feed request, disk cache, and load state now live in `viewmodel/PuzzleImageViewModel`; the Activity only reads launch args, saves progress, and owns the Compose board. Board/piece/undo state uses `rememberSaveable` with a Saver so rotation restores the in-progress board.
+
+All `gui/` activities are Compose (`setContent`); there are no ViewBinding hosts. `HistoryActivity` is Compose, not a HistoryFragment/RecyclerView flow. Game dialogs and the hall-of-heroes sheet use Compose content through `gui/dialogs/` even though the game host uses Views. `gui/GameHudScreen.kt` is a Compose HUD overlay that nothing references — the live HUD is Canvas-drawn by `ui/DrawHeader.kt` via `ui/GameHudFormatter.kt`. Don't wire the orphan up or duplicate its formatting.
 
 ### Theme and Transient UI
 
@@ -84,12 +88,19 @@ Combat has ten timed levels with increasing kill targets and a boss after each t
 
 `LaunchViewModel` offers continuation only when `(level > 1 || score > 0)` and `gameMode == AIR_BATTLE`. Launch/Main use `AircraftConstants.IntentExtras` to transfer starting level, jet resource/index, and total kills. Preserve kills when resuming so cumulative score survives.
 
-`SettingsActivity` opens the independent Compose drag-and-drop `PuzzleActivity`. It saves puzzle level/score using `GameViewModel` with `GameMode.PUZZLE`; do not assume a stored mode implies the launch hub can resume it.
+**"Continue" is a level checkpoint, not a scene snapshot** (decided in `docs/architecture-fix-plan.md` §3): it restores the saved combat level, cumulative kills, and jet, but *not* current health, remaining time, or on-screen objects. The game restarts that level from scratch. Don't add snapshot persistence unless the product asks for in-place resume.
+
+`SettingsActivity` opens the independent Compose drag-and-drop `PuzzleActivity`. It saves puzzle level/score using `GameViewModel` with `GameMode.PUZZLE`; do not assume a stored mode implies the launch hub can resume it. Puzzle scoring is efficiency-based (par = `gridSize²` moves; scans and retries subtract; 1–3 stars) and lives in the pure internal top-level `calculatePuzzleRoundResult()` / `createPuzzlePieces()` in `PuzzleActivity.kt` — see `docs/puzzle-game-redesign-plan.md`. There is no constant reference image on the board; the player spends limited "intel scans" to peek at it.
 
 ### Thread and Event Boundaries
 
-- The game thread performs frame updates/drawing under the SurfaceHolder lock. Keep new mutable game-object work coordinated with that loop, rather than introducing unsynchronized Activity-side mutations.
-- `GameCoreView.post { ... }` dispatches game-over/level-complete/win callbacks **to the main/UI thread**. It is not a queue onto the game thread. Existing Activity entry points include pause/resume and level advancement; inspect their synchronization when changing them.
+Game-engine state is **render-thread confined** (`a6c3b6b`). Other threads never mutate game objects directly; they submit work:
+
+- `gameCommands: ConcurrentLinkedQueue<() -> Unit>` — `pauseGame()`, `resumeGame()`, `advanceToNextLevel()`, and `onKeyDown` enqueue a lambda; the render loop drains the queue at the top of each frame, inside the `SurfaceHolder` lock. `advanceToNextLevel()` is a public enqueue wrapper; the body lives in private `advanceToNextLevelOnGameThread()`. **Any new Activity/UI entry point that touches game state must enqueue, not assign.**
+- `pendingPlayerTouch: AtomicReference<PlayerTouch?>` — `onTouchEvent` records the latest ACTION_MOVE coordinates; the render loop applies them to `drawAircraft.jetX/jetY` before drawing. Only the newest touch is kept, so drag latency is one frame.
+- `isRunning` and `musicService` are `@Volatile` for cross-thread visibility.
+- The frame update/draw itself still happens under the SurfaceHolder lock. Keep new mutable game-object work coordinated with that loop.
+- `GameCoreView.post { ... }` dispatches game-over/level-complete/win callbacks **to the main/UI thread**. It is not a queue onto the game thread.
 - `common/GameStateManager` exposes a SharedFlow of `data/GameState` and the debug invincibility flag. `MainActivity` currently observes the flow for low-memory handling; normal completion dialogs use the direct callbacks above.
 - `GameCoreView` propagates time-freeze state into the player, enemies, and boss before updates. Changes to movement or projectiles must preserve freeze behavior across these objects.
 - `MusicService` is a bound MediaPlayer/SoundPool service with synchronized playback methods. `FlashlightService` separately owns the camera torch as a foreground service and holds a partial wake lock during SOS; this work must outlive the screen as designed.
@@ -102,7 +113,9 @@ There is no Retrofit usage despite the declared dependency — network calls are
 
 `DatabaseProvider` builds `aircraft_game.db` with `AppDatabase` (version 2031), registering migrations 2027→2028→2029→2030→2031. **There is no destructive-migration fallback in the current provider.** Schema changes need an explicit migration and registration.
 
-`PlayerGameData` / `PlayerGameDataDao` represent `player_game_data`. Records include combat and puzzle levels/scores, mode, total kills, player name, jet resource/index, and difficulty. `GameViewModel` uses an install ID from SettingsRepository to identify the current player. Combat score is `totalKills * 100`; `saveAirBattleData()` preserves existing puzzle level/score while saving combat progress.
+`PlayerGameData` / `PlayerGameDataDao` represent `player_game_data`. Records include combat and puzzle levels/scores, mode, total kills, player name, jet resource/index, and difficulty. `GameViewModel` uses an install ID from SettingsRepository to identify the current player. Combat score is `totalKills * 100`.
+
+**All progress writes go through `PlayerGameDataDao.replaceForPlayer()`** — a `@Transaction` default method that reads the newest row, merges the fields belonging to the *other* game mode, and replaces the record atomically. Do not reintroduce read-then-delete-then-insert in `GameViewModel`; it loses data on failure and interleaves under concurrent saves. A PUZZLE save preserves `airBattleLevel`; an AIR_BATTLE save preserves `puzzleLevel`/`puzzleScore`; a null `playerName` keeps the stored name.
 
 **Save before finishing:** keep `finish()` inside the `lifecycleScope` coroutine after the suspend save completes, as in `MainActivity.saveCurrentProgress()` callers and `PuzzleActivity`. Finishing alongside the coroutine can cancel the Room write.
 
