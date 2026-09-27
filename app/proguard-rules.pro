@@ -74,6 +74,15 @@
 -dontwarn com.google.firebase.**
 
 # ============================================================
+# Bugly
+# ============================================================
+-dontwarn com.tencent.bugly.**
+-keep class com.tencent.bugly.** { *; }
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator CREATOR;
+}
+
+# ============================================================
 # General Android rules
 # ============================================================
 -keep public class * extends android.app.Service

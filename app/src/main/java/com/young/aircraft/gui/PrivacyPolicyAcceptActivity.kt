@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModelProvider
 import com.young.aircraft.R
+import com.young.aircraft.common.AircraftApplication
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.theme.AccentGreen
 import com.young.aircraft.ui.theme.AircraftTheme
@@ -127,6 +128,7 @@ class PrivacyPolicyAcceptActivity : AppCompatActivity() {
 
     internal fun acceptAndContinue() {
         viewModel.acceptPolicy()
+        (application as AircraftApplication).initBuglyIfConsented()
         startActivity(Intent(this, OnboardingActivity::class.java))
         finish()
     }

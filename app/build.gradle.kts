@@ -36,6 +36,14 @@ android {
         versionName = "1.3.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
+
+        // Bugly .so trimming: minSdk 32 has no 32-bit devices; x86_64 keeps emulators working
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+
+        manifestPlaceholders["buglyAppId"] = "9b50cb1fc3"
+        manifestPlaceholders["buglyChannel"] = "official"
     }
 
     buildTypes {
@@ -71,6 +79,7 @@ dependencies {
     implementation(project(":richtexteditor"))
     implementation(libs.androidx.foundation.layout)
     implementation(libs.zxing)
+    implementation(libs.bugly.upgrade)
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.room.runtime)
