@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,16 +23,21 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -251,41 +257,73 @@ fun SettingsScreen(
     }
 }
 
+private val ThemeOptions = listOf(
+    SettingsRepository.THEME_GREEN to R.string.theme_green,
+    SettingsRepository.THEME_BLUE to R.string.theme_blue,
+    SettingsRepository.THEME_PURPLE to R.string.theme_purple,
+    SettingsRepository.THEME_YELLOW to R.string.theme_yellow,
+    SettingsRepository.THEME_RED to R.string.theme_red
+)
+
 @Composable
 private fun ThemeCard(selectedTheme: String, onSelected: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLabel = ThemeOptions.firstOrNull { it.first == selectedTheme }?.second ?: R.string.theme_green
     SectionLabel(label = stringResource(R.string.theme_settings_title), topMargin = 22)
-    Row(
-        modifier = Modifier.padding(top = 10.dp).fillMaxWidth().selectableGroup(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        listOf(
-            SettingsRepository.THEME_GREEN to R.string.theme_green,
-            SettingsRepository.THEME_BLUE to R.string.theme_blue,
-            SettingsRepository.THEME_PURPLE to R.string.theme_purple,
-            SettingsRepository.THEME_YELLOW to R.string.theme_yellow,
-            SettingsRepository.THEME_RED to R.string.theme_red
-        ).forEach { (theme, label) ->
-            val selected = theme == selectedTheme
-            val accent = themeAccent(theme)
-            Column(
-                modifier = Modifier.weight(1f)
-                    .background(if (selected) accent.copy(alpha = 0.15f) else TileBg, TileShape)
-                    .border(1.dp, if (selected) accent else TileBorder, TileShape)
-                    .selectable(selected = selected, role = Role.RadioButton, onClick = { onSelected(theme) })
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(Modifier.size(18.dp).background(accent, CircleShape))
-                Text(
-                    text = stringResource(label),
-                    color = if (selected) accent else TitleWhite,
-                    fontFamily = Mono,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 8.dp)
+    BoxWithConstraints(Modifier.padding(top = 10.dp).fillMaxWidth()) {
+        val rowWidth = maxWidth
+        NavRow(
+            title = stringResource(selectedLabel),
+            summary = null,
+            onClick = { expanded = true }
+        ) {
+            ThemeDot(themeAccent(selectedTheme))
+            Text(
+                text = if (expanded) "⌃" else "⌄",
+                color = DividerGreen,
+                fontSize = 16.sp,
+                fontFamily = Mono,
+                modifier = Modifier.padding(start = 10.dp)
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.width(rowWidth).background(TileBg)
+        ) {
+            ThemeOptions.forEach { (theme, label) ->
+                val selected = theme == selectedTheme
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            ThemeDot(themeAccent(theme))
+                            Text(
+                                text = stringResource(label),
+                                color = if (selected) AccentGreen else TitleWhite,
+                                fontFamily = Mono,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(start = 12.dp)
+                            )
+                        }
+                    },
+                    trailingIcon = if (selected) {
+                        { Text("✓", color = AccentGreen, fontFamily = Mono) }
+                    } else {
+                        null
+                    },
+                    onClick = {
+                        expanded = false
+                        onSelected(theme)
+                    }
                 )
             }
         }
     }
+}
+
+@Composable
+private fun ThemeDot(accent: Color, modifier: Modifier = Modifier) {
+    Box(modifier.size(14.dp).background(accent, CircleShape))
 }
 
 @Composable
@@ -696,7 +734,7 @@ private fun BgmFormatOption(
 @Composable
 private fun NavRow(
     title: String,
-    summary: String,
+    summary: String? = null,
     onClick: () -> Unit,
     topMargin: Int = 12,
     bottomMargin: Int = 0,
@@ -720,13 +758,15 @@ private fun NavRow(
                 fontWeight = FontWeight.Bold,
                 fontFamily = Mono
             )
-            Text(
-                text = summary,
-                color = SummaryColor,
-                fontSize = 11.sp,
-                fontFamily = Mono,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            if (summary != null) {
+                Text(
+                    text = summary,
+                    color = SummaryColor,
+                    fontSize = 11.sp,
+                    fontFamily = Mono,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
         if (endContent != null) {
             endContent()
