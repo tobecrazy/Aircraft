@@ -60,7 +60,7 @@
   <rect x="20" y="12" width="1360" height="46" rx="8" fill="url(#g-title)" filter="url(#shadow)"/>
   <text x="700" y="42" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="700" letter-spacing="1">AIRCRAFT — Project Architecture</text>
   <text x="1360" y="42" text-anchor="end" fill="#94a3b8" font-size="11">Android 2D Vertical Shooter · Kotlin · SurfaceView Engine</text>
-  <text x="700" y="60" text-anchor="middle" fill="#64748b" font-size="10">Modules: :app + :richtexteditor AAR · FileProvider paths include Pictures/, Download/, and cache</text>
+  <text x="700" y="60" text-anchor="middle" fill="#64748b" font-size="10">Modules: :app + :richtexteditor AAR + :supperbanner AAR (com.young:supperbanner) · FileProvider paths include Pictures/, Download/, and cache</text>
 
   <!-- ==================== PRESENTATION LAYER ==================== -->
   <rect x="20" y="72" width="1360" height="260" rx="10" fill="url(#g-pres)" stroke="#c084fc" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
@@ -165,16 +165,17 @@
   <text x="1090" y="379" text-anchor="middle" fill="#7c3aed" font-size="8.5">BottomSheet result + Copy button</text>
 
   <!-- Utility screens summary -->
-  <rect x="1190" y="224" width="170" height="126" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="1190" y="224" width="170" height="132" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
   <rect x="1190" y="224" width="170" height="22" rx="8" fill="#c084fc"/>
   <rect x="1190" y="238" width="170" height="8" fill="#c084fc"/>
   <text x="1275" y="240" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Utility Screens</text>
   <text x="1275" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">SETTINGS DESTINATIONS</text>
-  <text x="1275" y="275" text-anchor="middle" fill="#7c3aed" font-size="7.8">QR Code Tool · Flashlight (torch/SOS)</text>
-  <text x="1275" y="289" text-anchor="middle" fill="#7c3aed" font-size="7.8">Image Details · Device Info · About Aircraft</text>
-  <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Me · Privacy Policy · Puzzle Game</text>
-  <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">Develop · Rich Text · Camera Scan (DEBUG)</text>
-  <text x="1275" y="331" text-anchor="middle" fill="#7c3aed" font-size="7.4">Color theme: 5 accents · live apply</text>
+  <text x="1275" y="275" text-anchor="middle" fill="#7c3aed" font-size="7.8">Game Settings · Language · Puzzle Game</text>
+  <text x="1275" y="289" text-anchor="middle" fill="#7c3aed" font-size="7.8">QR Code Tool · Flashlight (torch/SOS)</text>
+  <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">Image Details · Device Info · About Aircraft</text>
+  <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Me · Privacy Policy · Banner Details</text>
+  <text x="1275" y="331" text-anchor="middle" fill="#7c3aed" font-size="7.8">Develop · Rich Text · Camera Scan (DEBUG)</text>
+  <text x="1275" y="345" text-anchor="middle" fill="#7c3aed" font-size="7.4">5 accents · 4 locales (en, zh-CN/zh-TW/zh-HK)</text>
 
   <!-- OnboardingActivity → LaunchActivity arrow -->
   <path d="M395,198 L395,208 L130,208 L130,222" stroke="#8b5cf6" stroke-width="1.5" fill="none" marker-end="url(#arr-purple)"/>
@@ -549,6 +550,24 @@
   <text x="876" y="988" fill="#166534" font-size="9">ScreenUtils · BitmapUtils · FilePickerHelper</text>
   <text x="876" y="1003" fill="#166534" font-size="9">HallOfHeroesNameUtils · DataUriUtils</text>
 
+  <!-- AAR Library Modules -->
+  <rect x="1140" y="852" width="220" height="170" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <rect x="1140" y="852" width="220" height="22" rx="10" fill="#475569"/>
+  <rect x="1140" y="866" width="220" height="8" fill="#475569"/>
+  <text x="1250" y="868" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">AAR LIBRARY MODULES</text>
+
+  <rect x="1152" y="882" width="196" height="60" rx="6" fill="#ffffff" stroke="#00897b" stroke-width="1.2"/>
+  <text x="1250" y="897" text-anchor="middle" fill="#0f766e" font-size="9.5" font-weight="700">:richtexteditor</text>
+  <text x="1250" y="910" text-anchor="middle" fill="#0f766e" font-size="7.8">RichTextEditorView</text>
+  <text x="1250" y="922" text-anchor="middle" fill="#64748b" font-size="7.2">Editor view · HTML/Markdown helpers</text>
+  <text x="1250" y="934" text-anchor="middle" fill="#64748b" font-size="7.2">No game dependency · onMessage callback</text>
+
+  <rect x="1152" y="950" width="196" height="60" rx="6" fill="#ffffff" stroke="#00897b" stroke-width="1.2"/>
+  <text x="1250" y="965" text-anchor="middle" fill="#0f766e" font-size="9.5" font-weight="700">:supperbanner</text>
+  <text x="1250" y="978" text-anchor="middle" fill="#0f766e" font-size="7.8">SupperBannerView + Item / Config</text>
+  <text x="1250" y="990" text-anchor="middle" fill="#64748b" font-size="7.2">Colors / Transition / Transformers</text>
+  <text x="1250" y="1002" text-anchor="middle" fill="#64748b" font-size="7.2">No strings · publishes com.young:supperbanner</text>
+
   <!-- ==================== THREADING DIAGRAM ==================== -->
   <rect x="20" y="1038" width="1360" height="88" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
   <text x="36" y="1058" fill="#334155" font-size="13" font-weight="700">THREADING MODEL</text>
@@ -672,6 +691,7 @@
   <!-- 2026-09-18 update: Five-color theme system (green/blue/purple/yellow/red) — AircraftTheme/aircraftColorScheme, themed game + native dialogs, ThemedMessage Snackbar replaces Toasts; StarFieldView particles follow the accent. -->
   <!-- 2026-09-18 update: CameraX debug camera scanning (CameraScanActivity + CameraScanViewModel); HistoryActivity is Compose (no HistoryFragment/RecyclerView); added DataUriUtils, WideScreen, MaxWidthLinearLayout helpers; AGP 9.4.0. -->
   <!-- 2026-09-28 update: render-thread confinement — game state owned by the 30 FPS render loop; the UI thread only enqueues gameCommands / pendingPlayerTouch. Progress writes go through PlayerGameDataDao.replaceForPlayer() @Transaction with cross-mode field merge. View Binding removed (Compose setContent everywhere). Puzzle image feed/cache/load state moved to the new PuzzleImageViewModel; VM count 17. AGP 9.4.1. -->
+  <!-- 2026-09-29 update: Settings split into a navigation hub + GameSettingsActivity (difficulty/audio/theme) + LanguageSettingsActivity (per-app locale: system, zh-CN, zh-TW, zh-HK, en). Added the AAR Library Modules block covering :richtexteditor and the newly extracted :supperbanner module. Localization is now 4 locales, not 2. MainActivity's Compose HUD (GameHudScreen.kt) layers over the AndroidView-hosted GameCoreView. -->
   <!-- Theme & transient-UI summary strip -->
   <rect x="20" y="1260" width="1360" height="24" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="0.8"/>
   <text x="40" y="1276" fill="#5b21b6" font-size="9" font-weight="700">THEME &amp; TRANSIENT UI</text>
