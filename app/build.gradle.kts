@@ -68,6 +68,7 @@ android {
 
 dependencies {
     implementation(project(":richtexteditor"))
+    implementation(project(":supperbanner"))
     implementation(libs.androidx.foundation.layout)
     implementation(libs.zxing)
     implementation(libs.retrofit)

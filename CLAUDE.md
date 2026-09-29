@@ -8,11 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project and Documentation
 
-Aircraft is a Kotlin Android vertical-scrolling shooter. Two Gradle modules: `:app` contains the game and utility screens; `:richtexteditor` is a reusable Android View library consumed by the app and distributable as an AAR.
+Aircraft is a Kotlin Android vertical-scrolling shooter. Three Gradle modules: `:app` contains the game and utility screens; `:richtexteditor` and `:supperbanner` are reusable Android View libraries consumed by the app and distributable as AARs.
 
 - [README.md](README.md): project overview, features, downloads, and architecture diagrams.
 - [DOCUMENT.md](DOCUMENT.md): detailed gameplay formulas and development documentation.
 - [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md): editor integration and AAR usage.
+- [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md): banner carousel integration and AAR publishing.
 - [docs/architecture-fix-plan.md](docs/architecture-fix-plan.md) and [docs/puzzle-game-redesign-plan.md](docs/puzzle-game-redesign-plan.md): working plans (untracked) that explain *why* the threading, save-transaction, and puzzle-scoring code looks the way it does. Read these before changing those areas.
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance. No Cursor rules were found during initialization.
 - **[AGENTS.md](AGENTS.md) is a symlink to this file**; edit CLAUDE.md rather than replacing the symlink.
@@ -32,6 +33,8 @@ Run from the repository root:
 ./gradlew assembleDebug                         # Debug APK
 ./gradlew assembleRelease                       # Release APK; requires signing configuration
 ./gradlew :richtexteditor:assembleRelease        # Library AAR in richtexteditor/build/outputs/aar/
+./gradlew :supperbanner:assembleRelease          # Library AAR in supperbanner/build/outputs/aar/
+./gradlew :supperbanner:publishReleasePublicationToBuildRepoRepository   # com.young:supperbanner into supperbanner/build/repo
 ./gradlew testDebugUnitTest                      # Debug unit tests across modules
 ./gradlew test                                   # All unit-test variants
 ./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ui.GameCoreViewFormulaTest"
@@ -124,6 +127,16 @@ There is no Retrofit usage despite the declared dependency — network calls are
 `richtexteditor` supplies `com.young.richtext.RichTextEditorView`; the app Activity owns mode switching, sample loading, WebView preview, and image-viewer navigation. The library has no dependency on the game. Its optional `onMessage` callback lets `RichTextEditorActivity` and `QRCodeToolActivity` route editor feedback through `ThemedMessage`; standalone AAR consumers retain a system Toast fallback. Do not import app theme classes into the library.
 
 Large unbroken/base64 content must not be inserted unchanged into the native EditText: native text layout can exhaust memory. `RichTextEditorActivity` skips oversized default content (`MAX_EDITABLE_LENGTH`) and sanitizes inline data-image tags via `makeHtmlEditable()` for JSON examples. Preserve these guards when changing content loading; use WebView preview rather than native text layout for large raw HTML.
+
+### Banner Library Boundary
+
+`supperbanner` supplies `com.young.supperbanner.SupperBannerView` plus the `SupperBannerItem` / `SupperBannerImage` / `SupperBannerConfig` / `SupperBannerColors` / `SupperBannerEffect` / `SupperBannerTransition` types. It is a plain Android View with no strings and no dependency on the game, on `:richtexteditor`, or on any app theme class; keep it that way. Every color it paints is a field on `SupperBannerColors` (indicators on `SupperBannerIndicatorColors`) applied through `setColors()` — the view holds no literal colors, so a host maps its own theme into the palette instead of the library importing `AircraftTheme`. A customizer installed via `setIndicatorCustomizer` still runs after the palette and wins on the dots; use the palette for color and the customizer for what it cannot express (typeface, stroke width, shape).
+
+Page transitions are `ViewPager2.PageTransformer` instances built by the internal `SupperBannerTransformers` from a `SupperBannerTransition`; `setTransition(NONE)` restores the default slide. The `SHADER` effect compiles AGSL at construction and is wrapped in a `try/catch` that degrades to `FADE` — keep that fallback, a bad shader string must not take the view down, and Robolectric does not exercise real GPU shader compilation. `PARALLAX` only offsets the image layer; the info panel sits outside the pager and is re-bound in `onPageSelected`, so text deliberately does not parallax. Every transform resets stale view state first because ViewPager2 recycles pages. `DevelopSettingsActivity` owns the effect dropdown; the 12 `develop_settings_supper_banner_effect_*` strings must stay in all four locales.
+
+The click contract and the details/download flow stay in the app (`BannerDetailsActivity` + `BannerDetailsViewModel`), which only consumes the exported item types. `DevelopSettingsActivity` hosts the view through Compose `AndroidView` and supplies its own indicator styling via `setIndicatorCustomizer`.
+
+Unlike `richtexteditor`, `supperbanner` applies `maven-publish` and publishes `com.young:supperbanner` to a local file repo under `supperbanner/build/repo`; see [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md) for the publish commands and for adding a remote repository.
 
 ## Repository-Specific Conventions
 

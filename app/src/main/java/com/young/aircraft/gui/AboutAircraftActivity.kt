@@ -60,6 +60,8 @@ import com.young.aircraft.ui.theme.TextMuted
 import com.young.aircraft.viewmodel.AboutAircraftViewModel
 import com.young.aircraft.viewmodel.AboutAircraftUiState
 import com.young.aircraft.viewmodel.ImageLoadState
+import com.young.supperbanner.SupperBannerImage
+import com.young.supperbanner.SupperBannerItem
 
 // Panel visuals lifted from device_info_hero_bg / device_info_card_bg /
 // device_info_item_bg / the legacy outlined MaterialButton styling.

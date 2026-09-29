@@ -1,4 +1,4 @@
-package com.young.aircraft.gui
+package com.young.supperbanner
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

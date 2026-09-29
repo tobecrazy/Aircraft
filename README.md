@@ -1,6 +1,6 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus a reusable `:richtexteditor` Android library module that can be built as an AAR. The app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus two reusable Android library modules, `:richtexteditor` and `:supperbanner`, that can be built as AARs. The app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Download
 
@@ -44,6 +44,7 @@ The demo above walks through the end-to-end player experience on a real device:
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
 | `richtexteditor/` | Blue-gray | `RichTextEditorView` | Reusable AAR library for rich-text input, toolbar formatting, Markdown/HTML helpers, and image-tap URL helpers |
+| `supperbanner/` | Slate | `SupperBannerView`, `SupperBannerItem`, `SupperBannerImage`, `SupperBannerConfig`, `SupperBannerColors`, `SupperBannerIndicatorColors`, `SupperBannerEffect`, `SupperBannerTransition` | Reusable AAR library for the auto-playing banner carousel (ViewPager2 + Coil), with a host-settable color palette, ten configurable page transitions, and `maven-publish` release output |
 | `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `ShowImageDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
 | `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `QRCodeToolActivity`, `FlashlightActivity`, `ShowImageDetailsActivity`, `StarFieldView` | Activity screens, navigation, ViewBinding + Compose UI |
 | `service/` | Pink | `MusicService`, `MusicBinder`, `FlashlightService` | BGM/SFX bound service + camera-torch foreground service with wakelock-backed SOS |
@@ -81,6 +82,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
 - `FileProvider` paths include `Pictures/`, `Download/`, and app cache, enabling shared file URIs for exported/generated assets
 - Rich-text editor AAR module (`:richtexteditor`) consumed by the app, with JSON sample loading from `app/src/main/assets/example.json` and preview image tap support that opens `ShowImageDetailsActivity`; usage is documented in [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md)
+- Banner carousel AAR module (`:supperbanner`) consumed by the app's About, rich-text editor, and debug settings screens; it carries no theme or string resources, publishes as `com.young:supperbanner`, and is documented in [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md)
 - Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
 - Firebase Analytics and Crashlytics integration
 - English and Chinese localization
@@ -139,6 +141,22 @@ richtexteditor/
     ├── layout/view_rich_text_editor.xml
     ├── values/strings.xml
     └── values-zh/strings.xml
+
+supperbanner/
+├── build.gradle.kts                    # Android library module; builds and publishes supperbanner-*.aar
+├── src/main/java/com/young/supperbanner/
+│   ├── SupperBannerView.kt             # Auto-playing ViewPager2 banner carousel custom view
+│   ├── SupperBannerItem.kt             # Banner item model and local/network image source
+│   ├── SupperBannerConfig.kt           # Auto-play interval bounds and clamping
+│   ├── SupperBannerColors.kt           # Full color palette (plus indicator palette) for host theming
+│   ├── SupperBannerTransition.kt       # Transition effect enum plus its tuning knobs
+│   └── SupperBannerTransformers.kt     # ViewPager2.PageTransformer implementations, one per effect
+├── src/main/res/drawable/
+│   └── ic_placeholder.xml              # Coil placeholder/error drawable
+└── src/test/java/com/young/supperbanner/
+    ├── SupperBannerConfigTest.kt       # Transition-time clamping coverage
+    ├── SupperBannerViewColorsTest.kt   # Palette defaults, setColors repaint, and copy() isolation
+    └── SupperBannerTransformerTest.kt   # Per-effect transform math, clamping, and the shader fallback path
 
 app/src/main/java/com/young/aircraft/
 ├── common/
@@ -255,7 +273,7 @@ app/src/main/java/com/young/aircraft/
 - `StarFieldViewTest` for the animated onboarding/privacy background
 - `StringResourceTest` for locale parity and resource usage coverage
 
-`richtexteditor/src/test` includes focused unit tests for Markdown conversion, plain-text escaping, image tap URL round-tripping, and preview image format support.
+`richtexteditor/src/test` includes focused unit tests for Markdown conversion, plain-text escaping, image tap URL round-tripping, and preview image format support. `supperbanner/src/test` covers banner auto-play interval clamping and the Robolectric-backed color palette and page transformers (`SupperBannerViewColorsTest`, `SupperBannerTransformerTest`, `@Config(sdk = [34])`).
 
 Instrumented tests belong in `app/src/androidTest`.
 

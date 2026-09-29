@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Aircraft 模块边界：:supperbanner 抽离",
+    "output": "supperbanner-module.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "host-path",
+        "label": "宿主主路径",
+        "focus": [
+          "develop",
+          "banner_view",
+          "coil"
+        ],
+        "note": "调试设置页通过 Compose AndroidView 创建轮播视图，网络图交给 Coil 加载。"
+      },
+      {
+        "id": "model-only",
+        "label": "仅用数据模型",
+        "focus": [
+          "about",
+          "richtext_screen",
+          "banner_model"
+        ],
+        "note": "About 与富文本页只构造 SupperBannerItem 交给图片详情页，不碰 View。"
+      },
+      {
+        "id": "boundary-and-publish",
+        "label": "边界与发布",
+        "focus": [
+          "banner_view",
+          "banner_model",
+          "details",
+          "maven"
+        ],
+        "note": "点击回调与详情下载留在 app，发布走独立的 maven-publish 通道。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "develop",
+      "type": "frontend",
+      "label": "DevelopSettingsActivity",
+      "sublabel": "Compose AndroidView 宿主",
+      "pos": [
+        40,
+        64
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "about",
+      "type": "frontend",
+      "label": "AboutAircraftActivity",
+      "sublabel": "二维码卡片点击",
+      "pos": [
+        40,
+        356
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "richtext_screen",
+      "type": "frontend",
+      "label": "RichTextEditorActivity",
+      "sublabel": "预览图点击",
+      "pos": [
+        40,
+        210
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "banner_view",
+      "type": "frontend",
+      "label": "SupperBannerView",
+      "sublabel": "AAR 公开 ViewPager2 轮播 API",
+      "pos": [
+        460,
+        64
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "banner_model",
+      "type": "backend",
+      "label": "SupperBanner 数据模型",
+      "sublabel": "Item / Image / Config / Colors",
+      "pos": [
+        460,
+        356
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "coil",
+      "type": "external",
+      "label": "Coil",
+      "sublabel": "网络图 crossfade",
+      "pos": [
+        880,
+        64
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "details",
+      "type": "frontend",
+      "label": "BannerDetailsActivity",
+      "sublabel": "查看下载，读 Item 字段",
+      "pos": [
+        880,
+        210
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "maven",
+      "type": "cloud",
+      "label": "Maven 仓库",
+      "sublabel": "com.young:supperbanner",
+      "pos": [
+        880,
+        356
+      ],
+      "size": [
+        200,
+        76
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Gradle 模块 :app",
+      "wraps": [
+        "develop",
+        "about",
+        "richtext_screen"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Gradle 模块 :supperbanner",
+      "wraps": [
+        "banner_view",
+        "banner_model"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "develop-embeds",
+      "from": "develop",
+      "to": "banner_view",
+      "label": "setItems / setIndicatorCustomizer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "about-builds",
+      "from": "about",
+      "to": "banner_model",
+      "label": "构造 item 后开详情",
+      "toSide": "top"
+    },
+    {
+      "id": "richtext-builds",
+      "from": "richtext_screen",
+      "to": "banner_model",
+      "label": "构造 item",
+      "variant": "dashed"
+    },
+    {
+      "id": "view-loads",
+      "from": "banner_view",
+      "to": "coil",
+      "label": "Network 图片加载"
+    },
+    {
+      "id": "view-clicks",
+      "from": "banner_view",
+      "to": "details",
+      "label": "onBannerClick 回调"
+    },
+    {
+      "id": "module-publishes",
+      "from": "banner_model",
+      "to": "maven",
+      "label": "maven-publish",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "新模块 :supperbanner",
+      "items": [
+        "仅依赖 core-ktx / recyclerview / viewpager2 / coil",
+        "不引用任何 app 主题类、字符串或游戏代码",
+        "SupperBannerConfigTest 覆盖轮播间隔钳制",
+        "View 与数据模型同属该模块，组合逻辑全部在库内",
+        "setColors 开放全部 12 个色值，宿主自映射主题"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "仍留在 :app",
+      "items": [
+        "BannerDetailsActivity 与 BannerDetailsViewModel 的查看下载流程",
+        "主题配色、指示器样式与 settings 交互",
+        "各页面如何拼装 SupperBannerItem 列表"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "发布与消费",
+      "items": [
+        "assembleRelease 产出 supperbanner-release.aar",
+        "publish 落到 supperbanner/build/repo",
+        "POM 未声明 license，仓库暂无 LICENSE 文件",
+        "文档：docs/supper-banner-aar-usage.md"
+      ]
+    }
+  ]
+}

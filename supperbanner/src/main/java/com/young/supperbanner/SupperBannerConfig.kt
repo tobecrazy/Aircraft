@@ -1,4 +1,4 @@
-package com.young.aircraft.gui
+package com.young.supperbanner
 
 object SupperBannerConfig {
     const val DEFAULT_TRANSITION_TIME_MS = 3_000L
