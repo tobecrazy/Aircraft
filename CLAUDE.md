@@ -14,7 +14,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter. Three Gradle modules: `
 - [DOCUMENT.md](DOCUMENT.md): detailed gameplay formulas and development documentation.
 - [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md): editor integration and AAR usage.
 - [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md): banner carousel integration and AAR publishing.
-- [docs/architecture-fix-plan.md](docs/architecture-fix-plan.md) and [docs/puzzle-game-redesign-plan.md](docs/puzzle-game-redesign-plan.md): working plans (untracked) that explain *why* the threading, save-transaction, and puzzle-scoring code looks the way it does. Read these before changing those areas.
+- [docs/puzzle-game-redesign-plan.md](docs/puzzle-game-redesign-plan.md): working plan (untracked) explaining *why* the puzzle scoring code looks the way it does. Read it before changing that area.
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance. No Cursor rules were found during initialization.
 - **[AGENTS.md](AGENTS.md) is a symlink to this file**; edit CLAUDE.md rather than replacing the symlink.
 
@@ -91,7 +91,7 @@ Combat has ten timed levels with increasing kill targets and a boss after each t
 
 `LaunchViewModel` offers continuation only when `(level > 1 || score > 0)` and `gameMode == AIR_BATTLE`. Launch/Main use `AircraftConstants.IntentExtras` to transfer starting level, jet resource/index, and total kills. Preserve kills when resuming so cumulative score survives.
 
-**"Continue" is a level checkpoint, not a scene snapshot** (decided in `docs/architecture-fix-plan.md` §3): it restores the saved combat level, cumulative kills, and jet, but *not* current health, remaining time, or on-screen objects. The game restarts that level from scratch. Don't add snapshot persistence unless the product asks for in-place resume.
+**"Continue" is a level checkpoint, not a scene snapshot**: it restores the saved combat level, cumulative kills, and jet, but *not* current health, remaining time, or on-screen objects. The game restarts that level from scratch. Don't add snapshot persistence unless the product asks for in-place resume.
 
 `SettingsActivity` opens the independent Compose drag-and-drop `PuzzleActivity`. It saves puzzle level/score using `GameViewModel` with `GameMode.PUZZLE`; do not assume a stored mode implies the launch hub can resume it. Puzzle scoring is efficiency-based (par = `gridSize²` moves; scans and retries subtract; 1–3 stars) and lives in the pure internal top-level `calculatePuzzleRoundResult()` / `createPuzzlePieces()` in `PuzzleActivity.kt` — see `docs/puzzle-game-redesign-plan.md`. There is no constant reference image on the board; the player spends limited "intel scans" to peek at it.
 
@@ -144,7 +144,8 @@ Unlike `richtexteditor`, `supperbanner` applies `maven-publish` and publishes `c
 
 - Match the tactical UI: dark background `#0F1118`, header `#161A26`, selected theme accent (green `#00FF88` by default), monospace typography, and a 52dp header. Use the shared `AircraftTheme` and its color scheme instead of hardcoding decorative green; preserve each screen's existing layout.
 - Solid-background utility activities should use `Theme.Aircraft.Common` in the manifest; the game uses `TransparentMaterialTheme`. Preserve each screen's inset handling: Compose screens use `safeDrawingPadding`/`statusBarsPadding`/`navigationBarsPadding` or Scaffold `contentWindowInsets` patterns (e.g. Settings header uses `statusBarsPadding`). Do not double-apply insets.
-- Default English and `values-zh/strings.xml` must stay synchronized. `StringResourceTest` checks locale parity and unused strings. Use resources (`stringResource`, `getString`, `@string/`) rather than hardcoded UI copy; remove orphan resources after refactoring.
+- There are **four** locales, not two: `values/`, `values-zh/`, `values-zh-rTW/`, `values-zh-rHK/`. `StringResourceTest` scans *every* `values-*` dir that has a `strings.xml` and requires the full default key set in each, plus it fails on unused strings. Adding a string means adding it in all four. Use resources (`stringResource`, `getString`, `@string/`) rather than hardcoded UI copy; remove orphan resources after refactoring. In-app language switching goes through `AppCompatDelegate.setApplicationLocales` in `LanguageSettingsActivity` (the manifest carries a `localeConfig`/AppLocales metadata entry so it persists below API 33).
+- On tablets/foldables, Compose screens cap their content column with `Modifier.maxContentWidth()` (`ui/WideScreen.kt`, 640dp) — the counterpart of `@dimen/content_max_width` in `values-sw600dp/`. Use the modifier in new Compose screens rather than inventing another width cap.
 - Robolectric Compose screen tests use `createAndroidComposeRule` and `@GraphicsMode(NATIVE)`. For scrollable content, follow `SettingsActivityTest`'s tall viewport (`w420dp-h2000dp`): off-window clicks may silently do nothing.
 
 ### Implementation Traps
@@ -154,3 +155,4 @@ Unlike `richtexteditor`, `supperbanner` applies `maven-publish` and publishes `c
 - Preserve `bitmap.density = screenDensity` for game sprites or Canvas scaling will be incorrect.
 - Generated QR codes are light-on-dark. Keep ZXing's inverted-source fallback when decoding them (`decodeQrFromBitmap` in QRCodeToolActivity). There are two decode paths: picked images go through ZXing, while live camera scanning is `CameraScanActivity` (CameraX `MlKitAnalyzer`, a debug-only entry from `DevelopSettingsActivity`).
 - File sharing uses the existing `${applicationId}.fileprovider`, `res/xml/file_paths.xml`, and `FilePickerHelper`; share content URIs with `FLAG_GRANT_READ_URI_PERMISSION`.
+- `common/AircraftApplication` applies two app-wide policies in `ActivityLifecycleCallbacks`, so a new Activity inherits them for free: portrait lock when `smallestScreenWidthDp < 600` (rotation left free on large screens), and `FLAG_SECURE` on every window (blocks screenshots/screen recording — relevant when debugging UI or writing screenshot tests). It also turns `onLowMemory` into `GameStateManager.emit(GameState.LOW_MEMORY)`.
