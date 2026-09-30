@@ -456,6 +456,15 @@
     <string name="onboarding_invincibility">\u26E1 無敵護盾</string>
     <string name="onboarding_aoe_rocket">&#x1F381; 範圍火箭</string>
     <string name="onboarding_collect_all">收集所有道具！</string>
+    <string name="onboarding_time_freeze">⏱ 時間凍結</string>
+    <string name="onboarding_mission_title">任務簡報</string>
+    <string name="onboarding_levels_boss">▶ 10 個關卡，每關都有 BOSS</string>
+    <string name="onboarding_difficulty_fire">▶ 難度影響射速</string>
+    <string name="onboarding_hall_of_heroes">🏆 英靈殿保存你的紀錄</string>
+    <string name="onboarding_puzzle_title">拼圖模式</string>
+    <string name="onboarding_puzzle_entry">▶ 從設定進入，共 10 關</string>
+    <string name="onboarding_puzzle_drag">▶ 拖動碎片歸位</string>
+    <string name="onboarding_puzzle_scans">▶ 步數與掃描越少，星星越多</string>
 
     <string name="invincible_mode_on">你已經進入無敵模式。該模式下被攻擊不掉血。</string>
     <string name="invincible_mode_off">你已經恢復正常模式。該模式下正常掉血。</string>

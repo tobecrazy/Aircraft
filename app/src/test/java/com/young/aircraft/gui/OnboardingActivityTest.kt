@@ -25,6 +25,9 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class OnboardingActivityTest {
 
+    /** Must match PAGE_COUNT in OnboardingActivity.kt. */
+    private val pageCount = 4
+
     private lateinit var context: Context
 
     @get:Rule
@@ -90,14 +93,16 @@ class OnboardingActivityTest {
     }
 
     @Test
-    fun `launch button on second page saves pref and launches LaunchActivity`() {
+    fun `launch button on last page saves pref and launches LaunchActivity`() {
         composeRule.waitForIdle()
 
-        // Navigate to page 2
-        composeRule.onNodeWithTag("btn_next").performClick()
-        composeRule.waitForIdle()
+        // Walk to the last page — NEXT advances one page at a time until then.
+        repeat(pageCount - 1) {
+            composeRule.onNodeWithTag("btn_next").performClick()
+            composeRule.waitForIdle()
+        }
 
-        // Click LAUNCH on page 2
+        // Click LAUNCH on the last page
         composeRule.onNodeWithTag("btn_next").performClick()
         composeRule.waitForIdle()
 
@@ -112,10 +117,22 @@ class OnboardingActivityTest {
     }
 
     @Test
+    fun `time freeze power-up is listed`() {
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("btn_next").performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.onboarding_time_freeze))
+            .assertExists()
+    }
+
+    @Test
     fun `page indicators exist`() {
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("indicator_0").assertExists()
         composeRule.onNodeWithTag("indicator_1").assertExists()
+        composeRule.onNodeWithTag("indicator_2").assertExists()
+        composeRule.onNodeWithTag("indicator_3").assertExists()
     }
 
     @Test

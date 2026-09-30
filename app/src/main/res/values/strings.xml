@@ -456,6 +456,15 @@
     <string name="onboarding_invincibility">\u26E1 Invincibility Shield</string>
     <string name="onboarding_aoe_rocket">&#x1F381; AoE Rocket</string>
     <string name="onboarding_collect_all">COLLECT THEM ALL!</string>
+    <string name="onboarding_time_freeze">⏱ Time Freeze</string>
+    <string name="onboarding_mission_title">MISSION</string>
+    <string name="onboarding_levels_boss">▶ 10 LEVELS, boss after each</string>
+    <string name="onboarding_difficulty_fire">▶ DIFFICULTY sets your fire rate</string>
+    <string name="onboarding_hall_of_heroes">🏆 Hall of Heroes keeps your record</string>
+    <string name="onboarding_puzzle_title">PUZZLE MODE</string>
+    <string name="onboarding_puzzle_entry">▶ 10 levels, opened from Settings</string>
+    <string name="onboarding_puzzle_drag">▶ Drag the fragments back into place</string>
+    <string name="onboarding_puzzle_scans">▶ Fewer moves and scans earn more stars</string>
 
     <string name="invincible_mode_on">Invincible mode enabled. No damage will be taken.</string>
     <string name="invincible_mode_off">Normal mode restored. Damage will be taken normally.</string>
