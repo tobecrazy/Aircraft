@@ -1,6 +1,6 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus two reusable Android library modules, `:richtexteditor` and `:supperbanner`, that can be built as AARs. The app combines a first-launch privacy gate, a two-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus two reusable Android library modules, `:richtexteditor` and `:supperbanner`, that can be built as AARs. The app combines a first-launch privacy gate, a four-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Download
 
@@ -18,7 +18,7 @@ All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
 The demo above walks through the end-to-end player experience on a real device:
 
-- **First-launch flow** — cinematic privacy gate over the animated `StarFieldView`, followed by the two-page Compose onboarding carousel that introduces controls and power-ups.
+- **First-launch flow** — cinematic privacy gate over the animated `StarFieldView`, followed by the four-page Compose onboarding carousel: controls, field equipment, mission brief, and the standalone puzzle mode.
 - **Launch hub** — jet selection, continue/new-game dialog when a saved run exists, and entry points to History, Settings, and the QR/Flashlight utilities.
 - **Combat gameplay** — 30 FPS `SurfaceView` rendering with drag-to-move controls, auto-firing bullets, scrolling backgrounds, the two-row tactical HUD (mission/hull cards + countdown timer), and screen-shake/damage-flash feedback.
 - **Power-ups in action** — red envelopes detonating into AoE rockets, medical kits restoring HP, shields granting blink-indicated invincibility, and time freezes locking enemies in place.
@@ -67,7 +67,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Custom 30 FPS `SurfaceView` engine with no third-party game framework
 - Green tactical in-game shell for `MainActivity` with a mission-briefing card, pause overlay, and themed end-of-run dialogs
 - First-launch privacy acceptance flow with cinematic `StarFieldView`
-- Compose-powered two-page onboarding carousel with animated entrance effects
+- Compose-powered four-page onboarding carousel (controls / field equipment / mission brief / puzzle mode) with staggered entrance effects; page count lives in a single `PAGE_COUNT` constant that drives the pager, the page indicators, and the NEXT→LAUNCH switch
 - Compose-powered Settings hub screen, with preference controls split into a dedicated Game Settings screen and a per-app language picker (system / zh-CN / zh-TW / zh-HK / en)
 - 10 combat levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
 - Combat progression is linear: clearing a level's boss advances straight to the next combat level. The puzzle game is a separate ten-level mode opened from Settings (Easy = 3×3, Normal = 4×4, Hard = 5×5), with its own progress record
@@ -191,7 +191,7 @@ app/src/main/java/com/young/aircraft/
 │   └── BannerDetails.kt                # In-app banner content model (name/description/source)
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
-│   ├── OnboardingActivity.kt           # Compose-based onboarding carousel with HorizontalPager
+│   ├── OnboardingActivity.kt           # Compose 4-page onboarding carousel (HorizontalPager); PAGE_COUNT drives pages/indicators/button
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host: GameCoreView via AndroidView + GameHudOverlay, pause flow, dialogs, DB save
 │   ├── GameHudScreen.kt                # Compose HUD overlay (chips, pause card) drawn over the SurfaceView
@@ -290,7 +290,7 @@ app/src/main/java/com/young/aircraft/
 - `DrawBackgroundTest` for seamless mirrored tile coverage
 - `GameCoreViewCollisionTest` for per-frame collision resolution
 - `GameHudFormatterTest` and `RedEnvelopesTest` for HUD formatting and the rocket power-up
-- `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior
+- `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior, including walking the carousel to the last page and the time-freeze power-up entry
 - `LaunchActivityTest` for saved-game detection, continue/new-game dialog, and jet selection
 - `DevelopSettingsViewModelTest`, `PrivacyPolicyViewModelTest`, `OnboardingViewModelTest`, `LaunchViewModelTest`, `GameViewModelTest`, `HistoryViewModelTest`, `SettingsViewModelTest`, `ShowImageDetailsViewModelTest` for ViewModel unit coverage
 - `PlayerGameDataTest` for timestamp-aware data-class behavior

@@ -1,5 +1,6 @@
 package com.young.aircraft.ui.theme
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -13,7 +14,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,7 +41,13 @@ val TextMuted = Color(0x88FFFFFF)
 val FlashSurface = Color(0xFF151A24)
 val FlashCritical = Color(0xFFFF6F7E)
 
-internal fun themeAccent(theme: String): Color = when (theme) {
+/**
+ * Accent for a theme id. THEME_DYNAMIC pulls the Material You primary from the wallpaper;
+ * the five fixed ids keep their literal neon accents so existing users see no change.
+ * Context is required for the dynamic lookup — it is unused by the fixed branches.
+ */
+internal fun themeAccent(context: Context, theme: String): Color = when (theme) {
+    SettingsRepository.THEME_DYNAMIC -> dynamicDarkColorScheme(context).primary
     SettingsRepository.THEME_BLUE -> Color(0xFF64B5FF)
     SettingsRepository.THEME_PURPLE -> Color(0xFFC4A0FF)
     SettingsRepository.THEME_YELLOW -> Color(0xFFFFD54F)
@@ -46,7 +55,7 @@ internal fun themeAccent(theme: String): Color = when (theme) {
     else -> Color(0xFF00FF88)
 }
 
-internal fun aircraftColorScheme(theme: String) = themeAccent(theme).let { accent -> darkColorScheme(
+internal fun aircraftColorScheme(context: Context, theme: String) = themeAccent(context, theme).let { accent -> darkColorScheme(
     primary = accent,
     onPrimary = Color(0xFF07120D),
     primaryContainer = accent.copy(alpha = 0.18f),
@@ -95,9 +104,28 @@ fun AircraftTheme(content: @Composable () -> Unit) {
         theme = repository.getTheme()
         onDispose { repository.unregisterListener(listener) }
     }
-    val colorScheme = remember(theme) { aircraftColorScheme(theme) }
+    val colorScheme = remember(theme, context) { aircraftColorScheme(context, theme) }
     MaterialTheme(colorScheme = colorScheme, content = content)
 }
+
+// Switch track follows SwitchCompat's rendered look: solid white pill when checked,
+// dark pill when not; the accent only ever paints the thumb.
+private val SwitchTrackOn = Color(0xFFFFFFFF)
+private val SwitchTrackOff = Color(0xFF1F2330)
+private val SwitchThumbOff = Color(0xFF8F939E)
+
+/** Single switch palette for every screen — replaces per-screen track colors. */
+@Composable
+fun aircraftSwitchColors() = SwitchDefaults.colors(
+    checkedThumbColor = AccentGreen,
+    checkedTrackColor = SwitchTrackOn,
+    checkedBorderColor = SwitchTrackOn,
+    uncheckedThumbColor = SwitchThumbOff,
+    uncheckedTrackColor = SwitchTrackOff,
+    uncheckedBorderColor = SwitchTrackOff,
+    disabledCheckedTrackColor = SwitchTrackOn.copy(alpha = 0.35f),
+    disabledUncheckedTrackColor = SwitchTrackOff.copy(alpha = 0.6f)
+)
 
 /** Thin green divider under/above screen headers. */
 @Composable

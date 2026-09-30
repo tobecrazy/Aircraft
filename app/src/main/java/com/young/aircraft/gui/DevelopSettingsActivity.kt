@@ -42,7 +42,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -73,6 +72,7 @@ import com.young.aircraft.R
 import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.aircraftSwitchColors
 import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.HeaderBackground
@@ -462,14 +462,7 @@ internal fun DevelopSettingsScreen(
                             modifier = Modifier
                                 .padding(start = 12.dp)
                                 .testTag("switch_invincible"),
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = AccentGreen,
-                                checkedTrackColor = Color(0x6600FF88),
-                                checkedBorderColor = Color(0x6600FF88),
-                                uncheckedThumbColor = Color(0x88FFFFFF),
-                                uncheckedTrackColor = Color(0x33FFFFFF),
-                                uncheckedBorderColor = Color(0x33FFFFFF)
-                            )
+                            colors = aircraftSwitchColors()
                         )
                     }
                     Text(
@@ -827,14 +820,7 @@ private fun LabeledSwitch(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = AccentGreen,
-                checkedTrackColor = Color(0x6600FF88),
-                checkedBorderColor = Color(0x6600FF88),
-                uncheckedThumbColor = Color(0x88FFFFFF),
-                uncheckedTrackColor = Color(0x33FFFFFF),
-                uncheckedBorderColor = Color(0x33FFFFFF)
-            )
+            colors = aircraftSwitchColors()
         )
     }
 }

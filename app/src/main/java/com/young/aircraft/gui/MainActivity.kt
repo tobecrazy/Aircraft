@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
         }
         // Read once: themes change only from Settings, which exits the game (same accepted
         // staleness as RichTextEditorActivity.accentArgb).
-        val accent = themeAccent(SettingsRepository(this).getTheme())
+        val accent = themeAccent(this, SettingsRepository(this).getTheme())
         setContent {
             AircraftTheme {
                 Box(

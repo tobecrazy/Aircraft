@@ -85,7 +85,7 @@ class RichTextEditorActivity : AppCompatActivity() {
         }
 
         viewModel = ViewModelProvider(this, RichTextEditorViewModel.Factory())[RichTextEditorViewModel::class.java]
-        accentArgb = themeAccent(SettingsRepository(this).getTheme()).toArgb()
+        accentArgb = themeAccent(this, SettingsRepository(this).getTheme()).toArgb()
         enableEdgeToEdge()
 
         setContent {

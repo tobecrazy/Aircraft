@@ -1,12 +1,17 @@
 package com.young.aircraft.gui
 
+import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
+import com.young.aircraft.R
+import com.young.aircraft.gui.dialogs.InfoCopyButtonTag
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -16,6 +21,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
+import org.robolectric.shadows.ShadowDialog
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -90,5 +96,79 @@ class AndroidDevAssistantToolsActivityTest {
         tick()
 
         assertTrue(composeTestRule.activity.isFinishing)
+    }
+
+    @Test
+    fun `kernel info module shows a dialog instead of navigating`() {
+        tick()
+
+        composeTestRule
+            .onNodeWithTag(ModuleListTag)
+            .performScrollToNode(hasTestTag("assistant_open_${AndroidDevAssistantToolsActivity.MODULE_KERNEL_INFO}"))
+        composeTestRule
+            .onNodeWithTag("assistant_open_${AndroidDevAssistantToolsActivity.MODULE_KERNEL_INFO}")
+            .performClick()
+        composeTestRule.waitForIdle()
+
+        val info = readKernelInfo()
+        assertTrue("release must never be blank", info.release.isNotBlank())
+        assertEquals("kernel module shows a dialog, it does not navigate", null,
+            shadowOf(composeTestRule.activity).nextStartedActivity)
+        assertNotNull(ShadowDialog.getLatestDialog())
+    }
+
+    @Test
+    fun `browser engine module reports a webview package and chromium version`() {
+        val info = readBrowserEngineInfo(ApplicationProvider.getApplicationContext())
+        assertTrue("webViewPackage must never be blank", info.webViewPackage.isNotBlank())
+        assertTrue("chromiumMajor must be a number or 'unknown'",
+            info.chromiumMajor == "unknown" || info.chromiumMajor.all { it.isDigit() })
+    }
+
+    @Test
+    fun `browser engine module shows a dialog instead of navigating`() {
+        tick()
+
+        composeTestRule
+            .onNodeWithTag(ModuleListTag)
+            .performScrollToNode(hasTestTag("assistant_open_${AndroidDevAssistantToolsActivity.MODULE_BROWSER_ENGINE}"))
+        composeTestRule
+            .onNodeWithTag("assistant_open_${AndroidDevAssistantToolsActivity.MODULE_BROWSER_ENGINE}")
+            .performClick()
+        composeTestRule.waitForIdle()
+
+        assertEquals("browser module shows a dialog, it does not navigate", null,
+            shadowOf(composeTestRule.activity).nextStartedActivity)
+        assertNotNull(ShadowDialog.getLatestDialog())
+    }
+
+    @Test
+    fun `kernel dialog copy button puts the kernel dump on the clipboard`() {
+        openModuleDialog(AndroidDevAssistantToolsActivity.MODULE_KERNEL_INFO)
+
+        composeTestRule.onNodeWithTag(InfoCopyButtonTag).performClick()
+        tick()
+
+        val clip = ApplicationProvider.getApplicationContext<Context>()
+            .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val copied = clip.primaryClip?.getItemAt(0)?.text?.toString().orEmpty()
+        val expected = composeTestRule.activity.getString(
+            R.string.develop_settings_assistant_kernel_dialog_message,
+            readKernelInfo().release,
+            readKernelInfo().machine,
+            readKernelInfo().fullVersion
+        )
+        assertEquals(expected, copied)
+        assertTrue("copying must not close the dialog", ShadowDialog.getLatestDialog().isShowing)
+    }
+
+    private fun openModuleDialog(prefKey: String) {
+        tick()
+        composeTestRule
+            .onNodeWithTag(ModuleListTag)
+            .performScrollToNode(hasTestTag("assistant_open_$prefKey"))
+        composeTestRule.onNodeWithTag("assistant_open_$prefKey").performClick()
+        composeTestRule.waitForIdle()
+        assertNotNull(ShadowDialog.getLatestDialog())
     }
 }

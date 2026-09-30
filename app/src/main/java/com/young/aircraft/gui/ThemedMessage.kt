@@ -38,7 +38,7 @@ class ThemedMessage private constructor(
             val snackbar = Snackbar.make(root, text, duration)
             val repository = SettingsRepository(activity)
             fun applyTheme() {
-                val accent = themeAccent(repository.getTheme()).toArgb()
+                val accent = themeAccent(activity, repository.getTheme()).toArgb()
                 snackbar.setBackgroundTint(BackgroundDark.toArgb())
                     .setTextColor(accent)
                     .setActionTextColor(accent)

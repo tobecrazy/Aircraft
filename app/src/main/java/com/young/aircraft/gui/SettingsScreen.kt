@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -110,13 +111,6 @@ private val EasyColor = Color(0xFF00FF88)
 private val NormalColor = Color(0xFFFFFF00)
 private val HardColor = Color(0xFFFF4444)
 private val DangerText = Color(0xFFFF808D)
-// Checked track replicates SwitchCompat's rendered white track (thumb white→green);
-// unchecked uses the dark pill track with a gray thumb per the design mock.
-private val SwitchTrack = Color(0xFFFFFFFF)
-private val SwitchTrackOff = Color(0xFF1F2330)
-private val SwitchThumbChecked: Color
-    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0xFF / 255f)
-private val SwitchThumbUnchecked = Color(0xFF8F939E)
 
 private val Mono = FontFamily.Monospace
 private val ChipShape = RoundedCornerShape(50)
@@ -262,12 +256,14 @@ private val ThemeOptions = listOf(
     SettingsRepository.THEME_BLUE to R.string.theme_blue,
     SettingsRepository.THEME_PURPLE to R.string.theme_purple,
     SettingsRepository.THEME_YELLOW to R.string.theme_yellow,
-    SettingsRepository.THEME_RED to R.string.theme_red
+    SettingsRepository.THEME_RED to R.string.theme_red,
+    SettingsRepository.THEME_DYNAMIC to R.string.theme_dynamic
 )
 
 @Composable
 private fun ThemeCard(selectedTheme: String, onSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val selectedLabel = ThemeOptions.firstOrNull { it.first == selectedTheme }?.second ?: R.string.theme_green
     SectionLabel(label = stringResource(R.string.theme_settings_title), topMargin = 22)
     BoxWithConstraints(Modifier.padding(top = 10.dp).fillMaxWidth()) {
@@ -277,7 +273,7 @@ private fun ThemeCard(selectedTheme: String, onSelected: (String) -> Unit) {
             summary = null,
             onClick = { expanded = true }
         ) {
-            ThemeDot(themeAccent(selectedTheme))
+            ThemeDot(themeAccent(context, selectedTheme))
             Text(
                 text = if (expanded) "⌃" else "⌄",
                 color = DividerGreen,
@@ -296,7 +292,7 @@ private fun ThemeCard(selectedTheme: String, onSelected: (String) -> Unit) {
                 DropdownMenuItem(
                     text = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            ThemeDot(themeAccent(theme))
+                            ThemeDot(themeAccent(context, theme))
                             Text(
                                 text = stringResource(label),
                                 color = if (selected) AccentGreen else TitleWhite,
@@ -627,14 +623,14 @@ private fun SettingsSwitch(checked: Boolean, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .size(width = 44.dp, height = 26.dp)
-            .background(if (checked) SwitchTrack else SwitchTrackOff, RoundedCornerShape(12.dp)),
+            .background(if (checked) Color.White else Color(0xFF1F2330), RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.CenterStart
     ) {
         Box(
             modifier = Modifier
                 .padding(start = if (checked) 21.dp else 3.dp)
                 .size(20.dp)
-                .background(if (checked) SwitchThumbChecked else SwitchThumbUnchecked, CircleShape)
+                .background(if (checked) AccentGreen else Color(0xFF8F939E), CircleShape)
         )
     }
 }

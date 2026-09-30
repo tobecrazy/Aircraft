@@ -5,6 +5,7 @@
     <string name="theme_purple">紫色</string>
     <string name="theme_yellow">黃色</string>
     <string name="theme_red">紅色</string>
+    <string name="theme_dynamic">動態（跟隨系統）</string>
     <string name="app_name">飛機大戰</string>
     <string name="exit_warning_msg">再按一次儲存進度並退出</string>
     <string name="pause_title">遊戲暫停</string>
@@ -311,13 +312,34 @@
     <string name="develop_settings_assistant_module_quick_settings">模組：快捷設定入口</string>
     <string name="develop_settings_assistant_module_app_browser">模組：已安裝應用瀏覽</string>
     <string name="develop_settings_assistant_module_activity_monitor">模組：活動監控</string>
+    <string name="develop_settings_assistant_module_kernel_info">模組：核心資訊</string>
+    <string name="develop_settings_assistant_module_browser_engine">模組：瀏覽器核心</string>
     <string name="develop_settings_assistant_action_system_info">開啟系統資訊</string>
     <string name="develop_settings_assistant_action_quick_settings">開啟系統設定</string>
     <string name="develop_settings_assistant_action_app_browser">開啟應用列表</string>
     <string name="develop_settings_assistant_action_activity_monitor">開啟活動日誌</string>
+    <string name="develop_settings_assistant_action_kernel_info">檢視核心資訊</string>
+    <string name="develop_settings_assistant_action_browser_engine">檢視瀏覽器核心</string>
     <string name="develop_settings_assistant_module_on">模組已啟用</string>
     <string name="develop_settings_assistant_module_off">模組已禁用</string>
     <string name="develop_settings_assistant_unavailable">當前裝置不支援此操作</string>
+    <string name="develop_settings_assistant_kernel_dialog_title">核心資訊</string>
+    <string name="develop_settings_assistant_kernel_dialog_message">版本：%1$s
+架構：%2$s
+
+%3$s</string>
+    <string name="develop_settings_assistant_browser_dialog_title">瀏覽器核心</string>
+    <string name="develop_settings_assistant_browser_dialog_message">WebView：%1$s
+版本：%2$s
+Chromium：%3$s
+
+預設瀏覽器：%4$s
+
+UA：%5$s
+
+已安裝瀏覽器：
+%6$s</string>
+    <string name="develop_settings_assistant_browser_none">未找到</string>
     <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
     <string name="develop_settings_notification_button">測試 QR 工具通知</string>
     <string name="develop_settings_camera_scan_button">實時掃碼 (CameraX)</string>
@@ -342,6 +364,8 @@
     <string name="android_dev_assistant_tools_quick_settings">快捷設定入口：跳轉到系統設定或開發者選項（裝置支援時）。</string>
     <string name="android_dev_assistant_tools_app_browser">已安裝應用瀏覽：開啟系統應用管理列表。</string>
     <string name="android_dev_assistant_tools_activity_monitor">活動監控：開啟應用內歷史頁面作為活動監控入口。</string>
+    <string name="android_dev_assistant_tools_kernel_info">核心資訊：顯示 Linux 核心版本、CPU 架構以及完整建置字串。</string>
+    <string name="android_dev_assistant_tools_browser_engine">瀏覽器核心：顯示 WebView 提供套件名稱與 Chromium 版本、User-Agent，以及本機已安裝的瀏覽器。</string>
     <string name="develop_settings_section_danger">危險區域</string>
     <string name="develop_settings_debug_badge">除錯構建</string>
     <string name="develop_settings_runtime_label">執行時狀態</string>
