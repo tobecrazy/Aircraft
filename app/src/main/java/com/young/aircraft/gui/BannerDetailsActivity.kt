@@ -82,6 +82,8 @@ import com.young.aircraft.ui.theme.AccentGreen
 import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.ui.theme.TextSubtle
 import com.young.aircraft.ui.theme.AircraftTheme
+import com.young.supperbanner.SupperBannerImage
+import com.young.supperbanner.SupperBannerItem
 
 class BannerDetailsActivity : AppCompatActivity() {
 

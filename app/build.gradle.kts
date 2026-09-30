@@ -32,8 +32,8 @@ android {
         applicationId = "com.young.aircraft"
         minSdk = 32
         targetSdk = 37
-        versionCode = 6
-        versionName = "1.3.3"
+        versionCode = 8
+        versionName = "1.3.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -56,7 +56,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
-        viewBinding = true
         buildConfig = true
         compose = true
     }
@@ -69,6 +68,7 @@ android {
 
 dependencies {
     implementation(project(":richtexteditor"))
+    implementation(project(":supperbanner"))
     implementation(libs.androidx.foundation.layout)
     implementation(libs.zxing)
     implementation(libs.retrofit)

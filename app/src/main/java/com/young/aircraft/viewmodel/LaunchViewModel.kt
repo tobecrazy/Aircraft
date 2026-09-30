@@ -18,6 +18,7 @@ class LaunchViewModel(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
+    /** Returns the combat checkpoint; continuing starts a fresh scene at its saved level. */
     suspend fun checkForSavedGame(): SavedGameInfo? {
         val playerId = settingsRepository.getOrCreateInstallId()
         val savedData = dao.getByPlayerId(playerId)

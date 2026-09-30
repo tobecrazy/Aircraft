@@ -1,12 +1,11 @@
 # ============================================================
 # Room Database
+# Room emits its own rules for the generated _Impl classes, so only the
+# entities/DAO the app references by name are kept here.
 # ============================================================
 -keep class com.young.aircraft.data.AppDatabase { *; }
 -keep class com.young.aircraft.data.PlayerGameData { *; }
 -keep class com.young.aircraft.data.PlayerGameDataDao { *; }
--keep class * extends androidx.room.RoomDatabase
--keep @androidx.room.Entity class *
--keep @androidx.room.Dao interface *
 
 # Room migrations live in AppDatabase.Companion (registered in DatabaseProvider)
 -keepclassmembers class com.young.aircraft.data.AppDatabase$Companion {
@@ -50,37 +49,16 @@
 }
 
 # ============================================================
-# Kotlin metadata & coroutines (required for Room KSP, Flow, etc.)
+# Attributes (needed for Room / Crashlytics symbolication)
+# Coroutines and kotlin.Metadata are covered by their own bundled rules.
 # ============================================================
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
--keep class kotlin.Metadata { *; }
--keepclassmembers class kotlinx.coroutines.** { *; }
 
 # ============================================================
-# OkHttp
+# OkHttp / Firebase (both ship their own consumer rules)
 # ============================================================
 -dontwarn okhttp3.**
 -dontwarn okio.**
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
-
-# ============================================================
-# Firebase
-# ============================================================
--keep class com.google.firebase.** { *; }
--keep class com.google.android.gms.** { *; }
 -dontwarn com.google.firebase.**
-
-# ============================================================
-# General Android rules
-# ============================================================
--keep public class * extends android.app.Service
--keep public class * extends android.content.BroadcastReceiver
--keep public class * extends android.app.Application
--keep public class * extends android.app.Activity
--keep public class * extends android.view.View {
-    public <init>(android.content.Context, android.util.AttributeSet);
-    public <init>(android.content.Context, android.util.AttributeSet, int);
-}

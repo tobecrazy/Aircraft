@@ -1,5 +1,5 @@
 [versions]
-agp = "9.4.0"
+agp = "9.4.1"
 ksp = "2.3.11"
 kotlin-compose = "2.4.20"
 google-services = "4.5.0"
@@ -8,12 +8,13 @@ zxing = "3.5.4"
 retrofit = "3.0.0"
 okhttp = "5.5.0"
 room = "2.8.5"
-core-ktx = "1.19.0"
+core-ktx = "1.19.1"
 appcompat = "1.8.0"
 richtext-appcompat = "1.8.0"
 material = "1.14.0"
 constraintlayout = "2.2.2"
 viewpager2 = "1.1.0"
+recyclerview = "1.4.0"
 media = "1.8.0"
 preference = "1.2.1"
 lifecycle = "2.11.0"
@@ -23,8 +24,8 @@ compose-bom = "2026.09.00"
 activity-compose = "1.13.0"
 window = "1.5.1"
 junit = "4.13.2"
-mockito = "5.23.0"
-mockito-kotlin = "6.3.0"
+mockito = "5.24.0"
+mockito-kotlin = "6.4.0"
 robolectric = "4.17"
 coroutines = "1.11.0"
 androidx-test = "1.7.0"
@@ -49,12 +50,14 @@ androidx-appcompat-richtext = { module = "androidx.appcompat:appcompat", version
 material = { module = "com.google.android.material:material", version.ref = "material" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 media = { module = "androidx.media:media", version.ref = "media" }
 preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
 lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coil" }
 coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coil" }

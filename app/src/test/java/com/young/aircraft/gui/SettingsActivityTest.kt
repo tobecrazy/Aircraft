@@ -3,7 +3,7 @@ package com.young.aircraft.gui
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
-import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -83,11 +83,27 @@ class SettingsActivityTest {
             SettingsRepository.THEME_GREEN to R.string.theme_green
         ).forEach { (theme, label) ->
             val text = composeRule.activity.getString(label)
-            composeRule.onNodeWithText(text).performScrollTo().performClick().assertIsSelected()
+            // Theme options live behind the dropdown; open it before picking.
+            composeRule.onNodeWithText(currentThemeLabel()).performScrollTo().performClick()
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText(text).performClick()
+            composeRule.waitForIdle()
             assertEquals(theme, repository().getTheme())
             composeRule.activityRule.scenario.recreate()
-            composeRule.onNodeWithText(text).performScrollTo().assertIsSelected()
+            composeRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
         }
+    }
+
+    private fun currentThemeLabel(): String {
+        val theme = repository().getTheme()
+        val label = listOf(
+            SettingsRepository.THEME_GREEN to R.string.theme_green,
+            SettingsRepository.THEME_BLUE to R.string.theme_blue,
+            SettingsRepository.THEME_PURPLE to R.string.theme_purple,
+            SettingsRepository.THEME_YELLOW to R.string.theme_yellow,
+            SettingsRepository.THEME_RED to R.string.theme_red
+        ).first { it.first == theme }.second
+        return composeRule.activity.getString(label)
     }
 
     @Test

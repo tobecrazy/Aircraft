@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 
 @Dao
 interface PlayerGameDataDao {
@@ -24,6 +25,33 @@ interface PlayerGameDataDao {
 
     @Query("DELETE FROM player_game_data WHERE player_id = :playerId")
     suspend fun deleteByPlayerId(playerId: String)
+
+    @Transaction
+    suspend fun replaceForPlayer(data: PlayerGameData) {
+        val existing = getByPlayerId(data.playerId).firstOrNull()
+        val isPuzzleSave = data.gameMode == GameMode.PUZZLE.name
+        deleteByPlayerId(data.playerId)
+        insert(
+            data.copy(
+                playerName = data.playerName ?: existing?.playerName,
+                airBattleLevel = if (isPuzzleSave) {
+                    existing?.airBattleLevel ?: data.airBattleLevel
+                } else {
+                    data.airBattleLevel
+                },
+                puzzleLevel = if (isPuzzleSave) {
+                    data.puzzleLevel
+                } else {
+                    existing?.puzzleLevel ?: data.puzzleLevel
+                },
+                puzzleScore = if (isPuzzleSave) {
+                    data.puzzleScore
+                } else {
+                    existing?.puzzleScore ?: data.puzzleScore
+                }
+            )
+        )
+    }
 
     @Query("DELETE FROM player_game_data")
     suspend fun deleteAll()

@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -73,9 +74,7 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `saveGameData deletes existing and inserts new record with difficulty from repository`() = runTest(testDispatcher) {
-        whenever(dao.getByPlayerId("test-player")).thenReturn(emptyList())
-
+    fun `saveGameData delegates atomic replacement with difficulty from repository`() = runTest(testDispatcher) {
         viewModel.saveGameData(
             level = 3,
             totalKills = 25,
@@ -86,9 +85,8 @@ class GameViewModelTest {
             jetPlaneIndex = 1
         )
 
-        verify(dao).deleteByPlayerId("test-player")
         val captor = argumentCaptor<PlayerGameData>()
-        verify(dao).insert(captor.capture())
+        verify(dao).replaceForPlayer(captor.capture())
 
         val inserted = captor.firstValue
         assertEquals("test-player", inserted.playerId)
@@ -105,13 +103,7 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `saveGameData preserves existing playerName when none provided`() = runTest(testDispatcher) {
-        val existingRecord = PlayerGameData(
-            id = 1, playerId = "test-player", playerName = "Ace",
-            level = 1, score = 100, jetPlaneRes = 0, jetPlaneIndex = 0, difficulty = "1.0"
-        )
-        whenever(dao.getByPlayerId("test-player")).thenReturn(listOf(existingRecord))
-
+    fun `saveGameData leaves existing playerName merge to transactional dao`() = runTest(testDispatcher) {
         viewModel.saveGameData(
             level = 5,
             totalKills = 10,
@@ -123,18 +115,12 @@ class GameViewModelTest {
         )
 
         val captor = argumentCaptor<PlayerGameData>()
-        verify(dao).insert(captor.capture())
-        assertEquals("Ace", captor.firstValue.playerName)
+        verify(dao).replaceForPlayer(captor.capture())
+        assertNull(captor.firstValue.playerName)
     }
 
     @Test
-    fun `saveGameData uses provided playerName over existing`() = runTest(testDispatcher) {
-        val existingRecord = PlayerGameData(
-            id = 1, playerId = "test-player", playerName = "OldName",
-            level = 1, score = 100, jetPlaneRes = 0, jetPlaneIndex = 0, difficulty = "1.0"
-        )
-        whenever(dao.getByPlayerId("test-player")).thenReturn(listOf(existingRecord))
-
+    fun `saveGameData passes provided playerName into atomic replacement`() = runTest(testDispatcher) {
         viewModel.saveGameData(
             level = 10,
             totalKills = 100,
@@ -147,15 +133,13 @@ class GameViewModelTest {
         )
 
         val captor = argumentCaptor<PlayerGameData>()
-        verify(dao).insert(captor.capture())
+        verify(dao).replaceForPlayer(captor.capture())
         assertEquals("NewHero", captor.firstValue.playerName)
     }
 
     @Test
     fun `saveGameData uses hard difficulty from repository`() = runTest(testDispatcher) {
         whenever(settingsRepository.getDifficulty()).thenReturn(GameDifficulty.HARD)
-        whenever(dao.getByPlayerId("test-player")).thenReturn(emptyList())
-
         viewModel.saveGameData(
             level = 1,
             totalKills = 10,
@@ -167,7 +151,7 @@ class GameViewModelTest {
         )
 
         val captor = argumentCaptor<PlayerGameData>()
-        verify(dao).insert(captor.capture())
+        verify(dao).replaceForPlayer(captor.capture())
         assertEquals("0.8", captor.firstValue.difficulty)
         assertEquals(1000L, captor.firstValue.score)
     }

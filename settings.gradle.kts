@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Aircraft"
-include(":app", ":richtexteditor")
+include(":app", ":richtexteditor", ":supperbanner")

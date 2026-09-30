@@ -6,6 +6,8 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
 import com.young.aircraft.data.ImageDetailsIntentContract
+import com.young.supperbanner.SupperBannerImage
+import com.young.supperbanner.SupperBannerItem
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith

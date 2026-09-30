@@ -20,6 +20,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -79,6 +82,12 @@ import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.ui.theme.TextSubtle
 import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.viewmodel.DevelopSettingsViewModel
+import com.young.supperbanner.SupperBannerConfig
+import com.young.supperbanner.SupperBannerEffect
+import com.young.supperbanner.SupperBannerImage
+import com.young.supperbanner.SupperBannerItem
+import com.young.supperbanner.SupperBannerTransition
+import com.young.supperbanner.SupperBannerView
 
 // Panel visuals lifted from develop_settings_hero_bg / develop_settings_panel_bg /
 // develop_settings_danger_bg / device_info_gauge_bg / develop_settings_status_*_bg /
@@ -247,6 +256,7 @@ internal fun DevelopSettingsScreen(
     var autoPlay by remember { mutableStateOf(true) }
     var showInfo by remember { mutableStateOf(true) }
     var showIndicator by remember { mutableStateOf(true) }
+    var effect by remember { mutableStateOf(SupperBannerEffect.FADE) }
     var transitionInput by remember { mutableStateOf(SupperBannerConfig.DEFAULT_TRANSITION_TIME_MS.toString()) }
     val context = LocalContext.current
     // Resolved in composition so the focus-lost toast stays configuration-aware (lint).
@@ -308,10 +318,18 @@ internal fun DevelopSettingsScreen(
                         modifier = Modifier.padding(top = 6.dp)
                     )
 
-                    AndroidView(
+                    EffectDropdown(
+                        selected = effect,
+                        onSelect = { effect = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 14.dp)
+                    )
+
+                    AndroidView(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp)
                             .height(190.dp),
                         factory = { bannerContext ->
                             SupperBannerView(bannerContext).apply {
@@ -339,6 +357,11 @@ internal fun DevelopSettingsScreen(
                             }
                         },
                         update = { banner ->
+                            // setPageTransformer triggers a relayout, so only rebuild it on a real change.
+                            if (banner.tag != effect) {
+                                banner.tag = effect
+                                banner.setTransition(SupperBannerTransition(effect = effect))
+                            }
                             banner.setAutoPlayEnabled(autoPlay)
                             banner.setShowImageInfo(showInfo)
                             banner.setShowIndicator(showIndicator)
@@ -814,6 +837,79 @@ private fun LabeledSwitch(
             )
         )
     }
+}
+
+@Composable
+private fun EffectDropdown(
+    selected: SupperBannerEffect,
+    onSelect: (SupperBannerEffect) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    BoxWithConstraints(modifier) {
+        Surface(
+            onClick = { expanded = true },
+            color = Color(0xFF161A26),
+            shape = RoundedCornerShape(4.dp),
+            border = BorderStroke(1.dp, if (expanded) BannerAccent else Color(0xFF3A4658)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.develop_settings_supper_banner_effect),
+                    color = TextBright,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = stringResource(effectLabel(selected)),
+                    color = BannerAccent,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.width(maxWidth)
+        ) {
+            SupperBannerEffect.entries.forEach { effect ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(effectLabel(effect)),
+                            color = if (effect == selected) BannerAccent else Color.White,
+                            fontSize = 12.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    },
+                    onClick = {
+                        onSelect(effect)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+private fun effectLabel(effect: SupperBannerEffect): Int = when (effect) {
+    SupperBannerEffect.NONE -> R.string.develop_settings_supper_banner_effect_none
+    SupperBannerEffect.FADE -> R.string.develop_settings_supper_banner_effect_fade
+    SupperBannerEffect.ZOOM_OUT -> R.string.develop_settings_supper_banner_effect_zoom_out
+    SupperBannerEffect.DEPTH -> R.string.develop_settings_supper_banner_effect_depth
+    SupperBannerEffect.CUBE -> R.string.develop_settings_supper_banner_effect_cube
+    SupperBannerEffect.ROTATION_GATE -> R.string.develop_settings_supper_banner_effect_rotation_gate
+    SupperBannerEffect.COVERFLOW -> R.string.develop_settings_supper_banner_effect_coverflow
+    SupperBannerEffect.STACK -> R.string.develop_settings_supper_banner_effect_stack
+    SupperBannerEffect.PARALLAX -> R.string.develop_settings_supper_banner_effect_parallax
+    SupperBannerEffect.ACCORDION -> R.string.develop_settings_supper_banner_effect_accordion
+    SupperBannerEffect.SHADER -> R.string.develop_settings_supper_banner_effect_shader
 }
 
 @Composable

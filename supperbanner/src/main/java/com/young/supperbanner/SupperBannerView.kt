@@ -1,8 +1,7 @@
-package com.young.aircraft.gui
+package com.young.supperbanner
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
@@ -14,12 +13,10 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import coil.load
-import com.young.aircraft.R
 
 class SupperBannerView @JvmOverloads constructor(
     context: Context,
@@ -54,16 +51,12 @@ class SupperBannerView @JvmOverloads constructor(
     private var transitionTimeMillis = SupperBannerConfig.DEFAULT_TRANSITION_TIME_MS
     private var showImageInfo = true
     private var showIndicator = true
+    private var colors = SupperBannerColors()
     private var onBannerClickListener: ((SupperBannerItem, Int) -> Unit)? = null
     private var indicatorCustomizer: ((TextView, Boolean, Int) -> Unit)? = null
 
     init {
         clipToOutline = true
-        background = GradientDrawable().apply {
-            cornerRadius = dp(8).toFloat()
-            setColor("#151A24".toColorInt())
-            setStroke(dp(1), "#2AFFFFFF".toColorInt())
-        }
 
         viewPager.adapter = adapter
         viewPager.layoutParams = LayoutParams(
@@ -81,6 +74,29 @@ class SupperBannerView @JvmOverloads constructor(
 
         setupInfoPanel()
         setupIndicatorContainer()
+        applyColors()
+    }
+
+    /**
+     * Repaints the whole view with [value]. Safe to call at any time; indicator colors are re-applied
+     * unless an indicator customizer is installed, which keeps the last word.
+     */
+    fun setColors(value: SupperBannerColors) {
+        colors = value
+        applyColors()
+    }
+
+    /**
+     * Installs the page-to-page transition. [SupperBannerTransition.NONE] restores the ViewPager2
+     * default slide. Out-of-range tuning values are clamped rather than rejected.
+     */
+    fun setTransition(transition: SupperBannerTransition) {
+        // Coverflow and Stack only read as multi-page effects if the side pages are actually laid
+        // out; ViewPager2 keeps one page offscreen by default.
+        viewPager.offscreenPageLimit = if (transition.effect in OBLIQUE_EFFECTS) 3 else 1
+        viewPager.setPageTransformer(
+            SupperBannerTransformers.create(transition, resources.displayMetrics.density)
+        )
     }
 
     fun setItems(newItems: List<SupperBannerItem>) {
@@ -135,22 +151,16 @@ class SupperBannerView @JvmOverloads constructor(
         infoPanel.orientation = LinearLayout.VERTICAL
         infoPanel.gravity = Gravity.BOTTOM
         infoPanel.setPadding(dp(14), dp(24), dp(14), dp(14))
-        infoPanel.background = GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(Color.TRANSPARENT, "#CC050812".toColorInt())
-        )
         infoPanel.layoutParams = LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             Gravity.BOTTOM
         )
 
-        titleView.setTextColor(Color.WHITE)
         titleView.textSize = 15f
         titleView.typeface = Typeface.MONOSPACE
         titleView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD)
 
-        descriptionView.setTextColor("#CBD5E8".toColorInt())
         descriptionView.textSize = 11f
         descriptionView.typeface = Typeface.MONOSPACE
         descriptionView.setPadding(0, dp(4), 0, 0)
@@ -171,6 +181,24 @@ class SupperBannerView @JvmOverloads constructor(
             setMargins(0, dp(12), dp(12), 0)
         }
         addView(indicatorContainer)
+    }
+
+    private fun applyColors() {
+        // Local alias: GradientDrawable exposes its own `colors` (int[]), which would shadow the
+        // field inside the apply block below.
+        val palette = colors
+        background = GradientDrawable().apply {
+            cornerRadius = dp(8).toFloat()
+            setColor(palette.background)
+            setStroke(dp(1), palette.border)
+        }
+        infoPanel.background = GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(palette.scrimStart, palette.scrimEnd)
+        )
+        titleView.setTextColor(palette.title)
+        descriptionView.setTextColor(palette.description)
+        renderIndicators(viewPager.currentItem)
     }
 
     private fun renderInfo(position: Int) {
@@ -204,11 +232,15 @@ class SupperBannerView @JvmOverloads constructor(
     }
 
     private fun applyDefaultIndicatorStyle(view: TextView, selected: Boolean) {
-        view.setTextColor(if (selected) Color.parseColor("#07100B") else Color.parseColor("#CCFFFFFF"))
+        val palette = colors.indicator
+        view.setTextColor(if (selected) palette.textSelected else palette.textUnselected)
         view.background = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
-            setColor(if (selected) Color.parseColor("#00FF88") else Color.parseColor("#442A3342"))
-            setStroke(dp(1), if (selected) Color.parseColor("#AAFFFFFF") else Color.parseColor("#55FFFFFF"))
+            setColor(if (selected) palette.fillSelected else palette.fillUnselected)
+            setStroke(
+                dp(1),
+                if (selected) palette.strokeSelected else palette.strokeUnselected
+            )
         }
     }
 
@@ -224,6 +256,10 @@ class SupperBannerView @JvmOverloads constructor(
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    private companion object {
+        val OBLIQUE_EFFECTS = setOf(SupperBannerEffect.COVERFLOW, SupperBannerEffect.STACK)
+    }
 
     private class BannerAdapter(
         private val onItemClick: (Int) -> Unit

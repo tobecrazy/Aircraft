@@ -22,6 +22,8 @@ import com.young.aircraft.common.GameStateManager
 import com.young.aircraft.service.MusicService
 import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.utils.ScreenUtils
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
@@ -46,6 +48,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var surfaceHolder: SurfaceHolder? = null
     private var collisionCooldown = false
     private var gameInitialized = false
+    @Volatile
     var musicService: MusicService? = null
     var onGameOver: (() -> Unit)? = null
     var onGameWon: (() -> Unit)? = null
@@ -59,6 +62,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var gameWon = false
     private var isPaused = false
     private var bossDefeatedThisLevel = false
+    // Engine state is render-thread confined; other threads submit commands and player input.
+    private val gameCommands = ConcurrentLinkedQueue<() -> Unit>()
+    private val pendingPlayerTouch = AtomicReference<PlayerTouch?>(null)
+
+    private data class PlayerTouch(val x: Float, val y: Float)
 
     // Background pause tracking (for timer adjustment on surface recreation)
     private var pausedAtMs: Long = 0L
@@ -600,6 +608,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     fun advanceToNextLevel() {
+        gameCommands.add(::advanceToNextLevelOnGameThread)
+    }
+
+    private fun advanceToNextLevelOnGameThread() {
         level++
         enemies.level = level
         enemies.activeEnemies.clear()
@@ -839,6 +851,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private var avg_FPS: Double = 0.0
     private var droppedFrameCount: Int = 0
+    @Volatile
     private var isRunning = true
     var canvas: Canvas? = null
 
@@ -856,6 +869,15 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 if (null == canvas || null == surfaceHolder) return
                 surfaceHolder?.let {
                     synchronized(it) {
+                        while (true) {
+                            val command = gameCommands.poll() ?: break
+                            command()
+                        }
+                        pendingPlayerTouch.getAndSet(null)?.let { touch ->
+                            val (renderedW, renderedH) = drawAircraft.getRenderedJetSize()
+                            drawAircraft.jetX = touch.x - renderedW / 2f
+                            drawAircraft.jetY = touch.y - renderedH / 2f
+                        }
                         onUpdateGameDraw(canvas)
                     }
                 }
@@ -901,9 +923,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         when (event.action) {
             MotionEvent.ACTION_MOVE -> {
                 if (gameInitialized) {
-                    val (renderedW, renderedH) = drawAircraft.getRenderedJetSize()
-                    drawAircraft.jetX = event.x - renderedW / 2f
-                    drawAircraft.jetY = event.y - renderedH / 2f
+                    pendingPlayerTouch.set(PlayerTouch(event.x, event.y))
                 }
             }
         }
@@ -911,16 +931,16 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     fun pauseGame() {
-        isPaused = true
+        gameCommands.add { isPaused = true }
     }
 
     fun resumeGame() {
-        isPaused = false
+        gameCommands.add { isPaused = false }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         Log.d("YoungTest", "$event ---- $keyCode")
-        drawAircraft.updateGame()
+        gameCommands.add { drawAircraft.updateGame() }
         return super.onKeyDown(keyCode, event)
     }
 }
