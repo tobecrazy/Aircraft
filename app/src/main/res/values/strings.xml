@@ -504,4 +504,13 @@ Installed browsers:
     <string name="rich_text_load_example_json">JSON</string>
     <string name="rich_text_example_json_loaded">Example JSON loaded</string>
     <string name="rich_text_example_json_failed">Could not load example JSON</string>
+    <string name="pdf_reader_title">PDF Reader</string>
+    <string name="pdf_reader_button">PDF Reader</string>
+    <string name="pdf_reader_choose_file">Choose PDF File</string>
+    <string name="pdf_reader_open">Open</string>
+    <string name="pdf_reader_empty_hint">Select a PDF file to start reading</string>
+    <string name="pdf_reader_error_invalid">This file is not a valid PDF</string>
+    <string name="pdf_reader_error_no_permission">No permission to read this file</string>
+    <string name="pdf_reader_page_counter">%1$d / %2$d</string>
+    <string name="pdf_reader_page_desc">Page %1$d</string>
 </resources>

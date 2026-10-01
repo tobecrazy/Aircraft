@@ -504,4 +504,13 @@ UA：%5$s
     <string name="rich_text_load_example_json">JSON</string>
     <string name="rich_text_example_json_loaded">示例 JSON 已加載</string>
     <string name="rich_text_example_json_failed">無法加載示例 JSON</string>
+    <string name="pdf_reader_title">PDF 閱讀器</string>
+    <string name="pdf_reader_button">PDF 閱讀器</string>
+    <string name="pdf_reader_choose_file">選擇 PDF 文件</string>
+    <string name="pdf_reader_open">打開</string>
+    <string name="pdf_reader_empty_hint">請選擇一個 PDF 文件開始閱讀</string>
+    <string name="pdf_reader_error_invalid">該文件不是有效的 PDF</string>
+    <string name="pdf_reader_error_no_permission">沒有讀取該文件的權限</string>
+    <string name="pdf_reader_page_counter">%1$d / %2$d</string>
+    <string name="pdf_reader_page_desc">第 %1$d 頁</string>
 </resources>

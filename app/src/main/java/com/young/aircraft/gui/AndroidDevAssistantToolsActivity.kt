@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.system.Os
@@ -61,11 +60,10 @@ import com.young.aircraft.ui.theme.aircraftSwitchColors
 import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.NeonDivider
-import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.TextBright
-import com.young.aircraft.ui.theme.TextMuted
 import com.young.aircraft.utils.DebugTools
 import java.io.File
+import androidx.core.net.toUri
 
 // Panel visuals lifted from develop_settings_panel_bg / device_info_gauge_bg /
 // the Theme.Aircraft.Common colorPrimary that styled the legacy buttons.
@@ -127,14 +125,14 @@ internal fun readBrowserEngineInfo(context: Context): BrowserEngineInfo {
 
     val defaultBrowser = runCatching {
         pm.resolveActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com")),
+            Intent(Intent.ACTION_VIEW, "https://example.com".toUri()),
             PackageManager.MATCH_DEFAULT_ONLY
         )?.activityInfo?.packageName
     }.getOrNull() ?: "unknown"
 
     val installed = runCatching {
         pm.queryIntentActivities(
-            Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com")),
+            Intent(Intent.ACTION_VIEW, "https://example.com".toUri()),
             PackageManager.MATCH_DEFAULT_ONLY
         )
     }.getOrNull().orEmpty()

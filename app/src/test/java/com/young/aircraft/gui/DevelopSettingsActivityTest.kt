@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Looper
 import android.widget.TextView
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
@@ -116,6 +118,28 @@ class DevelopSettingsActivityTest {
                     AndroidDevAssistantToolsActivity::class.java.name,
                     startedIntent!!.component?.className
                 )
+            }
+        }
+    }
+
+    @Test
+    // sw720dp: tablet/foldable width, where the 640dp cap has to kick in.
+    @Config(sdk = [34], qualifiers = "sw720dp-w1280dp-h2400dp")
+    fun `content column is capped at 640dp and centered on wide screens`() {
+        ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val rootNode = root(activity)
+                val node = findAllNodes(rootNode).first {
+                    it.config.getOrNull(SemanticsProperties.TestTag) == "btn_pdf_reader"
+                }
+                val density = activity.resources.displayMetrics.density
+                val bounds = node.boundsInRoot
+                val expectedWidth = 612.0 * density
+                val gapDelta = (bounds.left - (rootNode.boundsInRoot.right - bounds.right)).toDouble()
+
+                // 640dp cap minus the column's own 14dp padding on each side.
+                assertEquals("content column should be 612dp wide", expectedWidth, bounds.width.toDouble(), 1.0)
+                assertEquals("column should stay centered", 0.0, gapDelta, 1.0)
             }
         }
     }

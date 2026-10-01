@@ -27,17 +27,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -101,8 +106,6 @@ private val StatusActiveBg = Color(0x2600FF88)
 private val StatusActiveBorder = Color(0x6600FF88)
 private val StatusInactiveBg = Color(0x18FFFFFF)
 private val StatusInactiveBorder = Color(0x28FFFFFF)
-private val CtaBg = Color(0x2600FF88)
-private val CtaBorder = Color(0x6600FF88)
 private val RejectBg = Color(0x1A161A26)
 private val DangerRed = Color(0xFFFF5555)
 private val BannerAccent = Color(0xFF4EA1FF)
@@ -153,6 +156,7 @@ class DevelopSettingsActivity : AppCompatActivity() {
                     onOpenAssistantTools = { startActivity(Intent(this, AndroidDevAssistantToolsActivity::class.java)) },
                     onNotificationTest = ::showNotificationConfirmationDialog,
                     onOpenCameraScan = { startActivity(Intent(this, CameraScanActivity::class.java)) },
+                    onOpenPdfReader = { startActivity(Intent(this, PdfReaderActivity::class.java)) },
                     onOpenBannerItem = { item ->
                         startActivity(ShowImageDetailsActivity.createIntent(this, item))
                     }
@@ -251,6 +255,7 @@ internal fun DevelopSettingsScreen(
     onOpenAssistantTools: () -> Unit,
     onNotificationTest: () -> Unit,
     onOpenCameraScan: () -> Unit,
+    onOpenPdfReader: () -> Unit,
     onOpenBannerItem: (SupperBannerItem) -> Unit
 ) {
     var autoPlay by remember { mutableStateOf(true) }
@@ -268,7 +273,9 @@ internal fun DevelopSettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDark)
-            .safeDrawingPadding()
+            .safeDrawingPadding(),
+        // Centers the capped content column below; the header stays full-bleed.
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         DevelopHeader(onBack = onBack)
         NeonDivider()
@@ -276,6 +283,8 @@ internal fun DevelopSettingsScreen(
         Column(
             modifier = Modifier
                 .weight(1f)
+                // Must stay ahead of any fillMaxWidth below or the cap never applies.
+                .widthIn(max = 640.dp)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 14.dp)
         ) {
@@ -475,6 +484,14 @@ internal fun DevelopSettingsScreen(
                     )
                 }
             }
+
+            ToolButton(
+                textRes = R.string.pdf_reader_button,
+                onClick = onOpenPdfReader,
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .testTag("btn_pdf_reader")
+            )
 
             SectionHeader(R.string.develop_settings_section_tools, AccentGreen, SectionLabel)
 
@@ -760,17 +777,29 @@ private fun BadgePill(
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    Text(
-        text = text,
-        color = tint,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        fontFamily = FontFamily.Monospace,
-        modifier = modifier
-            .background(GaugeBg, RoundedCornerShape(12.dp))
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-    )
+    // The tap target is the outer box (48dp only when tappable, so plain badges stay
+    // compact); the visible pill keeps its own size and stays centered inside it.
+    Box(
+        modifier = modifier.then(
+            if (onClick != null) {
+                Modifier.clickable(onClick = onClick).heightIn(min = 48.dp)
+            } else {
+                Modifier
+            }
+        ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = tint,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier
+                .background(GaugeBg, RoundedCornerShape(12.dp))
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        )
+    }
 }
 
 @Composable
@@ -835,7 +864,7 @@ private fun EffectDropdown(
     BoxWithConstraints(modifier) {
         Surface(
             onClick = { expanded = true },
-            color = Color(0xFF161A26),
+            color = HeaderBackground,
             shape = RoundedCornerShape(4.dp),
             border = BorderStroke(1.dp, if (expanded) BannerAccent else Color(0xFF3A4658)),
             modifier = Modifier.fillMaxWidth()
@@ -929,18 +958,20 @@ private fun TransitionField(
 
 @Composable
 private fun ToolButton(textRes: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(CtaBg, RoundedCornerShape(4.dp))
-            .border(1.dp, CtaBorder, RoundedCornerShape(4.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center
+    // Accent-derived (not a literal green) so the fill follows the selected theme, and kept
+    // very light: the 1dp border plus the accent text carry the button, the fill only hints.
+    Button(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(4.dp),
+        border = BorderStroke(1.dp, AccentGreen.copy(alpha = 0.40f)),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = AccentGreen.copy(alpha = 0.06f),
+            contentColor = AccentGreen
+        )
     ) {
         Text(
             text = stringResource(textRes),
-            color = AccentGreen,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
@@ -951,18 +982,18 @@ private fun ToolButton(textRes: Int, onClick: () -> Unit, modifier: Modifier = M
 
 @Composable
 private fun RejectButton(textRes: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(RejectBg, RoundedCornerShape(4.dp))
-            .border(1.dp, DangerRed, RoundedCornerShape(4.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(4.dp),
+        border = BorderStroke(1.dp, DangerRed),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = RejectBg,
+            contentColor = DangerRed
+        )
     ) {
         Text(
             text = stringResource(textRes),
-            color = DangerRed,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
