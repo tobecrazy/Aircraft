@@ -340,6 +340,14 @@ UA: %5$s
 Installed browsers:
 %6$s</string>
     <string name="develop_settings_assistant_browser_none">none found</string>
+    <string name="develop_settings_assistant_apps_title">Installed Apps</string>
+    <string name="develop_settings_assistant_apps_search_hint">Search name or package</string>
+    <string name="develop_settings_assistant_apps_filter_user">User</string>
+    <string name="develop_settings_assistant_apps_filter_system">System</string>
+    <string name="develop_settings_assistant_apps_filter_all">All</string>
+    <string name="develop_settings_assistant_apps_empty">No matching apps</string>
+    <string name="develop_settings_assistant_apps_version_fmt">v%1$s</string>
+    <string name="develop_settings_assistant_apps_details">Details</string>
     <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
     <string name="develop_settings_notification_button">Test QR Tool Notification</string>
     <string name="develop_settings_camera_scan_button">Live QR Scan (CameraX)</string>
@@ -362,7 +370,7 @@ Installed browsers:
     <string name="android_dev_assistant_tools_summary">Tool details and quick links for the developer assistant modules available in this debug build.</string>
     <string name="android_dev_assistant_tools_system_info">System Information: Opens the in-app device telemetry panel for CPU, memory, disk, network, and uptime.</string>
     <string name="android_dev_assistant_tools_quick_settings">Quick Settings Launcher: Jumps to system settings or developer settings where available.</string>
-    <string name="android_dev_assistant_tools_app_browser">Installed Apps Browser: Opens the system applications management list.</string>
+    <string name="android_dev_assistant_tools_app_browser">Installed Apps Browser: Lists every launchable app on this device with search, user/system filtering, tap to launch and a details shortcut.</string>
     <string name="android_dev_assistant_tools_activity_monitor">Activity Monitor: Opens the app activity/history screen as the monitor entry point.</string>
     <string name="android_dev_assistant_tools_kernel_info">Kernel Info: Shows the Linux kernel release, CPU architecture and full build string.</string>
     <string name="android_dev_assistant_tools_browser_engine">Browser Engine: Shows the WebView provider package and Chromium version, the User-Agent, and the browsers installed on this device.</string>

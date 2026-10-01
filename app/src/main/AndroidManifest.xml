@@ -18,12 +18,17 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
-    <!-- Package visibility (API 30+) so the debug browser-engine module can list installed browsers. -->
+    <!-- Package visibility (API 30+): browser-engine module lists installed browsers,
+         installed-apps module lists every launcher activity it can start. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
         </intent>
     </queries>
 

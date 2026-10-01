@@ -72,7 +72,8 @@ enum class SettingsDestination {
     ABOUT_AIRCRAFT,
     ABOUT_ME,
     PRIVACY_POLICY,
-    DEVELOP_SETTINGS
+    DEVELOP_SETTINGS,
+    ASSISTANT_TOOLS
 }
 
 // Visuals lifted from settings_* / difficulty_* / badge_* / switch_* drawables (XML→Compose migration).
@@ -206,6 +207,25 @@ fun SettingsScreen(
                         title = stringResource(R.string.develop_settings_title),
                         summary = stringResource(R.string.develop_settings_summary),
                         onClick = { onNavigate(SettingsDestination.DEVELOP_SETTINGS) }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.develop_settings_debug_badge),
+                            color = DangerText,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = Mono,
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .background(ChipBg, ChipShape)
+                                .border(1.dp, ChipBorder, ChipShape)
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                        Chevron(Modifier.padding(start = 12.dp))
+                    }
+                    NavRow(
+                        title = stringResource(R.string.develop_settings_assistant_tools_button),
+                        summary = stringResource(R.string.android_dev_assistant_tools_summary),
+                        onClick = { onNavigate(SettingsDestination.ASSISTANT_TOOLS) }
                     ) {
                         Text(
                             text = stringResource(R.string.develop_settings_debug_badge),

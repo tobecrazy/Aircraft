@@ -60,6 +60,7 @@ class SettingsActivity : AppCompatActivity() {
             SettingsDestination.ABOUT_ME -> AboutMeActivity::class.java
             SettingsDestination.PRIVACY_POLICY -> PrivacyPolicyActivity::class.java
             SettingsDestination.DEVELOP_SETTINGS -> DevelopSettingsActivity::class.java
+            SettingsDestination.ASSISTANT_TOOLS -> AndroidDevAssistantToolsActivity::class.java
         }
         startActivity(Intent(this, target))
     }

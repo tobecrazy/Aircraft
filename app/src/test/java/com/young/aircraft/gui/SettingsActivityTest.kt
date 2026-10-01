@@ -116,7 +116,8 @@ class SettingsActivityTest {
             activity.getString(R.string.flashlight_title) to FlashlightActivity::class.java,
             activity.getString(R.string.puzzle_game_title) to PuzzleActivity::class.java,
             activity.getString(R.string.about_aircraft_title) to AboutAircraftActivity::class.java,
-            activity.getString(R.string.privacy_policy_title) to PrivacyPolicyActivity::class.java
+            activity.getString(R.string.privacy_policy_title) to PrivacyPolicyActivity::class.java,
+            activity.getString(R.string.develop_settings_assistant_tools_button) to AndroidDevAssistantToolsActivity::class.java
         )
         cases.forEach { (rowText, target) ->
             composeRule.onNodeWithText(rowText).performScrollTo().performClick()

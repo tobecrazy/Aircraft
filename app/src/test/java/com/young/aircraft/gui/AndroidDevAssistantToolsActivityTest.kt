@@ -162,6 +162,43 @@ class AndroidDevAssistantToolsActivityTest {
         assertTrue("copying must not close the dialog", ShadowDialog.getLatestDialog().isShowing)
     }
 
+    @Test
+    fun `app browser module shows the in-app list dialog instead of navigating`() {
+        openModuleDialog(AndroidDevAssistantToolsActivity.MODULE_APP_BROWSER)
+
+        assertEquals("app browser module shows a dialog, it does not navigate", null,
+            shadowOf(composeTestRule.activity).nextStartedActivity)
+        assertTrue(ShadowDialog.getLatestDialog().isShowing)
+    }
+
+    @Test
+    fun `app filter splits user apps from system apps and matches name or package`() {
+        val apps = listOf(
+            InstalledApp("com.young.aircraft", "Aircraft", "1.0", isSystem = false),
+            InstalledApp("com.android.chrome", "Chrome", "120", isSystem = false),
+            InstalledApp("com.android.settings", "Settings", "30", isSystem = true)
+        )
+
+        assertEquals(
+            listOf("com.young.aircraft", "com.android.chrome"),
+            filterApps(apps, "", AppFilter.USER).map { it.packageName }
+        )
+        assertEquals(
+            listOf("com.android.settings"),
+            filterApps(apps, "", AppFilter.SYSTEM).map { it.packageName }
+        )
+        assertEquals(3, filterApps(apps, "", AppFilter.ALL).size)
+        assertEquals(
+            listOf("com.android.chrome"),
+            filterApps(apps, "chro", AppFilter.USER).map { it.packageName }
+        )
+        assertEquals(
+            listOf("com.android.settings"),
+            filterApps(apps, "com.android.set", AppFilter.ALL).map { it.packageName }
+        )
+        assertTrue(filterApps(apps, "nothing-here", AppFilter.ALL).isEmpty())
+    }
+
     private fun openModuleDialog(prefKey: String) {
         tick()
         composeTestRule

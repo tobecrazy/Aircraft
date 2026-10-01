@@ -106,23 +106,6 @@ class DevelopSettingsActivityTest {
     }
 
     @Test
-    fun `android developer assistant tools button opens details activity`() {
-        ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                assertTrue(root(activity).clickOnTag("btn_android_dev_assistant_tools"))
-
-                val startedIntent: Intent? =
-                    shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>()).nextStartedActivity
-                assertNotNull(startedIntent)
-                assertEquals(
-                    AndroidDevAssistantToolsActivity::class.java.name,
-                    startedIntent!!.component?.className
-                )
-            }
-        }
-    }
-
-    @Test
     // sw720dp: tablet/foldable width, where the 640dp cap has to kick in.
     @Config(sdk = [34], qualifiers = "sw720dp-w1280dp-h2400dp")
     fun `content column is capped at 640dp and centered on wide screens`() {

@@ -153,7 +153,6 @@ class DevelopSettingsActivity : AppCompatActivity() {
                     onVersionBadgeClick = ::onVersionBadgeClick,
                     onBack = { finish() },
                     onOpenRichText = { startActivity(Intent(this, RichTextEditorActivity::class.java)) },
-                    onOpenAssistantTools = { startActivity(Intent(this, AndroidDevAssistantToolsActivity::class.java)) },
                     onNotificationTest = ::showNotificationConfirmationDialog,
                     onOpenCameraScan = { startActivity(Intent(this, CameraScanActivity::class.java)) },
                     onOpenPdfReader = { startActivity(Intent(this, PdfReaderActivity::class.java)) },
@@ -252,7 +251,6 @@ internal fun DevelopSettingsScreen(
     onVersionBadgeClick: () -> Unit,
     onBack: () -> Unit,
     onOpenRichText: () -> Unit,
-    onOpenAssistantTools: () -> Unit,
     onNotificationTest: () -> Unit,
     onOpenCameraScan: () -> Unit,
     onOpenPdfReader: () -> Unit,
@@ -531,13 +529,6 @@ internal fun DevelopSettingsScreen(
                         modifier = Modifier
                             .padding(top = 14.dp)
                             .testTag("btn_test_rich_text")
-                    )
-                    ToolButton(
-                        textRes = R.string.develop_settings_assistant_tools_button,
-                        onClick = onOpenAssistantTools,
-                        modifier = Modifier
-                            .padding(top = 10.dp)
-                            .testTag("btn_android_dev_assistant_tools")
                     )
                     ToolButton(
                         textRes = R.string.develop_settings_notification_button,

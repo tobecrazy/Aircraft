@@ -214,12 +214,7 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
                 }
             }
 
-            MODULE_APP_BROWSER -> {
-                val launched = launchSafely(Intent(Settings.ACTION_MANAGE_ALL_APPLICATIONS_SETTINGS))
-                if (!launched) {
-                    ThemedMessage.makeText(this, R.string.develop_settings_assistant_unavailable, ThemedMessage.LENGTH_SHORT).show()
-                }
-            }
+            MODULE_APP_BROWSER -> showAppListDialog()
 
             MODULE_ACTIVITY_MONITOR -> startActivity(Intent(this, HistoryActivity::class.java))
 
@@ -258,6 +253,14 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
                 browsers
             )
         )
+    }
+
+    private fun showAppListDialog() {
+        val dialog = AlertDialog.Builder(this).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
+        dialog.window?.setDimAmount(0.7f)
+        dialog.setDialogComposeContent(this) { AppListDialogContent() }
     }
 
     /** Monospace scrollable panel; native message dialogs truncate these dumps. */
