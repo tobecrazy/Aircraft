@@ -15,6 +15,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter. Three Gradle modules: `
 - [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md): editor integration and AAR usage.
 - [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md): banner carousel integration and AAR publishing.
 - [docs/puzzle-game-redesign-plan.md](docs/puzzle-game-redesign-plan.md): working plan (untracked) explaining *why* the puzzle scoring code looks the way it does. Read it before changing that area.
+- `docs/` also holds generated architecture artifacts (`aircraft-architecture.*`, `aircraft-code-map.*`, `supperbanner-module.*`, `pdf-reader-dataflow.*` — each `.json` source plus rendered `.html` and `.visual-check.*` screenshots). They are committed but machine-generated; edit the `.json`, not the `.html`.
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance. No Cursor rules were found during initialization.
 - **[AGENTS.md](AGENTS.md) is a symlink to this file**; edit CLAUDE.md rather than replacing the symlink.
 
@@ -24,6 +25,8 @@ Some documentation is stale; verify behavior against code before propagating doc
 - README says min SDK 30; `app/build.gradle.kts` actually sets minSdk 32.
 - Copilot claims Room uses `fallbackToDestructiveMigration(true)`; `DatabaseProvider` registers explicit migrations only, with no fallback (see Persistence below).
 - Copilot says many screens still use ViewBinding/XML and that combat routes through `PuzzleActivity` between levels; both are false — View Binding is off and `MainActivity` advances straight to the next combat level.
+- CLAUDE.md previously claimed `gui/GameHudScreen.kt` is an orphan Compose HUD. **That file no longer exists** — `grep -rn GameHudScreen app/src/` returns nothing. The HUD is Canvas-drawn by `ui/DrawHeader.kt` via `ui/GameHudFormatter.kt`; don't go looking for the orphan or reintroduce it.
+- `SupperBannerEffect` has **11** values (NONE, FADE, ZOOM_OUT, DEPTH, CUBE, ROTATION_GATE, COVERFLOW, STACK, PARALLAX, ACCORDION, SHADER), each with one `develop_settings_supper_banner_effect_*` string. Adding an effect means touching the enum, `SupperBannerTransformers`, the DevelopSettings `when` mapping, and all four locales together.
 
 ## Build, Lint, and Tests
 
@@ -60,6 +63,7 @@ Scope `--tests` to a module task (`:app:testDebugUnitTest`), not the root task: 
 - The app enables Compose and BuildConfig. **View Binding is disabled** (removed in `a6c3b6b`; no binding classes exist) and Data Binding is not used.
 - Release enables R8 minification/resource shrinking via `app/proguard-rules.pro`. Signing loads root `keystore.properties` when present; it is not tracked.
 - Firebase Analytics and Crashlytics are configured in `app/build.gradle.kts`; `app/google-services.json` supplies the Firebase configuration.
+- **Debug-only code is a source-set split, not a runtime flag.** `utils/DebugTools.kt` exists twice: `app/src/debug/` (`isEnabled = true`, `log`/`enableWebViewDebugging` live) and `app/src/release/` (`isEnabled = false`, all methods no-op). `SettingsViewModel` maps `DebugTools.isEnabled` into `SettingsUiState.showDevelopSettings`, which is the *only* gate for the Settings rows; each gated Activity then re-checks `DebugTools.isEnabled` in `onCreate` and calls `finish()`. Adding a debug screen means touching both `DebugTools` variants plus both gates — otherwise a release build crashes or silently shows dev UI.
 
 ## Architecture
 
@@ -94,6 +98,23 @@ Combat has ten timed levels with increasing kill targets and a boss after each t
 **"Continue" is a level checkpoint, not a scene snapshot**: it restores the saved combat level, cumulative kills, and jet, but *not* current health, remaining time, or on-screen objects. The game restarts that level from scratch. Don't add snapshot persistence unless the product asks for in-place resume.
 
 `SettingsActivity` opens the independent Compose drag-and-drop `PuzzleActivity`. It saves puzzle level/score using `GameViewModel` with `GameMode.PUZZLE`; do not assume a stored mode implies the launch hub can resume it. Puzzle scoring is efficiency-based (par = `gridSize²` moves; scans and retries subtract; 1–3 stars) and lives in the pure internal top-level `calculatePuzzleRoundResult()` / `createPuzzlePieces()` in `PuzzleActivity.kt` — see `docs/puzzle-game-redesign-plan.md`. There is no constant reference image on the board; the player spends limited "intel scans" to peek at it.
+
+`SettingsActivity` navigates through a `SettingsDestination` enum (`SettingsScreen.kt`) mapped to Activity classes in `navigateTo`. Two destinations — `DEVELOP_SETTINGS` and `ASSISTANT_TOOLS` — are debug-only rows; add new Settings entries in all three places (enum, `navigateTo` `when`, the `SettingsScreen` row).
+
+### Debug-Only Screens
+
+`DevelopSettingsActivity` is the debug hub (crash tooling, invincible toggle, banner effect lab, and launchers for `RichTextEditorActivity` / `CameraScanActivity` / `PdfReaderActivity` / `ShowImageDetailsActivity`). `AndroidDevAssistantToolsActivity` is a sibling hub under the same `showDevelopSettings` gate, reading device facts through **native APIs only** — `Os.uname()`, `WebView.getCurrentWebViewPackage()` (API 26+), `/proc/version` — deliberately *without* androidx.webkit or any DI. Its per-module facts are pure internal top-level functions (`readKernelInfo()`, `readBrowserEngineInfo(context)`) returning `internal data class`es, so they are unit-testable without an Activity. Module toggles persist in their own `SharedPreferences` (`ASSISTANT_PREFS`), not `SettingsRepository`. It uses its own `ACTION_BAR`-free Compose shell with literal debug-only colors — it is a dev tool, so it is exempt from the tactical-UI palette rule below.
+
+### PDF Reader
+
+`PdfReaderActivity` wraps the platform `android.graphics.pdf.PdfRenderer` — no PDF dependency. `PdfViewModel` owns the document and all rendering; the Activity only holds Compose state.
+
+- One `PdfRenderer` guarded by a `Mutex`; `openPage` from concurrent coroutines is not safe, and every render/aspect-ratio call goes through `withLock { withContext(Dispatchers.IO) { … } }`.
+- `%PDF-` magic is sniffed in the constructor (`hasPdfHeader`) because `PdfRenderer` only rejects encrypted/unreadable files at page-open time — failing early keeps the error out of the UI. Errors map to `pdf_reader_error_no_permission` (SecurityException) vs `pdf_reader_error_invalid`.
+- **Zoom re-renders instead of scaling a bitmap.** A pinch updates `scale` continuously for transform only; `settledScale` (updated on gesture end) drives a re-render at `renderWidthFor(baseWidthPx, settledScale)`, clamped to `MAX_RENDER_WIDTH_PX = 2048` (~16MB ARGB_8888, a page-safe ceiling). Rendering per frame during a pinch is the failure mode to avoid.
+- The page cache is an `LruCache<String, Bitmap>` sized at `maxMemory() / 16`, keyed by `index@width`; `sizeOf` returns `value.byteCount`. Pages keep their previous bitmap while the sharper one renders so zoom does not flash white.
+- `dominantPageIndex()` (internal top-level, in the Activity file, with a `DominantPageIndexTest`) derives the page number for the header counter. It does not use the naive centre rule alone: a short trailing page (a blank back page) breaks it, so an unscrolled-past last page wins outright.
+- The file comes from `ActivityResultContracts.OpenDocument` with `takePersistableUriPermission`, so the grant survives process death.
 
 ### Thread and Event Boundaries
 
@@ -146,6 +167,7 @@ Unlike `richtexteditor`, `supperbanner` applies `maven-publish` and publishes `c
 - Solid-background utility activities should use `Theme.Aircraft.Common` in the manifest; the game uses `TransparentMaterialTheme`. Preserve each screen's inset handling: Compose screens use `safeDrawingPadding`/`statusBarsPadding`/`navigationBarsPadding` or Scaffold `contentWindowInsets` patterns (e.g. Settings header uses `statusBarsPadding`). Do not double-apply insets.
 - There are **four** locales, not two: `values/`, `values-zh/`, `values-zh-rTW/`, `values-zh-rHK/`. `StringResourceTest` scans *every* `values-*` dir that has a `strings.xml` and requires the full default key set in each, plus it fails on unused strings. Adding a string means adding it in all four. Use resources (`stringResource`, `getString`, `@string/`) rather than hardcoded UI copy; remove orphan resources after refactoring. In-app language switching goes through `AppCompatDelegate.setApplicationLocales` in `LanguageSettingsActivity` (the manifest carries a `localeConfig`/AppLocales metadata entry so it persists below API 33).
 - On tablets/foldables, Compose screens cap their content column with `Modifier.maxContentWidth()` (`ui/WideScreen.kt`, 640dp) — the counterpart of `@dimen/content_max_width` in `values-sw600dp/`. Use the modifier in new Compose screens rather than inventing another width cap.
+- `values-night/`, `values-sw600dp/`, and `values-sw1240dp/` also exist but hold **no `strings.xml`** — they carry `dimen`/`integer` resources only, so `StringResourceTest` ignores them. The four *locales* above are the only ones needing string parity.
 - Robolectric Compose screen tests use `createAndroidComposeRule` and `@GraphicsMode(NATIVE)`. For scrollable content, follow `SettingsActivityTest`'s tall viewport (`w420dp-h2000dp`): off-window clicks may silently do nothing.
 
 ### Implementation Traps
