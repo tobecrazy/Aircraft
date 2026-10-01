@@ -52,7 +52,7 @@ class ThemedAlertDialogTest {
                     positive.isEnabled = false
                     repository.setTheme(theme)
                     shadowOf(Looper.getMainLooper()).idle()
-                    val colors = aircraftColorScheme(theme)
+                    val colors = aircraftColorScheme(context, theme)
                     assertEquals(colors.primary.toArgb(),
                         dialog.findViewById<TextView>(androidx.appcompat.R.id.alertTitle)?.currentTextColor)
                     assertEquals(colors.onSurface.toArgb(),

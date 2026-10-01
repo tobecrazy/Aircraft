@@ -56,7 +56,7 @@ class ThemedMessageTest {
                     repository.setTheme(theme)
                     shadowOf(Looper.getMainLooper()).idle()
                     assertTrue(message.isShown)
-                    assertEquals(themeAccent(theme).toArgb(), message.currentTextColor)
+                    assertEquals(themeAccent(activity, theme).toArgb(), message.currentTextColor)
                 }
             }
             scenario.moveToState(Lifecycle.State.CREATED)

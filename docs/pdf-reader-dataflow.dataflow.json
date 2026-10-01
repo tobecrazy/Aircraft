@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "PDF 阅读器渲染数据流",
+    "output": "docs/pdf-reader-dataflow.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1440,
+      840
+    ],
+    "views": [
+      {
+        "id": "open-pipeline",
+        "label": "打开文档",
+        "focus": [
+          "picker",
+          "vm",
+          "sniff",
+          "renderer"
+        ],
+        "note": "从系统选择器到 PdfRenderer 就绪的完整打开链路。"
+      },
+      {
+        "id": "page-render",
+        "label": "单页渲染",
+        "focus": [
+          "renderer",
+          "render",
+          "cache",
+          "list"
+        ],
+        "note": "一页位图如何按宽度渲染、缓存并交给 LazyColumn 展示。"
+      },
+      {
+        "id": "zoom-rerender",
+        "label": "缩放重渲染",
+        "focus": [
+          "zoom",
+          "render",
+          "list"
+        ],
+        "note": "手势结束后 settledScale 决定新的渲染宽度，而不是每帧重绘。"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "label": "选择"
+    },
+    {
+      "label": "打开"
+    },
+    {
+      "label": "渲染"
+    },
+    {
+      "label": "缓存与展示"
+    },
+    {
+      "label": "页码"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "picker",
+      "type": "external",
+      "label": "SAF 文件选择器",
+      "sublabel": "OpenDocument",
+      "stage": 0,
+      "row": 0,
+      "tag": "application/pdf"
+    },
+    {
+      "id": "vm",
+      "type": "backend",
+      "label": "PdfViewModel.open",
+      "sublabel": "AndroidViewModel",
+      "stage": 1,
+      "row": 0,
+      "tag": "先关旧文档"
+    },
+    {
+      "id": "sniff",
+      "type": "security",
+      "label": "PDF 文件头校验",
+      "sublabel": "hasPdfHeader",
+      "stage": 1,
+      "row": 2,
+      "tag": "进 UI 前失败"
+    },
+    {
+      "id": "renderer",
+      "type": "backend",
+      "label": "PdfPageRenderer",
+      "sublabel": "PdfRenderer · mutex",
+      "stage": 2,
+      "row": 0,
+      "tag": "单线程访问"
+    },
+    {
+      "id": "render",
+      "type": "backend",
+      "label": "render",
+      "sublabel": "index + width",
+      "stage": 2,
+      "row": 2,
+      "tag": "IO · 上限 2048px"
+    },
+    {
+      "id": "zoom",
+      "type": "frontend",
+      "label": "ZoomableBox",
+      "sublabel": "settledScale",
+      "stage": 2,
+      "row": 3,
+      "tag": "手势结束才提交"
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "LruCache 位图",
+      "sublabel": "index@width",
+      "stage": 3,
+      "row": 0,
+      "tag": "按字节计量"
+    },
+    {
+      "id": "list",
+      "type": "frontend",
+      "label": "PdfPage 列表",
+      "sublabel": "LazyColumn · Compose",
+      "stage": 3,
+      "row": 2,
+      "tag": "按需组合"
+    },
+    {
+      "id": "counter",
+      "type": "frontend",
+      "label": "页码计数器",
+      "sublabel": "dominantPageIndex",
+      "stage": 4,
+      "row": 0,
+      "tag": "视口中心页"
+    }
+  ],
+  "flows": [
+    {
+      "from": "picker",
+      "to": "vm",
+      "label": "uri 与持久化读权限",
+      "classification": "用户触发",
+      "variant": "emphasis"
+    },
+    {
+      "from": "vm",
+      "to": "sniff",
+      "label": "openFileDescriptor · uri + r",
+      "classification": "打开文件",
+      "variant": "default",
+      "labelDy": 26
+    },
+    {
+      "from": "sniff",
+      "to": "renderer",
+      "label": "%PDF- 通过后构造",
+      "classification": "信任边界",
+      "variant": "security"
+    },
+    {
+      "from": "renderer",
+      "to": "render",
+      "label": "openPage 后持锁渲染",
+      "classification": "单线程访问",
+      "variant": "emphasis"
+    },
+    {
+      "from": "zoom",
+      "to": "render",
+      "label": "settledScale 决定新宽度",
+      "classification": "缩放重渲染",
+      "variant": "dashed"
+    },
+    {
+      "from": "render",
+      "to": "cache",
+      "label": "位图写入缓存",
+      "classification": "缓存键 index@width",
+      "variant": "default"
+    },
+    {
+      "from": "cache",
+      "to": "list",
+      "label": "命中直接返回",
+      "classification": "缓存读",
+      "variant": "default"
+    },
+    {
+      "from": "list",
+      "to": "counter",
+      "label": "layoutInfo 可见项",
+      "classification": "滚动状态",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "渲染契约",
+      "items": [
+        "页面按 settledScale 后的宽度渲染，不按缩放中的每一帧",
+        "渲染宽度上限 2048px，避免单页位图失控"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "缓存与占位",
+      "items": [
+        "缓存键是 index@width，换宽度即换条目",
+        "先返回 DEFAULT_PDF_ASPECT_RATIO 占位，真实比例到达后替换"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "页码语义",
+      "items": [
+        "计数器取视口中心所在页，而非视口顶部页",
+        "末尾页永远无法顶到视口顶部，用顶部会永远停在 N-1 / N"
+      ]
+    }
+  ]
+}

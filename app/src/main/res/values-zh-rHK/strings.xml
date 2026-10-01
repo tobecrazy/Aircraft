@@ -5,6 +5,7 @@
     <string name="theme_purple">紫色</string>
     <string name="theme_yellow">黃色</string>
     <string name="theme_red">紅色</string>
+    <string name="theme_dynamic">動態（跟隨系統）</string>
     <string name="app_name">飛機大戰</string>
     <string name="exit_warning_msg">再按一次保存進度並退出</string>
     <string name="pause_title">遊戲暫停</string>
@@ -311,13 +312,42 @@
     <string name="develop_settings_assistant_module_quick_settings">模塊：快捷設置入口</string>
     <string name="develop_settings_assistant_module_app_browser">模塊：已安裝應用瀏覽</string>
     <string name="develop_settings_assistant_module_activity_monitor">模塊：活動監控</string>
+    <string name="develop_settings_assistant_module_kernel_info">模組：核心資訊</string>
+    <string name="develop_settings_assistant_module_browser_engine">模組：瀏覽器核心</string>
     <string name="develop_settings_assistant_action_system_info">打開系統信息</string>
     <string name="develop_settings_assistant_action_quick_settings">打開系統設置</string>
     <string name="develop_settings_assistant_action_app_browser">打開應用列表</string>
     <string name="develop_settings_assistant_action_activity_monitor">打開活動日誌</string>
+    <string name="develop_settings_assistant_action_kernel_info">查看核心資訊</string>
+    <string name="develop_settings_assistant_action_browser_engine">查看瀏覽器核心</string>
     <string name="develop_settings_assistant_module_on">模塊已啓用</string>
     <string name="develop_settings_assistant_module_off">模塊已禁用</string>
     <string name="develop_settings_assistant_unavailable">當前設備不支持此操作</string>
+    <string name="develop_settings_assistant_kernel_dialog_title">核心資訊</string>
+    <string name="develop_settings_assistant_kernel_dialog_message">版本：%1$s
+架構：%2$s
+
+%3$s</string>
+    <string name="develop_settings_assistant_browser_dialog_title">瀏覽器核心</string>
+    <string name="develop_settings_assistant_browser_dialog_message">WebView：%1$s
+版本：%2$s
+Chromium：%3$s
+
+預設瀏覽器：%4$s
+
+UA：%5$s
+
+已安裝瀏覽器：
+%6$s</string>
+    <string name="develop_settings_assistant_browser_none">未找到</string>
+    <string name="develop_settings_assistant_apps_title">已安裝應用</string>
+    <string name="develop_settings_assistant_apps_search_hint">搜索應用名稱或包名</string>
+    <string name="develop_settings_assistant_apps_filter_user">用戶</string>
+    <string name="develop_settings_assistant_apps_filter_system">系統</string>
+    <string name="develop_settings_assistant_apps_filter_all">全部</string>
+    <string name="develop_settings_assistant_apps_empty">沒有匹配的應用</string>
+    <string name="develop_settings_assistant_apps_version_fmt">v%1$s</string>
+    <string name="develop_settings_assistant_apps_details">詳情</string>
     <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
     <string name="develop_settings_notification_button">測試 QR 工具通知</string>
     <string name="develop_settings_camera_scan_button">實時掃碼 (CameraX)</string>
@@ -340,8 +370,10 @@
     <string name="android_dev_assistant_tools_summary">當前調試構建可用的開發助手模塊詳情與快捷入口説明。</string>
     <string name="android_dev_assistant_tools_system_info">系統信息：打開應用內設備監控面板，查看 CPU、內存、磁盤、網絡和運行時長。</string>
     <string name="android_dev_assistant_tools_quick_settings">快捷設置入口：跳轉到系統設置或開發者選項（設備支持時）。</string>
-    <string name="android_dev_assistant_tools_app_browser">已安裝應用瀏覽：打開系統應用管理列表。</string>
+    <string name="android_dev_assistant_tools_app_browser">已安裝應用瀏覽：列出本機所有可啟動的應用，支持搜索、用戶/系統篩選、點擊啟動以及詳情入口。</string>
     <string name="android_dev_assistant_tools_activity_monitor">活動監控：打開應用內歷史頁面作為活動監控入口。</string>
+    <string name="android_dev_assistant_tools_kernel_info">核心資訊：顯示 Linux 核心版本、CPU 架構以及完整建置字串。</string>
+    <string name="android_dev_assistant_tools_browser_engine">瀏覽器核心：顯示 WebView 提供套件名稱與 Chromium 版本、User-Agent，以及本機已安裝的瀏覽器。</string>
     <string name="develop_settings_section_danger">危險區域</string>
     <string name="develop_settings_debug_badge">調試構建</string>
     <string name="develop_settings_runtime_label">運行時狀態</string>
@@ -456,6 +488,15 @@
     <string name="onboarding_invincibility">\u26E1 無敵護盾</string>
     <string name="onboarding_aoe_rocket">&#x1F381; 範圍火箭</string>
     <string name="onboarding_collect_all">收集所有道具！</string>
+    <string name="onboarding_time_freeze">⏱ 時間凍結</string>
+    <string name="onboarding_mission_title">任務簡報</string>
+    <string name="onboarding_levels_boss">▶ 10 個關卡，每關都有 BOSS</string>
+    <string name="onboarding_difficulty_fire">▶ 難度影響射速</string>
+    <string name="onboarding_hall_of_heroes">🏆 英靈殿保存你的紀錄</string>
+    <string name="onboarding_puzzle_title">拼圖模式</string>
+    <string name="onboarding_puzzle_entry">▶ 從設定進入，共 10 關</string>
+    <string name="onboarding_puzzle_drag">▶ 拖動碎片歸位</string>
+    <string name="onboarding_puzzle_scans">▶ 步數與掃描越少，星星越多</string>
 
     <string name="invincible_mode_on">你已經進入無敵模式。該模式下被攻擊不掉血。</string>
     <string name="invincible_mode_off">你已經恢復正常模式。該模式下正常掉血。</string>
@@ -471,4 +512,13 @@
     <string name="rich_text_load_example_json">JSON</string>
     <string name="rich_text_example_json_loaded">示例 JSON 已加載</string>
     <string name="rich_text_example_json_failed">無法加載示例 JSON</string>
+    <string name="pdf_reader_title">PDF 閱讀器</string>
+    <string name="pdf_reader_button">PDF 閱讀器</string>
+    <string name="pdf_reader_choose_file">選擇 PDF 文件</string>
+    <string name="pdf_reader_open">打開</string>
+    <string name="pdf_reader_empty_hint">請選擇一個 PDF 文件開始閱讀</string>
+    <string name="pdf_reader_error_invalid">該文件不是有效的 PDF</string>
+    <string name="pdf_reader_error_no_permission">沒有讀取該文件的權限</string>
+    <string name="pdf_reader_page_counter">%1$d / %2$d</string>
+    <string name="pdf_reader_page_desc">第 %1$d 頁</string>
 </resources>

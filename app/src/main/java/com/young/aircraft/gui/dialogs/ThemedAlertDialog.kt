@@ -19,7 +19,7 @@ fun MaterialAlertDialogBuilder.showThemed(): AlertDialog {
     }
     val dialog = setBackground(background).create()
     fun applyTheme() {
-        val colors = aircraftColorScheme(repository.getTheme())
+        val colors = aircraftColorScheme(context, repository.getTheme())
         background.setColor(colors.surface.toArgb())
         background.setStroke((1.5f * density).toInt().coerceAtLeast(1), colors.outline.toArgb())
         dialog.findViewById<TextView>(androidx.appcompat.R.id.alertTitle)?.setTextColor(colors.primary.toArgb())

@@ -8,7 +8,9 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
+import androidx.compose.ui.graphics.toArgb
 import com.young.aircraft.data.SettingsRepository
+import com.young.aircraft.ui.theme.themeAccent
 import kotlin.random.Random
 
 /**
@@ -35,7 +37,9 @@ class StarFieldView @JvmOverloads constructor(
 
         // Per-theme particle glyph + tint color. Color emoji (⭐ 🌹) render in their
         // own colors; monochrome glyphs (❉ ♣ ♦) take the paint tint.
-        internal fun particleFor(theme: String): Pair<String, Int> = when (theme) {
+        internal fun particleFor(context: Context, theme: String): Pair<String, Int> = when (theme) {
+            SettingsRepository.THEME_DYNAMIC ->
+                "❉" to themeAccent(context, theme).toArgb()
             SettingsRepository.THEME_BLUE -> "♣" to 0xFF64B5FF.toInt()
             SettingsRepository.THEME_PURPLE -> "♦" to 0xFFC4A0FF.toInt()
             SettingsRepository.THEME_YELLOW -> "⭐" to 0xFFFFD54F.toInt()
@@ -68,12 +72,12 @@ class StarFieldView @JvmOverloads constructor(
         SettingsRepository.PREFS_NAME,
         Context.MODE_PRIVATE
     )
-    internal var particle = particleFor(themePrefs.getString(SettingsRepository.KEY_THEME, null) ?: "")
+    internal var particle = particleFor(context, themePrefs.getString(SettingsRepository.KEY_THEME, null) ?: "")
         private set
 
     internal val themeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == null || key == SettingsRepository.KEY_THEME) {
-            particle = particleFor(themePrefs.getString(SettingsRepository.KEY_THEME, null) ?: "")
+            particle = particleFor(context, themePrefs.getString(SettingsRepository.KEY_THEME, null) ?: "")
             if (isAnimating) postInvalidateDelayed(FRAME_DELAY_MS)
         }
     }

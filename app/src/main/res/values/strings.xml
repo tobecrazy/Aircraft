@@ -5,6 +5,7 @@
     <string name="theme_purple">Purple</string>
     <string name="theme_yellow">Yellow</string>
     <string name="theme_red">Red</string>
+    <string name="theme_dynamic">Dynamic (system)</string>
     <string name="app_name">Aircraft</string>
     <string name="exit_warning_msg">Press again to save and exit</string>
     <string name="pause_title">GAME PAUSED</string>
@@ -311,13 +312,42 @@
     <string name="develop_settings_assistant_module_quick_settings">Module: Quick Settings Launcher</string>
     <string name="develop_settings_assistant_module_app_browser">Module: Installed Apps Browser</string>
     <string name="develop_settings_assistant_module_activity_monitor">Module: Activity Monitor</string>
+    <string name="develop_settings_assistant_module_kernel_info">Module: Kernel Info</string>
+    <string name="develop_settings_assistant_module_browser_engine">Module: Browser Engine</string>
     <string name="develop_settings_assistant_action_system_info">Open System Info</string>
     <string name="develop_settings_assistant_action_quick_settings">Open Settings</string>
     <string name="develop_settings_assistant_action_app_browser">Open Apps List</string>
     <string name="develop_settings_assistant_action_activity_monitor">Open Activity Log</string>
+    <string name="develop_settings_assistant_action_kernel_info">Show Kernel Info</string>
+    <string name="develop_settings_assistant_action_browser_engine">Show Browser Engine</string>
     <string name="develop_settings_assistant_module_on">Module enabled</string>
     <string name="develop_settings_assistant_module_off">Module disabled</string>
     <string name="develop_settings_assistant_unavailable">Action unavailable on this device</string>
+    <string name="develop_settings_assistant_kernel_dialog_title">Kernel Information</string>
+    <string name="develop_settings_assistant_kernel_dialog_message">Release: %1$s
+Arch: %2$s
+
+%3$s</string>
+    <string name="develop_settings_assistant_browser_dialog_title">Browser Engine</string>
+    <string name="develop_settings_assistant_browser_dialog_message">WebView: %1$s
+Version: %2$s
+Chromium: %3$s
+
+Default browser: %4$s
+
+UA: %5$s
+
+Installed browsers:
+%6$s</string>
+    <string name="develop_settings_assistant_browser_none">none found</string>
+    <string name="develop_settings_assistant_apps_title">Installed Apps</string>
+    <string name="develop_settings_assistant_apps_search_hint">Search name or package</string>
+    <string name="develop_settings_assistant_apps_filter_user">User</string>
+    <string name="develop_settings_assistant_apps_filter_system">System</string>
+    <string name="develop_settings_assistant_apps_filter_all">All</string>
+    <string name="develop_settings_assistant_apps_empty">No matching apps</string>
+    <string name="develop_settings_assistant_apps_version_fmt">v%1$s</string>
+    <string name="develop_settings_assistant_apps_details">Details</string>
     <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
     <string name="develop_settings_notification_button">Test QR Tool Notification</string>
     <string name="develop_settings_camera_scan_button">Live QR Scan (CameraX)</string>
@@ -340,8 +370,10 @@
     <string name="android_dev_assistant_tools_summary">Tool details and quick links for the developer assistant modules available in this debug build.</string>
     <string name="android_dev_assistant_tools_system_info">System Information: Opens the in-app device telemetry panel for CPU, memory, disk, network, and uptime.</string>
     <string name="android_dev_assistant_tools_quick_settings">Quick Settings Launcher: Jumps to system settings or developer settings where available.</string>
-    <string name="android_dev_assistant_tools_app_browser">Installed Apps Browser: Opens the system applications management list.</string>
+    <string name="android_dev_assistant_tools_app_browser">Installed Apps Browser: Lists every launchable app on this device with search, user/system filtering, tap to launch and a details shortcut.</string>
     <string name="android_dev_assistant_tools_activity_monitor">Activity Monitor: Opens the app activity/history screen as the monitor entry point.</string>
+    <string name="android_dev_assistant_tools_kernel_info">Kernel Info: Shows the Linux kernel release, CPU architecture and full build string.</string>
+    <string name="android_dev_assistant_tools_browser_engine">Browser Engine: Shows the WebView provider package and Chromium version, the User-Agent, and the browsers installed on this device.</string>
     <string name="develop_settings_section_danger">Danger Zone</string>
     <string name="develop_settings_debug_badge">DEBUG BUILD</string>
     <string name="develop_settings_runtime_label">Runtime Status</string>
@@ -456,6 +488,15 @@
     <string name="onboarding_invincibility">\u26E1 Invincibility Shield</string>
     <string name="onboarding_aoe_rocket">&#x1F381; AoE Rocket</string>
     <string name="onboarding_collect_all">COLLECT THEM ALL!</string>
+    <string name="onboarding_time_freeze">⏱ Time Freeze</string>
+    <string name="onboarding_mission_title">MISSION</string>
+    <string name="onboarding_levels_boss">▶ 10 LEVELS, boss after each</string>
+    <string name="onboarding_difficulty_fire">▶ DIFFICULTY sets your fire rate</string>
+    <string name="onboarding_hall_of_heroes">🏆 Hall of Heroes keeps your record</string>
+    <string name="onboarding_puzzle_title">PUZZLE MODE</string>
+    <string name="onboarding_puzzle_entry">▶ 10 levels, opened from Settings</string>
+    <string name="onboarding_puzzle_drag">▶ Drag the fragments back into place</string>
+    <string name="onboarding_puzzle_scans">▶ Fewer moves and scans earn more stars</string>
 
     <string name="invincible_mode_on">Invincible mode enabled. No damage will be taken.</string>
     <string name="invincible_mode_off">Normal mode restored. Damage will be taken normally.</string>
@@ -471,4 +512,13 @@
     <string name="rich_text_load_example_json">JSON</string>
     <string name="rich_text_example_json_loaded">Example JSON loaded</string>
     <string name="rich_text_example_json_failed">Could not load example JSON</string>
+    <string name="pdf_reader_title">PDF Reader</string>
+    <string name="pdf_reader_button">PDF Reader</string>
+    <string name="pdf_reader_choose_file">Choose PDF File</string>
+    <string name="pdf_reader_open">Open</string>
+    <string name="pdf_reader_empty_hint">Select a PDF file to start reading</string>
+    <string name="pdf_reader_error_invalid">This file is not a valid PDF</string>
+    <string name="pdf_reader_error_no_permission">No permission to read this file</string>
+    <string name="pdf_reader_page_counter">%1$d / %2$d</string>
+    <string name="pdf_reader_page_desc">Page %1$d</string>
 </resources>

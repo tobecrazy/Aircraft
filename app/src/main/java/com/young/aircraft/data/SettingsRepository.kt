@@ -19,11 +19,11 @@ class SettingsRepository(context: Context) {
     }
 
     fun getTheme(): String = prefs.getString(KEY_THEME, THEME_GREEN)
-        ?.takeIf { it in setOf(THEME_GREEN, THEME_BLUE, THEME_PURPLE, THEME_YELLOW, THEME_RED) }
+        ?.takeIf { it in THEME_IDS }
             ?: THEME_GREEN
 
     fun setTheme(theme: String) {
-        require(theme in setOf(THEME_GREEN, THEME_BLUE, THEME_PURPLE, THEME_YELLOW, THEME_RED))
+        require(theme in THEME_IDS) { "unknown theme: $theme" }
         prefs.edit { putString(KEY_THEME, theme) }
     }
 
@@ -165,6 +165,10 @@ class SettingsRepository(context: Context) {
         const val THEME_PURPLE = "purple"
         const val THEME_YELLOW = "yellow"
         const val THEME_RED = "red"
+        const val THEME_DYNAMIC = "dynamic"
+
+        /** Every selectable accent; getTheme/setTheme validate against this one list. */
+        val THEME_IDS = setOf(THEME_GREEN, THEME_BLUE, THEME_PURPLE, THEME_YELLOW, THEME_RED, THEME_DYNAMIC)
         const val KEY_DIFFICULTY = "difficulty"
         const val KEY_BACKGROUND_SOUND = "background_sound"
         const val KEY_COMBAT_SOUND = "combat_sound"

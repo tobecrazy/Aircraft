@@ -60,7 +60,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -95,6 +94,7 @@ import kotlin.math.roundToInt
 import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.AccentGreen
+import com.young.aircraft.ui.theme.aircraftSwitchColors
 import com.young.aircraft.ui.theme.DividerGreen
 import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.ui.theme.TextSubtle
@@ -638,14 +638,7 @@ private fun ToggleCard(
                 checked = uiState.isOn,
                 enabled = controlsEnabled && uiState.isFlashAvailable,
                 onCheckedChange = onToggleFlashlight,
-                colors = SwitchDefaults.colors(
-                    checkedTrackColor = AccentGreen,
-                    checkedThumbColor = Color.White,
-                    uncheckedTrackColor = FlashMuted.copy(alpha = 0.35f),
-                    uncheckedThumbColor = TextSubtle,
-                    disabledCheckedTrackColor = AccentGreen.copy(alpha = 0.22f),
-                    disabledUncheckedTrackColor = FlashMuted.copy(alpha = 0.18f)
-                )
+                colors = aircraftSwitchColors()
             )
         }
     }
