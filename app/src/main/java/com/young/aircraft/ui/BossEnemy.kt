@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
@@ -13,6 +14,7 @@ import com.young.aircraft.data.BossBomb
 import com.young.aircraft.data.BossState
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.utils.ScreenUtils
+import kotlin.math.sin
 import kotlin.random.Random
 
 class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context) {
@@ -65,6 +67,11 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         )
     }
 
+    private val orbPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = Color.RED
+    }
+
     companion object {
         const val BASE_HP = 1000f
         const val DAMAGE_PER_HIT = 10f
@@ -72,6 +79,13 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         const val BOMB_SPEED = 8f
         const val BASE_BOMB_FIRE_INTERVAL = 80
         const val HIT_FLASH_MS = 150L
+        /** HP ratio below which the boss switches from single shots to spread shot. */
+        const val SPREAD_HP_RATIO = 0.5f
+        const val SPREAD_SHOT_COUNT = 5
+        /** Total spread-shot angle, in degrees (± half around straight down). */
+        const val SPREAD_SHOT_ANGLE = 40f
+        /** Spread-shot orb radius as a fraction of the rendered missile size. */
+        const val SPREAD_ORB_RADIUS_RATIO = 0.22f
         const val TARGET_ZONE_TOP = 0.08f
         const val TARGET_ZONE_BOTTOM = 0.30f
         const val COLLISION_INSET_X = 0.25f  // 25% inset on each side horizontally
@@ -291,11 +305,29 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     }
 
     private fun fireBomb(boss: BossState) {
-        val bmpIndex = rng.nextInt(missileBitmaps.size)
-        // Launch from the bottom-center of the rendered boss sprite
         val bombX = boss.x + renderedBossSize / 2f - renderedMissileSize / 2f
         val bombY = boss.y + renderedBossSize
-        boss.bombs.add(BossBomb(x = bombX, y = bombY, bitmapIndex = bmpIndex))
+        if (!boss.isBelowHpRatio(SPREAD_HP_RATIO)) {
+            boss.bombs.add(
+                BossBomb(x = bombX, y = bombY, bitmapIndex = rng.nextInt(missileBitmaps.size))
+            )
+            return
+        }
+        // Low HP: spread shot — orbs spread symmetrically around straight down.
+        val half = SPREAD_SHOT_ANGLE / 2f
+        val step = SPREAD_SHOT_ANGLE / (SPREAD_SHOT_COUNT - 1)
+        for (i in 0 until SPREAD_SHOT_COUNT) {
+            val angle = Math.toRadians((-half + step * i).toDouble())
+            boss.bombs.add(
+                BossBomb(
+                    x = bombX,
+                    y = bombY,
+                    bitmapIndex = rng.nextInt(missileBitmaps.size),
+                    vx = (sin(angle) * BOMB_SPEED).toFloat(),
+                    isSpreadShot = true
+                )
+            )
+        }
     }
 
     private fun drawBoss(canvas: Canvas, boss: BossState) {
@@ -311,13 +343,23 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         while (iter.hasNext()) {
             val bomb = iter.next()
             bomb.y += bombSpeed * speed
-            // Remove if off-screen bottom
-            if (bomb.y > screenHeight) {
+            bomb.x += bomb.vx * speed
+            // Remove once fully off-screen in any direction (spread shots drift sideways)
+            if (bomb.y > screenHeight || bomb.x > screenWidth || bomb.x + renderedMissileSize < 0f) {
                 iter.remove()
                 continue
             }
-            val bmp = missileBitmaps.getOrNull(bomb.bitmapIndex)
-            bmp?.let { canvas.drawBitmap(it, bomb.x, bomb.y, mPaint) }
+            if (bomb.isSpreadShot) {
+                canvas.drawCircle(
+                    bomb.x + renderedMissileSize / 2f,
+                    bomb.y + renderedMissileSize / 2f,
+                    SPREAD_ORB_RADIUS_RATIO * renderedMissileSize,
+                    orbPaint
+                )
+            } else {
+                val bmp = missileBitmaps.getOrNull(bomb.bitmapIndex)
+                bmp?.let { canvas.drawBitmap(it, bomb.x, bomb.y, mPaint) }
+            }
         }
     }
 

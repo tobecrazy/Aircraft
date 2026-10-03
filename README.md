@@ -22,7 +22,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - **Launch hub** — jet selection, continue/new-game dialog when a saved run exists, and entry points to History, Settings, and the QR/Flashlight utilities.
 - **Combat gameplay** — 30 FPS `SurfaceView` rendering with drag-to-move controls, auto-firing bullets, scrolling backgrounds, the two-row tactical HUD (mission/hull cards + countdown timer), and screen-shake/damage-flash feedback.
 - **Power-ups in action** — red envelopes detonating into AoE rockets, medical kits restoring HP, shields granting blink-indicated invincibility, and time freezes locking enemies in place.
-- **Boss fight** — end-of-level boss with bomb attacks, scaling HP, and the multi-phase particle explosion on defeat.
+- **Boss fight** — end-of-level boss with bomb attacks, scaling HP, a two-phase attack pattern (single missile shots above half HP, a 5-way spread of red orbs below half HP), and the multi-phase particle explosion on defeat.
 - **Puzzle mode** — Compose-based drag-and-drop picture puzzle with pinch zoom, auto-snapping, hints, and undo, opened separately from Settings (3×3 / 4×4 / 5×5 by difficulty).
 - **Utility screens** — QR code scan/generate, flashlight with SOS and brightness control, device info telemetry, and the localized About / History screens.
 
@@ -107,7 +107,7 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 
 - **Progression**: 10 combat levels with timers decreasing from 300s to 120s; a separate 10-level puzzle mode accessible from Settings
 - **Puzzle difficulty**: piece count is fixed per difficulty preset — Easy `3×3` (9 pieces), Normal `4×4` (16 pieces), Hard `5×5` (25 pieces)
-- **Boss fights**: every level ends with a boss that scales from 1,000 HP to 1,900 HP
+- **Boss fights**: every level ends with a boss that scales from 1,000 HP to 1,900 HP. Above half HP it fires single missiles straight down; below half HP every salvo becomes a 5-shot spread of red orbs angled ±20° around straight down, with the shot count, angle, and HP threshold tunable in `BossEnemy`'s companion object
 - **Controls**: drag the plane to move; bullets auto-fire during play
 - **Power-ups**:
   - Red envelopes take 3 hits, then launch rockets with AoE damage
@@ -176,7 +176,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── PlayerGameDataDao.kt            # Leaderboard/save DAO; replaceForPlayer() @Transaction
 │   ├── PlayerAircraft.kt               # Player HP and damage model
 │   ├── EnemyState.kt                   # Enemy position and bullet state
-│   ├── BossState.kt                    # Boss HP, bombs, and sprite state
+│   ├── BossState.kt                    # Boss HP, bombs (incl. spread-shot velocity), and sprite state
 │   ├── RedEnvelopeState.kt             # Red envelope pickup state
 │   ├── RocketState.kt                  # Rocket projectile state
 │   ├── MedicalKitState.kt              # Medical kit pickup state
@@ -234,7 +234,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── DrawHeader.kt                   # Two-row in-canvas HUD: mission/hull cards top, timer below
 │   ├── Aircraft.kt                     # Player sprite and bullet system
 │   ├── Enemies.kt                      # Enemy spawning, movement, and bullets
-│   ├── BossEnemy.kt                    # Boss AI, bombs, and scaling HP
+│   ├── BossEnemy.kt                    # Boss AI, bombs, low-HP spread shot, and scaling HP
 │   ├── RedEnvelopes.kt                 # Rocket power-up and explosion handling
 │   ├── MedicalKits.kt                  # HP pickup spawning and lifetime rules
 │   ├── Shields.kt                      # Shield pickup spawning and lifetime rules

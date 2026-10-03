@@ -2,6 +2,7 @@ package com.young.aircraft.ui
 
 import android.app.Activity
 import android.content.Context
+import com.young.aircraft.data.BossState
 import com.young.aircraft.data.EnemyState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -64,5 +65,35 @@ class GameCoreViewCollisionTest {
         val method = GameCoreView::class.java.getDeclaredMethod("checkPlayerBulletsHitEnemies")
         method.isAccessible = true
         method.invoke(gameCoreView)
+    }
+
+    @Test
+    fun `boss fires a single missile above half hp and a symmetric spread of orbs below it`() {
+        val bossEnemy = BossEnemy(context, speed = 0f)
+        bossEnemy.spawnBoss(1)
+        val boss = requireNotNull(bossEnemy.activeBoss)
+
+        boss.hitPoints = boss.maxHitPoints
+        invokeFireBomb(bossEnemy)
+        assertEquals(1, boss.bombs.size)
+        assertFalse(boss.bombs.single().isSpreadShot)
+        assertEquals(0f, boss.bombs.single().vx, 0f)
+
+        boss.bombs.clear()
+        boss.hitPoints = boss.maxHitPoints * BossEnemy.SPREAD_HP_RATIO - 1f
+        invokeFireBomb(bossEnemy)
+
+        val spread = boss.bombs
+        assertEquals(BossEnemy.SPREAD_SHOT_COUNT, spread.size)
+        assertTrue(spread.all { it.isSpreadShot })
+        // Symmetric spread: outermost shots mirror each other, and nobody fires straight up.
+        assertEquals(-spread.first().vx, spread.last().vx, 0.0001f)
+        assertEquals(0f, spread[spread.size / 2].vx, 0.0001f)
+    }
+
+    private fun invokeFireBomb(bossEnemy: BossEnemy) {
+        val method = BossEnemy::class.java.getDeclaredMethod("fireBomb", BossState::class.java)
+        method.isAccessible = true
+        method.invoke(bossEnemy, bossEnemy.activeBoss)
     }
 }

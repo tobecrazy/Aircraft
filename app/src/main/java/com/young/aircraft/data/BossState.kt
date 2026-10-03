@@ -3,7 +3,11 @@ package com.young.aircraft.data
 data class BossBomb(
     var x: Float,
     var y: Float,
-    val bitmapIndex: Int
+    val bitmapIndex: Int,
+    /** Horizontal velocity in px/frame; 0 = straight down. */
+    val vx: Float = 0f,
+    /** Spread shots render as a red orb instead of a missile sprite. */
+    val isSpreadShot: Boolean = false
 )
 
 data class BossState(
@@ -17,6 +21,9 @@ data class BossState(
     val bombs: MutableList<BossBomb> = mutableListOf()
 ) {
     fun isDestroyed(): Boolean = hitPoints <= 0
+
+    /** Below the given fraction of max HP the boss switches to spread shot. */
+    fun isBelowHpRatio(ratio: Float): Boolean = hitPoints < maxHitPoints * ratio
 
     fun isExpired(): Boolean {
         if (destroyedTime == 0L) return false
