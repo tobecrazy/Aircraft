@@ -194,7 +194,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── OnboardingActivity.kt           # Compose 4-page onboarding carousel (HorizontalPager); PAGE_COUNT drives pages/indicators/button
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host: GameCoreView via AndroidView + GameHudOverlay, pause flow, dialogs, DB save
-│   ├── GameHudScreen.kt                # Compose HUD overlay (chips, pause card) drawn over the SurfaceView
+│   ├── GameHudScreen.kt                # Compose HUD overlay — currently unreferenced; the live HUD is Canvas-drawn by ui/DrawHeader.kt
 │   ├── PuzzleActivity.kt               # Independent ten-level Compose puzzle game, opened from Settings
 │   ├── HistoryActivity.kt              # Compose leaderboard with top-record styling and deletion
 │   ├── SettingsActivity.kt             # Navigation hub over SettingsScreen's SettingsDestination list
@@ -210,14 +210,17 @@ app/src/main/java/com/young/aircraft/
 │   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
 │   ├── CameraScanActivity.kt           # Debug-only live QR scan (CameraX LifecycleCameraController + MlKitAnalyzer)
 │   ├── DeviceInfoActivity.kt           # Compose live system monitor; foldable-aware System Info layout
+│   ├── PdfReaderActivity.kt            # DEBUG PDF viewer over platform PdfRenderer: page list, pinch zoom, re-render on settle
 │   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer
 │   ├── ThemedMessage.kt                # Themed Material Snackbar factory (replaces system Toasts)
+│   ├── AppListDialog.kt                # Installed-app picker dialog; readInstalledApps()/filterApps() are internal top-level for tests
 │   ├── StarFieldView.kt                # Animated cinematic background
 │   └── dialogs/
 │       ├── DialogCompose.kt            # Dialog.setDialogComposeContent(host) — lifecycle + theme + dismiss plumbing
 │       ├── GameDialogContent.kt        # Compose game-over / level-complete / victory content + palette/stat models
+│       ├── InfoDialogContent.kt        # Compose key/value info panel with copy-to-clipboard rows
 │       └── ThemedAlertDialog.kt        # MaterialAlertDialogBuilder.showThemed() native confirmation theming
 ├── providers/
 │   └── DatabaseProvider.kt             # Singleton Room provider (explicit migrations, no destructive fallback)
@@ -265,11 +268,20 @@ app/src/main/java/com/young/aircraft/
     ├── AboutMeViewModel.kt             # Developer profile data (AboutMeActivity)
     ├── DeviceInfoViewModel.kt          # CPU/memory/disk/network telemetry (DeviceInfoActivity)
     ├── DeviceInfoUiState.kt            # UI state for device info screen
+    ├── PdfViewModel.kt                 # PdfRenderer owner: mutex-guarded openPage, LRU bitmap cache, page load/size state (PdfReaderActivity)
     ├── QRCodeToolViewModel.kt          # QR encode/decode logic (QRCodeToolActivity)
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
     ├── FlashlightViewModel.kt          # Drives FlashlightService via intents; observes torch state via TorchCallback and SOS state via FlashlightService.isSosRunning
     ├── BannerDetailsViewModel.kt       # Banner detail display/download logic (BannerDetailsActivity)
     └── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
+
+app/src/debug/java/com/young/aircraft/
+└── utils/
+    └── DebugTools.kt                  # isEnabled = true; log() and enableWebViewDebugging() are live
+
+app/src/release/java/com/young/aircraft/
+└── utils/
+    └── DebugTools.kt                  # Same class, isEnabled = false; every method is a no-op (debug gate is a source-set split, not a runtime flag)
 ```
 
 ## Tests
