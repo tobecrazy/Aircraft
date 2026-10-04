@@ -2,7 +2,6 @@ package com.young.aircraft.gui
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,13 +29,15 @@ import com.young.aircraft.ui.theme.DividerGreen
 import com.young.aircraft.viewmodel.SettingsUiState
 import com.young.aircraft.viewmodel.SettingsViewModel
 
-class GameSettingsActivity : AppCompatActivity() {
+class GameSettingsActivity : BaseAircraftActivity() {
     private lateinit var viewModel: SettingsViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this, SettingsViewModel.Factory(this))[SettingsViewModel::class.java]
+    }
+
+    override fun initializeUI() {
+        supportActionBar?.hide()
 
         setContent {
             AircraftTheme {

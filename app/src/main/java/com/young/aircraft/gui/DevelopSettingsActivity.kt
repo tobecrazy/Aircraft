@@ -13,7 +13,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -117,7 +116,7 @@ private val HintMuted = Color(0xFF7F8AA3)
 private val SectionLabel = Color(0x66FFFFFF)
 private val HeroDivider = Color(0x16FFFFFF)
 
-class DevelopSettingsActivity : AppCompatActivity() {
+class DevelopSettingsActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: DevelopSettingsViewModel
     private var invincible by mutableStateOf(false)
@@ -133,18 +132,19 @@ class DevelopSettingsActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         if (!DebugTools.isEnabled) {
             finish()
             return
         }
 
-        enableEdgeToEdge()
         viewModel = ViewModelProvider(this, DevelopSettingsViewModel.Factory(this))[DevelopSettingsViewModel::class.java]
         invincible = viewModel.isInvincibleModeEnabled()
         GameStateManager.isInvincible = invincible
+    }
 
+    override fun initializeUI() {
+        enableEdgeToEdge()
         setContent {
             AircraftTheme {
                 DevelopSettingsScreen(

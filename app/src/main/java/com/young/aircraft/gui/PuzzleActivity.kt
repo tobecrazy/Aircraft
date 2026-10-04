@@ -2,7 +2,6 @@ package com.young.aircraft.gui
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -106,7 +105,7 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-class PuzzleActivity : ComponentActivity() {
+class PuzzleActivity : BaseAircraftActivity() {
     companion object {
         private const val MAX_PUZZLE_LEVEL = 10
         private const val KEY_ACTIVE_PUZZLE_IMAGE_LEVEL = "active_puzzle_image_level"
@@ -120,9 +119,8 @@ class PuzzleActivity : ComponentActivity() {
     private var jetPlaneRes: Int = R.drawable.jet_plane_2
     private var jetPlaneIndex: Int = 0
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
+        viewModel.getDifficulty()
         puzzleLevel = intent.getIntExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, 1).coerceIn(1, MAX_PUZZLE_LEVEL)
         puzzleScore = intent.getLongExtra(AircraftConstants.IntentExtras.PUZZLE_SCORE, 0L)
         totalKills = intent.getIntExtra(AircraftConstants.IntentExtras.TOTAL_KILLS, 0)
@@ -136,7 +134,10 @@ class PuzzleActivity : ComponentActivity() {
             this,
             PuzzleImageViewModel.Factory(this, activeImageLevel)
         )[PuzzleImageViewModel::class.java]
+    }
 
+    override fun initializeUI() {
+        enableEdgeToEdge()
         setContent {
             AircraftTheme {
                 val imageState by imageViewModel.uiState.collectAsState()

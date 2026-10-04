@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -92,16 +91,17 @@ data class SavedGameInfo(
 )
 
 @SuppressLint("CustomSplashScreen")
-class LaunchActivity : AppCompatActivity() {
+class LaunchActivity : BaseAircraftActivity() {
     internal lateinit var viewModel: LaunchViewModel
     private var starFieldView: StarFieldView? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this, LaunchViewModel.Factory(this))[LaunchViewModel::class.java]
+    }
+
+    override fun initializeUI() {
+        enableEdgeToEdge()
+        supportActionBar?.hide()
 
         setContent {
             AircraftTheme {

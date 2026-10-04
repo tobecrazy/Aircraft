@@ -11,7 +11,6 @@ import android.os.Looper
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -81,7 +80,7 @@ import com.young.aircraft.ui.theme.TextSubtle
 import com.young.aircraft.ui.theme.TextMuted
 import com.young.aircraft.ui.theme.AircraftTheme
 
-class DeviceInfoActivity : AppCompatActivity() {
+class DeviceInfoActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: DeviceInfoViewModel
 
@@ -108,21 +107,20 @@ class DeviceInfoActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this, DeviceInfoViewModel.Factory(this))[DeviceInfoViewModel::class.java]
-
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
-        )
-
         viewModel.initStaticInfo()
         viewModel.initCpuSnapshot()
         viewModel.initTrafficSnapshot()
         viewModel.refreshDynamicInfo()
+    }
+
+    override fun initializeUI() {
+        supportActionBar?.hide()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+        )
 
         setContent {
             AircraftTheme {

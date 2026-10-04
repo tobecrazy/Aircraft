@@ -14,7 +14,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -174,22 +173,24 @@ internal data class AssistantModule(
     val actionRes: Int
 )
 
-class AndroidDevAssistantToolsActivity : AppCompatActivity() {
+class AndroidDevAssistantToolsActivity : BaseAircraftActivity() {
 
     private lateinit var assistantPrefs: SharedPreferences
     private val logSettingsViewModel: LogSettingsViewModel by viewModels {
         LogSettingsViewModel.Factory(applicationContext)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         if (!DebugTools.isEnabled) {
             finish()
             return
         }
 
         assistantPrefs = getSharedPreferences(ASSISTANT_PREFS, MODE_PRIVATE)
+        logSettingsViewModel.enabled.value
+    }
 
+    override fun initializeUI() {
         enableEdgeToEdge()
         setContent {
             AircraftTheme {

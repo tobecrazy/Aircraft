@@ -7,7 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
@@ -70,16 +69,18 @@ import com.young.aircraft.data.isValidChinaPhoneNumber
 import com.young.aircraft.data.isValidOptionalEmail
 import com.young.aircraft.viewmodel.ContactsViewModel
 
-class ContactsActivity : AppCompatActivity() {
+class ContactsActivity : BaseAircraftActivity() {
     private lateinit var viewModel: ContactsViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         if (!DebugTools.isEnabled) {
             finish()
             return
         }
         viewModel = ViewModelProvider(this)[ContactsViewModel::class.java]
+    }
+
+    override fun initializeUI() {
         enableEdgeToEdge()
         setContent {
             AircraftTheme {

@@ -48,7 +48,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
@@ -62,7 +61,7 @@ import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.utils.DebugTools
 import java.util.Locale
 
-class PrivacyPolicyActivity : AppCompatActivity() {
+class PrivacyPolicyActivity : BaseAircraftActivity() {
     private var policyWebView: WebView? = null
     private var currentPolicyPage = ""
     private var hasMainFrameError = false
@@ -72,10 +71,9 @@ class PrivacyPolicyActivity : AppCompatActivity() {
     private var errorVisible by mutableStateOf(false)
     private var languageChipText by mutableStateOf("")
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_Aircraft_Common)
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) = Unit
 
+    override fun initializeUI() {
         enableEdgeToEdge()
 
         currentPolicyPage = resolveInitialPolicyPage()

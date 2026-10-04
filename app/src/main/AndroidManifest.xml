@@ -50,7 +50,8 @@
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.PrivacyPolicyActivity"
-            android:exported="false">
+            android:exported="false"
+            android:theme="@style/Theme.Aircraft.Common">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

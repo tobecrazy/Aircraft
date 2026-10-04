@@ -7,7 +7,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -85,7 +84,7 @@ import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.supperbanner.SupperBannerImage
 import com.young.supperbanner.SupperBannerItem
 
-class BannerDetailsActivity : AppCompatActivity() {
+class BannerDetailsActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: BannerDetailsViewModel
 
@@ -95,8 +94,7 @@ class BannerDetailsActivity : AppCompatActivity() {
         if (uri != null) viewModel.saveImage(uri)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         supportActionBar?.hide()
 
         if (BannerDetailsIntentContract.fromIntent(intent) == null) {
@@ -107,7 +105,9 @@ class BannerDetailsActivity : AppCompatActivity() {
             this,
             BannerDetailsViewModel.Factory(this, intent)
         )[BannerDetailsViewModel::class.java]
+    }
 
+    override fun initializeUI() {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)

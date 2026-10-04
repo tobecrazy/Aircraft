@@ -8,7 +8,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -92,7 +91,7 @@ import com.young.aircraft.ui.theme.AccentGreen
 import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.ui.theme.AircraftTheme
 
-class ShowImageDetailsActivity : AppCompatActivity() {
+class ShowImageDetailsActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: ShowImageDetailsViewModel
 
@@ -102,10 +101,7 @@ class ShowImageDetailsActivity : AppCompatActivity() {
         if (uri != null) viewModel.saveImage(uri)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         if (ImageDetailsIntentContract.fromIntent(intent) == null) {
             finish()
             return
@@ -114,7 +110,10 @@ class ShowImageDetailsActivity : AppCompatActivity() {
             this,
             ShowImageDetailsViewModel.Factory(this, intent)
         )[ShowImageDetailsViewModel::class.java]
+    }
 
+    override fun initializeUI() {
+        supportActionBar?.hide()
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)

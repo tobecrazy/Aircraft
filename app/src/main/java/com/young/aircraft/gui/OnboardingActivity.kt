@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -89,16 +88,17 @@ private const val PAGE_COUNT = 4
  * GATE: check onboarding_completed → skip to LaunchActivity if done / show carousel if not
  * Skip or Launch → save pref → LaunchActivity
  */
-class OnboardingActivity : AppCompatActivity() {
+class OnboardingActivity : BaseAircraftActivity() {
     private lateinit var viewModel: OnboardingViewModel
     private var starFieldView: StarFieldView? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this, OnboardingViewModel.Factory(this))[OnboardingViewModel::class.java]
+    }
+
+    override fun initializeUI() {
+        enableEdgeToEdge()
+        supportActionBar?.hide()
 
         // Gate: skip if already completed
         if (viewModel.isAlreadyCompleted()) {

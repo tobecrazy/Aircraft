@@ -2,7 +2,6 @@ package com.young.aircraft.gui
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,9 +49,10 @@ private val LANGUAGE_OPTIONS = listOf(
     "en" to R.string.language_english
 )
 
-class LanguageSettingsActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+class LanguageSettingsActivity : BaseAircraftActivity() {
+    override fun initializeViewModel(savedInstanceState: Bundle?) = Unit
+
+    override fun initializeUI() {
         supportActionBar?.hide()
 
         setContent {

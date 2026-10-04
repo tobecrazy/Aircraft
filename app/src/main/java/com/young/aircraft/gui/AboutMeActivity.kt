@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,20 +76,21 @@ import com.young.aircraft.ui.theme.TextBody
 import com.young.aircraft.ui.theme.TextMuted
 import com.young.aircraft.ui.theme.AircraftTheme
 
-class AboutMeActivity : AppCompatActivity() {
+class AboutMeActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: AboutMeViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
+        viewModel = ViewModelProvider(this, AboutMeViewModel.Factory(this))[AboutMeViewModel::class.java]
+    }
+
+    override fun initializeUI() {
         supportActionBar?.hide()
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
         )
-
-        viewModel = ViewModelProvider(this, AboutMeViewModel.Factory(this))[AboutMeViewModel::class.java]
 
         setContent {
             AircraftTheme {
@@ -114,7 +114,7 @@ class AboutMeActivity : AppCompatActivity() {
     }
 }
 
-private val PROFILE_IMAGE_URL = AircraftConstants.Urls.PROFILE_IMAGE
+private const val PROFILE_IMAGE_URL = AircraftConstants.Urls.PROFILE_IMAGE
 
 private val CardBackground = Color(0x20252A3A)
 private val CardBorder = Color(0x2200FF88)
@@ -283,7 +283,6 @@ private fun AboutMeHeroCard(
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 private fun HeroTextPanel(
     repoUrl: String,
     onOpenRepo: () -> Unit,
@@ -515,4 +514,3 @@ private fun ProjectNarrativeCard(
         }
     }
 }
-

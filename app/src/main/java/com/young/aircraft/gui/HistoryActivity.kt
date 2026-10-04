@@ -3,7 +3,6 @@ package com.young.aircraft.gui
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -87,18 +86,18 @@ private val RAINBOW_COLORS = listOf(
     Color(0xFFAA66CC)
 )
 
-class HistoryActivity : AppCompatActivity() {
+class HistoryActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: HistoryViewModel
     private val scoreFormatter = NumberFormat.getNumberInstance(Locale.US)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         val dao = DatabaseProvider.getDatabase(applicationContext).playerGameDataDao()
         viewModel = ViewModelProvider(this, HistoryViewModel.Factory(dao))[HistoryViewModel::class.java]
+    }
 
+    override fun initializeUI() {
+        enableEdgeToEdge()
         setContent {
             AircraftTheme {
                 val state by viewModel.uiState.collectAsState()
