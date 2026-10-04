@@ -54,6 +54,7 @@ androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version
 media = { module = "androidx.media:media", version.ref = "media" }
 preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
 lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }

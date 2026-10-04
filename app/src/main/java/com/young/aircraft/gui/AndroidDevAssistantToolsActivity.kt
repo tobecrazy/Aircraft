@@ -47,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -216,6 +217,8 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
 
             MODULE_APP_BROWSER -> showAppListDialog()
 
+            MODULE_CONTACTS -> startActivity(Intent(this, ContactsActivity::class.java))
+
             MODULE_ACTIVITY_MONITOR -> startActivity(Intent(this, HistoryActivity::class.java))
 
             MODULE_KERNEL_INFO -> showKernelInfoDialog()
@@ -296,6 +299,7 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
         internal const val MODULE_SYSTEM_INFO = "module_system_info"
         internal const val MODULE_QUICK_SETTINGS = "module_quick_settings"
         internal const val MODULE_APP_BROWSER = "module_app_browser"
+        internal const val MODULE_CONTACTS = "module_contacts"
         internal const val MODULE_ACTIVITY_MONITOR = "module_activity_monitor"
         internal const val MODULE_KERNEL_INFO = "module_kernel_info"
         internal const val MODULE_BROWSER_ENGINE = "module_browser_engine"
@@ -318,6 +322,12 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
                 labelRes = R.string.develop_settings_assistant_module_app_browser,
                 descriptionRes = R.string.android_dev_assistant_tools_app_browser,
                 actionRes = R.string.develop_settings_assistant_action_app_browser
+            ),
+            AssistantModule(
+                prefKey = MODULE_CONTACTS,
+                labelRes = R.string.develop_settings_assistant_module_contacts,
+                descriptionRes = R.string.android_dev_assistant_tools_contacts,
+                actionRes = R.string.develop_settings_assistant_action_contacts
             ),
             AssistantModule(
                 prefKey = MODULE_ACTIVITY_MONITOR,
@@ -417,12 +427,18 @@ private fun AssistantHeader(onBack: () -> Unit) {
         }
         Text(
             text = stringResource(R.string.android_dev_assistant_tools_title),
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .padding(horizontal = 56.dp, vertical = 8.dp),
             color = AccentGreen,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
-            letterSpacing = 0.25.sp
+            letterSpacing = 0.25.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

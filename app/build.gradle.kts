@@ -85,6 +85,7 @@ dependencies {
     implementation(libs.media)
     implementation(libs.preference.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.runtime.compose)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
