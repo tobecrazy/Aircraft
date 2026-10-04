@@ -96,6 +96,7 @@
 
     <style name="Widget.Aircraft.HallOfHeroesBottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="android:background">@android:color/transparent</item>
+        <item name="paddingBottomSystemWindowInsets">true</item>
     </style>
 
     <style name="ThemeOverlay.Aircraft.QrToolBottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">

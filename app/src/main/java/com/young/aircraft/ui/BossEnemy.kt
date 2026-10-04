@@ -21,6 +21,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
     var activeBoss: BossState? = null
     private val deathExplosions = mutableListOf<ExplosionEffect>()
     private val bombExplosions = mutableListOf<ExplosionEffect>()
+    private var bossFireworks: BossFireworksEffect? = null
     var level: Int = 1
 
     private val bossBitmaps = mutableListOf<Bitmap?>()
@@ -78,6 +79,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         const val SPEED_MULTIPLIER = 1.5f
         const val BOMB_SPEED = 8f
         const val BASE_BOMB_FIRE_INTERVAL = 80
+        const val SPREAD_SHOT_FIRE_INTERVAL_MULTIPLIER = 1.5f
         const val HIT_FLASH_MS = 150L
         /** HP ratio below which the boss switches from single shots to spread shot. */
         const val SPREAD_HP_RATIO = 0.5f
@@ -134,8 +136,15 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         }
     }
 
-    private fun getBombFireInterval(): Int {
-        return (BASE_BOMB_FIRE_INTERVAL / (1f + 0.3f * (level - 1))).toInt().coerceAtLeast(15)
+    internal fun getBombFireInterval(isSpreadShot: Boolean): Int {
+        val levelInterval = (BASE_BOMB_FIRE_INTERVAL / (1f + 0.3f * (level - 1)))
+            .toInt()
+            .coerceAtLeast(15)
+        return if (isSpreadShot) {
+            (levelInterval * SPREAD_SHOT_FIRE_INTERVAL_MULTIPLIER).toInt()
+        } else {
+            levelInterval
+        }
     }
 
     fun spawnBoss(level: Int) {
@@ -242,6 +251,13 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         }
         drawDeathExplosions(canvas)
         drawBombExplosions(canvas)
+        bossFireworks?.let { fireworks ->
+            if (fireworks.isFinished()) {
+                bossFireworks = null
+            } else {
+                fireworks.draw(canvas)
+            }
+        }
     }
 
     private val marginPx = ScreenUtils.dpToPx(context, 40.0f).toFloat()
@@ -297,7 +313,8 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         // Only fire when boss is in the target zone (visible on screen)
         if (boss.y >= screenHeight * TARGET_ZONE_TOP) {
             bombCounter++
-            if (bombCounter >= getBombFireInterval()) {
+            val isSpreadShot = boss.isBelowHpRatio(SPREAD_HP_RATIO)
+            if (bombCounter >= getBombFireInterval(isSpreadShot)) {
                 bombCounter = 0
                 fireBomb(boss)
             }
@@ -367,6 +384,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         val centerX = boss.x + renderedBossSize / 2f
         val centerY = boss.y + renderedBossSize / 2f
         val size = renderedBossSize
+        bossFireworks = BossFireworksEffect(screenWidth, screenHeight, centerX, centerY)
 
         // Main massive explosion
         deathExplosions.add(ExplosionEffect(centerX, centerY, size * 2f, scale = 3f))
@@ -413,6 +431,7 @@ class BossEnemy(var context: Context, var speed: Float) : DrawBaseObject(context
         activeBoss = null
         deathExplosions.clear()
         bombExplosions.clear()
+        bossFireworks = null
         bombCounter = 0
         directionChangeCounter = 0
     }

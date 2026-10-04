@@ -47,6 +47,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -75,9 +76,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import com.young.aircraft.viewmodel.GameViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
@@ -317,15 +315,6 @@ class MainActivity : AppCompatActivity() {
             dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
                 ?.apply {
                     setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                    post {
-                        val navigationBarInset = ViewCompat.getRootWindowInsets(this)
-                            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
-                            ?.bottom
-                            ?: 0
-                        if (navigationBarInset > 0) {
-                            updatePadding(bottom = maxOf(paddingBottom, navigationBarInset))
-                        }
-                    }
                 }
         }
 
@@ -588,5 +577,7 @@ private fun HallOfHeroesContent(hint: String, onRecord: (String) -> Unit) {
                 fontFamily = FontFamily.Monospace
             )
         }
+
+        Spacer(modifier = Modifier.height(64.dp))
     }
 }
