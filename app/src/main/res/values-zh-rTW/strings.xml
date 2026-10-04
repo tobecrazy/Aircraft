@@ -325,6 +325,7 @@
     <string name="develop_settings_assistant_module_on">模組已啟用</string>
     <string name="develop_settings_assistant_module_off">模組已禁用</string>
     <string name="develop_settings_assistant_unavailable">當前裝置不支援此操作</string>
+    <string name="develop_settings_assistant_unknown">未知</string>
     <string name="develop_settings_assistant_kernel_dialog_title">核心資訊</string>
     <string name="develop_settings_assistant_kernel_dialog_message">版本：%1$s
 架構：%2$s
@@ -369,8 +370,14 @@ UA：%5$s
     <string name="contacts_cancel">取消</string>
     <string name="contacts_name">姓名</string>
     <string name="contacts_phone">電話號碼</string>
+    <string name="contacts_phone_invalid">請輸入有效的中國大陸、香港、澳門或台灣市內電話或手機號碼。</string>
+    <string name="contacts_email">電子郵件（選填）</string>
+    <string name="contacts_email_invalid">請輸入有效的電子郵件地址。</string>
+    <string name="contacts_email_display">電子郵件：%1$s</string>
+    <string name="contacts_address">住家地址（選填）</string>
+    <string name="contacts_address_display">住家地址：%1$s</string>
     <string name="contacts_save">儲存</string>
-    <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
+    <string name="develop_settings_assistant_tools_button">Android 開發助手工具</string>
     <string name="develop_settings_notification_button">測試 QR 工具通知</string>
     <string name="develop_settings_camera_scan_button">實時掃碼 (CameraX)</string>
     <string name="camera_scan_title">實時掃碼</string>
@@ -388,7 +395,7 @@ UA：%5$s
     <string name="develop_settings_notification_channel_name">QR 工具測試</string>
     <string name="develop_settings_notification_channel_description">用於測試 QR Code Tool 導航的除錯通知。</string>
     <string name="develop_settings_notification_permission_denied">通知許可權已拒絕</string>
-    <string name="android_dev_assistant_tools_title">Android 開發助手工具詳情</string>
+    <string name="android_dev_assistant_tools_title">Android 開發助手工具</string>
     <string name="android_dev_assistant_tools_summary">當前除錯構建可用的開發助手模組詳情與快捷入口說明。</string>
     <string name="android_dev_assistant_tools_system_info">系統資訊：開啟應用內裝置監控面板，檢視 CPU、記憶體、磁碟、網路和執行時長。</string>
     <string name="android_dev_assistant_tools_quick_settings">快捷設定入口：跳轉到系統設定或開發者選項（裝置支援時）。</string>

@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,6 +66,8 @@ import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.utils.DebugTools
 import com.young.aircraft.data.DeviceContact
+import com.young.aircraft.data.isValidChinaPhoneNumber
+import com.young.aircraft.data.isValidOptionalEmail
 import com.young.aircraft.viewmodel.ContactsViewModel
 
 class ContactsActivity : AppCompatActivity() {
@@ -198,7 +202,7 @@ private fun ContactsScreen(
             ) {
                 items(state.contacts, key = { it.dataId }) { contact ->
                     Surface(
-                        modifier = Modifier.maxContentWidth().padding(horizontal = 16.dp, vertical = 5.dp),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
                         color = MaterialTheme.colorScheme.surfaceContainer,
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
@@ -216,6 +220,22 @@ private fun ContactsScreen(
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(top = 4.dp)
                             )
+                            if (contact.email.isNotBlank()) {
+                                Text(
+                                    stringResource(R.string.contacts_email_display, contact.email),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                            if (contact.address.isNotBlank()) {
+                                Text(
+                                    stringResource(R.string.contacts_address_display, contact.address),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 12.dp)) {
                                 OutlinedButton(onClick = { editing = contact }) { Text(stringResource(R.string.contacts_edit)) }
                                 OutlinedButton(onClick = { deleting = contact }) { Text(stringResource(R.string.contacts_delete)) }
@@ -243,9 +263,12 @@ private fun ContactsScreen(
             title = stringResource(if (contact == null) R.string.contacts_add_title else R.string.contacts_edit_title),
             initialName = contact?.name.orEmpty(),
             initialPhone = contact?.phone.orEmpty(),
+            initialEmail = contact?.email.orEmpty(),
+            initialAddress = contact?.address.orEmpty(),
             onDismiss = { adding = false; editing = null },
-            onSave = { name, phone ->
-                if (contact == null) viewModel.add(name, phone) else viewModel.update(contact, name, phone)
+            onSave = { name, phone, email, address ->
+                if (contact == null) viewModel.add(name, phone, email, address)
+                else viewModel.update(contact, name, phone, email, address)
                 adding = false
                 editing = null
             }
@@ -276,16 +299,24 @@ private fun ContactEditorDialog(
     title: String,
     initialName: String,
     initialPhone: String,
+    initialEmail: String,
+    initialAddress: String,
     onDismiss: () -> Unit,
-    onSave: (String, String) -> Unit
+    onSave: (String, String, String, String) -> Unit
 ) {
-    var name by remember(initialName, initialPhone) { mutableStateOf(initialName) }
-    var phone by remember(initialName, initialPhone) { mutableStateOf(initialPhone) }
+    var name by remember(initialName, initialPhone, initialEmail, initialAddress) { mutableStateOf(initialName) }
+    var phone by remember(initialName, initialPhone, initialEmail, initialAddress) { mutableStateOf(initialPhone) }
+    var email by remember(initialName, initialPhone, initialEmail, initialAddress) { mutableStateOf(initialEmail) }
+    var address by remember(initialName, initialPhone, initialEmail, initialAddress) { mutableStateOf(initialAddress) }
+    val validPhone = isValidChinaPhoneNumber(phone)
+    val invalidPhone = phone.isNotBlank() && !validPhone
+    val validEmail = isValidOptionalEmail(email)
+    val invalidEmail = email.isNotBlank() && !validEmail
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column(Modifier.imePadding()) {
+            Column(Modifier.imePadding().verticalScroll(rememberScrollState())) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -299,12 +330,44 @@ private fun ContactEditorDialog(
                     onValueChange = { phone = it },
                     label = { Text(stringResource(R.string.contacts_phone)) },
                     singleLine = true,
+                    isError = invalidPhone,
+                    supportingText = {
+                        if (invalidPhone) Text(stringResource(R.string.contacts_phone_invalid))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text(stringResource(R.string.contacts_email)) },
+                    singleLine = true,
+                    isError = invalidEmail,
+                    supportingText = {
+                        if (invalidEmail) Text(stringResource(R.string.contacts_email_invalid))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text(stringResource(R.string.contacts_address)) },
+                    minLines = 2,
+                    maxLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(name.trim(), phone.trim()) }, enabled = name.isNotBlank() && phone.isNotBlank()) {
+            TextButton(
+                onClick = {
+                    if (name.isNotBlank() && validPhone && validEmail) {
+                        onSave(name.trim(), phone.trim(), email.trim(), address.trim())
+                    }
+                },
+                enabled = name.isNotBlank() && validPhone && validEmail
+            ) {
                 Text(stringResource(R.string.contacts_save))
             }
         },

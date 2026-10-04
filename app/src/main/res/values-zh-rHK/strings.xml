@@ -325,6 +325,7 @@
     <string name="develop_settings_assistant_module_on">模塊已啓用</string>
     <string name="develop_settings_assistant_module_off">模塊已禁用</string>
     <string name="develop_settings_assistant_unavailable">當前設備不支持此操作</string>
+    <string name="develop_settings_assistant_unknown">未知</string>
     <string name="develop_settings_assistant_kernel_dialog_title">核心資訊</string>
     <string name="develop_settings_assistant_kernel_dialog_message">版本：%1$s
 架構：%2$s
@@ -369,8 +370,14 @@ UA：%5$s
     <string name="contacts_cancel">取消</string>
     <string name="contacts_name">姓名</string>
     <string name="contacts_phone">電話號碼</string>
+    <string name="contacts_phone_invalid">請輸入有效的中國內地、香港、澳門或台灣固網電話或流動電話號碼。</string>
+    <string name="contacts_email">電郵（可選）</string>
+    <string name="contacts_email_invalid">請輸入有效的電郵地址。</string>
+    <string name="contacts_email_display">電郵：%1$s</string>
+    <string name="contacts_address">住址（可選）</string>
+    <string name="contacts_address_display">住址：%1$s</string>
     <string name="contacts_save">保存</string>
-    <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
+    <string name="develop_settings_assistant_tools_button">Android 開發助手工具</string>
     <string name="develop_settings_notification_button">測試 QR 工具通知</string>
     <string name="develop_settings_camera_scan_button">實時掃碼 (CameraX)</string>
     <string name="camera_scan_title">實時掃碼</string>
@@ -388,7 +395,7 @@ UA：%5$s
     <string name="develop_settings_notification_channel_name">QR 工具測試</string>
     <string name="develop_settings_notification_channel_description">用於測試 QR Code Tool 導航的調試通知。</string>
     <string name="develop_settings_notification_permission_denied">通知權限已拒絕</string>
-    <string name="android_dev_assistant_tools_title">Android 開發助手工具詳情</string>
+    <string name="android_dev_assistant_tools_title">Android 開發助手工具</string>
     <string name="android_dev_assistant_tools_summary">當前調試構建可用的開發助手模塊詳情與快捷入口説明。</string>
     <string name="android_dev_assistant_tools_system_info">系統信息：打開應用內設備監控面板，查看 CPU、內存、磁盤、網絡和運行時長。</string>
     <string name="android_dev_assistant_tools_quick_settings">快捷設置入口：跳轉到系統設置或開發者選項（設備支持時）。</string>

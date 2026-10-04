@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.young.aircraft.data.ContactsRepository
 import com.young.aircraft.data.DeviceContact
+import com.young.aircraft.data.isValidOptionalEmail
+import com.young.aircraft.data.isValidChinaPhoneNumber
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,12 +50,14 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         if (granted) operationError.value = false
     }
 
-    fun add(name: String, phone: String) = mutate {
-        repository.add(name, phone)
+    fun add(name: String, phone: String, email: String = "", address: String = "") {
+        if (!isValidChinaPhoneNumber(phone) || !isValidOptionalEmail(email)) return
+        mutate { repository.add(name, phone, email, address) }
     }
 
-    fun update(contact: DeviceContact, name: String, phone: String) = mutate {
-        repository.update(contact, name, phone)
+    fun update(contact: DeviceContact, name: String, phone: String, email: String = "", address: String = "") {
+        if (!isValidChinaPhoneNumber(phone) || !isValidOptionalEmail(email)) return
+        mutate { repository.update(contact, name, phone, email, address) }
     }
 
     fun delete(contactId: Long) = mutate {

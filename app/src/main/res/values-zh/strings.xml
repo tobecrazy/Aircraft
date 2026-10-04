@@ -325,6 +325,7 @@
     <string name="develop_settings_assistant_module_on">模块已启用</string>
     <string name="develop_settings_assistant_module_off">模块已禁用</string>
     <string name="develop_settings_assistant_unavailable">当前设备不支持此操作</string>
+    <string name="develop_settings_assistant_unknown">未知</string>
     <string name="develop_settings_assistant_kernel_dialog_title">内核信息</string>
     <string name="develop_settings_assistant_kernel_dialog_message">版本：%1$s
 架构：%2$s
@@ -369,8 +370,14 @@ UA：%5$s
     <string name="contacts_cancel">取消</string>
     <string name="contacts_name">姓名</string>
     <string name="contacts_phone">电话号码</string>
+    <string name="contacts_phone_invalid">请输入有效的中国大陆、香港、澳门或台湾固定电话或手机号码。</string>
+    <string name="contacts_email">邮箱（可选）</string>
+    <string name="contacts_email_invalid">请输入有效的邮箱地址。</string>
+    <string name="contacts_email_display">邮箱：%1$s</string>
+    <string name="contacts_address">家庭住址（可选）</string>
+    <string name="contacts_address_display">家庭住址：%1$s</string>
     <string name="contacts_save">保存</string>
-    <string name="develop_settings_assistant_tools_button">Android Developer Assistant Tools</string>
+    <string name="develop_settings_assistant_tools_button">Android 开发助手工具</string>
     <string name="develop_settings_notification_button">测试 QR 工具通知</string>
     <string name="develop_settings_camera_scan_button">实时扫码 (CameraX)</string>
     <string name="camera_scan_title">实时扫码</string>
@@ -388,7 +395,7 @@ UA：%5$s
     <string name="develop_settings_notification_channel_name">QR 工具测试</string>
     <string name="develop_settings_notification_channel_description">用于测试 QR Code Tool 导航的调试通知。</string>
     <string name="develop_settings_notification_permission_denied">通知权限已拒绝</string>
-    <string name="android_dev_assistant_tools_title">Android 开发助手工具详情</string>
+    <string name="android_dev_assistant_tools_title">Android 开发助手工具</string>
     <string name="android_dev_assistant_tools_summary">当前调试构建可用的开发助手模块详情与快捷入口说明。</string>
     <string name="android_dev_assistant_tools_system_info">系统信息：打开应用内设备监控面板，查看 CPU、内存、磁盘、网络和运行时长。</string>
     <string name="android_dev_assistant_tools_quick_settings">快捷设置入口：跳转到系统设置或开发者选项（设备支持时）。</string>

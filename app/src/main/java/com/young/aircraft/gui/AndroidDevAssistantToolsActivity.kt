@@ -77,6 +77,13 @@ private val ButtonBg = Color(0xFF252A3A)
 /** Tag on the module LazyColumn; tests scroll it with performScrollToNode. */
 internal const val ModuleListTag = "assistant_module_list"
 
+/**
+ * Language-neutral sentinel for a failed probe. The read*Info() helpers stay Context-free so they
+ * remain unit-testable; [AndroidDevAssistantToolsActivity.localize] swaps this for the localized
+ * word on the way into a dialog.
+ */
+private const val UNKNOWN = "unknown"
+
 /** Kernel facts for the debug kernel-info module. */
 internal data class KernelInfo(
     val release: String,
@@ -99,9 +106,9 @@ internal fun readKernelInfo(): KernelInfo {
     }
     val procVersion = runCatching { File("/proc/version").readText().trim() }.getOrNull()
     return KernelInfo(
-        release = System.getProperty("os.version") ?: "unknown",
-        machine = System.getProperty("os.arch") ?: "unknown",
-        fullVersion = procVersion ?: "unknown"
+        release = System.getProperty("os.version") ?: UNKNOWN,
+        machine = System.getProperty("os.arch") ?: UNKNOWN,
+        fullVersion = procVersion ?: UNKNOWN
     )
 }
 
@@ -129,7 +136,7 @@ internal fun readBrowserEngineInfo(context: Context): BrowserEngineInfo {
             Intent(Intent.ACTION_VIEW, "https://example.com".toUri()),
             PackageManager.MATCH_DEFAULT_ONLY
         )?.activityInfo?.packageName
-    }.getOrNull() ?: "unknown"
+    }.getOrNull() ?: UNKNOWN
 
     val installed = runCatching {
         pm.queryIntentActivities(
@@ -146,9 +153,9 @@ internal fun readBrowserEngineInfo(context: Context): BrowserEngineInfo {
         .sorted()
 
     return BrowserEngineInfo(
-        webViewPackage = webViewPkg?.packageName ?: "unknown",
-        webViewVersion = webViewPkg?.versionName ?: "unknown",
-        chromiumMajor = Regex("""Chrome/(\d+)""").find(userAgent)?.groupValues?.get(1) ?: "unknown",
+        webViewPackage = webViewPkg?.packageName ?: UNKNOWN,
+        webViewVersion = webViewPkg?.versionName ?: UNKNOWN,
+        chromiumMajor = Regex("""Chrome/(\d+)""").find(userAgent)?.groupValues?.get(1) ?: UNKNOWN,
         userAgent = userAgent,
         defaultBrowser = defaultBrowser,
         installedBrowsers = installed
@@ -227,15 +234,19 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
         }
     }
 
+    /** Swap the [UNKNOWN] sentinel for the localized word. */
+    private fun localize(value: String): String =
+        if (value == UNKNOWN) getString(R.string.develop_settings_assistant_unknown) else value
+
     private fun showKernelInfoDialog() {
         val info = readKernelInfo()
         showInfoDialog(
             title = getString(R.string.develop_settings_assistant_kernel_dialog_title),
             body = getString(
                 R.string.develop_settings_assistant_kernel_dialog_message,
-                info.release,
-                info.machine,
-                info.fullVersion
+                localize(info.release),
+                localize(info.machine),
+                localize(info.fullVersion)
             )
         )
     }
@@ -248,10 +259,10 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
             title = getString(R.string.develop_settings_assistant_browser_dialog_title),
             body = getString(
                 R.string.develop_settings_assistant_browser_dialog_message,
-                info.webViewPackage,
-                info.webViewVersion,
-                info.chromiumMajor,
-                info.defaultBrowser,
+                localize(info.webViewPackage),
+                localize(info.webViewVersion),
+                localize(info.chromiumMajor),
+                localize(info.defaultBrowser),
                 info.userAgent,
                 browsers
             )
