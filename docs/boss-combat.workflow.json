@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Boss 战斗流程与 Spread Shot 弹道",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1000,
+      600
+    ]
+  },
+  "lanes": [
+    {
+      "id": "core",
+      "label": "GameCoreView 关卡编排"
+    },
+    {
+      "id": "boss",
+      "label": "BossEnemy 射击决策"
+    },
+    {
+      "id": "single",
+      "label": "单发阶段"
+    },
+    {
+      "id": "spread",
+      "label": "Spread Shot 阶段",
+      "variant": "exception"
+    }
+  ],
+  "mainPath": [
+    "killTarget",
+    "spawnBoss",
+    "fireCheck",
+    "hpGate",
+    "singleShot",
+    "spreadShot",
+    "explode",
+    "levelDone"
+  ],
+  "nodes": [
+    {
+      "id": "killTarget",
+      "lane": "core",
+      "col": 0,
+      "type": "backend",
+      "label": "击杀目标达成",
+      "sublabel": "checkKillTarget()"
+    },
+    {
+      "id": "spawnBoss",
+      "lane": "core",
+      "col": 1,
+      "type": "backend",
+      "label": "刷入 Boss",
+      "sublabel": "spawnBoss(level)",
+      "tag": "敌机暂停"
+    },
+    {
+      "id": "levelDone",
+      "lane": "core",
+      "col": 5,
+      "type": "backend",
+      "label": "关卡结算",
+      "sublabel": "onLevelComplete()"
+    },
+    {
+      "id": "fireCheck",
+      "lane": "boss",
+      "col": 2,
+      "type": "backend",
+      "label": "开火节流判定",
+      "sublabel": "updateBombs()"
+    },
+    {
+      "id": "hpGate",
+      "lane": "boss",
+      "col": 3,
+      "type": "security",
+      "label": "血量阈值分岔",
+      "sublabel": "isBelowHpRatio()",
+      "tag": "阈值 0.5"
+    },
+    {
+      "id": "explode",
+      "lane": "boss",
+      "col": 5,
+      "type": "backend",
+      "label": "多阶段爆炸",
+      "sublabel": "触发后 3.5s"
+    },
+    {
+      "id": "playerFire",
+      "lane": "single",
+      "col": 2,
+      "type": "external",
+      "label": "玩家子弹 / 火箭",
+      "sublabel": "DAMAGE_PER_HIT",
+      "width": 124
+    },
+    {
+      "id": "singleShot",
+      "lane": "single",
+      "col": 3,
+      "type": "backend",
+      "label": "单发导弹",
+      "sublabel": "vx = 0",
+      "tag": "HP ≥ 50%"
+    },
+    {
+      "id": "spreadShot",
+      "lane": "spread",
+      "col": 4,
+      "type": "messagebus",
+      "label": "Spread Shot",
+      "sublabel": "5 发 · ±20°",
+      "tag": "HP < 50%"
+    },
+    {
+      "id": "hitBomb",
+      "lane": "spread",
+      "col": 5,
+      "type": "security",
+      "label": "玩家中弹",
+      "sublabel": "护盾吸收 / 扣血"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-kill-spawn",
+      "from": "killTarget",
+      "to": "spawnBoss",
+      "variant": "default"
+    },
+    {
+      "id": "e-spawn-fire",
+      "from": "spawnBoss",
+      "to": "fireCheck",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "drop"
+    },
+    {
+      "id": "e-fire-gate",
+      "from": "fireCheck",
+      "to": "hpGate",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "drop"
+    },
+    {
+      "id": "e-player-gate",
+      "from": "playerFire",
+      "to": "hpGate",
+      "label": "命中扣血",
+      "variant": "dashed",
+      "role": "branch",
+      "labelDy": 11
+    },
+    {
+      "id": "e-gate-single",
+      "from": "hpGate",
+      "to": "singleShot",
+      "label": "HP ≥ 50%",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "drop",
+      "labelDy": 11
+    },
+    {
+      "id": "e-single-spread",
+      "from": "singleShot",
+      "to": "spreadShot",
+      "label": "跌破阈值切换",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "drop",
+      "labelDy": 11
+    },
+    {
+      "id": "e-spread-explode",
+      "from": "spreadShot",
+      "to": "explode",
+      "label": "血量归零",
+      "variant": "emphasis",
+      "labelDy": 11
+    },
+    {
+      "id": "e-spread-hit",
+      "from": "spreadShot",
+      "to": "hitBomb",
+      "label": "圆心落入判定框",
+      "variant": "security",
+      "role": "branch",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "drop",
+      "labelDy": -14,
+      "labelAt": [
+        625,
+        600
+      ]
+    },
+    {
+      "id": "e-explode-done",
+      "from": "explode",
+      "to": "levelDone",
+      "label": "爆炸演出结束",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "弹道实现与调节入口",
+      "items": [
+        "BossBomb.vx 承载水平速度，0 即旧的垂直单发",
+        "Spread Shot 画红色圆球，单发仍画导弹贴图",
+        "出屏判定同时检查左右，斜飞弹不会滞留",
+        "圆心沿用 missileSize/2，命中判定无需改动",
+        "SPREAD_HP_RATIO / _COUNT / _ANGLE / _ORB_RADIUS_RATIO 在 BossEnemy companion"
+      ]
+    }
+  ]
+}

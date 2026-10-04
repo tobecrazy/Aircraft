@@ -25,7 +25,7 @@ Some documentation is stale; verify behavior against code before propagating doc
 - README says min SDK 30; `app/build.gradle.kts` actually sets minSdk 32.
 - Copilot claims Room uses `fallbackToDestructiveMigration(true)`; `DatabaseProvider` registers explicit migrations only, with no fallback (see Persistence below).
 - Copilot says many screens still use ViewBinding/XML and that combat routes through `PuzzleActivity` between levels; both are false — View Binding is off and `MainActivity` advances straight to the next combat level.
-- CLAUDE.md previously claimed `gui/GameHudScreen.kt` is an orphan Compose HUD. **That file no longer exists** — `grep -rn GameHudScreen app/src/` returns nothing. The HUD is Canvas-drawn by `ui/DrawHeader.kt` via `ui/GameHudFormatter.kt`; don't go looking for the orphan or reintroduce it.
+- `gui/GameHudScreen.kt` is an orphan Compose HUD (~380 lines: `GameHudOverlay`, `MissionBriefingCard`, `MetaChip`, `PauseOverlay`). **The file still exists, but nothing references it** — the only `GameHudScreen` hits under `app/src/` are its own declaration. The live HUD is Canvas-drawn by `ui/DrawHeader.kt` via `ui/GameHudFormatter.kt`; don't wire the orphan up or reintroduce its formatting.
 - `SupperBannerEffect` has **11** values (NONE, FADE, ZOOM_OUT, DEPTH, CUBE, ROTATION_GATE, COVERFLOW, STACK, PARALLAX, ACCORDION, SHADER), each with one `develop_settings_supper_banner_effect_*` string. Adding an effect means touching the enum, `SupperBannerTransformers`, the DevelopSettings `when` mapping, and all four locales together.
 
 ## Build, Lint, and Tests

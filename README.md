@@ -22,7 +22,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - **Launch hub** — jet selection, continue/new-game dialog when a saved run exists, and entry points to History, Settings, and the QR/Flashlight utilities.
 - **Combat gameplay** — 30 FPS `SurfaceView` rendering with drag-to-move controls, auto-firing bullets, scrolling backgrounds, the two-row tactical HUD (mission/hull cards + countdown timer), and screen-shake/damage-flash feedback.
 - **Power-ups in action** — red envelopes detonating into AoE rockets, medical kits restoring HP, shields granting blink-indicated invincibility, and time freezes locking enemies in place.
-- **Boss fight** — end-of-level boss with bomb attacks, scaling HP, and the multi-phase particle explosion on defeat.
+- **Boss fight** — end-of-level boss with bomb attacks, scaling HP, a two-phase attack pattern (single missile shots above half HP, a 5-way spread of red orbs below half HP), and the multi-phase particle explosion on defeat.
 - **Puzzle mode** — Compose-based drag-and-drop picture puzzle with pinch zoom, auto-snapping, hints, and undo, opened separately from Settings (3×3 / 4×4 / 5×5 by difficulty).
 - **Utility screens** — QR code scan/generate, flashlight with SOS and brightness control, device info telemetry, and the localized About / History screens.
 
@@ -107,7 +107,7 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 
 - **Progression**: 10 combat levels with timers decreasing from 300s to 120s; a separate 10-level puzzle mode accessible from Settings
 - **Puzzle difficulty**: piece count is fixed per difficulty preset — Easy `3×3` (9 pieces), Normal `4×4` (16 pieces), Hard `5×5` (25 pieces)
-- **Boss fights**: every level ends with a boss that scales from 1,000 HP to 1,900 HP
+- **Boss fights**: every level ends with a boss that scales from 1,000 HP to 1,900 HP. Above half HP it fires single missiles straight down; below half HP every salvo becomes a 5-shot spread of red orbs angled ±20° around straight down, with the shot count, angle, and HP threshold tunable in `BossEnemy`'s companion object
 - **Controls**: drag the plane to move; bullets auto-fire during play
 - **Power-ups**:
   - Red envelopes take 3 hits, then launch rockets with AoE damage
@@ -176,7 +176,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── PlayerGameDataDao.kt            # Leaderboard/save DAO; replaceForPlayer() @Transaction
 │   ├── PlayerAircraft.kt               # Player HP and damage model
 │   ├── EnemyState.kt                   # Enemy position and bullet state
-│   ├── BossState.kt                    # Boss HP, bombs, and sprite state
+│   ├── BossState.kt                    # Boss HP, bombs (incl. spread-shot velocity), and sprite state
 │   ├── RedEnvelopeState.kt             # Red envelope pickup state
 │   ├── RocketState.kt                  # Rocket projectile state
 │   ├── MedicalKitState.kt              # Medical kit pickup state
@@ -194,7 +194,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── OnboardingActivity.kt           # Compose 4-page onboarding carousel (HorizontalPager); PAGE_COUNT drives pages/indicators/button
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host: GameCoreView via AndroidView + GameHudOverlay, pause flow, dialogs, DB save
-│   ├── GameHudScreen.kt                # Compose HUD overlay (chips, pause card) drawn over the SurfaceView
+│   ├── GameHudScreen.kt                # Compose HUD overlay — currently unreferenced; the live HUD is Canvas-drawn by ui/DrawHeader.kt
 │   ├── PuzzleActivity.kt               # Independent ten-level Compose puzzle game, opened from Settings
 │   ├── HistoryActivity.kt              # Compose leaderboard with top-record styling and deletion
 │   ├── SettingsActivity.kt             # Navigation hub over SettingsScreen's SettingsDestination list
@@ -210,14 +210,17 @@ app/src/main/java/com/young/aircraft/
 │   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
 │   ├── CameraScanActivity.kt           # Debug-only live QR scan (CameraX LifecycleCameraController + MlKitAnalyzer)
 │   ├── DeviceInfoActivity.kt           # Compose live system monitor; foldable-aware System Info layout
+│   ├── PdfReaderActivity.kt            # DEBUG PDF viewer over platform PdfRenderer: page list, pinch zoom, re-render on settle
 │   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer
 │   ├── ThemedMessage.kt                # Themed Material Snackbar factory (replaces system Toasts)
+│   ├── AppListDialog.kt                # Installed-app picker dialog; readInstalledApps()/filterApps() are internal top-level for tests
 │   ├── StarFieldView.kt                # Animated cinematic background
 │   └── dialogs/
 │       ├── DialogCompose.kt            # Dialog.setDialogComposeContent(host) — lifecycle + theme + dismiss plumbing
 │       ├── GameDialogContent.kt        # Compose game-over / level-complete / victory content + palette/stat models
+│       ├── InfoDialogContent.kt        # Compose key/value info panel with copy-to-clipboard rows
 │       └── ThemedAlertDialog.kt        # MaterialAlertDialogBuilder.showThemed() native confirmation theming
 ├── providers/
 │   └── DatabaseProvider.kt             # Singleton Room provider (explicit migrations, no destructive fallback)
@@ -231,7 +234,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── DrawHeader.kt                   # Two-row in-canvas HUD: mission/hull cards top, timer below
 │   ├── Aircraft.kt                     # Player sprite and bullet system
 │   ├── Enemies.kt                      # Enemy spawning, movement, and bullets
-│   ├── BossEnemy.kt                    # Boss AI, bombs, and scaling HP
+│   ├── BossEnemy.kt                    # Boss AI, bombs, low-HP spread shot, and scaling HP
 │   ├── RedEnvelopes.kt                 # Rocket power-up and explosion handling
 │   ├── MedicalKits.kt                  # HP pickup spawning and lifetime rules
 │   ├── Shields.kt                      # Shield pickup spawning and lifetime rules
@@ -265,11 +268,20 @@ app/src/main/java/com/young/aircraft/
     ├── AboutMeViewModel.kt             # Developer profile data (AboutMeActivity)
     ├── DeviceInfoViewModel.kt          # CPU/memory/disk/network telemetry (DeviceInfoActivity)
     ├── DeviceInfoUiState.kt            # UI state for device info screen
+    ├── PdfViewModel.kt                 # PdfRenderer owner: mutex-guarded openPage, LRU bitmap cache, page load/size state (PdfReaderActivity)
     ├── QRCodeToolViewModel.kt          # QR encode/decode logic (QRCodeToolActivity)
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
     ├── FlashlightViewModel.kt          # Drives FlashlightService via intents; observes torch state via TorchCallback and SOS state via FlashlightService.isSosRunning
     ├── BannerDetailsViewModel.kt       # Banner detail display/download logic (BannerDetailsActivity)
     └── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
+
+app/src/debug/java/com/young/aircraft/
+└── utils/
+    └── DebugTools.kt                  # isEnabled = true; log() and enableWebViewDebugging() are live
+
+app/src/release/java/com/young/aircraft/
+└── utils/
+    └── DebugTools.kt                  # Same class, isEnabled = false; every method is a no-op (debug gate is a source-set split, not a runtime flag)
 ```
 
 ## Tests

@@ -48,4 +48,14 @@ class BossStateTest {
         state.bombs.add(BossBomb(x = 50f, y = 50f, bitmapIndex = 1))
         assertEquals(1, state.bombs.size)
     }
+
+    @Test
+    fun `isBelowHpRatio false at full hp and true below threshold`() {
+        val state = BossState(x = 0f, y = 0f, hitPoints = 1000f, maxHitPoints = 1000f, bitmapIndex = 0)
+        assertFalse(state.isBelowHpRatio(0.5f))
+        state.hitPoints = 499f
+        assertTrue(state.isBelowHpRatio(0.5f))
+        state.hitPoints = 500f
+        assertFalse(state.isBelowHpRatio(0.5f))
+    }
 }
