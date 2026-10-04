@@ -12,6 +12,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
@@ -36,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.content.edit
 import com.young.aircraft.R
 import com.young.aircraft.gui.dialogs.InfoDialogContent
@@ -63,6 +66,7 @@ import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.utils.DebugTools
+import com.young.aircraft.viewmodel.LogSettingsViewModel
 import java.io.File
 import androidx.core.net.toUri
 
@@ -173,6 +177,9 @@ internal data class AssistantModule(
 class AndroidDevAssistantToolsActivity : AppCompatActivity() {
 
     private lateinit var assistantPrefs: SharedPreferences
+    private val logSettingsViewModel: LogSettingsViewModel by viewModels {
+        LogSettingsViewModel.Factory(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -186,10 +193,13 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContent {
             AircraftTheme {
+                val logsEnabled by logSettingsViewModel.enabled.collectAsStateWithLifecycle()
                 AndroidDevAssistantToolsScreen(
                     initialStates = ASSISTANT_MODULES.associate { it.prefKey to isModuleEnabled(it.prefKey) },
+                    logsEnabled = logsEnabled,
                     onBack = { finish() },
                     onToggle = ::setModuleEnabled,
+                    onLogsToggle = logSettingsViewModel::onToggle,
                     onOpenModule = ::openModule
                 )
             }
@@ -365,8 +375,10 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
 @Composable
 internal fun AndroidDevAssistantToolsScreen(
     initialStates: Map<String, Boolean>,
+    logsEnabled: Boolean,
     onBack: () -> Unit,
     onToggle: (String, Boolean) -> Unit,
+    onLogsToggle: (Boolean) -> Unit,
     onOpenModule: (String) -> Unit
 ) {
     val enabledStates = remember {
@@ -394,6 +406,14 @@ internal fun AndroidDevAssistantToolsScreen(
                 IntroPanel(Modifier.maxContentWidth().padding(horizontal = 14.dp))
             }
 
+            item(key = "app_logs") {
+                LogSwitchRow(
+                    enabled = logsEnabled,
+                    onToggle = onLogsToggle,
+                    modifier = Modifier.maxContentWidth().padding(horizontal = 14.dp)
+                )
+            }
+
             items(
                 count = AndroidDevAssistantToolsActivity.ASSISTANT_MODULES.size,
                 key = { AndroidDevAssistantToolsActivity.ASSISTANT_MODULES[it].prefKey }
@@ -414,6 +434,49 @@ internal fun AndroidDevAssistantToolsScreen(
             }
 
             item(key = "footer") { Spacer(modifier = Modifier.height(24.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun LogSwitchRow(
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = PanelBg,
+        border = BorderStroke(1.dp, PanelBorder)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.android_dev_assistant_logs_title),
+                    color = TextBright,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+                Text(
+                    text = stringResource(R.string.android_dev_assistant_logs_summary),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onToggle,
+                modifier = Modifier.testTag("assistant_switch_app_logs"),
+                colors = aircraftSwitchColors()
+            )
         }
     }
 }
@@ -577,8 +640,10 @@ private fun AndroidDevAssistantToolsScreenPreview() {
     AircraftTheme {
         AndroidDevAssistantToolsScreen(
             initialStates = AndroidDevAssistantToolsActivity.ASSISTANT_MODULES.associate { it.prefKey to true },
+            logsEnabled = true,
             onBack = {},
             onToggle = { _, _ -> },
+            onLogsToggle = {},
             onOpenModule = {}
         )
     }

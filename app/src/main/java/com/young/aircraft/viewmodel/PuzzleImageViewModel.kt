@@ -2,7 +2,7 @@ package com.young.aircraft.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
+import com.young.aircraft.utils.AppLog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -132,11 +132,11 @@ class PuzzleImageViewModel(
                     val bytes = attempt.getOrNull()
                     if (bytes != null && bytes.isNotEmpty()) {
                         imageBytes = bytes
-                        Log.d(TAG, "Loaded puzzle level $targetLevel image from $candidate (${bytes.size} bytes)")
+                        AppLog.d(TAG) { "Loaded puzzle level $targetLevel image from $candidate (${bytes.size} bytes)" }
                         break
                     }
                     val cause = attempt.exceptionOrNull()
-                    Log.w(TAG, "Failed to fetch $candidate: ${cause?.javaClass?.simpleName}: ${cause?.message}")
+                    AppLog.w(TAG, "Failed to fetch $candidate: ${cause?.javaClass?.simpleName}: ${cause?.message}")
                     failureReason = cause?.let { "${it.javaClass.simpleName}: ${it.message}" } ?: "Empty response"
                 }
 
@@ -148,7 +148,7 @@ class PuzzleImageViewModel(
                 failureReason = null
                 Uri.fromFile(file)
             }.onFailure { throwable ->
-                Log.w(TAG, "Puzzle image load threw", throwable)
+                AppLog.w(TAG, "Puzzle image load threw", throwable)
                 failureReason = "${throwable.javaClass.simpleName}: ${throwable.message}"
             }.getOrNull()
 

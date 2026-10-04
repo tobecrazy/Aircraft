@@ -320,6 +320,8 @@ app/src/release/java/com/young/aircraft/
 - `GameHudFormatterTest` and `RedEnvelopesTest` for HUD formatting and the rocket power-up
 - `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior, including walking the carousel to the last page and the time-freeze power-up entry
 - `LaunchActivityTest` for saved-game detection, continue/new-game dialog, and jet selection
+- `ContactsValidationTest`, `ContactsRepositoryTest`, and `ContactsViewModelTest` for the debug-only contacts feature: the phone/email gate, the row-shaping rules (one entry per phone, HOME-typed email/address winning), the batched provider writes, and the permission state machine
+- `BossFireworksEffectTest` for the boss-defeat fireworks frame window (nothing before the first burst, ink while alive, hard stop at the declared duration, in-bounds clamping)
 - `DevelopSettingsViewModelTest`, `PrivacyPolicyViewModelTest`, `OnboardingViewModelTest`, `LaunchViewModelTest`, `GameViewModelTest`, `HistoryViewModelTest`, `SettingsViewModelTest`, `ShowImageDetailsViewModelTest` for ViewModel unit coverage
 - `QRChineseRoundtripTest` and `RichTextMarkdownTest` for QR text round-tripping and editor Markdown output
 - `PlayerGameDataTest` for timestamp-aware data-class behavior

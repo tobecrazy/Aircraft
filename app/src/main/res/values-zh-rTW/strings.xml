@@ -397,6 +397,8 @@ UA：%5$s
     <string name="develop_settings_notification_permission_denied">通知許可權已拒絕</string>
     <string name="android_dev_assistant_tools_title">Android 開發助手工具</string>
     <string name="android_dev_assistant_tools_summary">當前除錯構建可用的開發助手模組詳情與快捷入口說明。</string>
+    <string name="android_dev_assistant_logs_title">應用程式日誌</string>
+    <string name="android_dev_assistant_logs_summary">開啟後輸出詳細日誌，方便問題排查。</string>
     <string name="android_dev_assistant_tools_system_info">系統資訊：開啟應用內裝置監控面板，檢視 CPU、記憶體、磁碟、網路和執行時長。</string>
     <string name="android_dev_assistant_tools_quick_settings">快捷設定入口：跳轉到系統設定或開發者選項（裝置支援時）。</string>
     <string name="android_dev_assistant_tools_app_browser">已安裝應用瀏覽：列出本機所有可啟動的應用程式，支援搜尋、使用者/系統篩選、點選啟動以及詳細資訊入口。</string>

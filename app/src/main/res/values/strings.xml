@@ -397,6 +397,8 @@ Installed browsers:
     <string name="develop_settings_notification_permission_denied">Notification permission denied</string>
     <string name="android_dev_assistant_tools_title">Android Developer Assistant Tools</string>
     <string name="android_dev_assistant_tools_summary">Tool details and quick links for the developer assistant modules available in this debug build.</string>
+    <string name="android_dev_assistant_logs_title">App Logs</string>
+    <string name="android_dev_assistant_logs_summary">Enable detailed app logs for troubleshooting.</string>
     <string name="android_dev_assistant_tools_system_info">System Information: Opens the in-app device telemetry panel for CPU, memory, disk, network, and uptime.</string>
     <string name="android_dev_assistant_tools_quick_settings">Quick Settings Launcher: Jumps to system settings or developer settings where available.</string>
     <string name="android_dev_assistant_tools_app_browser">Installed Apps Browser: Lists every launchable app on this device with search, user/system filtering, tap to launch and a details shortcut.</string>

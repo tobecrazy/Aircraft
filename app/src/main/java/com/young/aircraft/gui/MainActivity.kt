@@ -5,7 +5,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
+import com.young.aircraft.utils.AppLog
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity() {
                     GameState.LOW_MEMORY -> {
                         coreView.pauseGame()
                         showPauseOverlay()
-                        Log.d("MainActivity", "Game paused due to low memory")
+                        AppLog.d("MainActivity") { "Game paused due to low memory" }
                     }
                     else -> {}
                 }
@@ -361,7 +361,7 @@ class MainActivity : AppCompatActivity() {
                     saveCurrentProgress(level = coreView.level)
                 }
             }.onFailure {
-                Log.e("MainActivity", logMessage, it)
+                AppLog.e("MainActivity", logMessage, it)
             }
             finish()
         }

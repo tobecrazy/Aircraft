@@ -7,15 +7,32 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.WindowManager
 import com.young.aircraft.BuildConfig
+import com.young.aircraft.data.LogSettings
 import com.young.aircraft.data.GameState
+import com.young.aircraft.utils.AppLog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 
 /**
  * Create by Young
  **/
 class AircraftApplication : Application() {
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onCreate() {
         super.onCreate()
+        LogSettings.defaultEnabled = BuildConfig.DEBUG
+        AppLog.enabled = BuildConfig.DEBUG
+        val logSettings = LogSettings(this)
+        applicationScope.launch {
+            logSettings.enabledFlow
+                .catch { AppLog.enabled = LogSettings.defaultEnabled }
+                .collect { AppLog.enabled = it }
+        }
         // Lock portrait on phone-width screens; leave free rotation on large screens
         // (tablets / unfolded foldables), where the platform ignores the lock anyway.
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {

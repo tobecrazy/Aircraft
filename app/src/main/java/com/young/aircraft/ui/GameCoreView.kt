@@ -8,11 +8,9 @@ import android.graphics.Paint
 import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
-import android.os.Build
 import android.os.VibrationEffect
-import android.os.Vibrator
 import android.os.VibratorManager
-import android.util.Log
+import com.young.aircraft.utils.AppLog
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
@@ -92,15 +90,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     // Vibrator
     private val vibrator =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
-                .defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
+        (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
 
     companion object {
+        const val TAG = "GameCoreView"
         const val FPS: Int = 30
         const val MAX_LEVEL = 10
         const val SHAKE_DURATION_MS = 300L
@@ -221,7 +214,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 )
             ) {
                 if (!collisionCooldown) {
-                    Log.d("Collision", "Aircraft collided with an enemy!")
+                    AppLog.d("Collision") { "Aircraft collided with an enemy!" }
                     handleCollision()
                 }
             } else {
@@ -266,17 +259,17 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             ) {
                 enemy.bullets.remove(bulletRef)
                 if (drawAircraft.isShielded()) {
-                    Log.d("Game", "Shield absorbed enemy bullet!")
+                    AppLog.d("Game") { "Shield absorbed enemy bullet!" }
                     return@forEachActiveBullet true
                 }
                 playerData.hit()
                 musicService?.playerHitSoundPlay()
                 triggerHitEffects()
-                Log.d("Game", "Player hit by enemy bullet! HP: ${playerData.health_points}")
+                AppLog.d("Game") { "Player hit by enemy bullet! HP: ${playerData.health_points}" }
                 if (!playerData.isAlive()) {
                     musicService?.gameOverSoundPlay()
                     triggerDeathExplosion()
-                    Log.d("Game", "Game Over!")
+                    AppLog.d("Game") { "Game Over!" }
                 }
                 return@forEachActiveBullet true
             }
@@ -303,7 +296,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     enemiesDestroyedThisLevel++
                     totalKills++
                     musicService?.enemyHitSoundPlay()
-                    Log.d("Game", "Enemy destroyed! Kills: $enemiesDestroyedThisLevel")
+                    AppLog.d("Game") { "Enemy destroyed! Kills: $enemiesDestroyedThisLevel" }
                     checkKillTarget()
                     break
                 }
@@ -399,11 +392,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         collisionCooldown = true
         musicService?.playerHitSoundPlay()
         triggerHitEffects()
-        Log.d("Game", "Player hit! HP: ${playerData.health_points}")
+        AppLog.d("Game") { "Player hit! HP: ${playerData.health_points}" }
         if (!playerData.isAlive()) {
             musicService?.gameOverSoundPlay()
             triggerDeathExplosion()
-            Log.d("Game", "Game Over!")
+            AppLog.d("Game") { "Game Over!" }
         }
     }
 
@@ -414,7 +407,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         if (!bossEnemy.isBossActive() && !bossEnemy.isBossDefeated() && !bossDefeatedThisLevel) {
             bossEnemy.spawnBoss(level)
             enemies.spawnPaused = true
-            Log.d("Game", "Boss spawned at level $level!")
+            AppLog.d("Game") { "Boss spawned at level $level!" }
         }
     }
 
@@ -423,16 +416,16 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         if (!bossEnemy.isBossExplosionFinished()) return
 
         bossDefeatedThisLevel = true
-        Log.d("Game", "Boss defeated at level $level!")
+        AppLog.d("Game") { "Boss defeated at level $level!" }
 
         if (level >= MAX_LEVEL) {
             gameWon = true
             isPaused = true
-            Log.d("Game", "Game Won! All levels cleared!")
+            AppLog.d("Game") { "Game Won! All levels cleared!" }
             post { onGameWon?.invoke() }
         } else {
             isPaused = true
-            Log.d("Game", "Level $level complete!")
+            AppLog.d("Game") { "Level $level complete!" }
             post { onLevelComplete?.invoke(level) }
         }
     }
@@ -441,14 +434,14 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         val bossBounds = bossEnemy.getBossBounds() ?: return
         if (RectF.intersects(aircraftBounds, bossBounds)) {
             if (drawAircraft.isShielded()) {
-                Log.d("Game", "Shield absorbed boss collision!")
+                AppLog.d("Game") { "Shield absorbed boss collision!" }
                 return
             }
             // Instant death on boss collision
             playerData.health_points = 0f
             musicService?.gameOverSoundPlay()
             triggerDeathExplosion()
-            Log.d("Game", "Player collided with Boss — instant death!")
+            AppLog.d("Game") { "Player collided with Boss — instant death!" }
         }
     }
 
@@ -473,17 +466,17 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 bombIter.remove()
                 bossEnemy.triggerBombExplosion(bombCenterX, bombCenterY)
                 if (drawAircraft.isShielded()) {
-                    Log.d("Game", "Shield absorbed boss bomb!")
+                    AppLog.d("Game") { "Shield absorbed boss bomb!" }
                     break
                 }
                 playerData.hit()
                 musicService?.playerHitSoundPlay()
                 triggerHitEffects()
-                Log.d("Game", "Player hit by boss bomb! HP: ${playerData.health_points}")
+                AppLog.d("Game") { "Player hit by boss bomb! HP: ${playerData.health_points}" }
                 if (!playerData.isAlive()) {
                     musicService?.gameOverSoundPlay()
                     triggerDeathExplosion()
-                    Log.d("Game", "Game Over!")
+                    AppLog.d("Game") { "Game Over!" }
                 }
                 break
             }
@@ -506,7 +499,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 val killed = bossEnemy.hitBoss()
                 musicService?.enemyHitSoundPlay()
                 if (killed) {
-                    Log.d("Game", "Boss killed!")
+                    AppLog.d("Game") { "Boss killed!" }
                 }
                 break
             }
@@ -527,7 +520,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 redEnvelopes.triggerRocketExplosion(impactX, impactY)
                 bossEnemy.hitBoss()
                 musicService?.enemyHitSoundPlay()
-                Log.d("Game", "Rocket hit boss!")
+                AppLog.d("Game") { "Rocket hit boss!" }
                 break
             }
         }
@@ -542,7 +535,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             if (!playerData.isFullHealth() && RectF.intersects(aircraftBounds, kitBounds)) {
                 kit.collected = true
                 playerData.restoreHealth()
-                Log.d("Game", "Player picked up medical kit! HP restored to max.")
+                AppLog.d("Game") { "Player picked up medical kit! HP restored to max." }
                 continue
             }
 
@@ -554,7 +547,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             if (RectF.intersects(bossBounds, kitBounds)) {
                 kit.collected = true
                 boss.hitPoints = boss.maxHitPoints
-                Log.d("Game", "Boss picked up medical kit! Boss HP restored to max.")
+                AppLog.d("Game") { "Boss picked up medical kit! Boss HP restored to max." }
             }
         }
     }
@@ -576,7 +569,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     drawAircraft.removeBullet(bullet)
                     shield.collected = true
                     drawAircraft.activateShield()
-                    Log.d("Game", "Shield collected! Player is invincible for 10 seconds.")
+                    AppLog.d("Game") { "Shield collected! Player is invincible for 10 seconds." }
                     break
                 }
             }
@@ -593,7 +586,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             // Check if player aircraft touches the time freeze
             if (RectF.intersects(aircraftBounds, freezeBounds)) {
                 timeFreezes.collectByPlayer(timeFreeze)
-                Log.d("Game", "Player collected time freeze! Enemies frozen for 5 seconds.")
+                AppLog.d("Game") { "Player collected time freeze! Enemies frozen for 5 seconds." }
                 continue
             }
 
@@ -606,7 +599,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     )
                 ) {
                     timeFreezes.collectByEnemy(timeFreeze)
-                    Log.d("Game", "Enemy collected time freeze! Player frozen for 5 seconds.")
+                    AppLog.d("Game") { "Enemy collected time freeze! Player frozen for 5 seconds." }
                     break
                 }
             }
@@ -639,7 +632,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         levelStartTimeMs = System.currentTimeMillis()
         enemiesDestroyedThisLevel = 0
         isPaused = false
-        Log.d("Game", "Advanced to level $level")
+        AppLog.d("Game") { "Advanced to level $level" }
     }
 
     private fun checkLevelTimer() {
@@ -652,7 +645,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         // Time expired without meeting kill target → game over
         musicService?.gameOverSoundPlay()
         isRunning = false
-        Log.d("Game", "Level failed! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}")
+        AppLog.d("Game") { "Level failed! Kills: $enemiesDestroyedThisLevel/${getRequiredKills(level)}" }
         post { onGameOver?.invoke() }
     }
 
@@ -779,7 +772,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             playerDeathExplosion = null
             isPlayerDying = false
             isRunning = false
-            Log.d("Game", "Death explosion finished — Game Over!")
+            AppLog.d("Game") { "Death explosion finished — Game Over!" }
             post { onGameOver?.invoke() }
         } else {
             explosion.draw(canvas)
@@ -913,7 +906,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             frameCount++
             if (frameCount == FPS) {
                 val avgFps = 1000.0 / ((totalTime.toDouble() / frameCount) / 1_000_000.0)
-                Log.w("GameCoreView", "FPS=${avgFps.toInt()} dropped=$droppedFrameCount")
+                AppLog.d(TAG) { "FPS=${avgFps.toInt()} dropped=$droppedFrameCount" }
                 frameCount = 0
                 totalTime = 0
                 droppedFrameCount = 0
@@ -942,7 +935,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        Log.d("YoungTest", "$event ---- $keyCode")
+        AppLog.d(TAG) { "$event ---- $keyCode" }
         gameCommands.add { drawAircraft.updateGame() }
         return super.onKeyDown(keyCode, event)
     }

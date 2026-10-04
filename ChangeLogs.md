@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- `AndroidDevAssistantToolsActivityTest` "system info module opens DeviceInfoActivity" failed once the new app-logs row pushed the module tile below Robolectric's default viewport — `performClick()` silently did nothing. Added the same tall-viewport qualifier (`w420dp-h2000dp`) `SettingsActivityTest` already uses
+- `AndroidDevAssistantToolsActivityTest` "app browser module shows the in-app list dialog" hung for 60s: `AppListDialog` shows a `CircularProgressIndicator` while it queries the package manager, and Robolectric's default choreographer re-fires vsync inline, so Compose never reaches idle. The helper now pauses the choreographer and drives a bounded 500 ms of frames instead of calling `waitForIdle()`
+
+### Added
+- `ContactsValidationTest`, `ContactsRepositoryTest`, and `ContactsViewModelTest` covering the debug-only contacts feature
+- `BossFireworksEffectTest` covering the boss-defeat fireworks timing and bounds
+
 ## [1.3.6] - 2026-10-04
 
 ### Added

@@ -10,7 +10,7 @@ import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
+import com.young.aircraft.utils.AppLog
 import androidx.annotation.RawRes
 import com.young.aircraft.data.SettingsRepository
 /**
@@ -180,7 +180,7 @@ class MusicService : Service() {
         }
         val fallbackRes = resolveSoundRes(BGM_NAME, preferMp3 = true)
         if (fallbackRes != 0 && fallbackRes != preferredRes) {
-            Log.w(TAG, "Failed to load BGM res=$preferredRes, falling back to MP3")
+            AppLog.w(TAG, "Failed to load BGM res=$preferredRes, falling back to MP3")
             return MediaPlayer.create(this, fallbackRes)
         }
         return null
