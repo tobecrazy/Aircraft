@@ -1,328 +1,349 @@
 {
-  "schema_version": 1,
-  "diagram_type": "architecture",
-  "meta": {
-    "title": "Aircraft 战机游戏 App 架构",
-    "output": "aircraft-architecture.html",
-    "quality_profile": "showcase",
-    "views": [
-      {
-        "id": "main-rail",
-        "label": "启动到持久化的主链路",
-        "focus": [
-          "launch",
-          "main",
-          "vm",
-          "data",
-          "room"
-        ],
-        "note": "首启门禁放行后由启动页进入战斗宿主，关卡与得分经 ViewModel、Data 层落到 Room。"
-      },
-      {
-        "id": "render-thread",
-        "label": "战斗渲染与线程边界",
-        "focus": [
-          "main",
-          "game",
-          "services",
-          "vm",
-          "data"
-        ],
-        "note": "GameCoreView 在 30FPS 渲染线程内独占游戏状态，UI 线程只提交命令与触摸坐标。"
-      },
-      {
-        "id": "side-entries",
-        "label": "设置侧入口与独立模块",
-        "focus": [
-          "launch",
-          "settings",
-          "puzzle",
-          "tools",
-          "richtext"
-        ],
-        "note": "工具页、拼图与富文本模块都是设置下的平行入口，不参与战斗关卡推进。"
-      }
-    ]
-  },
-  "components": [
-    {
-      "id": "launch",
-      "type": "frontend",
-      "label": "LaunchActivity",
-      "sublabel": "首启门禁 → 继续游戏 · 工具入口",
-      "pos": [
-        70,
-        40
-      ],
-      "size": [
-        200,
-        70
-      ]
-    },
-    {
-      "id": "main",
-      "type": "frontend",
-      "label": "MainActivity",
-      "sublabel": "战斗宿主 · 十个计时关卡",
-      "pos": [
-        70,
-        190
-      ],
-      "size": [
-        200,
-        70
-      ]
-    },
-    {
-      "id": "game",
-      "type": "frontend",
-      "label": "GameCoreView",
-      "sublabel": "SurfaceView · 30FPS 渲染线程",
-      "pos": [
-        70,
-        350
-      ],
-      "size": [
-        200,
-        70
-      ]
-    },
-    {
-      "id": "services",
-      "type": "backend",
-      "label": "常驻服务",
-      "sublabel": "MusicService · FlashlightService",
-      "pos": [
-        70,
-        510
-      ],
-      "size": [
-        200,
-        70
-      ]
-    },
-    {
-      "id": "vm",
-      "type": "backend",
-      "label": "ViewModel 层",
-      "sublabel": "17 个 · StateFlow 单向流",
-      "pos": [
-        400,
-        190
-      ],
-      "size": [
-        200,
-        70
-      ],
-      "tag": "MVVM"
-    },
-    {
-      "id": "data",
-      "type": "backend",
-      "label": "Data 层",
-      "sublabel": "SettingsRepository · DAO",
-      "pos": [
-        400,
-        350
-      ],
-      "size": [
-        200,
-        70
-      ]
-    },
-    {
-      "id": "room",
-      "type": "database",
-      "label": "Room",
-      "sublabel": "AppDatabase v2031 · 显式迁移",
-      "pos": [
-        400,
-        510
-      ],
-      "size": [
-        200,
-        70
-      ]
-    },
-    {
-      "id": "tools",
-      "type": "frontend",
-      "label": "工具页",
-      "sublabel": "手电筒 · 二维码 · 设备信息",
-      "pos": [
-        730,
-        40
-      ],
-      "size": [
-        240,
-        70
-      ]
-    },
-    {
-      "id": "settings",
-      "type": "frontend",
-      "label": "SettingsActivity",
-      "sublabel": "设置 · 主题 · 语言 · 难度",
-      "pos": [
-        730,
-        190
-      ],
-      "size": [
-        240,
-        70
-      ]
-    },
-    {
-      "id": "puzzle",
-      "type": "frontend",
-      "label": "PuzzleActivity",
-      "sublabel": "拼图十关 · 独立进度",
-      "pos": [
-        730,
-        350
-      ],
-      "size": [
-        240,
-        70
-      ]
-    },
-    {
-      "id": "richtext",
-      "type": "external",
-      "label": ":richtexteditor",
-      "sublabel": "独立 AAR · 无游戏依赖",
-      "pos": [
-        1060,
-        40
-      ],
-      "size": [
-        230,
-        70
-      ]
-    }
-  ],
-  "boundaries": [
-    {
-      "kind": "region",
-      "label": "Android App（com.young.aircraft）",
-      "wraps": [
-        "launch",
-        "main",
-        "game",
-        "services",
-        "vm",
-        "data",
-        "room",
-        "tools",
-        "settings",
-        "puzzle"
-      ]
-    },
-    {
-      "kind": "region",
-      "label": "独立 Gradle 模块 :richtexteditor",
-      "wraps": [
-        "richtext"
-      ]
-    }
-  ],
-  "connections": [
-    {
-      "id": "launch-main",
-      "from": "launch",
-      "to": "main",
-      "label": "开始 / 继续战斗",
-      "variant": "emphasis",
-      "labelDy": 24
-    },
-    {
-      "id": "main-game",
-      "from": "main",
-      "to": "game",
-      "label": "入队命令 · 渲染线程消费",
-      "variant": "emphasis",
-      "labelDy": 24
-    },
-    {
-      "id": "game-services",
-      "from": "game",
-      "to": "services",
-      "label": "绑定播放 BGM / SFX",
-      "labelDy": 24
-    },
-    {
-      "id": "main-vm",
-      "from": "main",
-      "to": "vm",
-      "label": "关卡 · 总击杀 · 得分"
-    },
-    {
-      "id": "vm-data",
-      "from": "vm",
-      "to": "data",
-      "label": "读写",
-      "labelDy": 24
-    },
-    {
-      "id": "data-room",
-      "from": "data",
-      "to": "room",
-      "label": "SQL",
-      "labelDy": 24
-    },
-    {
-      "id": "launch-tools",
-      "from": "launch",
-      "to": "tools",
-      "label": "工具入口"
-    },
-    {
-      "id": "launch-settings",
-      "from": "launch",
-      "to": "settings",
-      "label": "设置入口"
-    },
-    {
-      "id": "settings-puzzle",
-      "from": "settings",
-      "to": "puzzle",
-      "label": "打开拼图",
-      "labelDy": 24
-    },
-    {
-      "id": "settings-richtext",
-      "from": "settings",
-      "to": "richtext",
-      "label": "调试开发者入口"
-    }
-  ],
-  "cards": [
-    {
-      "dot": "cyan",
-      "title": "表现与线程",
-      "items": [
-        "全部 Activity 走 Compose setContent，View Binding 已关闭",
-        "GameCoreView 以 SurfaceView 自绘，30FPS 渲染线程独占游戏状态",
-        "UI 线程经 gameCommands 队列提交命令，帧内 SurfaceHolder 锁中消费"
-      ]
-    },
-    {
-      "dot": "violet",
-      "title": "状态与数据",
-      "items": [
-        "17 个 ViewModel + StateFlow 单向数据流，拼图图片加载归 PuzzleImageViewModel",
-        "Room v2031 仅注册显式迁移，无破坏性回退",
-        "进度统一走 replaceForPlayer() 事务，网络为 OkHttp 直连"
-      ]
-    },
-    {
-      "dot": "amber",
-      "title": "两条独立进度线",
-      "items": [
-        "战斗通关直接进下一关，不经过拼图",
-        "拼图是设置下的独立十关，按 GameMode.PUZZLE 存档",
-        "“继续游戏”是关卡检查点重启，不恢复血量与时间"
-      ]
-    }
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Aircraft 战机游戏 App 架构",
+  "output": "aircraft-architecture.html",
+  "quality_profile": "showcase",
+  "views": [
+   {
+    "id": "combat-rail",
+    "label": "战斗主链路与落库",
+    "focus": [
+     "launch",
+     "main",
+     "game",
+     "vm",
+     "data",
+     "room"
+    ],
+    "note": "启动页进入战斗宿主，游戏状态由渲染线程独占，关卡与击杀数经 ViewModel 与 Data 层落到 Room。"
+   },
+   {
+    "id": "render-thread",
+    "label": "渲染线程与常驻服务",
+    "focus": [
+     "main",
+     "game",
+     "services",
+     "vm",
+     "data"
+    ],
+    "note": "UI 线程只向 gameCommands 队列提交命令与触摸坐标，帧循环在 SurfaceHolder 锁内消费。"
+   },
+   {
+    "id": "modules",
+    "label": "工具页与两个库模块",
+    "focus": [
+     "settings",
+     "puzzle",
+     "richtext",
+     "supperbanner"
+    ],
+    "note": "工具页与拼图是设置下的平行入口，两个 AAR 模块只被工具页消费，不参与战斗推进。"
+   }
   ]
+ },
+ "components": [
+  {
+   "id": "launch",
+   "type": "frontend",
+   "label": "LaunchActivity",
+   "sublabel": "首启门禁 → 继续游戏 · 工具入口",
+   "pos": [
+    70,
+    40
+   ],
+   "size": [
+    200,
+    70
+   ]
+  },
+  {
+   "id": "main",
+   "type": "frontend",
+   "label": "MainActivity",
+   "sublabel": "战斗宿主 · 十个计时关卡",
+   "pos": [
+    70,
+    190
+   ],
+   "size": [
+    200,
+    70
+   ]
+  },
+  {
+   "id": "game",
+   "type": "frontend",
+   "label": "GameCoreView",
+   "sublabel": "SurfaceView · 30FPS 渲染线程",
+   "pos": [
+    70,
+    350
+   ],
+   "size": [
+    200,
+    70
+   ]
+  },
+  {
+   "id": "services",
+   "type": "backend",
+   "label": "常驻服务",
+   "sublabel": "MusicService · FlashlightService",
+   "pos": [
+    70,
+    510
+   ],
+   "size": [
+    200,
+    70
+   ]
+  },
+  {
+   "id": "vm",
+   "type": "backend",
+   "label": "ViewModel 层",
+   "sublabel": "23 个 · StateFlow / LiveData",
+   "pos": [
+    400,
+    190
+   ],
+   "size": [
+    200,
+    70
+   ],
+   "tag": "MVVM"
+  },
+  {
+   "id": "data",
+   "type": "backend",
+   "label": "Data 层",
+   "sublabel": "SettingsRepository · DAO",
+   "pos": [
+    400,
+    350
+   ],
+   "size": [
+    200,
+    70
+   ]
+  },
+  {
+   "id": "room",
+   "type": "database",
+   "label": "Room",
+   "sublabel": "AppDatabase v2031 · 显式迁移",
+   "pos": [
+    400,
+    510
+   ],
+   "size": [
+    200,
+    70
+   ]
+  },
+  {
+   "id": "tools",
+   "type": "frontend",
+   "label": "工具页",
+   "sublabel": "手电筒 · 二维码 · 设备信息",
+   "pos": [
+    730,
+    40
+   ],
+   "size": [
+    240,
+    70
+   ]
+  },
+  {
+   "id": "settings",
+   "type": "frontend",
+   "label": "SettingsActivity",
+   "sublabel": "设置 · 主题 · 语言 · 难度",
+   "pos": [
+    730,
+    190
+   ],
+   "size": [
+    240,
+    70
+   ]
+  },
+  {
+   "id": "puzzle",
+   "type": "frontend",
+   "label": "PuzzleActivity",
+   "sublabel": "拼图十关 · 独立进度",
+   "pos": [
+    730,
+    350
+   ],
+   "size": [
+    240,
+    70
+   ]
+  },
+  {
+   "id": "richtext",
+   "type": "external",
+   "label": ":richtexteditor",
+   "sublabel": "RichTextEditorView · AAR",
+   "pos": [
+    1060,
+    40
+   ],
+   "size": [
+    230,
+    70
+   ]
+  },
+  {
+   "id": "supperbanner",
+   "type": "external",
+   "label": ":supperbanner",
+   "sublabel": "SupperBannerView · AAR",
+   "pos": [
+    1340,
+    190
+   ],
+   "size": [
+    230,
+    70
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Android App（com.young.aircraft）",
+   "wraps": [
+    "launch",
+    "main",
+    "game",
+    "services",
+    "vm",
+    "data",
+    "room",
+    "tools",
+    "settings",
+    "puzzle"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "独立 Gradle 库模块",
+   "wraps": [
+    "richtext",
+    "supperbanner"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "launch-main",
+   "from": "launch",
+   "to": "main",
+   "label": "开始 / 继续战斗",
+   "variant": "emphasis",
+   "labelDy": 24
+  },
+  {
+   "id": "main-game",
+   "from": "main",
+   "to": "game",
+   "label": "入队命令 · 渲染线程消费",
+   "variant": "emphasis",
+   "labelDy": 24
+  },
+  {
+   "id": "game-services",
+   "from": "game",
+   "to": "services",
+   "label": "绑定播放 BGM / SFX",
+   "labelDy": 24
+  },
+  {
+   "id": "main-vm",
+   "from": "main",
+   "to": "vm",
+   "label": "关卡 · 总击杀 · 得分"
+  },
+  {
+   "id": "vm-data",
+   "from": "vm",
+   "to": "data",
+   "label": "读写",
+   "labelDy": 24
+  },
+  {
+   "id": "data-room",
+   "from": "data",
+   "to": "room",
+   "label": "SQL",
+   "labelDy": 24
+  },
+  {
+   "id": "launch-tools",
+   "from": "launch",
+   "to": "tools",
+   "label": "工具入口"
+  },
+  {
+   "id": "launch-settings",
+   "from": "launch",
+   "to": "settings",
+   "label": "设置入口"
+  },
+  {
+   "id": "settings-puzzle",
+   "from": "settings",
+   "to": "puzzle",
+   "label": "打开拼图",
+   "labelDy": 24
+  },
+  {
+   "id": "settings-richtext",
+   "from": "settings",
+   "to": "richtext",
+   "label": "调试开发者入口"
+  },
+  {
+   "id": "settings-banner",
+   "from": "settings",
+   "to": "supperbanner",
+   "label": "Banner 轮播"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "cyan",
+   "title": "两套状态模型",
+   "items": [
+    "战斗是 SurfaceView + 自绘 30FPS 循环，不是 Compose 屏幕",
+    "MainActivity 是混合体：Compose 外壳用 AndroidView 承载 GameCoreView",
+    "其余页面统一 Compose setContent，View Binding 已关闭"
+   ]
+  },
+  {
+   "dot": "violet",
+   "title": "线程边界",
+   "items": [
+    "游戏状态渲染线程独占，UI 线程只向 gameCommands 队列提交 lambda",
+    "触摸坐标经 pendingPlayerTouch 原子引用，帧内取最新值",
+    "游戏结束与过关回调经 GameCoreView.post 回到主线程"
+   ]
+  },
+  {
+   "dot": "amber",
+   "title": "持久化与模块边界",
+   "items": [
+    "Room v2031 只注册显式迁移，无破坏性回退",
+    "进度统一走 replaceForPlayer() 事务，战斗与拼图互不覆盖",
+    "两个 AAR 模块不依赖游戏与彼此，颜色全由宿主映射"
+   ]
+  }
+ ]
 }
