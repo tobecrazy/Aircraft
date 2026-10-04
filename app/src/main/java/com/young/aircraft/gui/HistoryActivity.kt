@@ -43,7 +43,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -108,6 +107,7 @@ class HistoryActivity : AppCompatActivity() {
                     state = state,
                     spanCount = resources.getInteger(R.integer.history_span_count),
                     scoreFormatter = scoreFormatter,
+                    anonymousLabel = getString(R.string.hall_of_heroes_anonymous),
                     onBack = { finish() },
                     onDelete = ::confirmDelete
                 )
@@ -132,6 +132,7 @@ internal fun HistoryScreen(
     state: HistoryUiState,
     spanCount: Int,
     scoreFormatter: NumberFormat,
+    anonymousLabel: String,
     onBack: () -> Unit,
     onDelete: (PlayerGameData) -> Unit
 ) {
@@ -149,7 +150,12 @@ internal fun HistoryScreen(
                 .fillMaxSize()
                 .padding(horizontal = 14.dp)
         ) {
-            SummaryCard(state = state)
+            SummaryCard(
+                state = state,
+                topPilotName = state.records.firstOrNull()?.let {
+                    HallOfHeroesNameUtils.getDisplayName(it, anonymousLabel)
+                }
+            )
 
             RecordsSectionHeader()
 
@@ -181,6 +187,7 @@ internal fun HistoryScreen(
                                         item = item,
                                         index = rowIdx * columns + colIdx,
                                         scoreFormatter = scoreFormatter,
+                                        anonymousLabel = anonymousLabel,
                                         onDelete = { onDelete(item) },
                                         modifier = Modifier.weight(1f)
                                     )
@@ -229,7 +236,7 @@ private fun HistoryHeader(onBack: () -> Unit) {
 }
 
 @Composable
-private fun SummaryCard(state: HistoryUiState) {
+private fun SummaryCard(state: HistoryUiState, topPilotName: String?) {
     val accent = MaterialTheme.colorScheme.primary
     Surface(
         modifier = Modifier
@@ -260,12 +267,12 @@ private fun SummaryCard(state: HistoryUiState) {
             )
 
             Text(
-                text = if (state.topPilotName == null) {
+                text = if (topPilotName == null) {
                     stringResource(R.string.history_summary_empty_description)
                 } else {
                     stringResource(
                         R.string.history_summary_with_top_pilot,
-                        state.topPilotName,
+                        topPilotName,
                         state.topPilotLevel ?: 1
                     )
                 },
@@ -419,6 +426,7 @@ private fun RecordCard(
     item: PlayerGameData,
     index: Int,
     scoreFormatter: NumberFormat,
+    anonymousLabel: String,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -452,25 +460,23 @@ private fun RecordCard(
                     )
                 }
 
-                Row(
+                Column(
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = HallOfHeroesNameUtils.getDisplayName(item),
+                        text = HallOfHeroesNameUtils.getDisplayName(item, anonymousLabel),
                         color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        modifier = Modifier.fillMaxWidth()
                     )
                     if (isTopRecord) {
                         Row(
                             modifier = Modifier
-                                .padding(start = 8.dp)
+                                .padding(top = 6.dp)
                                 .background(
                                     color = themeAccent.copy(alpha = 0x29 / 255f),
                                     shape = RoundedCornerShape(percent = 50)
@@ -495,7 +501,9 @@ private fun RecordCard(
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.padding(start = 4.dp)
+                                modifier = Modifier.padding(start = 4.dp),
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                     }
@@ -569,6 +577,7 @@ private fun HistoryScreenPreview() {
             state = HistoryUiState(),
             spanCount = 1,
             scoreFormatter = NumberFormat.getNumberInstance(Locale.US),
+            anonymousLabel = "Anonymous",
             onBack = {},
             onDelete = {}
         )

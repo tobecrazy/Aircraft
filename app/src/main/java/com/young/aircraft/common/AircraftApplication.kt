@@ -6,6 +6,7 @@ import android.app.Application
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.WindowManager
+import com.young.aircraft.BuildConfig
 import com.young.aircraft.data.GameState
 
 /**
@@ -20,10 +21,12 @@ class AircraftApplication : Application() {
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                 applyOrientation(activity)
-                activity.window.setFlags(
-                    WindowManager.LayoutParams.FLAG_SECURE,
-                    WindowManager.LayoutParams.FLAG_SECURE
-                )
+                if (!BuildConfig.DEBUG) {
+                    activity.window.setFlags(
+                        WindowManager.LayoutParams.FLAG_SECURE,
+                        WindowManager.LayoutParams.FLAG_SECURE
+                    )
+                }
             }
             override fun onActivityStarted(activity: Activity) {}
             override fun onActivityResumed(activity: Activity) {
