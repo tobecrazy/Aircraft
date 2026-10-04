@@ -46,7 +46,7 @@ class RedEnvelopes(var context: Context, var speed: Float) : DrawBaseObject(cont
     private val openBitmap: Bitmap?
     private val rocketBitmap: Bitmap?
 
-    private val envelopeSizePx: Int = ScreenUtils.dpToPx(context, 150.0f)
+    val envelopeSizePx: Int = ScreenUtils.dpToPx(context, 150.0f)
     private val rocketSizePx: Int = ScreenUtils.dpToPx(context, 50.0f)
     private val envelopeSpawnMarginPx: Float = ScreenUtils.dpToPx(context, 40.0f).toFloat()
 

@@ -12,10 +12,12 @@ object HallOfHeroesNameUtils {
         }
     }
 
-    fun getDisplayName(record: PlayerGameData): String {
+    fun getDisplayName(record: PlayerGameData, anonymousLabel: String? = null): String {
         val trimmedName = record.playerName?.trim()
         return if (!trimmedName.isNullOrEmpty()) {
             trimmedName
+        } else if (anonymousLabel != null) {
+            anonymousLabel
         } else {
             truncatePlayerId(record.playerId)
         }

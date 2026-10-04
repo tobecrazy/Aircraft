@@ -38,9 +38,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
@@ -71,6 +74,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import com.young.aircraft.viewmodel.GameViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
@@ -308,9 +315,21 @@ class MainActivity : AppCompatActivity() {
         dialog.behavior.isDraggable = false
         dialog.setOnShowListener {
             dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
-                ?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                ?.apply {
+                    setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    post {
+                        val navigationBarInset = ViewCompat.getRootWindowInsets(this)
+                            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+                            ?.bottom
+                            ?: 0
+                        if (navigationBarInset > 0) {
+                            updatePadding(bottom = maxOf(paddingBottom, navigationBarInset))
+                        }
+                    }
+                }
         }
 
+        dialog.window?.let { WindowCompat.setDecorFitsSystemWindows(it, false) }
         dialog.setDialogComposeContent(this) {
             HallOfHeroesContent(
                 hint = getString(R.string.hall_of_heroes_hint),
@@ -432,7 +451,14 @@ private fun HallOfHeroesContent(hint: String, onRecord: (String) -> Unit) {
             .fillMaxWidth()
             .background(SheetGradient, SheetTopShape)
             .border(1.dp, SheetBorder, SheetTopShape)
-            .padding(start = 24.dp, end = 24.dp, top = 14.dp, bottom = 28.dp),
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(
+                start = 24.dp,
+                end = 24.dp,
+                top = 14.dp,
+                bottom = 28.dp
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(

@@ -37,7 +37,7 @@ class Shields(var context: Context, var speed: Float) : DrawBaseObject(context) 
     }
 
     private val shieldBitmaps = arrayOfNulls<Bitmap>(3)
-    private val shieldSizePx: Int = ScreenUtils.dpToPx(context, 100.0f)
+    val shieldSizePx: Int = ScreenUtils.dpToPx(context, 100.0f)
 
     private val blinkPaint = Paint()
 

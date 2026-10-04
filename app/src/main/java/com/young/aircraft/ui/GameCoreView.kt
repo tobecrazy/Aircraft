@@ -196,14 +196,30 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         timeFreezes.onScreenResized(newW, newH, sx, sy)
     }
 
+    /** Allocation-free `RectF.intersects` for the per-frame collision loops. */
+    private fun overlaps(
+        aLeft: Float, aTop: Float, aRight: Float, aBottom: Float,
+        bLeft: Float, bTop: Float, bRight: Float, bBottom: Float
+    ): Boolean =
+        aRight >= bLeft && bRight >= aLeft && aBottom >= bTop && bBottom >= aTop
+
+    private fun overlaps(a: RectF, bLeft: Float, bTop: Float, bRight: Float, bBottom: Float): Boolean =
+        overlaps(a.left, a.top, a.right, a.bottom, bLeft, bTop, bRight, bBottom)
+
+    private fun overlaps(aLeft: Float, aTop: Float, aRight: Float, aBottom: Float, b: RectF): Boolean =
+        overlaps(aLeft, aTop, aRight, aBottom, b.left, b.top, b.right, b.bottom)
+
     private fun checkCollision() {
         val aircraftBounds = drawAircraft.getBounds()
 
         // Check player aircraft colliding with enemies
         for (enemy in enemies.activeEnemies) {
             if (enemy.isDestroyed()) continue
-            val enemyBounds = enemies.getEnemyBounds(enemy)
-            if (RectF.intersects(aircraftBounds, enemyBounds)) {
+            if (overlaps(
+                    aircraftBounds,
+                    enemy.x, enemy.y, enemy.x + enemies.enemySizePx, enemy.y + enemies.enemySizePx
+                )
+            ) {
                 if (!collisionCooldown) {
                     Log.d("Collision", "Aircraft collided with an enemy!")
                     handleCollision()
@@ -243,8 +259,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkEnemyBulletsHitPlayer(aircraftBounds: RectF) {
         enemies.forEachActiveBullet { enemy, bx, bulletRef ->
-            val bulletBounds = enemies.getBulletBounds(bx, bulletRef.y)
-            if (RectF.intersects(aircraftBounds, bulletBounds)) {
+            if (overlaps(
+                    aircraftBounds,
+                    bx, bulletRef.y, bx + enemies.bulletWidthPx, bulletRef.y + enemies.bulletHeightPx
+                )
+            ) {
                 enemy.bullets.remove(bulletRef)
                 if (drawAircraft.isShielded()) {
                     Log.d("Game", "Shield absorbed enemy bullet!")
@@ -266,26 +285,19 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun checkPlayerBulletsHitEnemies() {
-        val bullets = drawAircraft.getBullets().toList()
-        val enemySize = enemies.enemySizePx
         val bulletW = drawAircraft.bulletWidthPx
         val bulletH = drawAircraft.bulletHeightPx
 
-        for (bullet in bullets) {
+        for (bullet in drawAircraft.getBullets().toList()) {
             if (bullet.y < 0) continue
-            val bulletBounds = RectF(
-                bullet.x, bullet.y,
-                bullet.x + bulletW,
-                bullet.y + bulletH
-            )
 
             for (enemy in enemies.activeEnemies) {
                 if (enemy.isDestroyed()) continue
-                val enemyBounds = RectF(
-                    enemy.x, enemy.y,
-                    enemy.x + enemySize, enemy.y + enemySize
-                )
-                if (RectF.intersects(bulletBounds, enemyBounds)) {
+                if (overlaps(
+                        bullet.x, bullet.y, bullet.x + bulletW, bullet.y + bulletH,
+                        enemy.x, enemy.y, enemy.x + enemies.enemySizePx, enemy.y + enemies.enemySizePx
+                    )
+                ) {
                     enemies.hitEnemy(enemy)
                     drawAircraft.removeBullet(bullet)
                     enemiesDestroyedThisLevel++
@@ -300,22 +312,20 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun checkPlayerBulletsHitRedEnvelopes() {
-        val bullets = drawAircraft.getBullets().toList()
         val bulletW = drawAircraft.bulletWidthPx
         val bulletH = drawAircraft.bulletHeightPx
 
-        for (bullet in bullets) {
+        for (bullet in drawAircraft.getBullets().toList()) {
             if (bullet.y < 0) continue
-            val bulletBounds = RectF(
-                bullet.x, bullet.y,
-                bullet.x + bulletW,
-                bullet.y + bulletH
-            )
 
             for (envelope in redEnvelopes.activeEnvelopes) {
                 if (envelope.isDetonated()) continue
-                val envBounds = redEnvelopes.getEnvelopeBounds(envelope)
-                if (RectF.intersects(bulletBounds, envBounds)) {
+                if (overlaps(
+                        bullet.x, bullet.y, bullet.x + bulletW, bullet.y + bulletH,
+                        envelope.x, envelope.y,
+                        envelope.x + redEnvelopes.envelopeSizePx, envelope.y + redEnvelopes.envelopeSizePx
+                    )
+                ) {
                     drawAircraft.removeBullet(bullet)
                     val detonated = redEnvelopes.hitEnvelope(envelope)
                     if (detonated) {
@@ -341,11 +351,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
             for (enemy in enemies.activeEnemies) {
                 if (enemy.isDestroyed()) continue
-                val enemyBounds = RectF(
-                    enemy.x, enemy.y,
-                    enemy.x + enemySize, enemy.y + enemySize
-                )
-                if (RectF.intersects(rocketBounds, enemyBounds)) {
+                if (overlaps(
+                        rocketBounds,
+                        enemy.x, enemy.y, enemy.x + enemySize, enemy.y + enemySize
+                    )
+                ) {
                     // First hit: deactivate rocket, AoE blast
                     rocket.active = false
                     val impactX = enemy.x + enemySize / 2f
@@ -362,11 +372,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     // Destroy all enemies in blast radius
                     for (target in enemies.activeEnemies) {
                         if (target.isDestroyed()) continue
-                        val targetBounds = RectF(
-                            target.x, target.y,
-                            target.x + enemySize, target.y + enemySize
-                        )
-                        if (RectF.intersects(blastRect, targetBounds)) {
+                        if (overlaps(
+                                blastRect,
+                                target.x, target.y, target.x + enemySize, target.y + enemySize
+                            )
+                        ) {
                             enemies.hitEnemy(target)
                             enemiesDestroyedThisLevel++
                             totalKills++
@@ -482,18 +492,16 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
     private fun checkPlayerBulletsHitBoss() {
         if (!bossEnemy.isBossActive()) return
-        val bullets = drawAircraft.getBullets().toList()
         val bulletSize = ScreenUtils.dpToPx(context, 40.0f)
         val bossBounds = bossEnemy.getBossBounds() ?: return
 
-        for (bullet in bullets) {
+        for (bullet in drawAircraft.getBullets().toList()) {
             if (bullet.y < 0) continue
-            val bulletBounds = RectF(
-                bullet.x, bullet.y,
-                bullet.x + bulletSize,
-                bullet.y + bulletSize
-            )
-            if (RectF.intersects(bulletBounds, bossBounds)) {
+            if (overlaps(
+                    bullet.x, bullet.y, bullet.x + bulletSize, bullet.y + bulletSize,
+                    bossBounds
+                )
+            ) {
                 drawAircraft.removeBullet(bullet)
                 val killed = bossEnemy.hitBoss()
                 musicService?.enemyHitSoundPlay()
@@ -552,21 +560,19 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private fun checkPlayerBulletsHitShields() {
-        val bullets = drawAircraft.getBullets().toList()
         val bulletSize = ScreenUtils.dpToPx(context, 40.0f)
 
-        for (bullet in bullets) {
+        for (bullet in drawAircraft.getBullets().toList()) {
             if (bullet.y < 0) continue
-            val bulletBounds = RectF(
-                bullet.x, bullet.y,
-                bullet.x + bulletSize,
-                bullet.y + bulletSize
-            )
 
             for (shield in shields.activeShields) {
                 if (shield.collected) continue
-                val shieldBounds = shields.getShieldBounds(shield)
-                if (RectF.intersects(bulletBounds, shieldBounds)) {
+                if (overlaps(
+                        bullet.x, bullet.y, bullet.x + bulletSize, bullet.y + bulletSize,
+                        shield.x, shield.y,
+                        shield.x + shields.shieldSizePx, shield.y + shields.shieldSizePx
+                    )
+                ) {
                     drawAircraft.removeBullet(bullet)
                     shield.collected = true
                     drawAircraft.activateShield()
@@ -594,11 +600,11 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             // Check if any enemy touches the time freeze
             for (enemy in enemies.activeEnemies) {
                 if (enemy.isDestroyed()) continue
-                val enemyBounds = RectF(
-                    enemy.x, enemy.y,
-                    enemy.x + enemySize, enemy.y + enemySize
-                )
-                if (RectF.intersects(enemyBounds, freezeBounds)) {
+                if (overlaps(
+                        enemy.x, enemy.y, enemy.x + enemySize, enemy.y + enemySize,
+                        freezeBounds
+                    )
+                ) {
                     timeFreezes.collectByEnemy(timeFreeze)
                     Log.d("Game", "Enemy collected time freeze! Player frozen for 5 seconds.")
                     break
@@ -849,7 +855,6 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         drawHeader.onDraw(canvas)
     }
 
-    private var avg_FPS: Double = 0.0
     private var droppedFrameCount: Int = 0
     @Volatile
     private var isRunning = true
@@ -907,10 +912,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             totalTime += System.nanoTime() - startTime
             frameCount++
             if (frameCount == FPS) {
-                avg_FPS = (1000 / ((totalTime / frameCount) / 1000000)).toDouble()
-                if (droppedFrameCount > 0) {
-                    Log.w("GameCoreView", "Dropped frames in last second: $droppedFrameCount")
-                }
+                val avgFps = 1000.0 / ((totalTime.toDouble() / frameCount) / 1_000_000.0)
+                Log.w("GameCoreView", "FPS=${avgFps.toInt()} dropped=$droppedFrameCount")
                 frameCount = 0
                 totalTime = 0
                 droppedFrameCount = 0
