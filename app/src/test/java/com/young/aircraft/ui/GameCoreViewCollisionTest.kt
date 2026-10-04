@@ -91,6 +91,19 @@ class GameCoreViewCollisionTest {
         assertEquals(0f, spread[spread.size / 2].vx, 0.0001f)
     }
 
+    @Test
+    fun `spread shot volleys have longer intervals at every level`() {
+        val bossEnemy = BossEnemy(context, speed = 0f)
+
+        bossEnemy.spawnBoss(1)
+        assertEquals(80, bossEnemy.getBombFireInterval(isSpreadShot = false))
+        assertEquals(120, bossEnemy.getBombFireInterval(isSpreadShot = true))
+
+        bossEnemy.spawnBoss(10)
+        assertEquals(21, bossEnemy.getBombFireInterval(isSpreadShot = false))
+        assertEquals(31, bossEnemy.getBombFireInterval(isSpreadShot = true))
+    }
+
     private fun invokeFireBomb(bossEnemy: BossEnemy) {
         val method = BossEnemy::class.java.getDeclaredMethod("fireBomb", BossState::class.java)
         method.isAccessible = true
