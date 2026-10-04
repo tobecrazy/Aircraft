@@ -2,6 +2,7 @@ package com.young.aircraft.gui
 
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -200,6 +201,16 @@ class AndroidDevAssistantToolsActivityTest {
             filterApps(apps, "com.android.set", AppFilter.ALL).map { it.packageName }
         )
         assertTrue(filterApps(apps, "nothing-here", AppFilter.ALL).isEmpty())
+    }
+
+    @Test
+    fun `app log switch row is on the tools list`() {
+        tick()
+
+        composeTestRule
+            .onNodeWithTag(ModuleListTag)
+            .performScrollToNode(hasTestTag("assistant_switch_app_logs"))
+        composeTestRule.onNodeWithTag("assistant_switch_app_logs").assertIsDisplayed()
     }
 
     private fun openModuleDialog(prefKey: String) {

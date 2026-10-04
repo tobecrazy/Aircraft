@@ -130,6 +130,7 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 - QR code utility with live camera scan, gallery image import, rich-text encoding input, framed preview output, and long-press save to device
 - Flashlight utility backed by a camera-type foreground service (`FlashlightService`): Camera2 torch on/off, SOS blink mode with `PARTIAL_WAKE_LOCK` for accurate pacing when the screen is off, Android 13+ brightness levels, persistent notification with a "Turn off" action, and a one-shot battery-optimization whitelist prompt that fires after the first successful torch-on
 - Device information screen (`DeviceInfoActivity`, Jetpack Compose) with CPU, memory, disk, battery, and network telemetry; the hero card places Current Time and Uptime side by side, and the System Info card places Screen Resolution and Boot Time side by side, while a foldable's hinge reports FLAT (unfolded) — both stack otherwise, via Jetpack WindowManager posture detection
+- Runtime app-log switch: `AppLog` gates every `android.util.Log` call on a `@Volatile` flag seeded from `BuildConfig.DEBUG` and toggled from Settings → Assistant Tools; the toggle persists in DataStore Preferences, and the `checkAppLogUsage` Gradle task fails `lint*` if any production source bypasses `AppLog` for `android.util.Log`
 - Robolectric coverage for onboarding, privacy gate, QR tool flows, About Me and Device Info Compose UI wiring (including foldable System Info layout), leaderboard styling, string parity, and gameplay formulas
 
 ## Project Structure
@@ -188,6 +189,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
 │   ├── SettingsRepository.kt           # SharedPreferences store: privacy, onboarding, difficulty, audio, five-color theme, puzzle guide, install ID
+│   ├── LogSettings.kt                  # DataStore Preferences (`log_settings`) app-log toggle; setEnabled() flips AppLog.enabled eagerly
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 │   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
 │   ├── ContactsRepository.kt           # DeviceContact model + ContentResolver read/add/update/delete with a ContentObserver-backed Flow
@@ -250,6 +252,7 @@ app/src/main/java/com/young/aircraft/
 │   └── theme/
 │       └── AircraftTheme.kt            # Shared tactical palette, themeAccent/aircraftColorScheme, live preference listener
 ├── utils/
+│   ├── AppLog.kt                       # Runtime kill-switch wrapper over android.util.Log; d() takes a lambda so disabled messages are never built
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
 │   ├── DataUriUtils.kt                 # RFC 2397 data:image URI parsing for rich-text embedded images
 │   ├── FilePickerHelper.kt             # FileProvider URI and cache helpers for QR image export/import
@@ -279,6 +282,7 @@ app/src/main/java/com/young/aircraft/
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
     ├── FlashlightViewModel.kt          # Drives FlashlightService via intents; observes torch state via TorchCallback and SOS state via FlashlightService.isSosRunning
     ├── BannerDetailsViewModel.kt       # Banner detail display/download logic (BannerDetailsActivity)
+    ├── LogSettingsViewModel.kt         # App-log toggle StateFlow, seeded from AppLog.enabled (AndroidDevAssistantToolsActivity)
     └── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
 
 app/src/debug/java/com/young/aircraft/
@@ -310,7 +314,7 @@ app/src/release/java/com/young/aircraft/
 - `BannerDetailsIntentContractTest` and `ImageDetailsIntentContractTest` for the `ImageDetails`/`BannerDetails` intent extras
 - `AboutMeActivityTest` for localized About Me copy, repo URL rendering, and back navigation
 - `AboutAircraftActivityTest`, `PrivacyPolicyActivityTest`, `ShowImageDetailsActivityTest` for the remaining Compose utility screens
-- `AndroidDevAssistantToolsActivityTest` for the debug tool-hub module grid and its per-module toggles
+- `AndroidDevAssistantToolsActivityTest` for the debug tool-hub module grid, its per-module toggles, and the app-log switch row
 - `DevelopSettingsActivityTest` and `RichTextEditorActivityTest` for the debug tools hub and editor screen
 - `DominantPageIndexTest` for the PDF reader's header page counter
 - `SettingsRepositoryTest` for the SharedPreferences-backed settings store
@@ -322,6 +326,7 @@ app/src/release/java/com/young/aircraft/
 - `LaunchActivityTest` for saved-game detection, continue/new-game dialog, and jet selection
 - `ContactsValidationTest`, `ContactsRepositoryTest`, and `ContactsViewModelTest` for the debug-only contacts feature: the phone/email gate, the row-shaping rules (one entry per phone, HOME-typed email/address winning), the batched provider writes, and the permission state machine
 - `BossFireworksEffectTest` for the boss-defeat fireworks frame window (nothing before the first burst, ink while alive, hard stop at the declared duration, in-bounds clamping)
+- `AppLogTest`, `LogSettingsTest`, and `LogSettingsViewModelTest` for the runtime log switch: the kill-switch silences every level and skips building a `d` message, `setEnabled` persists and flips `AppLog.enabled` in the same call, and the toggle StateFlow seeds from the runtime flag rather than disk
 - `DevelopSettingsViewModelTest`, `PrivacyPolicyViewModelTest`, `OnboardingViewModelTest`, `LaunchViewModelTest`, `GameViewModelTest`, `HistoryViewModelTest`, `SettingsViewModelTest`, `ShowImageDetailsViewModelTest` for ViewModel unit coverage
 - `QRChineseRoundtripTest` and `RichTextMarkdownTest` for QR text round-tripping and editor Markdown output
 - `PlayerGameDataTest` for timestamp-aware data-class behavior

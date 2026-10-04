@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity() {
                     GameState.LOW_MEMORY -> {
                         coreView.pauseGame()
                         showPauseOverlay()
-                        AppLog.d("MainActivity") { "Game paused due to low memory" }
+                        AppLog.d("MainActivity", { "Game paused due to low memory" })
                     }
                     else -> {}
                 }

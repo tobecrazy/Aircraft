@@ -4,10 +4,10 @@ import android.app.Activity
 import android.webkit.WebView
 
 object DebugTools {
-    val isEnabled: Boolean = true
+    var isEnabled: Boolean = true
 
     fun log(msg: String) {
-        AppLog.d("Aircraft") { msg }
+        AppLog.d("Aircraft", { msg })
     }
 
     fun showOverlay(activity: Activity) = Unit

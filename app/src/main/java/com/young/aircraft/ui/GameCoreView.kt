@@ -214,7 +214,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 )
             ) {
                 if (!collisionCooldown) {
-                    AppLog.d("Collision") { "Aircraft collided with an enemy!" }
+                    AppLog.d("Collision", { "Aircraft collided with an enemy!" })
                     handleCollision()
                 }
             } else {
