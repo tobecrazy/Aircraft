@@ -32,7 +32,7 @@ The demo above walks through the end-to-end player experience on a real device:
 
 ![Project Architecture](project_diagram.svg)
 
-> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
+> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). The Remote Config update-gate flow is diagrammed separately at [docs/remote-update-enforcement.workflow.html](docs/remote-update-enforcement.workflow.html), generated from [docs/remote-update-enforcement.workflow.json](docs/remote-update-enforcement.workflow.json). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
 
 ## Class Diagram
 

@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 - `ContactsValidationTest`, `ContactsRepositoryTest`, and `ContactsViewModelTest` covering the debug-only contacts feature
 - `BossFireworksEffectTest` covering the boss-defeat fireworks timing and bounds
+- `docs/remote-update-enforcement.workflow.html` interactive workflow diagram (generated from `docs/remote-update-enforcement.workflow.json` with the archify tool) covering the Remote Config forced-update path: startup registration, initial fetch and activation, the version gate, the bundled-defaults fallback, the once-per-launch optional prompt, and the blocking update screen
+
+### Changed
+- `MandatoryUpdateActivity` restyled to the app's tactical dark UI so the blocking gate matches the About/Settings card treatment instead of stock Material: the system update arrow is now tinted with `colorScheme.error` inside a critical-tinted circular badge, the status is a monospace status pill, and the current/minimum version comparison is a bordered card with the required target in the accent color. No new string resources — the existing `remote_update_*` set already covers all four locales, and `openUpdatePage` plus `BackHandler(enabled = true) {}` are unchanged
 
 ## [1.3.6] - 2026-10-04
 
