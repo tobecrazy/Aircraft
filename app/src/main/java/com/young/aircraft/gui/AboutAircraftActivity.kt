@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -82,15 +81,16 @@ private val SpecLabel = Color(0x88FFFFFF)
 private val SectionLabel = Color(0x66FFFFFF)
 private val SpecDivider = Color(0x10FFFFFF)
 
-class AboutAircraftActivity : AppCompatActivity() {
+class AboutAircraftActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: AboutAircraftViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this, AboutAircraftViewModel.Factory(this))[AboutAircraftViewModel::class.java]
+    }
+
+    override fun initializeUI() {
+        enableEdgeToEdge()
 
         setContent {
             AircraftTheme {

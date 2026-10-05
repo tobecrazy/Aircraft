@@ -13,7 +13,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -102,7 +101,7 @@ import com.young.aircraft.ui.theme.FlashSurface
 import com.young.aircraft.ui.theme.FlashCritical
 import com.young.aircraft.ui.theme.AircraftTheme
 
-class FlashlightActivity : AppCompatActivity() {
+class FlashlightActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: FlashlightViewModel
     private var hasCameraPermission by mutableStateOf(false)
@@ -117,7 +116,11 @@ class FlashlightActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
+        viewModel = ViewModelProvider(this)[FlashlightViewModel::class.java]
+    }
+
+    override fun initializeUI() {
         // Edge-to-edge with permanently dark system bars to match the tactical theme.
         // Use SystemBarStyle.dark on both bars so the system always renders light icons,
         // regardless of the device's day/night setting.
@@ -125,10 +128,8 @@ class FlashlightActivity : AppCompatActivity() {
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
         )
-        super.onCreate(savedInstanceState)
         supportActionBar?.hide()
 
-        viewModel = ViewModelProvider(this)[FlashlightViewModel::class.java]
         hasCameraPermission = hasCameraPermission()
         requestCameraPermissionIfNeeded()
 

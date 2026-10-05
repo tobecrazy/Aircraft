@@ -11,7 +11,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -95,15 +94,16 @@ private const val DARK_THEME_JS =
  * FLOW: check pref → skip to Onboarding if accepted / show cinematic screen if not
  * Accept → save pref → OnboardingActivity | Reject → finishAffinity()
  */
-class PrivacyPolicyAcceptActivity : AppCompatActivity() {
+class PrivacyPolicyAcceptActivity : BaseAircraftActivity() {
     private lateinit var viewModel: PrivacyPolicyViewModel
     private var starFieldView: StarFieldView? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this, PrivacyPolicyViewModel.Factory(this))[PrivacyPolicyViewModel::class.java]
+    }
+
+    override fun initializeUI() {
+        supportActionBar?.hide()
 
         // Already accepted → route to onboarding gate (it handles its own skip).
         // Must stay ahead of setContent — this is the MAIN LAUNCHER entry regression guard.

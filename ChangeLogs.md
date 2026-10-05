@@ -2,12 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.3] - 2026-09-20
+## [Unreleased]
 
 ### Fixed
-- Privacy policy accept and reject buttons now share equal width (`Modifier.weight(1f)`) instead of accept stretching to fill remaining space
+- `AndroidDevAssistantToolsActivityTest` "system info module opens DeviceInfoActivity" failed once the new app-logs row pushed the module tile below Robolectric's default viewport — `performClick()` silently did nothing. Added the same tall-viewport qualifier (`w420dp-h2000dp`) `SettingsActivityTest` already uses
+- `AndroidDevAssistantToolsActivityTest` "app browser module shows the in-app list dialog" hung for 60s: `AppListDialog` shows a `CircularProgressIndicator` while it queries the package manager, and Robolectric's default choreographer re-fires vsync inline, so Compose never reaches idle. The helper now pauses the choreographer and drives a bounded 500 ms of frames instead of calling `waitForIdle()`
 
-## [Unreleased]
+### Added
+- `ContactsValidationTest`, `ContactsRepositoryTest`, and `ContactsViewModelTest` covering the debug-only contacts feature
+- `BossFireworksEffectTest` covering the boss-defeat fireworks timing and bounds
+- `docs/remote-update-enforcement.workflow.html` interactive workflow diagram (generated from `docs/remote-update-enforcement.workflow.json` with the archify tool) covering the Remote Config forced-update path: startup registration, initial fetch and activation, the version gate, the bundled-defaults fallback, the once-per-launch optional prompt, and the blocking update screen
+
+### Changed
+- `MandatoryUpdateActivity` restyled to the app's tactical dark UI so the blocking gate matches the About/Settings card treatment instead of stock Material: the system update arrow is now tinted with `colorScheme.error` inside a critical-tinted circular badge, the status is a monospace status pill, and the current/minimum version comparison is a bordered card with the required target in the accent color. No new string resources — the existing `remote_update_*` set already covers all four locales, and `openUpdatePage` plus `BackHandler(enabled = true) {}` are unchanged
+
+## [1.3.6] - 2026-10-04
+
+### Added
+- Debug-only PDF reader (`PdfReaderActivity` + `PdfViewModel`) built on the platform `android.graphics.pdf.PdfRenderer` with no PDF dependency: page list, pinch zoom that re-renders on gesture settle (clamped to `MAX_RENDER_WIDTH_PX = 2048`) rather than scaling a bitmap, an `LruCache<String, Bitmap>` page cache sized at `maxMemory() / 16`, `Mutex`-guarded `openPage`, and a `dominantPageIndex()` header counter that survives a short trailing page
+- Debug-only device-contacts browser/editor (`ContactsActivity`, `ContactsViewModel`, `ContactsRepository`): runtime `READ_CONTACTS`/`WRITE_CONTACTS` grant, `ContentResolver` CRUD with `ContentProviderOperation` batched writes, and a `ContentObserver`-backed `Flow` so the list refreshes on external contact changes
+- `AppListDialog` installed-app picker for the Android Dev Assistant app-browser module; `readInstalledApps()`/`filterApps()` are internal top-level functions so they are unit-testable without an Activity
+- Canvas-wide multi-burst fireworks (`BossFireworksEffect`) played across the game surface when a boss is defeated
+- Boss low-HP spread shot: above half HP the boss fires single missiles straight down, below half HP every salvo becomes a 5-shot spread of red orbs angled ±20° around straight down; shot count, angle, and HP threshold live in `BossEnemy`'s companion object
+- Robolectric coverage for boss spread-shot velocities, the fireworks effect, the Dev Assistant module grid, the theme palette, and the PDF page-index derivation
+
+### Changed
+- Upgraded the Gradle wrapper to `9.8.0`
+- Game-engine state is now render-thread confined: a `gameCommands: ConcurrentLinkedQueue<() -> Unit>` drained at the top of each frame carries `pauseGame()`/`resumeGame()`/`advanceToNextLevel()`/`onKeyDown`, and a `pendingPlayerTouch: AtomicReference<PlayerTouch?>` carries the newest drag position so drag latency stays one frame; `isRunning` and `musicService` became `@Volatile`
+- `MainActivity.onLevelComplete` now advances straight to the next combat level instead of routing through the puzzle screen; the puzzle game is an independent ten-level mode opened from Settings
+- Layout fixes on the history, main-game, and object-spawn paths (`HistoryActivity`, `MainActivity`, `GameCoreView`, `RedEnvelopes`, `Shields`, `HallOfHeroesNameUtils`)
+- `AircraftApplication` inset/secure-window policies and the dev-assistant module toggles reworked
+
+## [1.3.5] - 2026-09-30
+
+### Added
+- `:supperbanner` Android library module packaging `com.young.supperbanner.SupperBannerView` as a reusable AAR: auto-playing ViewPager2 + Coil carousel, a host-settable `SupperBannerColors` palette (the view holds no literal colors), 11 `SupperBannerEffect` transitions built as `ViewPager2.PageTransformer`s, and an AGSL `SHADER` effect that degrades to `FADE` when compilation fails. Published as `com.young:supperbanner` through `maven-publish`; usage documented in `docs/supper-banner-aar-usage.md`
+- Per-app language picker (`LanguageSettingsActivity`) for follow-system / zh-CN / zh-TW / zh-HK / en via `AppCompatDelegate.setApplicationLocales`, with a `localeConfig` manifest entry so the choice persists below API 33
+- Dedicated game-settings screen (`GameSettingsActivity`) split out of the settings hub, holding difficulty, audio, and color-theme controls
+- OGG audio variants alongside the existing MP3s; `MusicService` resolves `{name}_{mp3|ogg}` at runtime so format choice no longer requires a rebuild
+- Taiwan Traditional (`values-zh-rTW`) and Hong Kong Traditional (`values-zh-rHK`) translations — the app now ships four locales, with `StringResourceTest` enforcing full key parity across all of them
+- Theme color setting reworked into a dropdown list above Other settings
+
+### Changed
+- Game-engine, persistence, and puzzle architecture redefined: `PlayerGameDataDao.replaceForPlayer()` became a `@Transaction` that merges the other mode's fields and replaces the record atomically (replacing the read-then-delete-then-insert sequence in `GameViewModel`, which lost data on failure); the puzzle image feed, disk cache, and load state moved out of `PuzzleActivity` into `PuzzleImageViewModel`
+- View Binding removed from the app — no binding classes remain, and every `gui/` Activity is Compose
+- `PuzzleActivity` board/piece/undo state uses `rememberSaveable` with a Saver so rotation restores the in-progress board
+- `OnboardingActivity` refreshed; page count still lives in the single `PAGE_COUNT` constant that drives the pager, indicators, and the NEXT→LAUNCH switch
+
+## [1.3.3] - 2026-09-20
 
 ### Added
 - Persisted Green, Blue, Purple, Yellow, and Red themes selectable above Other settings, with live accent updates and synchronized English/Chinese labels
@@ -17,6 +59,7 @@ All notable changes to this project will be documented in this file.
 - Enabled R8 code shrinking and resource shrinking for release builds (`isMinifyEnabled = true`, `isShrinkResources = true`), reducing the release APK from ~45 MB to ~16 MB; Crashlytics receives the R8 mapping file automatically so obfuscated release stack traces remain retraceable
 
 ### Fixed
+- Privacy policy accept and reject buttons now share equal width (`Modifier.weight(1f)`) instead of accept stretching to fill remaining space
 - Clear-cache Cancel now dismisses the dialog even when no negative-action callback is supplied; shared dialog hosts provide the dismissal action
 - Dialogs hosted in separate Compose roots now inherit the saved theme rather than default Material colors
 - Release builds failed at `produceReleaseComposeMapping` with `Could not find org.jetbrains.kotlin:compose-group-mapping:2.2.10` (AGP's bundled KGP version; that artifact is only published from KGP 2.3.0+). Fixed by raising the built-in Kotlin Gradle plugin to `2.4.10` via a `buildscript` classpath dependency, matching the Compose compiler plugin version

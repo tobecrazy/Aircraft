@@ -3,7 +3,6 @@ package com.young.aircraft.gui
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -95,14 +94,16 @@ private const val MAX_SCALE = 5f
  * Pages render at the settled zoom width, so memory stays bounded by the page cache instead of
  * holding one full-resolution bitmap per page.
  */
-class PdfReaderActivity : ComponentActivity() {
+class PdfReaderActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: PdfViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this)[PdfViewModel::class.java]
+    }
+
+    override fun initializeUI() {
+        enableEdgeToEdge()
         setContent {
             AircraftTheme {
                 PdfReaderScreen(viewModel = viewModel, onBack = { finish() })

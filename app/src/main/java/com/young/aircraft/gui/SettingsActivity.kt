@@ -6,7 +6,6 @@ import android.text.format.Formatter
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
@@ -20,13 +19,15 @@ import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : BaseAircraftActivity() {
     private lateinit var viewModel: SettingsViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this, SettingsViewModel.Factory(this))[SettingsViewModel::class.java]
+    }
+
+    override fun initializeUI() {
+        supportActionBar?.hide()
 
         setContent {
             AircraftTheme {

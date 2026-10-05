@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "远程配置强制更新执行流程",
+    "output": "remote-update-enforcement.workflow.html",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "cfg", "label": "配置与校验" },
+    { "id": "out", "label": "降级与处置" }
+  ],
+  "phases": [
+    { "id": "boot", "label": "拉取与激活", "fromCol": 0, "toCol": 2 },
+    { "id": "check", "label": "版本校验与处置", "fromCol": 3, "toCol": 4, "variant": "emphasis" }
+  ],
+  "mainPath": ["init", "activate", "enforce", "mandatory"],
+  "nodes": [
+    { "id": "init", "lane": "cfg", "col": 0, "type": "cloud", "label": "初始化远程配置", "sublabel": "initialize() 单次" },
+    { "id": "activate", "lane": "cfg", "col": 2, "type": "cloud", "label": "拉取并激活配置", "sublabel": "fetchAndActivate" },
+    { "id": "enforce", "lane": "cfg", "col": 4, "type": "security", "label": "版本闸门", "sublabel": "enforceMinimumVersion" },
+    { "id": "defaults", "lane": "out", "col": 0, "type": "database", "label": "内置默认值兜底", "sublabel": "拉取失败时降级" },
+    { "id": "prompt", "lane": "out", "col": 2, "type": "frontend", "label": "可选更新弹窗", "sublabel": "每版本一次" },
+    { "id": "mandatory", "lane": "out", "col": 4, "type": "frontend", "label": "强制更新拦截屏", "sublabel": "BackHandler 拦返回" }
+  ],
+  "edges": [
+    { "from": "init", "to": "activate", "route": "straight" },
+    { "from": "activate", "to": "enforce", "route": "straight" },
+    { "from": "activate", "to": "defaults", "label": "拉取失败", "variant": "dashed", "role": "error" },
+    { "from": "defaults", "to": "enforce", "label": "兜底版本号", "variant": "dashed", "role": "return" },
+    { "from": "enforce", "to": "prompt", "label": "版本达标", "variant": "emphasis", "role": "branch" },
+    { "from": "enforce", "to": "mandatory", "label": "低于最低版本", "variant": "security", "role": "branch" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "强制阻断", "items": ["低于 minimum_version 启动拦截屏并 finish 当前界面", "BackHandler 拦返回键，自检达标才关闭"] },
+    { "dot": "amber", "title": "Fail open", "items": ["拉取失败回落硬编码 defaults", "compareAppVersions 为 null 按无需更新处理"] },
+    { "dot": "cyan", "title": "触发与去重", "items": ["onCreate 实时激活 与 onActivityResumed 双触发", "可选更新按 latest_version 每版一次"] }
+  ]
+}

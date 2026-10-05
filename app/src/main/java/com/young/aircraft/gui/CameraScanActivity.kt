@@ -74,7 +74,7 @@ import com.young.aircraft.viewmodel.CameraScanViewModel
  * Debug-only live QR scanner: CameraX preview + MlKitAnalyzer (QR only).
  * The first detected code locks the result; "rescan" clears it and resumes.
  */
-class CameraScanActivity : ComponentActivity() {
+class CameraScanActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: CameraScanViewModel
     private var hasCameraPermission by mutableStateOf(false)
@@ -90,14 +90,16 @@ class CameraScanActivity : ComponentActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         if (!DebugTools.isEnabled) {
             finish()
             return
         }
-        enableEdgeToEdge()
         viewModel = ViewModelProvider(this, CameraScanViewModel.Factory())[CameraScanViewModel::class.java]
+    }
+
+    override fun initializeUI() {
+        enableEdgeToEdge()
         hasCameraPermission = ContextCompat.checkSelfPermission(
             this, Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED

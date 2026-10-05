@@ -9,7 +9,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -66,7 +65,7 @@ import org.json.JSONObject
 
 private val ModeInactiveColor = Color(0x66FFFFFF)
 
-class RichTextEditorActivity : AppCompatActivity() {
+class RichTextEditorActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: RichTextEditorViewModel
     private var accentArgb: Int = 0
@@ -77,14 +76,16 @@ class RichTextEditorActivity : AppCompatActivity() {
     internal var previewWebView: WebView? = null
         private set
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         if (!DebugTools.isEnabled) {
             finish()
             return
         }
 
         viewModel = ViewModelProvider(this, RichTextEditorViewModel.Factory())[RichTextEditorViewModel::class.java]
+    }
+
+    override fun initializeUI() {
         accentArgb = themeAccent(this, SettingsRepository(this).getTheme()).toArgb()
         enableEdgeToEdge()
 

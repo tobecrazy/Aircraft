@@ -2,6 +2,7 @@ package com.young.aircraft.gui
 
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -10,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
+import android.os.Looper
 import com.young.aircraft.R
 import com.young.aircraft.gui.dialogs.InfoCopyButtonTag
 import org.junit.Assert.assertEquals
@@ -21,12 +23,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
+import org.robolectric.shadows.ShadowChoreographer
 import org.robolectric.shadows.ShadowDialog
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "w420dp-h2000dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class AndroidDevAssistantToolsActivityTest {
 
@@ -199,13 +203,32 @@ class AndroidDevAssistantToolsActivityTest {
         assertTrue(filterApps(apps, "nothing-here", AppFilter.ALL).isEmpty())
     }
 
+    @Test
+    fun `app log switch row is on the tools list`() {
+        tick()
+
+        composeTestRule
+            .onNodeWithTag(ModuleListTag)
+            .performScrollToNode(hasTestTag("assistant_switch_app_logs"))
+        composeTestRule.onNodeWithTag("assistant_switch_app_logs").assertIsDisplayed()
+    }
+
     private fun openModuleDialog(prefKey: String) {
         tick()
         composeTestRule
             .onNodeWithTag(ModuleListTag)
             .performScrollToNode(hasTestTag("assistant_open_$prefKey"))
         composeTestRule.onNodeWithTag("assistant_open_$prefKey").performClick()
-        composeTestRule.waitForIdle()
+        // The app-browser dialog shows a CircularProgressIndicator while it queries the package
+        // manager, and Robolectric's default choreographer re-fires vsync inline — an infinite
+        // animation never lets Compose go idle, so waitForIdle() spins until the 60s cap.
+        // Pause the choreographer and drive a bounded number of frames instead.
+        ShadowChoreographer.setPaused(true)
+        try {
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
+        } finally {
+            ShadowChoreographer.setPaused(false)
+        }
         assertNotNull(ShadowDialog.getLatestDialog())
     }
 }

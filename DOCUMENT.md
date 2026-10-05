@@ -8,7 +8,7 @@
 |-------------------|-----------------------------|
 | Platform          | Android                     |
 | Language          | Kotlin 2.1.20 (bundled with AGP) |
-| Min SDK           | 30 (Android 11)             |
+| Min SDK           | 31 (Android 12)             |
 | Target SDK        | 35 (Android 15)             |
 | Compile SDK       | 36                          |
 | Java Compatibility| 17                          |
@@ -60,7 +60,7 @@ The game does **not** use any third-party game framework. It is built entirely o
 ### Prerequisites
 
 - Android Studio Meerkat (2024.3.1) or later
-- Android device or emulator running API 30+
+- Android device or emulator running API 31+
 
 ### Setup
 

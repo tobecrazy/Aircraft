@@ -27,7 +27,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -131,7 +130,7 @@ import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import kotlin.math.roundToInt
 
-class QRCodeToolActivity : AppCompatActivity() {
+class QRCodeToolActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: QRCodeToolViewModel
 
@@ -199,11 +198,13 @@ class QRCodeToolActivity : AppCompatActivity() {
         handlePickedFileUri(uri)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
+        viewModel = ViewModelProvider(this, QRCodeToolViewModel.Factory())[QRCodeToolViewModel::class.java]
+    }
+
+    override fun initializeUI() {
         supportActionBar?.hide()
 
-        viewModel = ViewModelProvider(this, QRCodeToolViewModel.Factory())[QRCodeToolViewModel::class.java]
         enableEdgeToEdge()
 
         setContent {

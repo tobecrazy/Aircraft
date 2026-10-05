@@ -12,8 +12,8 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -36,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -47,9 +48,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.content.edit
 import com.young.aircraft.R
 import com.young.aircraft.gui.dialogs.InfoDialogContent
@@ -62,6 +65,7 @@ import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.utils.DebugTools
+import com.young.aircraft.viewmodel.LogSettingsViewModel
 import java.io.File
 import androidx.core.net.toUri
 
@@ -75,6 +79,13 @@ private val ButtonBg = Color(0xFF252A3A)
 
 /** Tag on the module LazyColumn; tests scroll it with performScrollToNode. */
 internal const val ModuleListTag = "assistant_module_list"
+
+/**
+ * Language-neutral sentinel for a failed probe. The read*Info() helpers stay Context-free so they
+ * remain unit-testable; [AndroidDevAssistantToolsActivity.localize] swaps this for the localized
+ * word on the way into a dialog.
+ */
+private const val UNKNOWN = "unknown"
 
 /** Kernel facts for the debug kernel-info module. */
 internal data class KernelInfo(
@@ -98,9 +109,9 @@ internal fun readKernelInfo(): KernelInfo {
     }
     val procVersion = runCatching { File("/proc/version").readText().trim() }.getOrNull()
     return KernelInfo(
-        release = System.getProperty("os.version") ?: "unknown",
-        machine = System.getProperty("os.arch") ?: "unknown",
-        fullVersion = procVersion ?: "unknown"
+        release = System.getProperty("os.version") ?: UNKNOWN,
+        machine = System.getProperty("os.arch") ?: UNKNOWN,
+        fullVersion = procVersion ?: UNKNOWN
     )
 }
 
@@ -128,7 +139,7 @@ internal fun readBrowserEngineInfo(context: Context): BrowserEngineInfo {
             Intent(Intent.ACTION_VIEW, "https://example.com".toUri()),
             PackageManager.MATCH_DEFAULT_ONLY
         )?.activityInfo?.packageName
-    }.getOrNull() ?: "unknown"
+    }.getOrNull() ?: UNKNOWN
 
     val installed = runCatching {
         pm.queryIntentActivities(
@@ -145,9 +156,9 @@ internal fun readBrowserEngineInfo(context: Context): BrowserEngineInfo {
         .sorted()
 
     return BrowserEngineInfo(
-        webViewPackage = webViewPkg?.packageName ?: "unknown",
-        webViewVersion = webViewPkg?.versionName ?: "unknown",
-        chromiumMajor = Regex("""Chrome/(\d+)""").find(userAgent)?.groupValues?.get(1) ?: "unknown",
+        webViewPackage = webViewPkg?.packageName ?: UNKNOWN,
+        webViewVersion = webViewPkg?.versionName ?: UNKNOWN,
+        chromiumMajor = Regex("""Chrome/(\d+)""").find(userAgent)?.groupValues?.get(1) ?: UNKNOWN,
         userAgent = userAgent,
         defaultBrowser = defaultBrowser,
         installedBrowsers = installed
@@ -162,26 +173,34 @@ internal data class AssistantModule(
     val actionRes: Int
 )
 
-class AndroidDevAssistantToolsActivity : AppCompatActivity() {
+class AndroidDevAssistantToolsActivity : BaseAircraftActivity() {
 
     private lateinit var assistantPrefs: SharedPreferences
+    private val logSettingsViewModel: LogSettingsViewModel by viewModels {
+        LogSettingsViewModel.Factory(applicationContext)
+    }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
         if (!DebugTools.isEnabled) {
             finish()
             return
         }
 
         assistantPrefs = getSharedPreferences(ASSISTANT_PREFS, MODE_PRIVATE)
+        logSettingsViewModel.enabled.value
+    }
 
+    override fun initializeUI() {
         enableEdgeToEdge()
         setContent {
             AircraftTheme {
+                val logsEnabled by logSettingsViewModel.enabled.collectAsStateWithLifecycle()
                 AndroidDevAssistantToolsScreen(
                     initialStates = ASSISTANT_MODULES.associate { it.prefKey to isModuleEnabled(it.prefKey) },
+                    logsEnabled = logsEnabled,
                     onBack = { finish() },
                     onToggle = ::setModuleEnabled,
+                    onLogsToggle = logSettingsViewModel::onToggle,
                     onOpenModule = ::openModule
                 )
             }
@@ -216,6 +235,8 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
 
             MODULE_APP_BROWSER -> showAppListDialog()
 
+            MODULE_CONTACTS -> startActivity(Intent(this, ContactsActivity::class.java))
+
             MODULE_ACTIVITY_MONITOR -> startActivity(Intent(this, HistoryActivity::class.java))
 
             MODULE_KERNEL_INFO -> showKernelInfoDialog()
@@ -224,15 +245,19 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
         }
     }
 
+    /** Swap the [UNKNOWN] sentinel for the localized word. */
+    private fun localize(value: String): String =
+        if (value == UNKNOWN) getString(R.string.develop_settings_assistant_unknown) else value
+
     private fun showKernelInfoDialog() {
         val info = readKernelInfo()
         showInfoDialog(
             title = getString(R.string.develop_settings_assistant_kernel_dialog_title),
             body = getString(
                 R.string.develop_settings_assistant_kernel_dialog_message,
-                info.release,
-                info.machine,
-                info.fullVersion
+                localize(info.release),
+                localize(info.machine),
+                localize(info.fullVersion)
             )
         )
     }
@@ -245,10 +270,10 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
             title = getString(R.string.develop_settings_assistant_browser_dialog_title),
             body = getString(
                 R.string.develop_settings_assistant_browser_dialog_message,
-                info.webViewPackage,
-                info.webViewVersion,
-                info.chromiumMajor,
-                info.defaultBrowser,
+                localize(info.webViewPackage),
+                localize(info.webViewVersion),
+                localize(info.chromiumMajor),
+                localize(info.defaultBrowser),
                 info.userAgent,
                 browsers
             )
@@ -296,6 +321,7 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
         internal const val MODULE_SYSTEM_INFO = "module_system_info"
         internal const val MODULE_QUICK_SETTINGS = "module_quick_settings"
         internal const val MODULE_APP_BROWSER = "module_app_browser"
+        internal const val MODULE_CONTACTS = "module_contacts"
         internal const val MODULE_ACTIVITY_MONITOR = "module_activity_monitor"
         internal const val MODULE_KERNEL_INFO = "module_kernel_info"
         internal const val MODULE_BROWSER_ENGINE = "module_browser_engine"
@@ -318,6 +344,12 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
                 labelRes = R.string.develop_settings_assistant_module_app_browser,
                 descriptionRes = R.string.android_dev_assistant_tools_app_browser,
                 actionRes = R.string.develop_settings_assistant_action_app_browser
+            ),
+            AssistantModule(
+                prefKey = MODULE_CONTACTS,
+                labelRes = R.string.develop_settings_assistant_module_contacts,
+                descriptionRes = R.string.android_dev_assistant_tools_contacts,
+                actionRes = R.string.develop_settings_assistant_action_contacts
             ),
             AssistantModule(
                 prefKey = MODULE_ACTIVITY_MONITOR,
@@ -344,8 +376,10 @@ class AndroidDevAssistantToolsActivity : AppCompatActivity() {
 @Composable
 internal fun AndroidDevAssistantToolsScreen(
     initialStates: Map<String, Boolean>,
+    logsEnabled: Boolean,
     onBack: () -> Unit,
     onToggle: (String, Boolean) -> Unit,
+    onLogsToggle: (Boolean) -> Unit,
     onOpenModule: (String) -> Unit
 ) {
     val enabledStates = remember {
@@ -373,6 +407,14 @@ internal fun AndroidDevAssistantToolsScreen(
                 IntroPanel(Modifier.maxContentWidth().padding(horizontal = 14.dp))
             }
 
+            item(key = "app_logs") {
+                LogSwitchRow(
+                    enabled = logsEnabled,
+                    onToggle = onLogsToggle,
+                    modifier = Modifier.maxContentWidth().padding(horizontal = 14.dp)
+                )
+            }
+
             items(
                 count = AndroidDevAssistantToolsActivity.ASSISTANT_MODULES.size,
                 key = { AndroidDevAssistantToolsActivity.ASSISTANT_MODULES[it].prefKey }
@@ -398,6 +440,49 @@ internal fun AndroidDevAssistantToolsScreen(
 }
 
 @Composable
+private fun LogSwitchRow(
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = PanelBg,
+        border = BorderStroke(1.dp, PanelBorder)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.android_dev_assistant_logs_title),
+                    color = TextBright,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+                Text(
+                    text = stringResource(R.string.android_dev_assistant_logs_summary),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onToggle,
+                modifier = Modifier.testTag("assistant_switch_app_logs"),
+                colors = aircraftSwitchColors()
+            )
+        }
+    }
+}
+
+@Composable
 private fun AssistantHeader(onBack: () -> Unit) {
 
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -417,12 +502,18 @@ private fun AssistantHeader(onBack: () -> Unit) {
         }
         Text(
             text = stringResource(R.string.android_dev_assistant_tools_title),
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .padding(horizontal = 56.dp, vertical = 8.dp),
             color = AccentGreen,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
-            letterSpacing = 0.25.sp
+            letterSpacing = 0.25.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -550,8 +641,10 @@ private fun AndroidDevAssistantToolsScreenPreview() {
     AircraftTheme {
         AndroidDevAssistantToolsScreen(
             initialStates = AndroidDevAssistantToolsActivity.ASSISTANT_MODULES.associate { it.prefKey to true },
+            logsEnabled = true,
             onBack = {},
             onToggle = { _, _ -> },
+            onLogsToggle = {},
             onOpenModule = {}
         )
     }

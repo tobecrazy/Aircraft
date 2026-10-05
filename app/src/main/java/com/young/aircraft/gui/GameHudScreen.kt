@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import com.young.aircraft.R
 import com.young.aircraft.ui.theme.AircraftTheme
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Observable HUD state shared between MainActivity and the Compose overlay.
@@ -118,7 +119,7 @@ fun GameHudOverlay(
                 .padding(start = 24.dp, end = 24.dp, bottom = 26.dp)
         ) {
             LaunchedEffect(Unit) {
-                delay(4200)
+                delay(4200.milliseconds)
                 state.showTip = false
             }
             MissionBriefingCard(accent, sectorChip, difficultyChip, airframeChip)

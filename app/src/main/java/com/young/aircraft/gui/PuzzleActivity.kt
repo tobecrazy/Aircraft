@@ -2,7 +2,6 @@ package com.young.aircraft.gui
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -72,7 +71,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -83,6 +81,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
 import com.young.aircraft.R
@@ -105,8 +104,9 @@ import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
-class PuzzleActivity : ComponentActivity() {
+class PuzzleActivity : BaseAircraftActivity() {
     companion object {
         private const val MAX_PUZZLE_LEVEL = 10
         private const val KEY_ACTIVE_PUZZLE_IMAGE_LEVEL = "active_puzzle_image_level"
@@ -120,9 +120,8 @@ class PuzzleActivity : ComponentActivity() {
     private var jetPlaneRes: Int = R.drawable.jet_plane_2
     private var jetPlaneIndex: Int = 0
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+    override fun initializeViewModel(savedInstanceState: Bundle?) {
+        viewModel.getDifficulty()
         puzzleLevel = intent.getIntExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, 1).coerceIn(1, MAX_PUZZLE_LEVEL)
         puzzleScore = intent.getLongExtra(AircraftConstants.IntentExtras.PUZZLE_SCORE, 0L)
         totalKills = intent.getIntExtra(AircraftConstants.IntentExtras.TOTAL_KILLS, 0)
@@ -136,7 +135,10 @@ class PuzzleActivity : ComponentActivity() {
             this,
             PuzzleImageViewModel.Factory(this, activeImageLevel)
         )[PuzzleImageViewModel::class.java]
+    }
 
+    override fun initializeUI() {
+        enableEdgeToEdge()
         setContent {
             AircraftTheme {
                 val imageState by imageViewModel.uiState.collectAsState()
@@ -371,7 +373,7 @@ private fun PuzzleScreen(
 
     LaunchedEffect(appActive, solvedState, remainingSec, isLevelImageReady, showGuide) {
         while (appActive == 1 && solvedState == 0 && remainingSec > 0 && isLevelImageReady && !showGuide) {
-            delay(1000)
+            delay(1000.milliseconds)
             elapsedSec += 1
         }
     }
@@ -384,7 +386,7 @@ private fun PuzzleScreen(
 
     LaunchedEffect(hintVisible) {
         if (hintVisible == 1) {
-            delay(3000)
+            delay(3000.milliseconds)
             hintVisible = 0
         }
     }

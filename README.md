@@ -1,14 +1,16 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus two reusable Android library modules, `:richtexteditor` and `:supperbanner`, that can be built as AARs. The app combines a first-launch privacy gate, a four-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus two reusable Android library modules, `:richtexteditor` and `:supperbanner`, that can be built as AARs. The app combines a first-launch privacy gate, a four-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, a Remote Config–driven forced-update gate, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Download
 
-Latest release APK (V1.3.3):
+Latest published release APK (V1.3.2):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.3.3/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.3.2/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
+
+> The app currently builds as `1.3.6` (`versionCode` 9); releases up to `V1.3.2` are on GitHub.
 
 ## Demo
 
@@ -22,7 +24,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - **Launch hub** — jet selection, continue/new-game dialog when a saved run exists, and entry points to History, Settings, and the QR/Flashlight utilities.
 - **Combat gameplay** — 30 FPS `SurfaceView` rendering with drag-to-move controls, auto-firing bullets, scrolling backgrounds, the two-row tactical HUD (mission/hull cards + countdown timer), and screen-shake/damage-flash feedback.
 - **Power-ups in action** — red envelopes detonating into AoE rockets, medical kits restoring HP, shields granting blink-indicated invincibility, and time freezes locking enemies in place.
-- **Boss fight** — end-of-level boss with bomb attacks, scaling HP, a two-phase attack pattern (single missile shots above half HP, a 5-way spread of red orbs below half HP), and the multi-phase particle explosion on defeat.
+- **Boss fight** — end-of-level boss with bomb attacks, scaling HP, a two-phase attack pattern (single missile shots above half HP, a 5-way spread of red orbs below half HP), the multi-phase particle explosion, and a canvas-wide multi-burst fireworks show on defeat.
 - **Puzzle mode** — Compose-based drag-and-drop picture puzzle with pinch zoom, auto-snapping, hints, and undo, opened separately from Settings (3×3 / 4×4 / 5×5 by difficulty).
 - **Utility screens** — QR code scan/generate, flashlight with SOS and brightness control, device info telemetry, and the localized About / History screens.
 
@@ -30,7 +32,7 @@ The demo above walks through the end-to-end player experience on a real device:
 
 ![Project Architecture](project_diagram.svg)
 
-> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
+> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). The Remote Config update-gate flow is diagrammed separately at [docs/remote-update-enforcement.workflow.html](docs/remote-update-enforcement.workflow.html), generated from [docs/remote-update-enforcement.workflow.json](docs/remote-update-enforcement.workflow.json). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
 
 ## Class Diagram
 
@@ -40,13 +42,13 @@ The demo above walks through the end-to-end player experience on a real device:
 
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
-| `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
-| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ImageDetailsSource` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts |
-| `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting |
+| `common/` | Green | `AircraftApplication`, `AircraftRemoteConfig`, `GameStateManager` | App lifecycle, Firebase Remote Config parameters + minimum-version enforcement, game-state broadcasting via SharedFlow |
+| `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ContactsRepository` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts, device-contacts ContentResolver access |
+| `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `BossFireworksEffect`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting, boss-defeat fireworks |
 | `richtexteditor/` | Blue-gray | `RichTextEditorView` | Reusable AAR library for rich-text input, toolbar formatting, Markdown/HTML helpers, and image-tap URL helpers |
 | `supperbanner/` | Slate | `SupperBannerView`, `SupperBannerItem`, `SupperBannerImage`, `SupperBannerConfig`, `SupperBannerColors`, `SupperBannerIndicatorColors`, `SupperBannerEffect`, `SupperBannerTransition` | Reusable AAR library for the auto-playing banner carousel (ViewPager2 + Coil), with a host-settable color palette, ten configurable page transitions, and `maven-publish` release output |
-| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `PuzzleImageViewModel`, `DevelopSettingsViewModel`, `CameraScanViewModel`, `RichTextEditorViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `BannerDetailsViewModel`, `ShowImageDetailsViewModel` | MVVM mediation between Views and Repositories/DAOs |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `GameHudScreen`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `GameSettingsActivity`, `LanguageSettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `BannerDetailsActivity`, `ShowImageDetailsActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `CameraScanActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `RichTextEditorActivity`, `StarFieldView`, `ThemedMessage`, `gui/dialogs/*` | Activity screens, navigation, Compose-only UI (no ViewBinding), themed dialogs/Snackbars |
+| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `PuzzleImageViewModel`, `DevelopSettingsViewModel`, `CameraScanViewModel`, `RichTextEditorViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `BannerDetailsViewModel`, `ShowImageDetailsViewModel`, `ContactsViewModel` | MVVM mediation between Views and Repositories/DAOs |
+| `gui/` (Presentation) | Purple | `BaseAircraftActivity`, `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `GameHudScreen`, `MandatoryUpdateActivity`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `GameSettingsActivity`, `LanguageSettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `BannerDetailsActivity`, `ShowImageDetailsActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `CameraScanActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `RichTextEditorActivity`, `ContactsActivity`, `StarFieldView`, `ThemedMessage`, `gui/dialogs/*` | Activity screens, navigation, Compose-only UI (no ViewBinding), themed dialogs/Snackbars, blocking update gate |
 | `service/` | Pink | `MusicService`, `MusicBinder`, `FlashlightService` | BGM/SFX bound service + camera-torch foreground service with wakelock-backed SOS |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils`, `DataUriUtils` | Screen metrics, bitmap utilities, file URI/cache helpers, name formatting, `data:image` parsing |
@@ -61,6 +63,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - `MainActivity` binds `MusicService` and collects `GameStateManager.gameState` flow
 - `DatabaseProvider` singleton creates `AppDatabase`, which exposes `PlayerGameDataDao` operating on `PlayerGameData` entities
 - `SettingsRepository` maps difficulty strings to `GameDifficulty` enum values with `fireRateMultiplier`
+- `AircraftApplication` owns the Remote Config lifecycle: it initializes `AircraftRemoteConfig`, then enforces the minimum-version gate from `onActivityResumed` and from the real-time config listener, launching or finishing `MandatoryUpdateActivity` as needed
 
 ## Highlights
 
@@ -83,8 +86,9 @@ The demo above walks through the end-to-end player experience on a real device:
 - `FileProvider` paths include `Pictures/`, `Download/`, and app cache, enabling shared file URIs for exported/generated assets
 - Rich-text editor AAR module (`:richtexteditor`) consumed by the app, with JSON sample loading from `app/src/main/assets/example.json` and preview image tap support that opens `ShowImageDetailsActivity`; usage is documented in [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md)
 - Banner carousel AAR module (`:supperbanner`) consumed by the app's About, banner-details, rich-text editor, and debug settings screens; it carries no theme or string resources, publishes as `com.young:supperbanner`, and is documented in [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md)
-- Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, about-aircraft, about-me, privacy policy, and debug-only developer settings
-- Firebase Analytics and Crashlytics integration
+- Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, PDF reader (debug-only), about-aircraft, about-me, privacy policy, and debug-only developer settings including a device-contacts browser/editor
+- Firebase Analytics and Crashlytics integration, with Crashlytics collection remote-gated behind a Remote Config token flag
+- Firebase Remote Config–driven update gate: a blocking "update required" screen when the build falls below `minimum_version`, a once-per-launch optional-update prompt when `latest_version` is higher, and real-time config updates applied on the next Activity resume
 - English and Chinese localization (Simplified, Taiwan Traditional, Hong Kong Traditional), switchable in-app via Settings → Language
 
 ## Color Themes
@@ -115,7 +119,7 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
   - Shields grant temporary invincibility with a blink indicator
   - Time freezes can freeze enemies or the player for 5 seconds depending on who collects them
 - **Progress persistence**: combat continuation restores the saved level, cumulative kills, and aircraft, then starts a fresh level scene; puzzle progress is saved separately for the Settings puzzle
-- **Debug flow**: debug builds expose Developer Settings, test-crash tooling, hidden invincible-mode toggle, an Android Dev Assistant tools hub (`AndroidDevAssistantToolsActivity`), and a QR Tool notification navigation test
+- **Debug flow**: debug builds expose Developer Settings, test-crash tooling, hidden invincible-mode toggle, an Android Dev Assistant tools hub (`AndroidDevAssistantToolsActivity`) with an app-browser module, an activity-monitor module, and a device-contacts browser/editor (`ContactsActivity`, runtime `READ_CONTACTS`/`WRITE_CONTACTS` grant), plus a QR Tool notification navigation test
 
 ## Features
 
@@ -128,6 +132,8 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 - QR code utility with live camera scan, gallery image import, rich-text encoding input, framed preview output, and long-press save to device
 - Flashlight utility backed by a camera-type foreground service (`FlashlightService`): Camera2 torch on/off, SOS blink mode with `PARTIAL_WAKE_LOCK` for accurate pacing when the screen is off, Android 13+ brightness levels, persistent notification with a "Turn off" action, and a one-shot battery-optimization whitelist prompt that fires after the first successful torch-on
 - Device information screen (`DeviceInfoActivity`, Jetpack Compose) with CPU, memory, disk, battery, and network telemetry; the hero card places Current Time and Uptime side by side, and the System Info card places Screen Resolution and Boot Time side by side, while a foldable's hinge reports FLAT (unfolded) — both stack otherwise, via Jetpack WindowManager posture detection
+- Runtime app-log switch: `AppLog` gates every `android.util.Log` call on a `@Volatile` flag seeded from `BuildConfig.DEBUG` and toggled from Settings → Assistant Tools; the toggle persists in DataStore Preferences, and the `checkAppLogUsage` Gradle task fails `lint*` if any production source bypasses `AppLog` for `android.util.Log`
+- Remote Config update enforcement runs in `ActivityLifecycleCallbacks` rather than a base class: `AircraftApplication` re-checks the version on every `onActivityResumed` and again whenever a real-time config update activates, so the gate applies to all 22 Activities without them opting in. `MandatoryUpdateActivity` disables the back button and finishes itself once the requirement is lifted; a malformed version string fails open (treated as "no update needed")
 - Robolectric coverage for onboarding, privacy gate, QR tool flows, About Me and Device Info Compose UI wiring (including foldable System Info layout), leaderboard styling, string parity, and gameplay formulas
 
 ## Project Structure
@@ -168,7 +174,8 @@ supperbanner/
 
 app/src/main/java/com/young/aircraft/
 ├── common/
-│   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events
+│   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, enforces the minimum-version gate on every resume
+│   ├── AircraftRemoteConfig.kt         # Firebase Remote Config singleton: typed parameters, token JSON, version compare, Crashlytics collection toggle
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
 │   ├── AppDatabase.kt                  # Room database (v2031) + explicit migrations 2027→2031
@@ -186,15 +193,21 @@ app/src/main/java/com/young/aircraft/
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
 │   ├── SettingsRepository.kt           # SharedPreferences store: privacy, onboarding, difficulty, audio, five-color theme, puzzle guide, install ID
+│   ├── LogSettings.kt                  # DataStore Preferences (`log_settings`) app-log toggle; setEnabled() flips AppLog.enabled eagerly
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 │   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
+│   ├── ContactsRepository.kt           # DeviceContact model + ContentResolver read/add/update/delete with a ContentObserver-backed Flow
+│   ├── ChinaPhoneNumber.kt             # isValidChinaPhoneNumber(): mainland/HK/Macau/Taiwan regexes with +86/+852/+853/+886 prefixes
+│   ├── EmailAddress.kt                 # isValidOptionalEmail(): blank is valid by design
 │   └── BannerDetails.kt                # In-app banner content model (name/description/source)
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
+│   ├── BaseAircraftActivity.kt         # Compose + Material3 base for 21 of the Activities; initializeViewModel → initializeUI if (!isFinishing)
 │   ├── OnboardingActivity.kt           # Compose 4-page onboarding carousel (HorizontalPager); PAGE_COUNT drives pages/indicators/button
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host: GameCoreView via AndroidView + GameHudOverlay, pause flow, dialogs, DB save
-│   ├── GameHudScreen.kt                # Compose HUD overlay — currently unreferenced; the live HUD is Canvas-drawn by ui/DrawHeader.kt
+│   ├── MandatoryUpdateActivity.kt      # Blocking "update required" screen (ComponentActivity, back disabled); openUpdatePage() falls back market:// → web store
+│   ├── GameHudScreen.kt                # Compose HUD overlay (live, stacked over GameCoreView in MainActivity); ui/DrawHeader.kt still draws the in-surface stats readout
 │   ├── PuzzleActivity.kt               # Independent ten-level Compose puzzle game, opened from Settings
 │   ├── HistoryActivity.kt              # Compose leaderboard with top-record styling and deletion
 │   ├── SettingsActivity.kt             # Navigation hub over SettingsScreen's SettingsDestination list
@@ -208,6 +221,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── BannerDetailsActivity.kt        # Compose banner details screen launched from the supperbanner carousel
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, banner effect lab, Android Dev Assistant entry, QR Tool notification test
 │   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
+│   ├── ContactsActivity.kt             # Debug-only device contacts browser/editor over ContactsRepository (READ_CONTACTS/WRITE_CONTACTS)
 │   ├── CameraScanActivity.kt           # Debug-only live QR scan (CameraX LifecycleCameraController + MlKitAnalyzer)
 │   ├── DeviceInfoActivity.kt           # Compose live system monitor; foldable-aware System Info layout
 │   ├── PdfReaderActivity.kt            # DEBUG PDF viewer over platform PdfRenderer: page list, pinch zoom, re-render on settle
@@ -235,6 +249,7 @@ app/src/main/java/com/young/aircraft/
 │   ├── Aircraft.kt                     # Player sprite and bullet system
 │   ├── Enemies.kt                      # Enemy spawning, movement, and bullets
 │   ├── BossEnemy.kt                    # Boss AI, bombs, low-HP spread shot, and scaling HP
+│   ├── BossFireworksEffect.kt          # Multi-burst particle fireworks played across the canvas on boss defeat
 │   ├── RedEnvelopes.kt                 # Rocket power-up and explosion handling
 │   ├── MedicalKits.kt                  # HP pickup spawning and lifetime rules
 │   ├── Shields.kt                      # Shield pickup spawning and lifetime rules
@@ -245,6 +260,7 @@ app/src/main/java/com/young/aircraft/
 │   └── theme/
 │       └── AircraftTheme.kt            # Shared tactical palette, themeAccent/aircraftColorScheme, live preference listener
 ├── utils/
+│   ├── AppLog.kt                       # Runtime kill-switch wrapper over android.util.Log; d() takes a lambda so disabled messages are never built
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
 │   ├── DataUriUtils.kt                 # RFC 2397 data:image URI parsing for rich-text embedded images
 │   ├── FilePickerHelper.kt             # FileProvider URI and cache helpers for QR image export/import
@@ -263,6 +279,7 @@ app/src/main/java/com/young/aircraft/
     ├── RichTextEditorViewModel.kt      # Editor/preview mode state (RichTextEditorActivity)
     ├── DevelopSettingsViewModel.kt     # Invincible mode toggle (DevelopSettingsActivity)
     ├── CameraScanViewModel.kt          # Live camera-scan result state (CameraScanActivity)
+    ├── ContactsViewModel.kt            # Contacts list/loading/error state + permission gate and CRUD actions (ContactsActivity)
     ├── AboutAircraftViewModel.kt       # Project info StateFlow (AboutAircraftActivity)
     ├── AboutAircraftUiState.kt         # UI state for about-aircraft screen
     ├── AboutMeViewModel.kt             # Developer profile data (AboutMeActivity)
@@ -273,6 +290,7 @@ app/src/main/java/com/young/aircraft/
     ├── QRCodeToolUiState.kt            # UI state for QR tool screen
     ├── FlashlightViewModel.kt          # Drives FlashlightService via intents; observes torch state via TorchCallback and SOS state via FlashlightService.isSosRunning
     ├── BannerDetailsViewModel.kt       # Banner detail display/download logic (BannerDetailsActivity)
+    ├── LogSettingsViewModel.kt         # App-log toggle StateFlow, seeded from AppLog.enabled (AndroidDevAssistantToolsActivity)
     └── ShowImageDetailsViewModel.kt    # Image details display logic (ShowImageDetailsActivity)
 
 app/src/debug/java/com/young/aircraft/
@@ -290,21 +308,36 @@ app/src/release/java/com/young/aircraft/
 
 - data-model tests for gameplay and persistence state classes
 - `GameCoreViewFormulaTest` for level duration and kill-target math
-- `HistoryAdapterTest` for first-place badge visibility and gold score styling
+- `HistoryActivityTest` for Compose leaderboard first-place badge visibility, gold score styling, and deletion
 - `QRCodeToolActivityTest` for scan/generate screen state, bottom-sheet result dialog, save-to-device flow, gallery pick button, and Settings navigation
 - `SettingsActivityTest` for Compose settings controls, navigation, and cache-clear dialog wiring
 - `GameSettingsActivityTest` and `LanguageSettingsActivityTest` for the split preference and per-app locale screens
 - `AircraftThemeTest`, `ThemedAlertDialogTest`, and `ThemedMessageTest` for accent propagation and themed transient UI
 - `AppDatabaseMigrationTest` for the registered 2027→2031 Room migrations
 - `FlashlightViewModelTest` for SOS timing pattern and brightness-strength mapping
+- `PdfViewModelTest` for the mutex-guarded `PdfRenderer` lifecycle and page bitmap cache
+- `GameStateManagerTest` for game-state emission
+- `DeviceResourceCalculatorsTest` for the CPU/memory/disk telemetry math
+- `BitmapUtilsTest`, `DataUriUtilsTest`, `HallOfHeroesNameUtilsTest` for the utility layer
+- `BannerDetailsIntentContractTest` and `ImageDetailsIntentContractTest` for the `ImageDetails`/`BannerDetails` intent extras
 - `AboutMeActivityTest` for localized About Me copy, repo URL rendering, and back navigation
+- `AboutAircraftActivityTest`, `PrivacyPolicyActivityTest`, `ShowImageDetailsActivityTest` for the remaining Compose utility screens
+- `AndroidDevAssistantToolsActivityTest` for the debug tool-hub module grid, its per-module toggles, and the app-log switch row
+- `DevelopSettingsActivityTest` and `RichTextEditorActivityTest` for the debug tools hub and editor screen
+- `DominantPageIndexTest` for the PDF reader's header page counter
+- `SettingsRepositoryTest` for the SharedPreferences-backed settings store
 - `MainActivityTest` for tactical overlay behavior, mission-briefing chips, and low-memory pause handling
 - `DrawBackgroundTest` for seamless mirrored tile coverage
 - `GameCoreViewCollisionTest` for per-frame collision resolution
 - `GameHudFormatterTest` and `RedEnvelopesTest` for HUD formatting and the rocket power-up
 - `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior, including walking the carousel to the last page and the time-freeze power-up entry
 - `LaunchActivityTest` for saved-game detection, continue/new-game dialog, and jet selection
+- `ContactsValidationTest`, `ContactsRepositoryTest`, and `ContactsViewModelTest` for the debug-only contacts feature: the phone/email gate, the row-shaping rules (one entry per phone, HOME-typed email/address winning), the batched provider writes, and the permission state machine
+- `BossFireworksEffectTest` for the boss-defeat fireworks frame window (nothing before the first burst, ink while alive, hard stop at the declared duration, in-bounds clamping)
+- `AppLogTest`, `LogSettingsTest`, and `LogSettingsViewModelTest` for the runtime log switch: the kill-switch silences every level and skips building a `d` message, `setEnabled` persists and flips `AppLog.enabled` in the same call, and the toggle StateFlow seeds from the runtime flag rather than disk
+- `AircraftRemoteConfigTest` for the Remote Config update gate: token JSON parsing (including offset timestamps), dotted version comparison, and the optional-update predicate
 - `DevelopSettingsViewModelTest`, `PrivacyPolicyViewModelTest`, `OnboardingViewModelTest`, `LaunchViewModelTest`, `GameViewModelTest`, `HistoryViewModelTest`, `SettingsViewModelTest`, `ShowImageDetailsViewModelTest` for ViewModel unit coverage
+- `QRChineseRoundtripTest` and `RichTextMarkdownTest` for QR text round-tripping and editor Markdown output
 - `PlayerGameDataTest` for timestamp-aware data-class behavior
 - `StarFieldViewTest` for the animated onboarding/privacy background
 - `StringResourceTest` for locale parity and resource usage coverage
@@ -347,14 +380,15 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.3.3`
+- **Version**: `1.3.6` (`versionCode` 9)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
-- **Min SDK**: `32`
+- **Min SDK**: `31`
 - **Target SDK**: `37`
 - **Java**: `17`
-- **Gradle Wrapper**: `9.7.1`
-- **Android Gradle Plugin**: `9.4.1`
+- **Gradle Wrapper**: `9.8.0`
+- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin `2.4.20` and a `buildscript`-pinned `kotlin-gradle-plugin` `2.4.10` are still required)
+- **KSP**: `2.3.11`
 - **Build scripts**: Kotlin DSL (`*.gradle.kts`)
 - **Release minification**: R8 code shrinking + resource shrinking enabled (mapping files uploaded to Crashlytics automatically)
 - **Dependency versions**: `gradle/libs.versions.toml` Gradle version catalog
@@ -378,7 +412,7 @@ Instrumented tests belong in `app/src/androidTest`.
    cd Aircraft
    ```
 2. Open the project in Android Studio.
-3. Sync Gradle and run on a device or emulator with Android 11+.
+3. Sync Gradle and run on a device or emulator with Android 12 (API 31) or later.
 
 ## License
 

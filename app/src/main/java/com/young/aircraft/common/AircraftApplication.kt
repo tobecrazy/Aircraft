@@ -4,18 +4,51 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
+import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.WindowManager
 import com.young.aircraft.BuildConfig
+import com.young.aircraft.R
+import com.young.aircraft.data.LogSettings
 import com.young.aircraft.data.GameState
+import com.young.aircraft.gui.MandatoryUpdateActivity
+import com.young.aircraft.gui.openUpdatePage
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.young.aircraft.gui.dialogs.showThemed
+import com.young.aircraft.utils.AppLog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 
 /**
  * Create by Young
  **/
 class AircraftApplication : Application() {
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var foregroundActivity = WeakReference<Activity>(null)
+    private var optionalPromptedVersion: String? = null
+
     override fun onCreate() {
         super.onCreate()
+        LogSettings.defaultEnabled = BuildConfig.DEBUG
+        AppLog.enabled = BuildConfig.DEBUG
+        AircraftRemoteConfig.onConfigActivated = {
+            mainHandler.post { enforceMinimumVersion() }
+        }
+        AircraftRemoteConfig.initialize()
+        val logSettings = LogSettings(this)
+        applicationScope.launch {
+            logSettings.enabledFlow
+                .catch { AppLog.enabled = LogSettings.defaultEnabled }
+                .collect { AppLog.enabled = it }
+        }
         // Lock portrait on phone-width screens; leave free rotation on large screens
         // (tablets / unfolded foldables), where the platform ignores the lock anyway.
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
@@ -31,8 +64,12 @@ class AircraftApplication : Application() {
             override fun onActivityStarted(activity: Activity) {}
             override fun onActivityResumed(activity: Activity) {
                 applyOrientation(activity)
+                foregroundActivity = WeakReference(activity)
+                enforceMinimumVersion(activity)
             }
-            override fun onActivityPaused(activity: Activity) {}
+            override fun onActivityPaused(activity: Activity) {
+                if (foregroundActivity.get() === activity) foregroundActivity.clear()
+            }
             override fun onActivityStopped(activity: Activity) {}
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
             override fun onActivityDestroyed(activity: Activity) {}
@@ -47,6 +84,46 @@ class AircraftApplication : Application() {
             // UNSPECIFIED defers to the user's rotation lock / sensor, unlike FULL_USER.
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
+    }
+
+    private fun enforceMinimumVersion(activity: Activity? = foregroundActivity.get()) {
+        if (activity == null || activity.isFinishing) return
+        val updateRequired = AircraftRemoteConfig.isCurrentVersionBelowMinimum()
+        if (activity is MandatoryUpdateActivity) {
+            if (!updateRequired) activity.finish()
+            return
+        }
+        if (!updateRequired) {
+            showOptionalUpdatePrompt(activity)
+            return
+        }
+
+        activity.startActivity(
+            Intent(activity, MandatoryUpdateActivity::class.java)
+        )
+    }
+
+    private fun showOptionalUpdatePrompt(activity: Activity) {
+        if (!AircraftRemoteConfig.isOptionalUpdateAvailable()) return
+        val latestVersion = AircraftRemoteConfig.getLatestVersion()
+        if (optionalPromptedVersion == latestVersion) return
+        optionalPromptedVersion = latestVersion
+
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.remote_update_available_title)
+            .setMessage(
+                activity.getString(
+                    R.string.remote_update_available_message,
+                    BuildConfig.VERSION_NAME,
+                    latestVersion
+                )
+            )
+            .setPositiveButton(R.string.remote_update_available_action) { _, _ ->
+                openUpdatePage(activity)
+            }
+            .setNegativeButton(R.string.remote_update_later_action, null)
+            .setCancelable(true)
+            .showThemed()
     }
 
     override fun onLowMemory() {

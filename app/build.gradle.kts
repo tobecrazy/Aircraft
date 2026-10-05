@@ -30,7 +30,7 @@ android {
 
     defaultConfig {
         applicationId = "com.young.aircraft"
-        minSdk = 32
+        minSdk = 31
         targetSdk = 37
         versionCode = 9
         versionName = "1.3.6"
@@ -66,6 +66,31 @@ android {
     }
 }
 
+val checkAppLogUsage = tasks.register("checkAppLogUsage") {
+    val productionSources = fileTree("src/main") {
+        include("**/*.kt", "**/*.java")
+    }
+    inputs.files(productionSources)
+
+    doLast {
+        val directLogUsage = Regex(
+            """(?m)^\s*import\s+android\.util\.Log(?:\s+as\s+\w+)?\s*$|android\.util\.Log\s*\.|\bLog\s*\."""
+        )
+        val violations = productionSources.files
+            .filterNot { it.invariantSeparatorsPath.endsWith("/utils/AppLog.kt") }
+            .filter { directLogUsage.containsMatchIn(it.readText()) }
+
+        check(violations.isEmpty()) {
+            "Use AppLog instead of android.util.Log in production sources:\n" +
+                violations.joinToString("\n") { " - ${it.relativeTo(projectDir)}" }
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name.startsWith("lint")) dependsOn(checkAppLogUsage)
+}
+
 dependencies {
     implementation(project(":richtexteditor"))
     implementation(project(":supperbanner"))
@@ -75,6 +100,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.datastore.preferences)
     ksp(libs.room.compiler)
 
     implementation(libs.androidx.core.ktx)
@@ -85,8 +111,10 @@ dependencies {
     implementation(libs.media)
     implementation(libs.preference.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.runtime.compose)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.config)
     implementation(libs.firebase.crashlytics)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)

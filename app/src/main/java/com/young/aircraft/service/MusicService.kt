@@ -3,6 +3,7 @@ package com.young.aircraft.service
 import android.app.Service
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Resources
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -10,9 +11,10 @@ import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import androidx.annotation.RawRes
+import com.young.aircraft.R
 import com.young.aircraft.data.SettingsRepository
+import com.young.aircraft.utils.AppLog
 /**
  * Create by Young
  * 2026/3/10
@@ -180,7 +182,7 @@ class MusicService : Service() {
         }
         val fallbackRes = resolveSoundRes(BGM_NAME, preferMp3 = true)
         if (fallbackRes != 0 && fallbackRes != preferredRes) {
-            Log.w(TAG, "Failed to load BGM res=$preferredRes, falling back to MP3")
+            AppLog.w(TAG, "Failed to load BGM res=$preferredRes, falling back to MP3")
             return MediaPlayer.create(this, fallbackRes)
         }
         return null
@@ -191,22 +193,42 @@ class MusicService : Service() {
      */
     private fun loadCombatSounds() {
         soundMap.clear()
-        soundMap[0x002] = soundPool.load(this, resolveSoundRes(FIRE_NAME), 1)
-        soundMap[0x003] = soundPool.load(this, resolveSoundRes(BE_HIT_NAME), 1)
-        soundMap[0x004] = soundPool.load(this, resolveSoundRes(ENEMY_BE_HIT_NAME), 1)
-        soundMap[0x005] = soundPool.load(this, resolveSoundRes(GAME_OVER_NAME), 1)
+        loadCombatSound(0x002, FIRE_NAME)
+        loadCombatSound(0x003, BE_HIT_NAME)
+        loadCombatSound(0x004, ENEMY_BE_HIT_NAME)
+        loadCombatSound(0x005, GAME_OVER_NAME)
+    }
+
+    private fun loadCombatSound(sound: Int, name: String) {
+        val resourceId = resolveSoundRes(name)
+        if (resourceId == 0) {
+            AppLog.w(TAG, "Combat sound resource not found: $name")
+            return
+        }
+        try {
+            val soundId = soundPool.load(this, resourceId, 1)
+            if (soundId != 0) soundMap[sound] = soundId
+        } catch (exception: Resources.NotFoundException) {
+            AppLog.e(TAG, "Failed to load combat sound: $name", exception)
+        }
     }
 
     /**
-     * Resolve a raw resource by name and current audio format.
-     * Looks up "{name}_{mp3|ogg}". When [preferMp3] is true, forces MP3 regardless
-     * of setting (used as fallback).
+     * Resolve a statically referenced raw resource by name and current audio format.
+     * Static IDs are needed so release resource shrinking retains both formats.
+     * When [preferMp3] is true, forces MP3 regardless of the setting.
      */
     @RawRes
     private fun resolveSoundRes(name: String, preferMp3: Boolean = false): Int {
-        val fmt = if (preferMp3) SettingsRepository.BGM_FORMAT_MP3 else settingsRepository.getBgmFormat()
-        val resName = "${name}_${fmt}"
-        return resources.getIdentifier(resName, "raw", packageName)
+        val preferOgg = !preferMp3 && settingsRepository.getBgmFormat() == SettingsRepository.BGM_FORMAT_OGG
+        return when (name) {
+            BGM_NAME -> if (preferOgg) R.raw.background1_ogg else R.raw.background1_mp3
+            FIRE_NAME -> if (preferOgg) R.raw.fire_ogg else R.raw.fire_mp3
+            BE_HIT_NAME -> if (preferOgg) R.raw.be_hit_ogg else R.raw.be_hit_mp3
+            ENEMY_BE_HIT_NAME -> if (preferOgg) R.raw.enemy_be_hit_ogg else R.raw.enemy_be_hit_mp3
+            GAME_OVER_NAME -> if (preferOgg) R.raw.game_over_ogg else R.raw.game_over_mp3
+            else -> 0
+        }
     }
 
     private fun requestAudioFocus(): Boolean {
