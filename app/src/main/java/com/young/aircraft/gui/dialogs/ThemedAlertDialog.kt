@@ -11,7 +11,7 @@ import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.ui.theme.aircraftColorScheme
 
 /** Keeps native alert buttons and accessibility while following the selected accent. */
-fun MaterialAlertDialogBuilder.showThemed(): AlertDialog {
+fun MaterialAlertDialogBuilder.showThemed(onDismiss: (() -> Unit)? = null): AlertDialog {
     val repository = SettingsRepository(context)
     val density = context.resources.displayMetrics.density
     val background = GradientDrawable().apply {
@@ -34,7 +34,10 @@ fun MaterialAlertDialogBuilder.showThemed(): AlertDialog {
     val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == null || key == SettingsRepository.KEY_THEME) applyTheme()
     }
-    dialog.setOnDismissListener { repository.unregisterListener(listener) }
+    dialog.setOnDismissListener {
+        repository.unregisterListener(listener)
+        onDismiss?.invoke()
+    }
     dialog.show()
     repository.registerListener(listener)
     applyTheme()

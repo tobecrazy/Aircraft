@@ -7,6 +7,7 @@
     <string name="theme_red">Red</string>
     <string name="theme_dynamic">Dynamic (system)</string>
     <string name="app_name">Aircraft</string>
+    <string name="remote_welcome_title">Information</string>
     <string name="exit_warning_msg">Press again to save and exit</string>
     <string name="pause_title">GAME PAUSED</string>
     <string name="pause_resume">RESUME</string>

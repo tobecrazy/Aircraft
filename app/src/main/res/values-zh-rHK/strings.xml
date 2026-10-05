@@ -7,6 +7,7 @@
     <string name="theme_red">紅色</string>
     <string name="theme_dynamic">動態（跟隨系統）</string>
     <string name="app_name">飛機大戰</string>
+    <string name="remote_welcome_title">訊息通知</string>
     <string name="exit_warning_msg">再按一次保存進度並退出</string>
     <string name="pause_title">遊戲暫停</string>
     <string name="pause_resume">繼續</string>

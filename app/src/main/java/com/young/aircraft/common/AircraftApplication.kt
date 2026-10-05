@@ -16,6 +16,7 @@ import com.young.aircraft.data.GameState
 import com.young.aircraft.gui.MandatoryUpdateActivity
 import com.young.aircraft.gui.openUpdatePage
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.appcompat.app.AlertDialog
 import com.young.aircraft.gui.dialogs.showThemed
 import com.young.aircraft.utils.AppLog
 import kotlinx.coroutines.CoroutineScope
@@ -34,15 +35,22 @@ class AircraftApplication : Application() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private var foregroundActivity = WeakReference<Activity>(null)
     private var optionalPromptedVersion: String? = null
+    private var optionalUpdateDialog: AlertDialog? = null
+    private var welcomedConfigId: Long? = null
 
     override fun onCreate() {
         super.onCreate()
         LogSettings.defaultEnabled = BuildConfig.DEBUG
         AppLog.enabled = BuildConfig.DEBUG
         AircraftRemoteConfig.onConfigActivated = {
-            mainHandler.post { enforceMinimumVersion() }
+            mainHandler.post {
+                LauncherIconManager.apply(this, AircraftRemoteConfig.getAppIconVariant())
+                enforceMinimumVersion()
+            }
         }
         AircraftRemoteConfig.initialize()
+        // Apply the cached/default value immediately; fetch and real-time updates re-apply later.
+        LauncherIconManager.apply(this, AircraftRemoteConfig.getAppIconVariant())
         val logSettings = LogSettings(this)
         applicationScope.launch {
             logSettings.enabledFlow
@@ -94,7 +102,7 @@ class AircraftApplication : Application() {
             return
         }
         if (!updateRequired) {
-            showOptionalUpdatePrompt(activity)
+            if (!showOptionalUpdatePrompt(activity)) showWelcomeDialog(activity)
             return
         }
 
@@ -103,13 +111,14 @@ class AircraftApplication : Application() {
         )
     }
 
-    private fun showOptionalUpdatePrompt(activity: Activity) {
-        if (!AircraftRemoteConfig.isOptionalUpdateAvailable()) return
+    private fun showOptionalUpdatePrompt(activity: Activity): Boolean {
+        if (optionalUpdateDialog?.isShowing == true) return true
+        if (!AircraftRemoteConfig.isOptionalUpdateAvailable()) return false
         val latestVersion = AircraftRemoteConfig.getLatestVersion()
-        if (optionalPromptedVersion == latestVersion) return
+        if (optionalPromptedVersion == latestVersion) return false
         optionalPromptedVersion = latestVersion
 
-        MaterialAlertDialogBuilder(activity)
+        optionalUpdateDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.remote_update_available_title)
             .setMessage(
                 activity.getString(
@@ -122,6 +131,28 @@ class AircraftApplication : Application() {
                 openUpdatePage(activity)
             }
             .setNegativeButton(R.string.remote_update_later_action, null)
+            .setCancelable(true)
+            .showThemed {
+                optionalUpdateDialog = null
+                if (foregroundActivity.get() === activity && !activity.isFinishing) {
+                    showWelcomeDialog(activity)
+                }
+            }
+        return true
+    }
+
+    private fun showWelcomeDialog(activity: Activity) {
+        if (activity is MandatoryUpdateActivity || activity.isFinishing) return
+        if (foregroundActivity.get() !== activity) return
+        val tokenConfig = AircraftRemoteConfig.getTokenConfig() ?: return
+        if (!tokenConfig.showWelcome || tokenConfig.welcomeMessage.isBlank()) return
+        if (welcomedConfigId == tokenConfig.id) return
+
+        welcomedConfigId = tokenConfig.id
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.remote_welcome_title)
+            .setMessage(tokenConfig.welcomeMessage)
+            .setPositiveButton(android.R.string.ok, null)
             .setCancelable(true)
             .showThemed()
     }
