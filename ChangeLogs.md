@@ -9,11 +9,14 @@ All notable changes to this project will be documented in this file.
 - `AndroidDevAssistantToolsActivityTest` "app browser module shows the in-app list dialog" hung for 60s: `AppListDialog` shows a `CircularProgressIndicator` while it queries the package manager, and Robolectric's default choreographer re-fires vsync inline, so Compose never reaches idle. The helper now pauses the choreographer and drives a bounded 500 ms of frames instead of calling `waitForIdle()`
 
 ### Added
+- Five adaptive launcher icon variants, selected by the `AppIcon` Remote Config parameter; the app applies the bundled default immediately, refreshes the icon after config activation, and falls back to variant 1 for invalid values
+- Optional welcome dialog driven by `welcomeMessage` and `showWelcome` in the `Aircraft2026` token config, shown once per config ID and after the optional-update prompt when one is shown
 - `ContactsValidationTest`, `ContactsRepositoryTest`, and `ContactsViewModelTest` covering the debug-only contacts feature
 - `BossFireworksEffectTest` covering the boss-defeat fireworks timing and bounds
 - `docs/remote-update-enforcement.workflow.html` interactive workflow diagram (generated from `docs/remote-update-enforcement.workflow.json` with the archify tool) covering the Remote Config forced-update path: startup registration, initial fetch and activation, the version gate, the bundled-defaults fallback, the once-per-launch optional prompt, and the blocking update screen
 
 ### Changed
+- `RemoteTokenConfig` now parses optional welcome-message fields, while `AircraftRemoteConfig` exposes the validated `AppIcon` variant used by `LauncherIconManager`
 - `MandatoryUpdateActivity` restyled to the app's tactical dark UI so the blocking gate matches the About/Settings card treatment instead of stock Material: the system update arrow is now tinted with `colorScheme.error` inside a critical-tinted circular badge, the status is a monospace status pill, and the current/minimum version comparison is a bordered card with the required target in the accent color. No new string resources — the existing `remote_update_*` set already covers all four locales, and `openUpdatePage` plus `BackHandler(enabled = true) {}` are unchanged
 
 ## [1.3.6] - 2026-10-04

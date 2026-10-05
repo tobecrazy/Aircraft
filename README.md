@@ -10,7 +10,7 @@ Latest published release APK (V1.3.2):
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.3.6` (`versionCode` 9); releases up to `V1.3.2` are on GitHub.
+> The app currently builds as `1.3.8` (`versionCode` 11); releases up to `V1.3.8` are on GitHub.
 
 ## Demo
 
@@ -42,7 +42,7 @@ The demo above walks through the end-to-end player experience on a real device:
 
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
-| `common/` | Green | `AircraftApplication`, `AircraftRemoteConfig`, `GameStateManager` | App lifecycle, Firebase Remote Config parameters + minimum-version enforcement, game-state broadcasting via SharedFlow |
+| `common/` | Green | `AircraftApplication`, `AircraftRemoteConfig`, `LauncherIconManager`, `GameStateManager` | App lifecycle, Firebase Remote Config parameters + minimum-version enforcement and launcher icon selection, game-state broadcasting via SharedFlow |
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ContactsRepository` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts, device-contacts ContentResolver access |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `BossFireworksEffect`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting, boss-defeat fireworks |
 | `richtexteditor/` | Blue-gray | `RichTextEditorView` | Reusable AAR library for rich-text input, toolbar formatting, Markdown/HTML helpers, and image-tap URL helpers |
@@ -89,6 +89,8 @@ The demo above walks through the end-to-end player experience on a real device:
 - Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, PDF reader (debug-only), about-aircraft, about-me, privacy policy, and debug-only developer settings including a device-contacts browser/editor
 - Firebase Analytics and Crashlytics integration, with Crashlytics collection remote-gated behind a Remote Config token flag
 - Firebase Remote Config–driven update gate: a blocking "update required" screen when the build falls below `minimum_version`, a once-per-launch optional-update prompt when `latest_version` is higher, and real-time config updates applied on the next Activity resume
+- Remote Config can select one of five adaptive launcher icon variants with the `AppIcon` parameter; the default icon is restored for invalid values, and real-time config changes are applied without restarting the app
+- Optional Remote Config welcome message in the `Aircraft2026` token config, shown once per config ID and after the optional-update prompt when one is shown
 - English and Chinese localization (Simplified, Taiwan Traditional, Hong Kong Traditional), switchable in-app via Settings → Language
 
 ## Color Themes
@@ -176,6 +178,7 @@ app/src/main/java/com/young/aircraft/
 ├── common/
 │   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, enforces the minimum-version gate on every resume
 │   ├── AircraftRemoteConfig.kt         # Firebase Remote Config singleton: typed parameters, token JSON, version compare, Crashlytics collection toggle
+│   ├── LauncherIconManager.kt          # internal object switching the enabled launcher activity-alias for the Remote Config `AppIcon` variant (1..5, invalid → 1)
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
 │   ├── AppDatabase.kt                  # Room database (v2031) + explicit migrations 2027→2031
