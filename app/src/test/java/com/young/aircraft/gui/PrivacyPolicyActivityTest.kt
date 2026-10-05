@@ -85,13 +85,15 @@ class PrivacyPolicyActivityTest {
                 assertFalse(activity.getString(R.string.privacy_policy_loading) in texts)
                 assertFalse(activity.getString(R.string.privacy_policy_error_title) in texts)
 
-                val languageChip = findAllNodes(root(activity))
-                    .mapNotNull { it.displayText() }
-                    .firstOrNull {
-                        it == activity.getString(R.string.privacy_policy_language_en) ||
-                            it == activity.getString(R.string.privacy_policy_language_zh)
-                    }
-                assertFalse(languageChip.isNullOrEmpty())
+                // Language selector renders endonyms, so assert on the labels the
+                // loaded page maps to rather than on a single "current language" chip.
+                val selectorTexts = findAllNodes(root(activity)).mapNotNull { it.displayText() }
+                val expected = if (shadowWebView.lastLoadedUrl?.endsWith("privacy_policy_en.html") == true) {
+                    R.string.policy_lang_en
+                } else {
+                    R.string.policy_lang_hans
+                }
+                assertTrue(activity.getString(expected) in selectorTexts)
             }
         }
     }

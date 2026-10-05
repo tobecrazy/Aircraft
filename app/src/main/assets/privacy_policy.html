@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-Hans">
 
 <head>
 <meta charset="UTF-8">
@@ -467,6 +467,105 @@ a:hover {
     transform: scale(0.9);
 }
 
+
+/* Table of contents (collapsed by default; details/summary needs no JS) */
+.toc {
+    background: rgba(22, 27, 34, 0.6);
+    border: 1px solid rgba(0, 212, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.toc summary {
+    cursor: pointer;
+    list-style: none;
+    color: #00d4ff;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.toc summary::-webkit-details-marker {
+    display: none;
+}
+
+.toc summary::before {
+    content: '>';
+    color: #00ffaa;
+    margin-right: 0.5rem;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.toc[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.toc ol {
+    list-style: none;
+    counter-reset: toc;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    columns: 2;
+    column-gap: 1.5rem;
+}
+
+.toc li {
+    counter-increment: toc;
+    break-inside: avoid;
+    margin-bottom: 0.375rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.toc li::before {
+    content: counter(toc) '.';
+    color: #00ffaa;
+    margin-right: 0.4rem;
+    font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.toc a {
+    color: #a0aec0;
+    border-bottom: none;
+}
+
+.toc a:hover {
+    color: #00ffaa;
+}
+
+/* Reading progress bar pinned under the header */
+.progress-track {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(0, 212, 255, 0.08);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #00d4ff, #00ffaa);
+    transition: width 0.1s linear;
+}
+
+/* Print: drop chrome, keep the text */
+@media print {
+    body::before, body::after, .scanlines, .back-to-top, .progress-track, .toc { display: none !important; }
+    body { background: #fff; color: #000; }
+    .container { background: #fff; border: none; }
+    .section { background: #fff; border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
+    .section-title, .highlight, .toc a { color: #000; }
+    p, li, .contact-value { color: #222; }
+    .header { background: #fff; color: #000; border-bottom: 1px solid #999; }
+}
+
 /* Responsive adjustments */
 @media (max-width: 375px) {
     html {
@@ -512,222 +611,173 @@ a:hover {
 
 <body>
 
+<div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
 <div class="scanlines"></div>
 
 <div class="container">
     <header class="header">
-        <div class="effective-date"> 生效时间：2025 年 12 月</div>
+        <div class="effective-date"> 生效时间：2026 年 10 月</div>
         <div class="lang-switcher">
-            <span class="lang-btn active">中文</span>
+            <span class="lang-btn active">简中</span>
+            <a href="privacy_policy_zh_hant.html" class="lang-btn">繁中</a>
             <a href="privacy_policy_en.html" class="lang-btn">EN</a>
         </div>
     </header>
 
     <main class="content">
+        <nav class="toc">
+            <summary>目录</summary>
+            <ol id="tocList"></ol>
+        </nav>
+
         <!-- 引言 -->
         <section class="section">
             <ul class="intro-list">
-                <li>本协议约定 Aircraft 游戏与用户之间关于"Aircraft"游戏的权利义务。</li>
-                <li>您在使用我们的服务时，我们可能会收集和使用您的相关信息。</li>
-                <li>我们希望通过本《隐私协议》向您说明，在使用我们的服务时，我们如何收集、使用、储存和分享这些信息，以及我们为您提供的访问、更新、控制和保护这些信息的方式。</li>
-                <li>本《隐私协议》与您所使用的服务息息相关，希望您仔细阅读，在需要时，按照本《隐私协议》的指引，作出您认为适当的选择。</li>
-                <li>本《隐私协议》中涉及的相关技术词汇，我们尽量以简明扼要的表述，并提供进一步说明的链接，以便您的理解。</li>
-                <li>您使用或继续使用我们的服务，即意味着同意我们按照本《隐私协议》收集、使用、储存和分享您的相关信息。如对本《隐私协议》或相关事宜有任何问题，请与我们联系。</li>
+                <li>本协议说明 Aircraft（「本应用」）在你使用过程中会收集哪些信息、收集目的、存储方式，以及你对自己的信息所拥有的权利。</li>
+                <li>本应用是一款完全离线的飞行射击与拼图游戏。你的游戏进度、成绩与设置默认全部保存在你自己的设备上。</li>
+                <li>你的使用或继续使用，即表示你已阅读并同意本协议所述的信息处理方式。如有疑问，请通过文末邮箱与我们联系。</li>
             </ul>
         </section>
 
-        <!-- 我们可能收集的信息 -->
+        <!-- 权限一览 -->
         <section class="section">
-            <h2 class="section-title">我们可能收集的信息</h2>
-            <p>我们提供服务时，可能会收集、储存和使用下列与您有关的信息。如果您不提供相关信息，可能无法享受我们提供的某些服务，或者无法达到相关服务拟达到的效果。</p>
+            <h2 class="section-title" id="sec1">我们收集的信息</h2>
+            <p>我们只在下列用途所必需的范围内收集信息。拒绝授予某项权限不会影响游戏的正常游玩，只会关闭对应的附加功能。</p>
         </section>
 
-        <!-- 您提供的信息 -->
         <section class="section">
-            <h2 class="section-title">您提供的信息</h2>
+            <h2 class="section-title" id="sec2">设备与运行信息</h2>
+            <ol class="numbered-list">
+                <li><span class="highlight">随机安装标识</span>：首次启动时，本应用会在设备本地生成一个随机 UUID，用于区分不同安装实例。它不包含任何设备硬件标识，也无法反推你的身份。</li>
+                <li><span class="highlight">Firebase 安装标识</span>：由 Firebase SDK 在设备本地生成并保存，用于向 Google 服务建立连接。</li>
+                <li><span class="highlight">基础使用与运行数据</span>：Firebase Analytics SDK 会在应用启动与会话过程中自动采集应用版本、设备型号与系统版本、语言与地区、屏幕分辨率、会话时长、启动次数等基础运行数据，并发送至 Google。我们没有接入任何自定义埋点，也不会将该数据用于广告投放。</li>
+                <li><span class="highlight">崩溃日志</span>：崩溃收集默认<span class="highlight">关闭</span>。仅当你在远程配置中启用了崩溃收集后，应用才会向 Firebase Crashlytics 上报崩溃时的堆栈、异常类型与设备状态信息。</li>
+            </ol>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec3">游戏数据（仅存储在本机）</h2>
+            <p>下列数据保存在应用私有数据库中，<span class="highlight">不会上传到任何服务器</span>，卸载应用即随之删除：</p>
             <ul class="intro-list">
-                <li>您在使用我们的服务时，向我们提供的相关个人信息，例如电话号码、电子邮件或银行卡号等；</li>
-                <li>您通过我们的服务向其他方提供的共享信息，以及您使用我们的服务时所储存的信息。</li>
+                <li>空战关卡进度、累计击杀数、难度设置与所选战机；</li>
+                <li>拼图关卡进度、拼图得分与最高步数；</li>
+                <li>游戏模式、记录时间戳，以及本排行榜的名次排序。</li>
             </ul>
         </section>
 
-        <!-- 其他方分享的您的信息 -->
         <section class="section">
-            <h2 class="section-title">其他方分享的您的信息</h2>
+            <h2 class="section-title" id="sec4">玩家名称（可选，仅存储在本机）</h2>
+            <p>在游戏结束时，你可以自愿填写一个昵称用于本机排行榜展示。该昵称仅写入本应用私有数据库，<span class="highlight">不会离开你的设备</span>。留空时排行榜会显示为匿名玩家。由于排行榜数据完全保存在本机，我们无法得知、也无法找回你填写的昵称。</p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec5">设置的存储</h2>
+            <p>主题配色、语言、音效开关、震动效果、隐私政策与引导页的完成状态等偏好设置，保存在设备本地的应用私有存储中，不会上传。</p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec6">权限说明</h2>
+            <p>本应用在系统清单中声明了以下权限，以及对应的具体用途：</p>
             <ul class="intro-list">
-                <li>其他方使用我们的服务时所提供有关您的共享信息。</li>
+                <li><span class="highlight">网络访问</span>（INTERNET、ACCESS_NETWORK_STATE、ACCESS_WIFI_STATE）：用于加载拼关卡背景图片、拉取远程配置，以及与 Firebase 服务通信。</li>
+                <li><span class="highlight">相机</span>（CAMERA）：用于手电筒（含 SOS 闪光求救）功能。发布版本不包含扫码入口。</li>
+                <li><span class="highlight">通知</span>（POST_NOTIFICATIONS）：用于手电筒在前台运行时显示一条常驻通知，这是 Android 系统对前台服务的要求。</li>
+                <li><span class="highlight">振动</span>（VIBRATE）：用于手电筒 SOS 模式下的闪光与震动节奏提示。</li>
+                <li><span class="highlight">唤醒锁</span>（WAKE_LOCK）：用于手电筒 SOS 模式在熄屏状态下保持节奏准确。</li>
+                <li><span class="highlight">读取存储</span>（READ_EXTERNAL_STORAGE，仅 Android 12 及以下）：系统清单中声明了此权限，但应用代码不会请求或使用它。二维码工具通过系统图片选择器读取你主动选中的图片，系统仅向应用授予该图片的访问权限。</li>
+                <li><span class="highlight">联系人</span>（READ_CONTACTS、WRITE_CONTACTS）：仅用于开发调试版本内置的辅助工具；发布版本中该功能不可达，应用不会读取或修改你的通讯录。</li>
+                <li><span class="highlight">电话状态</span>（READ_PHONE_STATE）：在系统清单中声明，但应用代码中<span class="highlight">并未使用</span>，不会读取设备号码、IMEI 等任何电话相关信息。</li>
+            </ul>
+            <p style="margin-top: 0.75rem;">本应用<span class="highlight">不申请定位权限</span>，不收集你的任何位置信息；不读取短信、通话记录或麦克风，也不会扫描或访问你的整个相册。二维码工具仅在你主动选择图片后读取该图片。</p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec7">网络请求与第三方服务</h2>
+            <p>本应用会向下列域名发起请求，除此之外不会与任何其他服务器通信：</p>
+            <ul class="intro-list">
+                <li><span class="highlight">peapix.com</span>：获取 Bing 每日壁纸信息，作为拼图关卡的参考图片。该请求会在你的设备与该服务之间传递常规的 IP 地址与 User-Agent。</li>
+                <li><span class="highlight">images.cnblogs.com、www.cnblogs.com、raw.githubusercontent.com、github.com、www.baidu.com</span>：加载作者头像、二维码图片与少量示例素材（示例功能位于开发调试版本；默认富文本示例中的图片来自 www.baidu.com）。</li>
+                <li><span class="highlight">Firebase（Google）</span>：Analytics 基础运行数据、远程配置参数，以及在启用后的崩溃日志。</li>
+                <li><span class="highlight">Google Play</span>：跳转应用商店下载链接时，由系统浏览器完成，本应用不参与该过程的数据传输。</li>
+            </ul>
+            <p style="margin-top: 0.75rem;">上述外部服务由各自的运营方独立控制，其数据处理行为受其自身条款约束，我们无法代为控制。</p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec8">我们如何使用信息</h2>
+            <ol class="numbered-list">
+                <li>在你的设备本地保存游戏进度与设置，使你下次启动时能够继续游戏；</li>
+                <li>统计崩溃情况以定位和修复应用缺陷（仅在你启用崩溃收集后）；</li>
+                <li>通过远程配置控制应用行为，例如强制更新、功能开关与崩溃收集的启用状态；</li>
+                <li>保障应用与服务的可用性、稳定性与安全性。</li>
+            </ol>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec9">我们不做什么</h2>
+            <ul class="intro-list">
+                <li>我们<span class="highlight">不收集</span>你的姓名、性别、年龄、身份证件、精确或粗略位置信息；</li>
+                <li>我们<span class="highlight">不出售</span>、不出租、不交换你的任何个人信息；</li>
+                <li>我们<span class="highlight">不投放广告</span>，应用中不包含任何广告 SDK，也不会基于你的行为推送广告或营销内容；</li>
+                <li>我们<span class="highlight">不使用 Cookie 或网页信标</span>进行追踪；</li>
+                <li>我们<span class="highlight">不要求你注册账号</span>，也不收集手机号码、电子邮箱或支付信息；</li>
+                <li>我们<span class="highlight">不向第三方共享</span>你的游戏进度、成绩或排行榜昵称。</li>
             </ul>
         </section>
 
-        <!-- 我们获取的您的信息 -->
         <section class="section">
-            <h2 class="section-title">我们获取的您的信息</h2>
-            <p>您使用服务时我们可能收集如下信息：</p>
+            <h2 class="section-title" id="sec10">第三方 SDK 清单</h2>
+            <ul class="intro-list">
+                <li><span class="highlight">Firebase Analytics</span>（Google）：应用启动、会话与基础运行数据。</li>
+                <li><span class="highlight">Firebase Remote Config</span>（Google）：远程配置参数拉取。</li>
+                <li><span class="highlight">Firebase Crashlytics</span>（Google）：崩溃日志，默认关闭，需远程开启。</li>
+                <li><span class="highlight">Firebase Installations</span>（Google）：本地安装标识与令牌。</li>
+                <li><span class="highlight">ML Kit 条形码识别</span>（Google）：仅发布前随应用一同安装的本地识别模型，扫码在<span class="highlight">设备本地离线完成</span>，不将图像上传至服务器（该入口仅存在于开发调试版本）。</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec11">信息的存储与安全</h2>
             <ol class="numbered-list">
-                <li><span class="highlight">日志信息</span>，指您使用我们的服务时，系统可能通过 cookies、web beacon 或其他方式自动采集的技术信息，包括：</li>
-                <li><span class="highlight">设备或软件信息</span>，例如您的移动设备、网页浏览器或用于接入我们服务的其他程序所提供的配置信息、您的 IP 地址和移动设备所用的版本和设备识别码；</li>
-                <li>在使用我们服务时搜索或浏览的信息，例如您使用的网页搜索词语、访问的社交媒体页面 url 地址，以及您在使用我们服务时浏览或要求提供的其他信息和内容详情；</li>
-                <li>有关您曾使用的移动应用（APP）和其他软件的信息，以及您曾经使用该等移动应用和软件的信息；</li>
-                <li><span class="highlight">位置信息</span>，指您开启设备定位功能并使用我们基于位置提供的相关服务时，收集的有关您位置的信息，包括：
-                    <ul class="numbered-list" style="margin-top: 0.5rem;">
-                        <li>您通过具有定位功能的移动设备使用我们的服务时，通过 GPS 或 WiFi 等方式收集的您的地理位置信息；</li>
-                        <li>您或其他用户提供的包含您所处地理位置的实时信息，例如您提供的账户信息中包含的您所在地区信息，您或其他人上传的显示您当前或曾经所处地理位置的共享信息；</li>
-                        <li>您可以通过关闭定位功能，停止对您的地理位置信息的收集。</li>
-                    </ul>
-                </li>
+                <li>你的游戏进度、设置与排行榜数据全部存储在你设备的应用私有空间中（应用私有数据库与私有配置），其他应用无法读取。</li>
+                <li>你的设备启用了系统云备份（Android 自动备份）时，上述私有数据可能由操作系统连同其他应用数据一并备份至你登录的系统账号，备份过程由 Android 系统与你的云账号服务商控制。</li>
+                <li>拼图关卡图片会缓存于应用缓存目录用于加速加载，可由系统随时回收。</li>
+                <li>我们采用 HTTPS 加密保护与外部服务之间的数据传输。</li>
             </ol>
         </section>
 
-        <!-- 我们可能如何使用信息 -->
         <section class="section">
-            <h2 class="section-title">我们可能如何使用信息</h2>
-            <p>我们可能将在向您提供服务的过程之中所收集的信息用作下列用途：</p>
-            <ol class="numbered-list">
-                <li>向您提供服务；</li>
-                <li>在我们提供服务时，用于身份验证、客户服务、安全防范、诈骗监测、存档和备份用途，确保我们向您提供的产品和服务的安全性；</li>
-                <li>帮助我们设计新服务，改善我们现有服务；</li>
-                <li>使我们更加了解您如何接入和使用我们的服务，从而针对性地回应您的个性化需求，例如语言设定、位置设定、个性化的帮助服务和指示，或对您和其他用户作出其他方面的回应；</li>
-                <li>向您提供与您更加相关的广告以替代普遍投放的广告；</li>
-                <li>评估我们服务中的广告和其他促销及推广活动的效果，并加以改善；</li>
-                <li>软件认证或管理软件升级；</li>
-                <li>让您参与有关我们产品和服务的调查。</li>
-                <li>为了让您有更好的体验、改善我们的服务或您同意的其他用途，在符合相关法律法规的前提下，我们可能将通过某一项服务所收集的信息，以汇集信息或者个性化的方式，用于我们的其他服务。例如，在您使用我们的一项服务时所收集的信息，可能在另一服务中用于向您提供特定内容，或向您展示与您相关的、非普遍推送的信息。如果我们在相关服务中提供了相应选项，您也可以授权我们将该服务所提供和储存的信息用于我们的其他服务。</li>
-                <li>我们将尽一切可能采取适当的技术手段，保证您可以访问、更新和更正自己的注册信息或使用我们的服务时提供的其他个人信息。在访问、更新、更正和删除前述信息时，我们可能会要求您进行身份验证，以保障账户安全。</li>
-            </ol>
-        </section>
-
-        <!-- 我们可能分享的信息 -->
-        <section class="section">
-            <h2 class="section-title">我们可能分享的信息</h2>
-            <p>除以下情形外，未经您同意，我们不会与任何第三方分享您的个人信息：</p>
-            <ol class="numbered-list">
-                <li>我们可能将您的个人信息与第三方服务供应商、承包商及代理（例如代表我们发出电子邮件或推送通知的通讯服务提供商、为我们提供位置数据的地图服务供应商）分享（他们可能并非位于您所在的法域），用作下列用途：
-                    <ul class="numbered-list" style="margin-top: 0.5rem;">
-                        <li>向您提供我们的服务；</li>
-                        <li>实现"我们可能如何使用信息"部分所述目的；</li>
-                        <li>履行我们在本《隐私协议》中的义务和行使我们的权利；</li>
-                        <li>理解、维护和改善我们的服务。</li>
-                    </ul>
-                </li>
-                <li>如我们与任何上述第三方分享您的个人信息，我们将努力确保该等第三方在使用您的个人信息时遵守本《隐私协议》及我们要求其遵守的其他适当的保密和安全措施。</li>
-                <li>随着我们业务的持续发展，我们有可能进行合并、收购、资产转让或类似的交易，您的个人信息有可能作为此类交易的一部分而被转移。我们将在转移前通知您。</li>
-            </ol>
-            <p style="margin-top: 0.75rem;">我们还可能为以下需要而保留、保存或披露您的个人信息：</p>
+            <h2 class="section-title" id="sec12">信息的共享与披露</h2>
+            <p>除本协议「网络请求与第三方服务」一节所列的 Firebase 与图片服务外，未经你的同意，我们不会向任何第三方披露你的个人信息。我们也不会出售你的个人信息。</p>
+            <p style="margin-top: 0.75rem;">在下列情形下，我们可能需要披露必要的信息：</p>
             <ol class="numbered-list" style="margin-top: 0.5rem;">
                 <li>遵守适用的法律法规；</li>
-                <li>遵守法院命令或其他法律程序的规定；</li>
-                <li>遵守相关政府机关的要求；</li>
-                <li>为遵守适用的法律法规、维护社会公共利益，或保护我们的客户、我们、其他用户的人身和财产安全或合法权益所合理必需的用途。</li>
+                <li>响应司法机关或政府机关依法提出的要求；</li>
+                <li>为保护用户、我们自身或公众的人身与财产安全所必需的情形。</li>
             </ol>
         </section>
 
-        <!-- 信息安全 -->
         <section class="section">
-            <h2 class="section-title">信息安全</h2>
-            <ol class="numbered-list">
-                <li>我们仅在本《隐私协议》所述目的所必需的期间和法律法规要求的时限内保留您的个人信息。我们使用各种安全技术和程序，以防信息的丢失、不当使用、未经授权阅览或披露。例如，在某些服务中，我们将利用加密技术（例如 SSL）来保护您提供的个人信息。但请您理解，由于技术的限制以及可能存在的各种恶意手段，在互联网行业，即便竭尽所能加强安全措施，也不可能始终保证信息百分之百的安全。您需要了解，您接入我们的服务所用的系统和通讯网络，有可能因我们可控范围外的因素而出现问题。</li>
-                <li><span class="highlight">您分享的信息</span></li>
-                <li>我们的多项服务，可让您不仅与自己的社交网络，也与使用该服务的所有用户公开分享您的相关信息，例如，您在我们的服务中所上传或发布的信息（包括您公开的个人信息、您建立的名单）、您对其他人上传或发布的信息作出的回应，以及包括与这些信息有关的位置数据和日志信息。使用我们服务的其他用户也有可能分享与您有关的信息（包括位置数据和日志信息）。特别是，我们的社交媒体服务，是专为使您与世界各地的用户共享信息而设计，您可以使共享信息实时、广泛地传递。只要您不删除共享信息，有关信息会一直留存在公共领域；即使您删除共享信息，有关信息仍可能由其他用户或不受我们控制的非关联第三方独立地缓存、复制或储存，或由其他用户或该等第三方在公共领域保存。</li>
-                <li>因此，请您谨慎考虑通过我们的服务上传、发布和交流的信息内容。在一些情况下，您可通过我们某些服务的隐私设定来控制有权浏览您共享信息的用户范围。如要求从我们的服务中删除您的相关信息，请通过该等特别服务条款提供的方式操作。</li>
-            </ol>
-        </section>
-
-        <!-- 您分享的敏感个人信息 -->
-        <section class="section">
-            <h2 class="section-title">您分享的敏感个人信息</h2>
-            <ol class="numbered-list">
-                <li>某些个人信息因其特殊性可能被认为是敏感个人信息，例如您的种族、宗教、个人健康和医疗信息等。相比其他个人信息，敏感个人信息受到更加严格的保护。</li>
-                <li>请注意，您在使用我们的服务时所提供、上传或发布的内容和信息（例如有关您社交活动的照片等信息），可能会泄露您的敏感个人信息。您需要谨慎地考虑，是否在使用我们的服务时披露相关敏感个人信息。</li>
-                <li>您同意按本《隐私协议》所述的目的和方式来处理您的敏感个人信息。</li>
-            </ol>
-        </section>
-
-        <!-- 我们可能如何收集信息 -->
-        <section class="section">
-            <h2 class="section-title">我们可能如何收集信息</h2>
-            <ol class="numbered-list">
-                <li>我们或我们的第三方合作伙伴，可能通过 cookies 和 web beacon 收集和使用您的信息，并将该等信息储存为日志信息。</li>
-                <li>我们使用自己的 cookies 和 web beacon，目的是为您提供更个性化的用户体验和服务，并用于以下用途：
-                    <ul class="numbered-list" style="margin-top: 0.5rem;">
-                        <li>记住您的身份。例如：cookies 和 web beacon 有助于我们辨认您作为我们的注册用户的身份，或保存您向我们提供的有关您的喜好或其他信息；</li>
-                        <li>分析您使用我们服务的情况。例如，我们可利用 cookies 和 web beacon 来了解您使用我们的服务进行什么活动，或哪些网页或服务最受您的欢迎；</li>
-                    </ul>
-                </li>
-            </ol>
-        </section>
-
-        <!-- 广告优化 -->
-        <section class="section">
-            <h2 class="section-title">广告优化</h2>
-            <ol class="numbered-list">
-                <li>Cookies 和 web beacon 有助于我们根据您的信息，向您提供与您相关的广告而非进行普遍的广告投放。</li>
-                <li>我们为上述目的使用 cookies 和 web beacon 的同时，可能将通过 cookies 和 web beacon 收集的非个人身份信息，经统计加工后提供给广告商或其他合作伙伴，用于分析用户如何使用我们的服务，并用于广告服务。</li>
-                <li>我们的产品和服务上可能会有广告商或其他合作方放置的 cookies 和 web beacon。这些 cookies 和 web beacon 可能会收集与您相关的非个人身份信息，以用于分析用户如何使用该等服务、向您发送您可能感兴趣的广告，或用于评估广告服务的效果。这些第三方 cookies 和 web beacon 收集和使用该等信息，不受本《隐私协议》约束，而是受相关使用者的隐私协议约束，我们不对第三方的 cookies 或 web beacon 承担责任。</li>
-                <li>您可以通过浏览器设置拒绝或管理 cookies 或 web beacon。但请注意，如果停用 cookies 或 web beacon，您有可能无法享受最佳的服务体验，某些服务也可能无法正常使用。同时，您还会收到同样数量的广告，但这些广告与您的相关性会降低。</li>
-            </ol>
-        </section>
-
-        <!-- 广告服务 -->
-        <section class="section">
-            <h2 class="section-title">广告服务</h2>
-            <p>我们可能使用您的相关信息，向您提供与您更加相关的广告。</p>
-            <p style="margin-top: 0.75rem;">我们也可能使用您的信息，通过我们的服务、电子邮件或其他方式向您发送营销信息，提供或推广我们或第三方的如下商品和服务：</p>
-            <ol class="numbered-list" style="margin-top: 0.5rem;">
-                <li>我们的服务，我们的关联公司和合作伙伴的商品或服务，包括即时通讯服务、网上媒体服务、互动娱乐服务、社交网络服务、付款服务、互联网搜索服务、位置和地图服务、应用软件和服务、数据管理软件和服务、网上广告服务、互联网金融，以及其他社交媒体、娱乐、电子商务、资讯和通讯软件或服务（统称"互联网服务"）；</li>
-                <li>第三方互联网服务供应商，以及与下列有关的第三方商品或服务：食物和餐饮、体育、音乐、电影、电视、现场表演及其他艺术和娱乐、书册、杂志和其他刊物、服装和配饰、珠宝、化妆品、个人健康和卫生、电子、收藏品、家用器皿、电器、家居装饰和摆设、宠物、汽车、酒店、交通和旅游、银行、保险及其他金融服务、会员积分和奖励计划，以及我们认为可能与您相关的其他商品或服务。</li>
-            </ol>
-            <p style="margin-top: 0.75rem;">如您不希望我们将您的个人信息用作前述广告用途，您可以通过我们在广告中提供的相关提示，或在特定服务中提供的指引，要求我们停止为上述用途使用您的个人信息。</p>
-        </section>
-
-        <!-- 我们可能向您发送的邮件和信息 -->
-        <section class="section">
-            <h2 class="section-title">我们可能向您发送的邮件和信息</h2>
-            <p><span class="highlight">邮件和信息推送</span></p>
-            <ul class="intro-list" style="margin-top: 0.5rem;">
-                <li>您在使用我们的服务时，我们可能使用您的信息向您的设备发送电子邮件、新闻或推送通知。如您不希望收到这些信息，可以按照我们的相关提示，在设备上选择取消订阅。</li>
-            </ul>
-            <p style="margin-top: 0.75rem;"><span class="highlight">与服务有关的公告</span></p>
-            <ul class="intro-list" style="margin-top: 0.5rem;">
-                <li>我们可能在必要时（例如因系统维护而暂停某一项服务时）向您发出与服务有关的公告。您可能无法取消这些与服务有关、性质不属于推广的公告。</li>
-            </ul>
-        </section>
-
-        <!-- 隐私协议的适用例外 -->
-        <section class="section">
-            <h2 class="section-title">隐私协议的适用例外</h2>
-            <p>我们的服务可能包括或链接至第三方提供的社交媒体或其他服务（包括网站）。例如：</p>
-            <ul class="intro-list" style="margin-top: 0.5rem;">
-                <li>您利用 "分享" 键将某些内容分享到我们的服务，或您利用第三方连线服务登录我们的服务。这些功能可能会收集您的相关信息（包括您的日志信息），并可能在您的电脑装置 cookies，从而正常运行上述功能；</li>
-                <li>我们通过广告或我们服务的其他方式向您提供链接，使您可以接入第三方的服务或网站。</li>
-                <li>该等第三方社交媒体或其他服务可能由相关的第三方或我们运营。您使用该等第三方的社交媒体服务或其他服务（包括您向该等第三方提供的任何个人信息），须受该第三方的服务条款及隐私协议（而非《通用服务条款》或本《隐私协议》）约束，您需要仔细阅读其条款。本《隐私协议》仅适用于我们所收集的信息，并不适用于任何第三方提供的服务或第三方的信息使用规则，我们对任何第三方使用由您提供的信息不承担任何责任。</li>
-            </ul>
-        </section>
-
-        <!-- 未成年人使用我们的服务 -->
-        <section class="section">
-            <h2 class="section-title">未成年人使用我们的服务</h2>
-            <p>我们鼓励父母或监护人指导未满十八岁的未成年人使用我们的服务。我们建议未成年人鼓励他们的父母或监护人阅读本《隐私协议》，并建议未成年人在提交的个人信息之前寻求父母或监护人的同意和指导。</p>
-        </section>
-
-        <!-- 隐私协议的适用范围 -->
-        <section class="section">
-            <h2 class="section-title">隐私协议的适用范围</h2>
-            <ol class="numbered-list">
-                <li>除某些特定服务外，我们所有的服务均适用本《隐私协议》。这些特定服务将适用特定的隐私协议。针对某些特定服务的特定隐私协议，将更具体地说明我们在该等服务中如何使用您的信息。该特定服务的隐私协议构成本《隐私协议》的一部分。如相关特定服务的隐私协议与本《隐私协议》有不一致之处，适用该特定服务的隐私协议。</li>
-                <li>请您注意，本《隐私协议》不适用于以下情况：
-                    <ul class="numbered-list" style="margin-top: 0.5rem;">
-                        <li>通过我们的服务而接入的第三方服务（包括任何第三方网站）收集的信息；</li>
-                        <li>通过在我们服务中进行广告服务的其他公司或机构所收集的信息。</li>
-                    </ul>
-                </li>
-            </ol>
-        </section>
-
-        <!-- 变更 -->
-        <section class="section">
-            <h2 class="section-title">变更</h2>
+            <h2 class="section-title" id="sec13">你的权利</h2>
+            <p>本应用不设账号体系，你对自己的数据拥有完全的控制权：</p>
             <ul class="intro-list">
-                <li>我们可能适时修订本《隐私协议》的条款，该等修订构成本《隐私协议》的一部分。如该等修订造成您在本《隐私协议》下权利的实质减少，我们将在修订生效前通过在主页上显著位置提示或向您发送电子邮件或以其他方式通知您。在该种情况下，若您继续使用我们的服务，即表示同意受经修订的本《隐私协议》的约束。</li>
+                <li>你可以随时在系统设置中清除本应用的数据，或直接卸载应用，以删除我们保存的全部本地信息；</li>
+                <li>你可以随时卸载应用，这会使游戏进度、排行榜记录与昵称一并被删除；</li>
+                <li>对于通过 Firebase 上报的基础运行数据，你可以使用操作系统的「清除应用数据」或在 Google 账号的隐私设置中管理相关数据。</li>
+            </ul>
+            <p style="margin-top: 0.75rem;">由于排行榜与昵称仅存在于本机，我们在服务端没有可用于查询、修改或删除你个人信息的对应记录。</p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec14">未成年人保护</h2>
+            <p>本应用不收集任何可用于识别未成年人身份的信息，因此也不会有意收集未成年人的个人信息。我们不会基于你的年龄投放广告或推送营销内容。若你是未成年人的监护人并对本协议有疑问，请与我们联系。</p>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title" id="sec15">本协议的变更</h2>
+            <ul class="intro-list">
+                <li>我们可能适时修订本协议的条款，修订构成本协议的一部分。如修订造成你权利的实质减少，我们会在生效前通过应用内的显著提示通知你。</li>
+                <li>若你继续使用本应用，即表示你同意受经修订的本协议约束。</li>
             </ul>
         </section>
 
@@ -735,11 +785,11 @@ a:hover {
         <div class="contact-section">
             <div class="contact-item">
                 <span class="contact-label">发布日期：</span>
-                <span class="contact-value">2025 年 12 月 18 日</span>
+                <span class="contact-value">2026 年 10 月 5 日</span>
             </div>
             <div class="contact-item">
                 <span class="contact-label">生效时间：</span>
-                <span class="contact-value">2025 年 12 月 18 日</span>
+                <span class="contact-value">2026 年 10 月 5 日</span>
             </div>
             <div class="contact-item">
                 <span class="contact-label">邮箱：</span>
@@ -750,12 +800,16 @@ a:hover {
                 <span class="contact-value"><a href="https://github.com/tobecrazy" target="_blank" rel="noopener noreferrer">https://github.com/tobecrazy</a></span>
             </div>
             <div class="contact-item">
-                <span class="contact-label">获取权限：</span>
-                <span class="contact-value">获取用户 ip、cookies 信息</span>
+                <span class="contact-label">收集的个人信息：</span>
+                <span class="contact-value">随机安装标识、应用运行与崩溃数据（崩溃数据默认关闭）</span>
+            </div>
+            <div class="contact-item">
+                <span class="contact-label">数据存储位置：</span>
+                <span class="contact-value">本机私有存储 + Firebase（Google）</span>
             </div>
             <div class="contact-item">
                 <span class="contact-label">第三方 SDK：</span>
-                <span class="contact-value">未使用</span>
+                <span class="contact-value">Firebase Analytics / Remote Config / Crashlytics / Installations、ML Kit 条形码识别</span>
             </div>
         </div>
 
@@ -768,8 +822,31 @@ a:hover {
 </div>
 
 <script>
-// Back to top functionality
+// Reading progress bar
 var backToTopBtn = document.getElementById('backToTop');
+var progressBar = document.getElementById('progressBar');
+
+function updateProgress() {
+    if (!progressBar) return;
+    var doc = document.documentElement;
+    var scrollable = doc.scrollHeight - doc.clientHeight;
+    progressBar.style.width = (scrollable > 0 ? (doc.scrollTop / scrollable) * 100 : 0) + '%';
+}
+
+// Table of contents, generated from the section headings so it never drifts from the body.
+(function buildToc() {
+    var list = document.getElementById('tocList');
+    if (!list) return;
+    var titles = document.querySelectorAll('.section-title[id]');
+    titles.forEach(function (h) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        list.appendChild(li);
+    });
+})();
 
 window.addEventListener('scroll', function() {
     if (window.pageYOffset > 300) {
@@ -777,7 +854,11 @@ window.addEventListener('scroll', function() {
     } else {
         backToTopBtn.classList.remove('visible');
     }
+    updateProgress();
 });
+
+window.addEventListener('resize', updateProgress);
+updateProgress();
 
 function scrollToTop() {
     window.scrollTo({

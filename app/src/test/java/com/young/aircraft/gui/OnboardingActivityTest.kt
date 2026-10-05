@@ -10,6 +10,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import com.young.aircraft.R
+import com.young.aircraft.data.AircraftConstants
+import com.young.aircraft.data.SettingsRepository
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -39,7 +41,7 @@ class OnboardingActivityTest {
         context.getSharedPreferences("aircraft_prefs", Context.MODE_PRIVATE)
             .edit()
             .remove("onboarding_completed")
-            .remove("privacy_policy_accepted")
+            .remove(SettingsRepository.KEY_POLICY_ACCEPTED_VERSION)
             .commit()
     }
 

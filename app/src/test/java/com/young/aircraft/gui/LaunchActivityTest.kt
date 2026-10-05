@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.data.AppDatabase
 import com.young.aircraft.data.PlayerGameData
 import com.young.aircraft.providers.DatabaseProvider
@@ -38,7 +39,7 @@ class LaunchActivityTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             context.getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
                 .edit()
-                .putBoolean("privacy_policy_accepted", true)
+                .putInt(SettingsRepository.KEY_POLICY_ACCEPTED_VERSION, AircraftConstants.PrivacyPolicy.POLICY_VERSION)
                 .putBoolean("onboarding_completed", true)
                 .putString(SettingsRepository.KEY_INSTALL_ID, "test-player-id")
                 .commit()

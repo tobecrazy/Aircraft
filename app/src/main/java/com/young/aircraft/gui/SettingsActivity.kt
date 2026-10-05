@@ -60,6 +60,7 @@ class SettingsActivity : BaseAircraftActivity() {
             SettingsDestination.ABOUT_AIRCRAFT -> AboutAircraftActivity::class.java
             SettingsDestination.ABOUT_ME -> AboutMeActivity::class.java
             SettingsDestination.PRIVACY_POLICY -> PrivacyPolicyActivity::class.java
+            SettingsDestination.DATA_AND_PRIVACY -> DataPrivacyActivity::class.java
             SettingsDestination.DEVELOP_SETTINGS -> DevelopSettingsActivity::class.java
             SettingsDestination.ASSISTANT_TOOLS -> AndroidDevAssistantToolsActivity::class.java
         }
