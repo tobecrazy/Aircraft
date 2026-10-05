@@ -114,6 +114,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.config)
     implementation(libs.firebase.crashlytics)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)

@@ -43,10 +43,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/TransparentTheme">
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
         <activity
             android:name=".gui.HistoryActivity"
             android:exported="false"
             android:label="@string/history_title"
+            android:theme="@style/Theme.Aircraft.Common" />
+        <activity
+            android:name=".gui.MandatoryUpdateActivity"
+            android:exported="false"
+            android:label="@string/remote_update_required_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.PrivacyPolicyActivity"

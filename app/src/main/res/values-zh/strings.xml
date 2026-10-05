@@ -552,4 +552,14 @@ UA：%5$s
     <string name="pdf_reader_error_no_permission">没有读取该文件的权限</string>
     <string name="pdf_reader_page_counter">%1$d / %2$d</string>
     <string name="pdf_reader_page_desc">第 %1$d 页</string>
+    <string name="remote_update_required_title">需要更新应用</string>
+    <string name="remote_update_required_message">当前版本（%1$s）已停止支持。请更新到 %2$s 或更高版本后继续使用。</string>
+    <string name="remote_update_required_action">立即更新</string>
+    <string name="remote_update_required_status">必须更新</string>
+    <string name="remote_update_current_version">当前版本</string>
+    <string name="remote_update_minimum_version">最低要求版本</string>
+    <string name="remote_update_available_title">发现新版本</string>
+    <string name="remote_update_available_message">新版本 %2$s 已发布，当前版本为 %1$s。</string>
+    <string name="remote_update_available_action">立即更新</string>
+    <string name="remote_update_later_action">稍后</string>
 </resources>

@@ -66,7 +66,7 @@ Scope `--tests` to a **module** task (`:app:testDebugUnitTest`), not the root `t
 - App ID/namespace `com.young.aircraft`; library namespace `com.young.richtext`.
 - The app enables Compose and BuildConfig. **View Binding is disabled** (removed in `a6c3b6b`; no binding classes exist) and Data Binding is not used.
 - Release enables R8 minification and resource shrinking via `app/proguard-rules.pro`. Signing loads root `keystore.properties` when present; it is untracked. `settings.gradle.kts` sets `FAIL_ON_PROJECT_REPOS`, so a new repository must go in the settings file, not a module.
-- Firebase Analytics and Crashlytics are configured in `app/build.gradle.kts`; `app/google-services.json` supplies the Firebase configuration.
+- Firebase Analytics, Remote Config, and Crashlytics are configured in `app/build.gradle.kts`; `app/google-services.json` supplies the Firebase configuration. See "Remote Config and Forced Updates" below before touching Crashlytics — its collection is off by default.
 - **Debug-only code is a source-set split, not a runtime flag.** `utils/DebugTools.kt` exists twice: `app/src/debug/` (`isEnabled = true`, `log`/`enableWebViewDebugging` live) and `app/src/release/` (`isEnabled = false`, all methods no-op). `SettingsViewModel` maps `DebugTools.isEnabled` into `SettingsUiState.showDevelopSettings`, the *only* gate for the Settings rows; each gated Activity then re-checks `DebugTools.isEnabled` in `onCreate` and calls `finish()`. Adding a debug screen means touching both `DebugTools` variants plus both gates — otherwise a release build crashes or silently shows dev UI. Keep the two variants' signatures in sync: `isEnabled` is a `var` in debug and a `val` in release, so a `main` source that assigns to it compiles in debug and fails in release.
 
 ## Architecture
@@ -77,7 +77,7 @@ Scope `--tests` to a **module** task (`:app:testDebugUnitTest`), not the root `t
 
 **Activity/UI layer — Compose + Material3.** Every `gui/` Activity calls `setContent`; there are no ViewBinding hosts. `viewmodel/` exposes StateFlow/LiveData plus SharedFlow one-shot events where needed. `data/SettingsRepository` wraps SharedPreferences; `providers/DatabaseProvider` supplies the Room database. `GameViewModel` handles persistence and scoring, never the render loop.
 
-**Nearly every screen extends `gui/BaseAircraftActivity`** — 21 of the 22 Activities, with `MainActivity` the sole exception. It is `final override fun onCreate`: call `initializeViewModel` first, then `initializeUI` only `if (!isFinishing)`. That guard exists because some `initializeViewModel` implementations finish the Activity (the `DebugTools` self-gates), and building UI afterwards would operate on a dead window. Follow the two-method shape for new screens rather than inventing a third base class.
+**Nearly every screen extends `gui/BaseAircraftActivity`** — 21 of the 22 Activities, with `MainActivity` the sole exception among the original set (`MandatoryUpdateActivity` is a later `ComponentActivity` addition; see below). It is `final override fun onCreate`: call `initializeViewModel` first, then `initializeUI` only `if (!isFinishing)`. That guard exists because some `initializeViewModel` implementations finish the Activity (the `DebugTools` self-gates), and building UI afterwards would operate on a dead window. Follow the two-method shape for new screens rather than inventing a third base class.
 
 `PuzzleActivity` is the fullest example of the newer split: the image-feed request, disk cache, and load state live in `viewmodel/PuzzleImageViewModel`, while the Activity only reads launch args, saves progress, and owns the Compose board. Board/piece/undo state uses `rememberSaveable` with a Saver so rotation restores the in-progress board.
 
@@ -171,6 +171,17 @@ Its `d(tag) { … }` lambda skips message construction and interpolation while l
 ### Networking
 
 There is **no Retrofit usage** despite the declared dependency — network calls are direct OkHttp requests inside `BannerDetailsViewModel`, `ShowImageDetailsViewModel`, and `PuzzleActivity`. The Bing wallpaper (peapix) feed in `PuzzleActivity` is parsed by **regex** in `AircraftConstants`, not a JSON parser. There is no DI framework and no service layer; follow that pattern unless asked otherwise.
+
+### Remote Config and Forced Updates
+
+`common/AircraftRemoteConfig.kt` is a plain `object` (the app's established no-DI pattern) wrapping `FirebaseRemoteConfig` with a typed accessor per parameter. `AircraftApplication.onCreate` calls `initialize()` — it is `@Synchronized` and one-shot, sets `minimumFetchIntervalInSeconds` to 0 in debug / 1h in release, then chains `setDefaultsAsync` → initial `fetchAndActivate`, and separately registers a real-time `addOnConfigUpdateListener`. Defaults are a hardcoded `defaults` map, so a fetch failure degrades to bundled values rather than throwing; a malformed version string makes `compareVersions` return null and the check **fails open** (treated as "no update needed").
+
+Four parameters: `Aircraft2026` (a JSON blob parsed into `RemoteTokenConfig`), `minimum_version`, `latest_version`, `update_url`. The seven `remote_update_*` strings were added to all four locales; new ones must follow suit.
+
+- **Crashlytics collection is remote-gated.** The manifest sets `firebase_crashlytics_collection_enabled=false`, and `updateCrashlyticsCollection()` re-enables it only when `Aircraft2026.enable == true`. So a build without live Remote Config collects no crashes — do not "fix" a missing crash report by removing the meta-data.
+- **Enforcement lives in `ActivityLifecycleCallbacks`, not in a Base class.** `onActivityResumed` calls `enforceMinimumVersion(activity)`, and `onConfigActivated` re-posts it to the main thread, so a real-time update takes effect on the next resume. `foregroundActivity` is a `WeakReference` set on resume and cleared on pause.
+- `MandatoryUpdateActivity` is the only new-style screen that **cannot** extend `gui/BaseAircraftActivity` usefully: it must not be finishable by the same check that launches it, so it re-checks on its own resume (`enforceMinimumVersion` finishes it once the requirement is lifted) and swallows back with `BackHandler(enabled = true) {}`. `openUpdatePage(context)` is an internal top-level function in that file: it tries the configured URL, falls back to `market://`, then to the `play.google.com` web URL, and silently no-ops if neither handler exists.
+- The optional-update dialog is shown through `showThemed()` and de-duplicated per process by `optionalPromptedVersion` (last-prompted version string), so it appears at most once per version per launch.
 
 ### Persistence and Scoring
 

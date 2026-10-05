@@ -552,4 +552,14 @@ Installed browsers:
     <string name="pdf_reader_error_no_permission">No permission to read this file</string>
     <string name="pdf_reader_page_counter">%1$d / %2$d</string>
     <string name="pdf_reader_page_desc">Page %1$d</string>
+    <string name="remote_update_required_title">Update required</string>
+    <string name="remote_update_required_message">This version (%1$s) is no longer supported. Install version %2$s or later to continue.</string>
+    <string name="remote_update_required_action">Update app</string>
+    <string name="remote_update_required_status">Update required</string>
+    <string name="remote_update_current_version">Installed version</string>
+    <string name="remote_update_minimum_version">Minimum version</string>
+    <string name="remote_update_available_title">Update available</string>
+    <string name="remote_update_available_message">Version %2$s is available. You are using version %1$s.</string>
+    <string name="remote_update_available_action">Update now</string>
+    <string name="remote_update_later_action">Later</string>
 </resources>

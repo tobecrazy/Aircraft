@@ -1,6 +1,6 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus two reusable Android library modules, `:richtexteditor` and `:supperbanner`, that can be built as AARs. The app combines a first-launch privacy gate, a four-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus two reusable Android library modules, `:richtexteditor` and `:supperbanner`, that can be built as AARs. The app combines a first-launch privacy gate, a four-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, a Remote Config–driven forced-update gate, and debug-only developer tools. The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Download
 
@@ -42,13 +42,13 @@ The demo above walks through the end-to-end player experience on a real device:
 
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
-| `common/` | Green | `AircraftApplication`, `GameStateManager` | App lifecycle, game-state broadcasting via SharedFlow |
+| `common/` | Green | `AircraftApplication`, `AircraftRemoteConfig`, `GameStateManager` | App lifecycle, Firebase Remote Config parameters + minimum-version enforcement, game-state broadcasting via SharedFlow |
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `SettingsRepository`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants`, `ImageDetails`, `ContactsRepository` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, image details contracts, device-contacts ContentResolver access |
 | `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `BossFireworksEffect`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting, boss-defeat fireworks |
 | `richtexteditor/` | Blue-gray | `RichTextEditorView` | Reusable AAR library for rich-text input, toolbar formatting, Markdown/HTML helpers, and image-tap URL helpers |
 | `supperbanner/` | Slate | `SupperBannerView`, `SupperBannerItem`, `SupperBannerImage`, `SupperBannerConfig`, `SupperBannerColors`, `SupperBannerIndicatorColors`, `SupperBannerEffect`, `SupperBannerTransition` | Reusable AAR library for the auto-playing banner carousel (ViewPager2 + Coil), with a host-settable color palette, ten configurable page transitions, and `maven-publish` release output |
 | `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `PuzzleImageViewModel`, `DevelopSettingsViewModel`, `CameraScanViewModel`, `RichTextEditorViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `BannerDetailsViewModel`, `ShowImageDetailsViewModel`, `ContactsViewModel` | MVVM mediation between Views and Repositories/DAOs |
-| `gui/` (Presentation) | Purple | `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `GameHudScreen`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `GameSettingsActivity`, `LanguageSettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `BannerDetailsActivity`, `ShowImageDetailsActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `CameraScanActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `RichTextEditorActivity`, `ContactsActivity`, `StarFieldView`, `ThemedMessage`, `gui/dialogs/*` | Activity screens, navigation, Compose-only UI (no ViewBinding), themed dialogs/Snackbars |
+| `gui/` (Presentation) | Purple | `BaseAircraftActivity`, `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `GameHudScreen`, `MandatoryUpdateActivity`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `GameSettingsActivity`, `LanguageSettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `BannerDetailsActivity`, `ShowImageDetailsActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `CameraScanActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `RichTextEditorActivity`, `ContactsActivity`, `StarFieldView`, `ThemedMessage`, `gui/dialogs/*` | Activity screens, navigation, Compose-only UI (no ViewBinding), themed dialogs/Snackbars, blocking update gate |
 | `service/` | Pink | `MusicService`, `MusicBinder`, `FlashlightService` | BGM/SFX bound service + camera-torch foreground service with wakelock-backed SOS |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils`, `DataUriUtils` | Screen metrics, bitmap utilities, file URI/cache helpers, name formatting, `data:image` parsing |
@@ -63,6 +63,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - `MainActivity` binds `MusicService` and collects `GameStateManager.gameState` flow
 - `DatabaseProvider` singleton creates `AppDatabase`, which exposes `PlayerGameDataDao` operating on `PlayerGameData` entities
 - `SettingsRepository` maps difficulty strings to `GameDifficulty` enum values with `fireRateMultiplier`
+- `AircraftApplication` owns the Remote Config lifecycle: it initializes `AircraftRemoteConfig`, then enforces the minimum-version gate from `onActivityResumed` and from the real-time config listener, launching or finishing `MandatoryUpdateActivity` as needed
 
 ## Highlights
 
@@ -86,7 +87,8 @@ The demo above walks through the end-to-end player experience on a real device:
 - Rich-text editor AAR module (`:richtexteditor`) consumed by the app, with JSON sample loading from `app/src/main/assets/example.json` and preview image tap support that opens `ShowImageDetailsActivity`; usage is documented in [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md)
 - Banner carousel AAR module (`:supperbanner`) consumed by the app's About, banner-details, rich-text editor, and debug settings screens; it carries no theme or string resources, publishes as `com.young:supperbanner`, and is documented in [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md)
 - Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, PDF reader (debug-only), about-aircraft, about-me, privacy policy, and debug-only developer settings including a device-contacts browser/editor
-- Firebase Analytics and Crashlytics integration
+- Firebase Analytics and Crashlytics integration, with Crashlytics collection remote-gated behind a Remote Config token flag
+- Firebase Remote Config–driven update gate: a blocking "update required" screen when the build falls below `minimum_version`, a once-per-launch optional-update prompt when `latest_version` is higher, and real-time config updates applied on the next Activity resume
 - English and Chinese localization (Simplified, Taiwan Traditional, Hong Kong Traditional), switchable in-app via Settings → Language
 
 ## Color Themes
@@ -131,6 +133,7 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 - Flashlight utility backed by a camera-type foreground service (`FlashlightService`): Camera2 torch on/off, SOS blink mode with `PARTIAL_WAKE_LOCK` for accurate pacing when the screen is off, Android 13+ brightness levels, persistent notification with a "Turn off" action, and a one-shot battery-optimization whitelist prompt that fires after the first successful torch-on
 - Device information screen (`DeviceInfoActivity`, Jetpack Compose) with CPU, memory, disk, battery, and network telemetry; the hero card places Current Time and Uptime side by side, and the System Info card places Screen Resolution and Boot Time side by side, while a foldable's hinge reports FLAT (unfolded) — both stack otherwise, via Jetpack WindowManager posture detection
 - Runtime app-log switch: `AppLog` gates every `android.util.Log` call on a `@Volatile` flag seeded from `BuildConfig.DEBUG` and toggled from Settings → Assistant Tools; the toggle persists in DataStore Preferences, and the `checkAppLogUsage` Gradle task fails `lint*` if any production source bypasses `AppLog` for `android.util.Log`
+- Remote Config update enforcement runs in `ActivityLifecycleCallbacks` rather than a base class: `AircraftApplication` re-checks the version on every `onActivityResumed` and again whenever a real-time config update activates, so the gate applies to all 22 Activities without them opting in. `MandatoryUpdateActivity` disables the back button and finishes itself once the requirement is lifted; a malformed version string fails open (treated as "no update needed")
 - Robolectric coverage for onboarding, privacy gate, QR tool flows, About Me and Device Info Compose UI wiring (including foldable System Info layout), leaderboard styling, string parity, and gameplay formulas
 
 ## Project Structure
@@ -171,7 +174,8 @@ supperbanner/
 
 app/src/main/java/com/young/aircraft/
 ├── common/
-│   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events
+│   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, enforces the minimum-version gate on every resume
+│   ├── AircraftRemoteConfig.kt         # Firebase Remote Config singleton: typed parameters, token JSON, version compare, Crashlytics collection toggle
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
 │   ├── AppDatabase.kt                  # Room database (v2031) + explicit migrations 2027→2031
@@ -193,12 +197,16 @@ app/src/main/java/com/young/aircraft/
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 │   ├── ImageDetails.kt                 # Image details contract (local resource or network URL)
 │   ├── ContactsRepository.kt           # DeviceContact model + ContentResolver read/add/update/delete with a ContentObserver-backed Flow
+│   ├── ChinaPhoneNumber.kt             # isValidChinaPhoneNumber(): mainland/HK/Macau/Taiwan regexes with +86/+852/+853/+886 prefixes
+│   ├── EmailAddress.kt                 # isValidOptionalEmail(): blank is valid by design
 │   └── BannerDetails.kt                # In-app banner content model (name/description/source)
 ├── gui/
 │   ├── PrivacyPolicyAcceptActivity.kt  # Launcher privacy gate
+│   ├── BaseAircraftActivity.kt         # Compose + Material3 base for 21 of the Activities; initializeViewModel → initializeUI if (!isFinishing)
 │   ├── OnboardingActivity.kt           # Compose 4-page onboarding carousel (HorizontalPager); PAGE_COUNT drives pages/indicators/button
 │   ├── LaunchActivity.kt               # Main menu, jet selection, continue-game dialog
 │   ├── MainActivity.kt                 # Game host: GameCoreView via AndroidView + GameHudOverlay, pause flow, dialogs, DB save
+│   ├── MandatoryUpdateActivity.kt      # Blocking "update required" screen (ComponentActivity, back disabled); openUpdatePage() falls back market:// → web store
 │   ├── GameHudScreen.kt                # Compose HUD overlay (live, stacked over GameCoreView in MainActivity); ui/DrawHeader.kt still draws the in-surface stats readout
 │   ├── PuzzleActivity.kt               # Independent ten-level Compose puzzle game, opened from Settings
 │   ├── HistoryActivity.kt              # Compose leaderboard with top-record styling and deletion
@@ -327,6 +335,7 @@ app/src/release/java/com/young/aircraft/
 - `ContactsValidationTest`, `ContactsRepositoryTest`, and `ContactsViewModelTest` for the debug-only contacts feature: the phone/email gate, the row-shaping rules (one entry per phone, HOME-typed email/address winning), the batched provider writes, and the permission state machine
 - `BossFireworksEffectTest` for the boss-defeat fireworks frame window (nothing before the first burst, ink while alive, hard stop at the declared duration, in-bounds clamping)
 - `AppLogTest`, `LogSettingsTest`, and `LogSettingsViewModelTest` for the runtime log switch: the kill-switch silences every level and skips building a `d` message, `setEnabled` persists and flips `AppLog.enabled` in the same call, and the toggle StateFlow seeds from the runtime flag rather than disk
+- `AircraftRemoteConfigTest` for the Remote Config update gate: token JSON parsing (including offset timestamps), dotted version comparison, and the optional-update predicate
 - `DevelopSettingsViewModelTest`, `PrivacyPolicyViewModelTest`, `OnboardingViewModelTest`, `LaunchViewModelTest`, `GameViewModelTest`, `HistoryViewModelTest`, `SettingsViewModelTest`, `ShowImageDetailsViewModelTest` for ViewModel unit coverage
 - `QRChineseRoundtripTest` and `RichTextMarkdownTest` for QR text round-tripping and editor Markdown output
 - `PlayerGameDataTest` for timestamp-aware data-class behavior
