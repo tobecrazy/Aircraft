@@ -61,6 +61,7 @@ import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.utils.DebugTools
 import java.util.Locale
 
+@Suppress("DEPRECATION")
 class PrivacyPolicyActivity : BaseAircraftActivity() {
     private var policyWebView: WebView? = null
     private var currentPolicyPage = ""
@@ -140,6 +141,7 @@ class PrivacyPolicyActivity : BaseAircraftActivity() {
                     return handleNavigationRequest(request?.url?.toString())
                 }
 
+                @Deprecated("Deprecated in Java")
                 override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                     return handleNavigationRequest(url)
                 }

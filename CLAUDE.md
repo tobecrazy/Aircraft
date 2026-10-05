@@ -25,7 +25,6 @@ Verify against code before propagating any of these:
 
 - Copilot says the repo has two modules; there are **three** (`:supperbanner` was extracted).
 - README/Copilot describe puzzle gates interleaved between combat levels; `MainActivity.onLevelComplete` saves the next level then calls `coreView.advanceToNextLevel()` directly (`MainActivity.kt:201`). `PuzzleActivity` is a separate Settings entry with its own ten-level progression.
-- README says min SDK 30; all three modules set **32**. compileSdk/targetSdk are 37.
 - Copilot says Room uses `fallbackToDestructiveMigration(true)`; `DatabaseProvider` registers four explicit migrations and **no** fallback, so a missing migration crashes rather than wiping saves.
 - Copilot says many screens use ViewBinding/XML and lists only `values/` + `values-zh/` locales. Both are false — see Conventions below.
 - Copilot frames `GameStateManager` as *the* cross-screen bus carrying pause/game-over/win; in practice only low-memory arrives through that flow. Pause, game-over, level-complete, and win use direct `GameCoreView` callbacks.
@@ -63,7 +62,7 @@ Scope `--tests` to a **module** task (`:app:testDebugUnitTest`), not the root `t
 
 - JDK 17; use the checked-in Gradle wrapper, not a system Gradle. Configure the Android SDK via `local.properties` or the environment.
 - Kotlin DSL; dependency and plugin versions are centralized in `gradle/libs.versions.toml`. AGP uses built-in Kotlin: do **not** add `org.jetbrains.kotlin.android`; the app still requires `org.jetbrains.kotlin.plugin.compose`. Root `build.gradle.kts` *also* pins `kotlin-gradle-plugin` on the buildscript classpath so AGP's compose-mapping tasks can resolve a matching `compose-group-mapping` artifact — check both locations when upgrading Kotlin. **They already disagree**: the catalog has `kotlin-compose = "2.4.20"` while the root pin is `2.4.10`, and the comment justifying that pin still cites the older Compose version. Do not trust the comment.
-- All three modules: compileSdk 37, minSdk 32. The app targets 37 and pins `buildToolsVersion = "37.0.0"`; the libraries rely on the AGP default.
+- All three modules: compileSdk 37, minSdk 31. The app targets 37 and pins `buildToolsVersion = "37.0.0"`; the libraries rely on the AGP default.
 - App ID/namespace `com.young.aircraft`; library namespace `com.young.richtext`.
 - The app enables Compose and BuildConfig. **View Binding is disabled** (removed in `a6c3b6b`; no binding classes exist) and Data Binding is not used.
 - Release enables R8 minification and resource shrinking via `app/proguard-rules.pro`. Signing loads root `keystore.properties` when present; it is untracked. `settings.gradle.kts` sets `FAIL_ON_PROJECT_REPOS`, so a new repository must go in the settings file, not a module.
@@ -76,7 +75,9 @@ Scope `--tests` to a **module** task (`:app:testDebugUnitTest`), not the root `t
 
 **Game engine — render-thread confined, not MVVM.** `MainActivity` hosts `ui/GameCoreView`, a `SurfaceView` implementing `SurfaceHolder.Callback` and `Runnable`. `surfaceCreated` builds the object graph once (`initializeGameDrawer()`) and starts `Thread(this)`; `run()` is a 30 FPS (`FPS = 30`) loop of `lockCanvas` → `synchronized(holder) { update + draw }` → `Thread.sleep` on the remainder. It owns composition, collision detection, timers, and boss/level progression. Drawable objects derive from `DrawBaseObject`; `GameCoreView` itself does not. Mutable state models live in `data/`. Do not refactor this hierarchy as if it were a Compose/MVVM screen.
 
-**Activity/UI layer — Compose + Material3.** Every `gui/` Activity calls `setContent`; there are no ViewBinding hosts. `viewmodel/` exposes StateFlow/LiveData plus SharedFlow one-shot events where needed. `data/SettingsRepository` wraps SharedPreferences; `providers/DatabaseProvider` supplies the Room database. `GameViewModel` handles persistence and scoring, never the render loop. `gui/BaseAircraftActivity` is the optional `initializeViewModel` / `initializeUI` shell for simple screens — most Activities do not extend it.
+**Activity/UI layer — Compose + Material3.** Every `gui/` Activity calls `setContent`; there are no ViewBinding hosts. `viewmodel/` exposes StateFlow/LiveData plus SharedFlow one-shot events where needed. `data/SettingsRepository` wraps SharedPreferences; `providers/DatabaseProvider` supplies the Room database. `GameViewModel` handles persistence and scoring, never the render loop.
+
+**Nearly every screen extends `gui/BaseAircraftActivity`** — 21 of the 22 Activities, with `MainActivity` the sole exception. It is `final override fun onCreate`: call `initializeViewModel` first, then `initializeUI` only `if (!isFinishing)`. That guard exists because some `initializeViewModel` implementations finish the Activity (the `DebugTools` self-gates), and building UI afterwards would operate on a dead window. Follow the two-method shape for new screens rather than inventing a third base class.
 
 `PuzzleActivity` is the fullest example of the newer split: the image-feed request, disk cache, and load state live in `viewmodel/PuzzleImageViewModel`, while the Activity only reads launch args, saves progress, and owns the Compose board. Board/piece/undo state uses `rememberSaveable` with a Saver so rotation restores the in-progress board.
 
@@ -122,7 +123,11 @@ Combat is ten timed levels with rising kill targets and a boss after each target
 
 **"Continue" is a level checkpoint, not a scene snapshot.** It restores the saved combat level, cumulative kills, and jet — not current health, remaining time, or on-screen objects. The level restarts from scratch. Don't add snapshot persistence unless the product asks for in-place resume.
 
-`SettingsActivity` navigates through a `SettingsDestination` enum in `SettingsScreen.kt` mapped to Activity classes in `navigateTo`. Two destinations — `DEVELOP_SETTINGS` and `ASSISTANT_TOOLS` — are debug-only rows; add a new Settings entry in all three places (enum, `navigateTo` `when`, the `SettingsScreen` row).
+`SettingsActivity` navigates through an 11-value `SettingsDestination` enum in `SettingsScreen.kt` (GAME_SETTINGS, DEVICE_INFO, QR_CODE_TOOL, FLASHLIGHT, PUZZLE, LANGUAGE, ABOUT_AIRCRAFT, ABOUT_ME, PRIVACY_POLICY, DEVELOP_SETTINGS, ASSISTANT_TOOLS) mapped to Activity classes in `navigateTo`. The last two are debug-only rows; add a new Settings entry in all three places (enum, `navigateTo` `when`, the `SettingsScreen` row).
+
+`HistoryActivity` is the leaderboard — a Compose screen (not a fragment/RecyclerView flow) reading `dao.getAllByScoreDesc()`. Player names resolve through `utils/HallOfHeroesNameUtils.kt`: a blank name falls back to the caller's `anonymousLabel`, and failing that to `truncatePlayerId(playerId)` (first 6 chars plus an ellipsis). Both that util and the DAO ordering have unit tests, so the anonymous-player path is worth routing through the util rather than inlining a fallback at a new call site.
+
+`DeviceInfoActivity` is Compose but its layout is foldable-aware via Jetpack WindowManager: inside `repeatOnLifecycle(STARTED)` it collects `WindowInfoTracker.getOrCreate(this).windowLayoutInfo(this)`, takes the first `FoldingFeature` from `displayFeatures`, and sets `systemInfoWide` when `foldFeature.state == FoldingFeature.State.FLAT`. That flag widens the Current Time and System Info rows side by side; every other posture stacks them. Adding a card here means deciding which layout it takes in both postures.
 
 `SettingsActivity` also opens the independent Compose drag-and-drop `PuzzleActivity`, which saves through `GameViewModel` with `GameMode.PUZZLE`. Do not assume a stored mode implies the launch hub can resume it. Puzzle scoring is efficiency-based (par = `gridSize²` moves; scans and retries subtract; 1–3 stars) and lives in the pure internal top-level `calculatePuzzleRoundResult()` / `createPuzzlePieces()` in `PuzzleActivity.kt` — see `docs/puzzle-game-redesign-plan.md`. There is no constant reference image on the board; the player spends limited "intel scans" to peek at it.
 

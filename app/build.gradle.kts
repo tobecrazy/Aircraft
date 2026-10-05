@@ -30,7 +30,7 @@ android {
 
     defaultConfig {
         applicationId = "com.young.aircraft"
-        minSdk = 32
+        minSdk = 31
         targetSdk = 37
         versionCode = 9
         versionName = "1.3.6"

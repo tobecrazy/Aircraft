@@ -374,7 +374,7 @@ Instrumented tests belong in `app/src/androidTest`.
 - **Version**: `1.3.6` (`versionCode` 9)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
-- **Min SDK**: `32`
+- **Min SDK**: `31`
 - **Target SDK**: `37`
 - **Java**: `17`
 - **Gradle Wrapper**: `9.8.0`
@@ -403,7 +403,7 @@ Instrumented tests belong in `app/src/androidTest`.
    cd Aircraft
    ```
 2. Open the project in Android Studio.
-3. Sync Gradle and run on a device or emulator with Android 12L (API 32) or later.
+3. Sync Gradle and run on a device or emulator with Android 12 (API 31) or later.
 
 ## License
 

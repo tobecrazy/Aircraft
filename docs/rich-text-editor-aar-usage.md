@@ -36,7 +36,7 @@ dependencies {
 The library is built with:
 
 - `compileSdk 37`
-- `minSdk 30`
+- `minSdk 31`
 - Kotlin JVM target `17`
 - AndroidX enabled
 

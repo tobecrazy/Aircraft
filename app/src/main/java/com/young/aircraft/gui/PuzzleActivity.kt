@@ -71,7 +71,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -82,6 +81,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
 import com.young.aircraft.R
@@ -104,6 +104,7 @@ import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 class PuzzleActivity : BaseAircraftActivity() {
     companion object {
@@ -372,7 +373,7 @@ private fun PuzzleScreen(
 
     LaunchedEffect(appActive, solvedState, remainingSec, isLevelImageReady, showGuide) {
         while (appActive == 1 && solvedState == 0 && remainingSec > 0 && isLevelImageReady && !showGuide) {
-            delay(1000)
+            delay(1000.milliseconds)
             elapsedSec += 1
         }
     }
@@ -385,7 +386,7 @@ private fun PuzzleScreen(
 
     LaunchedEffect(hintVisible) {
         if (hintVisible == 1) {
-            delay(3000)
+            delay(3000.milliseconds)
             hintVisible = 0
         }
     }
