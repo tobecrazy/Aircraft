@@ -32,8 +32,8 @@ android {
         applicationId = "com.young.aircraft"
         minSdk = 31
         targetSdk = 37
-        versionCode = 11
-        versionName = "1.3.8"
+        versionCode = 12
+        versionName = "1.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -63,6 +63,19 @@ android {
     buildToolsVersion = "37.0.0"
     testOptions {
         unitTests.isIncludeAndroidResources = true
+    }
+}
+
+// CameraScanActivity is a debug-only tool (release finishes it via DebugTools
+// before any CameraX/ML Kit call), so strip its native payload from the release
+// variant for 16 KB page-size compatibility. Scoped via androidComponents because
+// a buildTypes-level packaging block also leaks into debug on this AGP version.
+// Debug keeps all native libraries, where the scanner stays functional.
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.packaging.jniLibs.excludes.add("**/libbarhopper_v3.so")
+        variant.packaging.jniLibs.excludes.add("**/libsurface_util_jni.so")
+        variant.packaging.jniLibs.excludes.add("**/libimage_processing_util_jni.so")
     }
 }
 
@@ -101,6 +114,10 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.datastore.preferences)
+    // Force the latest graphics-path over the older transitive copy pulled in
+    // by Compose UI (all LOAD segments 16 KB-aligned; see the 16 KB doc for
+    // the residual upstream RELRO note).
+    implementation(libs.graphics.path)
     ksp(libs.room.compiler)
 
     implementation(libs.androidx.core.ktx)

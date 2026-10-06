@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- Launcher icon variants 2–5 were near-identical dark-red shades of variant 1 (same artwork, only slightly shifted reds, identical black monochromes), so switching Remote Config `AppIcon` had no visible effect. Variants 2–5 are now hue-shifted to the theme accents (blue/green/purple/yellow); variant 1 (default red) is unchanged
+
+## [1.4.0] - 2026-10-06
+
+### Fixed
+- Launching `LauncherIcon1` from the IDE/`adb` failed with "Activity class ... does not exist" once Remote Config `AppIcon` selected another variant (or stale component state survived a reinstall): `LauncherIconManager` had disabled that alias at runtime. Debug builds now pin `LauncherIcon1` (the manifest default and IDE launch target) via a `pinToDefault` flag defaulting to `DebugTools.isEnabled`; release still follows Remote Config. Covered by the new `LauncherIconManagerTest`
 - `AndroidDevAssistantToolsActivityTest` "system info module opens DeviceInfoActivity" failed once the new app-logs row pushed the module tile below Robolectric's default viewport — `performClick()` silently did nothing. Added the same tall-viewport qualifier (`w420dp-h2000dp`) `SettingsActivityTest` already uses
 - `AndroidDevAssistantToolsActivityTest` "app browser module shows the in-app list dialog" hung for 60s: `AppListDialog` shows a `CircularProgressIndicator` while it queries the package manager, and Robolectric's default choreographer re-fires vsync inline, so Compose never reaches idle. The helper now pauses the choreographer and drives a bounded 500 ms of frames instead of calling `waitForIdle()`
 

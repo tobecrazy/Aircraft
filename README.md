@@ -4,13 +4,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Download
 
-Latest published release APK (V1.3.2):
+Latest published release APK (V1.4.0):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.3.2/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.4.0/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.3.8` (`versionCode` 11); releases up to `V1.3.8` are on GitHub.
+> The app currently builds as `1.4.0` (`versionCode` 12); releases up to `V1.4.0` are on GitHub.
 
 ## Demo
 
@@ -178,7 +178,7 @@ app/src/main/java/com/young/aircraft/
 ├── common/
 │   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, enforces the minimum-version gate on every resume
 │   ├── AircraftRemoteConfig.kt         # Firebase Remote Config singleton: typed parameters, token JSON, version compare, Crashlytics collection toggle
-│   ├── LauncherIconManager.kt          # internal object switching the enabled launcher activity-alias for the Remote Config `AppIcon` variant (1..5, invalid → 1)
+│   ├── LauncherIconManager.kt          # internal object switching the enabled launcher activity-alias for the Remote Config `AppIcon` variant (1..5, invalid → 1); debug builds pin LauncherIcon1 so the IDE launch target stays valid
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
 │   ├── AppDatabase.kt                  # Room database (v2031) + explicit migrations 2027→2031
@@ -383,7 +383,7 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.3.6` (`versionCode` 9)
+- **Version**: `1.4.0` (`versionCode` 12)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `31`
