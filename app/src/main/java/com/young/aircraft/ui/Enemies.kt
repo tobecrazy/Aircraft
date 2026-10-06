@@ -21,6 +21,7 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
     val activeEnemies = mutableListOf<EnemyState>()
     private val activeExplosions = mutableListOf<ExplosionEffect>()
     private var framesSinceLastSpawn: Int = 0
+    private var nextSpawnIntervalFrames = 15
     private val bitmapList = mutableListOf<Bitmap?>()
     private val rng = Random(System.nanoTime())
     private var bulletBitmap: Bitmap? = null
@@ -141,15 +142,11 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         bulletBitmap?.density = screenDensity
         bulletWidthPx = bulletBitmap?.width?.toFloat() ?: 0f
         bulletHeightPx = bulletBitmap?.height?.toFloat() ?: 0f
+        nextSpawnIntervalFrames = getRandomSpawnIntervalFrames()
     }
 
     private fun getRandomEnemyBitmapIndex(): Int {
-        val count = bitmapList.size
-        var index: Int = rng.nextInt() % count
-        while (index < 0) {
-            index = rng.nextInt() % count
-        }
-        return index
+        return rng.nextInt(bitmapList.size)
     }
 
     private fun getRandomLeft(): Float {
@@ -163,25 +160,28 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         return randomX
     }
 
-    private fun spawnRow() {
-        val count = getEnemiesPerRow()
-        // Randomize each enemy's starting Y within a spread range above screen
+    private fun getRandomSpawnIntervalFrames(): Int {
+        val averageInterval = (getSpawnIntervalFrames() / getEnemiesPerRow()).coerceAtLeast(1)
+        return rng.nextInt(
+            (averageInterval / 2).coerceAtLeast(1),
+            averageInterval + averageInterval / 2 + 1
+        )
+    }
+
+    private fun spawnEnemy() {
         val baseY = -enemySizePx
-        for (i in 0 until count) {
-            val x = getRandomLeft()
-            val bmpIndex = getRandomEnemyBitmapIndex()
-            // Each enemy gets a random Y offset from baseY to (baseY - spreadPx)
-            val randomYOffset = rng.nextFloat() * spawnSpreadPx
-            activeEnemies.add(
-                EnemyState(
-                    x = x,
-                    y = baseY - randomYOffset,
-                    bitmap = bitmapList[bmpIndex],
-                    bitmapIndex = bmpIndex,
-                    health = 1f
-                )
+        val x = getRandomLeft()
+        val bmpIndex = getRandomEnemyBitmapIndex()
+        val randomYOffset = rng.nextFloat() * spawnSpreadPx
+        activeEnemies.add(
+            EnemyState(
+                x = x,
+                y = baseY - randomYOffset,
+                bitmap = bitmapList[bmpIndex],
+                bitmapIndex = bmpIndex,
+                health = 1f
             )
-        }
+        )
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -190,9 +190,10 @@ class Enemies(var context: Context, var speed: Float) : DrawBaseObject(context) 
         // Spawn timer (only when not frozen)
         if (!frozen) {
             framesSinceLastSpawn++
-            if (!spawnPaused && framesSinceLastSpawn >= getSpawnIntervalFrames()) {
+            if (!spawnPaused && framesSinceLastSpawn >= nextSpawnIntervalFrames) {
                 framesSinceLastSpawn = 0
-                spawnRow()
+                spawnEnemy()
+                nextSpawnIntervalFrames = getRandomSpawnIntervalFrames()
             }
         }
 

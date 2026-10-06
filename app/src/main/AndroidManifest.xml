@@ -5,6 +5,10 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
+    <!-- ACCESS_WIFI_STATE implies android.hardware.wifi as required; the app works
+         on mobile data too, so keep wifi-less devices (Ethernet-only, some auto/TV)
+         visible on Play and installable. -->
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

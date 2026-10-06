@@ -3,13 +3,26 @@ package com.young.aircraft.common
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import com.young.aircraft.utils.DebugTools
 
 /** Applies one of the manifest launcher aliases selected by Remote Config. */
 internal object LauncherIconManager {
     private val aliases = (1..5).map { "LauncherIcon$it" }
 
-    fun apply(context: Context, variant: Int) {
-        val selectedIndex = (variant - 1).takeIf { it in aliases.indices } ?: 0
+    /**
+     * Enables the selected alias and disables the rest.
+     *
+     * @param pinToDefault when true, LauncherIcon1 (the manifest default and the IDE
+     * launch target) is always selected. Debug builds pin it so a Remote Config value
+     * or stale component state can never invalidate the launch target with
+     * "Activity class ... does not exist". Release follows Remote Config.
+     */
+    fun apply(context: Context, variant: Int, pinToDefault: Boolean = DebugTools.isEnabled) {
+        val selectedIndex = if (pinToDefault) {
+            0
+        } else {
+            (variant - 1).takeIf { it in aliases.indices } ?: 0
+        }
         val packageManager = context.packageManager
         aliases.forEachIndexed { index, alias ->
             if (index == selectedIndex) return@forEachIndexed
