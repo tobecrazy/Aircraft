@@ -20,8 +20,12 @@ data class RemoteTokenConfig(
     val name: String,
     val createdAt: Instant,
     val expiringAt: Instant,
-    val enable: Boolean
+    val enable: Boolean,
+    val welcomeMessage: String = "",
+    val showWelcome: Boolean = false
 )
+
+private const val DEFAULT_APP_ICON_VARIANT = 1
 
 /** Application-wide Remote Config setup and typed parameter access. */
 object AircraftRemoteConfig {
@@ -31,13 +35,15 @@ object AircraftRemoteConfig {
     const val MINIMUM_VERSION_PARAMETER = "minimum_version"
     const val LATEST_VERSION_PARAMETER = "latest_version"
     const val UPDATE_URL_PARAMETER = "update_url"
+    const val APP_ICON_PARAMETER = "AppIcon"
     private const val DEFAULT_MINIMUM_VERSION = "1.3.6"
 
     private val defaults: Map<String, Any> = mapOf(
         TOKEN_CONFIG_PARAMETER to """{"id":0,"name":"","createdAt":"1970-01-01T00:00:00Z","expiringAt":"1970-01-01T00:00:00Z","enable":false}""",
         MINIMUM_VERSION_PARAMETER to DEFAULT_MINIMUM_VERSION,
         LATEST_VERSION_PARAMETER to "",
-        UPDATE_URL_PARAMETER to ""
+        UPDATE_URL_PARAMETER to "",
+        APP_ICON_PARAMETER to DEFAULT_APP_ICON_VARIANT.toString()
     )
     private var updateRegistration: ConfigUpdateListenerRegistration? = null
     private var initializationStarted = false
@@ -159,6 +165,9 @@ object AircraftRemoteConfig {
 
     fun getUpdateUrl(): String = getString(UPDATE_URL_PARAMETER)
 
+    /** Launcher icon variant from Remote Config; invalid values use the bundled default icon. */
+    fun getAppIconVariant(): Int = parseAppIconVariant(getString(APP_ICON_PARAMETER))
+
     fun isCurrentVersionBelowMinimum(): Boolean {
         val minimumVersion = getMinimumVersion()
         val comparison = compareAppVersions(BuildConfig.VERSION_NAME, minimumVersion)
@@ -215,6 +224,9 @@ object AircraftRemoteConfig {
 
 }
 
+internal fun parseAppIconVariant(value: String): Int = value.trim().toIntOrNull()
+    ?.takeIf { it in 1..5 } ?: DEFAULT_APP_ICON_VARIANT
+
 internal fun parseRemoteTokenConfig(json: String): RemoteTokenConfig? = try {
     val value = JSONObject(json)
     RemoteTokenConfig(
@@ -222,7 +234,9 @@ internal fun parseRemoteTokenConfig(json: String): RemoteTokenConfig? = try {
         name = value.getString("name"),
         createdAt = value.getString("createdAt").toInstant(),
         expiringAt = value.getString("expiringAt").toInstant(),
-        enable = value.getBoolean("enable")
+        enable = value.getBoolean("enable"),
+        welcomeMessage = value.optString("welcomeMessage", ""),
+        showWelcome = value.optBoolean("showWelcome", false)
     )
 } catch (_: Exception) {
     null

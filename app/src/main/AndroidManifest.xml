@@ -135,6 +135,12 @@
             android:theme="@style/Theme.Aircraft.Common" />
 
         <activity
+            android:name=".gui.DataPrivacyActivity"
+            android:exported="false"
+            android:label="@string/privacy_data_screen_title"
+            android:theme="@style/Theme.Aircraft.Common" />
+
+        <activity
             android:name=".gui.GameSettingsActivity"
             android:exported="false"
             android:label="@string/game_settings_title"
@@ -149,13 +155,67 @@
         <activity
             android:name=".gui.PrivacyPolicyAcceptActivity"
             android:exported="true"
-            android:theme="@style/Theme.Aircraft.Common">
+            android:theme="@style/Theme.Aircraft.Common" />
+        <activity-alias
+            android:name=".gui.LauncherIcon1"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:targetActivity=".gui.PrivacyPolicyAcceptActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias
+            android:name=".gui.LauncherIcon2"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_2"
+            android:label="@string/app_name"
+            android:targetActivity=".gui.PrivacyPolicyAcceptActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".gui.LauncherIcon3"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_3"
+            android:label="@string/app_name"
+            android:targetActivity=".gui.PrivacyPolicyAcceptActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".gui.LauncherIcon4"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_4"
+            android:label="@string/app_name"
+            android:targetActivity=".gui.PrivacyPolicyAcceptActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".gui.LauncherIcon5"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_5"
+            android:label="@string/app_name"
+            android:targetActivity=".gui.PrivacyPolicyAcceptActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
         <activity
             android:name=".gui.LaunchActivity"
             android:exported="false"

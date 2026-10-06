@@ -132,9 +132,29 @@
     <text x="10" y="83" font-size="10" fill="#333">GAME_WON, LOW_MEMORY</text>
   </g>
 
+  <!-- LauncherIconManager -->
+  <g transform="translate(730, 55)" filter="url(#shadow)">
+    <rect width="250" height="105" rx="6" fill="url(#grad-app)" stroke="#66bb6a" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#66bb6a"/>
+    <rect y="16" width="250" height="6" fill="#66bb6a"/>
+    <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» LauncherIconManager</text>
+    <text x="10" y="38" font-size="10" fill="#555">common/LauncherIconManager.kt (internal)</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- aliases: List&lt;String&gt; ("LauncherIcon1".."5")</text>
+    <line x1="5" y1="64" x2="245" y2="64" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="77" font-size="10" fill="#333">+ apply(context: Context, variant: Int)</text>
+    <line x1="5" y1="84" x2="245" y2="84" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="97" font-size="10" fill="#333">Disables 4 aliases, enables the selected one</text>
+    <text x="10" y="108" font-size="9" fill="#888">Invalid variant falls back to 1 · DONT_KILL_APP</text>
+  </g>
+
   <!-- AircraftApplication -> GameStateManager -->
   <line x1="240" y1="100" x2="260" y2="100" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
   <text x="243" y="95" font-size="9" fill="#888">emits</text>
+
+  <!-- AircraftApplication -> LauncherIconManager -->
+  <line x1="190" y1="145" x2="730" y2="110" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="440" y="140" font-size="9" fill="#888">applies AppIcon variant</text>
 
   <!-- GameStateManager -> GameState composition -->
   <line x1="490" y1="100" x2="510" y2="100" stroke="#555" stroke-width="1.2" marker-end="url(#arrow-compose)"/>

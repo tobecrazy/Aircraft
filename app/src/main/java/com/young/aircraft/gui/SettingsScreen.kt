@@ -72,6 +72,7 @@ enum class SettingsDestination {
     ABOUT_AIRCRAFT,
     ABOUT_ME,
     PRIVACY_POLICY,
+    DATA_AND_PRIVACY,
     DEVELOP_SETTINGS,
     ASSISTANT_TOOLS
 }
@@ -263,8 +264,13 @@ fun SettingsScreen(
                 NavRow(
                     title = stringResource(R.string.privacy_policy_title),
                     summary = stringResource(R.string.privacy_policy_summary),
-                    bottomMargin = 20,
                     onClick = { onNavigate(SettingsDestination.PRIVACY_POLICY) }
+                )
+                NavRow(
+                    title = stringResource(R.string.privacy_data_title),
+                    summary = stringResource(R.string.privacy_data_summary),
+                    bottomMargin = 20,
+                    onClick = { onNavigate(SettingsDestination.DATA_AND_PRIVACY) }
                 )
             }
         }

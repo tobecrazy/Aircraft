@@ -42,7 +42,7 @@ class PrivacyPolicyAcceptActivityTest {
             ApplicationProvider.getApplicationContext<Context>()
                 .getSharedPreferences(SettingsRepository.PREFS_NAME, Context.MODE_PRIVATE)
                 .edit()
-                .remove(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED)
+                .remove(SettingsRepository.KEY_POLICY_ACCEPTED_VERSION)
                 .remove("onboarding_completed")
                 .commit()
         }
@@ -89,7 +89,7 @@ class PrivacyPolicyAcceptActivityTest {
 
     @Test
     fun `already accepted routes to OnboardingActivity immediately`() {
-        prefs.edit().putBoolean(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED, true).commit()
+        prefs.edit().putInt(SettingsRepository.KEY_POLICY_ACCEPTED_VERSION, AircraftConstants.PrivacyPolicy.POLICY_VERSION).commit()
 
         val context = ApplicationProvider.getApplicationContext<Context>()
         ActivityScenario.launch<PrivacyPolicyAcceptActivity>(
@@ -129,7 +129,7 @@ class PrivacyPolicyAcceptActivityTest {
         composeTestRule.onNodeWithTag("btn_accept").performClick()
         tick()
 
-        assertFalse(prefs.getBoolean(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED, false))
+        assertFalse(prefs.getInt(SettingsRepository.KEY_POLICY_ACCEPTED_VERSION, 0) >= AircraftConstants.PrivacyPolicy.POLICY_VERSION)
         assertFalse(composeTestRule.activity.isFinishing)
     }
 
@@ -141,7 +141,7 @@ class PrivacyPolicyAcceptActivityTest {
         tick()
 
         assertTrue(composeTestRule.activity.isFinishing)
-        assertFalse(prefs.getBoolean(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED, false))
+        assertFalse(prefs.getInt(SettingsRepository.KEY_POLICY_ACCEPTED_VERSION, 0) >= AircraftConstants.PrivacyPolicy.POLICY_VERSION)
     }
 
     @Test
@@ -170,7 +170,7 @@ class PrivacyPolicyAcceptActivityTest {
         composeTestRule.onNodeWithTag("btn_accept").performClick()
         tick()
 
-        assertTrue(prefs.getBoolean(SettingsRepository.KEY_PRIVACY_POLICY_ACCEPTED, false))
+        assertTrue(prefs.getInt(SettingsRepository.KEY_POLICY_ACCEPTED_VERSION, 0) >= AircraftConstants.PrivacyPolicy.POLICY_VERSION)
         val nextIntent = shadowOf(composeTestRule.activity).nextStartedActivity
         assertNotNull(nextIntent)
         assertEquals(OnboardingActivity::class.java.name, nextIntent.component?.className)

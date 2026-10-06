@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -70,7 +71,7 @@ class PrivacyPolicyActivity : BaseAircraftActivity() {
     // Overlay/chip state lives here so WebViewClient callbacks can mutate it directly.
     private var loadingVisible by mutableStateOf(true)
     private var errorVisible by mutableStateOf(false)
-    private var languageChipText by mutableStateOf("")
+    private var currentPage by mutableStateOf("")
 
     override fun initializeViewModel(savedInstanceState: Bundle?) = Unit
 
@@ -78,16 +79,17 @@ class PrivacyPolicyActivity : BaseAircraftActivity() {
         enableEdgeToEdge()
 
         currentPolicyPage = resolveInitialPolicyPage()
-        languageChipText = languageChipFor(currentPolicyPage)
+        currentPage = currentPolicyPage
 
         setContent {
             AircraftTheme {
                 PrivacyPolicyScreen(
-                    languageChip = languageChipText,
+                    currentPage = currentPage,
                     loadingVisible = loadingVisible,
                     errorVisible = errorVisible,
                     onBack = { finish() },
                     onRetry = { loadPolicyPage(currentPolicyPage) },
+                    onLanguageSelected = ::loadPolicyPage,
                     onWebViewCreated = ::createConfiguredWebView
                 )
             }
@@ -129,7 +131,7 @@ class PrivacyPolicyActivity : BaseAircraftActivity() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
                     if (url != null) {
-                        currentPolicyPage = resolvePolicyPage(url)
+                        currentPolicyPage = AircraftConstants.PrivacyPolicy.assetFromUrl(url)
                         updateLanguageChip(url)
                     }
                     if (!hasMainFrameError) {
@@ -214,29 +216,11 @@ class PrivacyPolicyActivity : BaseAircraftActivity() {
     }
 
     private fun updateLanguageChip(source: String) {
-        languageChipText = languageChipFor(resolvePolicyPage(source))
+        currentPage = AircraftConstants.PrivacyPolicy.assetFromUrl(source)
     }
 
-    private fun languageChipFor(page: String): String = when (page) {
-        POLICY_ZH -> getString(R.string.privacy_policy_language_zh)
-        else -> getString(R.string.privacy_policy_language_en)
-    }
-
-    private fun resolveInitialPolicyPage(): String {
-        return if (Locale.getDefault().language == Locale.CHINESE.language) {
-            POLICY_ZH
-        } else {
-            POLICY_EN
-        }
-    }
-
-    private fun resolvePolicyPage(source: String): String {
-        return if (source.endsWith(POLICY_ZH)) {
-            POLICY_ZH
-        } else {
-            POLICY_EN
-        }
-    }
+    private fun resolveInitialPolicyPage(): String =
+        AircraftConstants.PrivacyPolicy.assetFor(Locale.getDefault())
 
     override fun onDestroy() {
         policyWebView?.apply {
@@ -248,8 +232,6 @@ class PrivacyPolicyActivity : BaseAircraftActivity() {
     }
 
     private companion object {
-        val POLICY_ZH = AircraftConstants.PrivacyPolicy.ASSET_ZH
-        val POLICY_EN = AircraftConstants.PrivacyPolicy.ASSET_EN
         val ASSET_PREFIX = AircraftConstants.PrivacyPolicy.ASSET_PREFIX
     }
 }
@@ -272,11 +254,12 @@ private val SectionLabel = Color(0x66FFFFFF)
 
 @Composable
 internal fun PrivacyPolicyScreen(
-    languageChip: String,
+    currentPage: String,
     loadingVisible: Boolean,
     errorVisible: Boolean,
     onBack: () -> Unit,
     onRetry: () -> Unit,
+    onLanguageSelected: (String) -> Unit,
     onWebViewCreated: (Context) -> WebView
 ) {
     Column(
@@ -316,7 +299,7 @@ internal fun PrivacyPolicyScreen(
         NeonDivider()
 
         Column(modifier = Modifier.padding(horizontal = 14.dp)) {
-            HeroPanel(languageChip = languageChip)
+            HeroPanel(currentPage = currentPage, onLanguageSelected = onLanguageSelected)
 
             Row(
                 modifier = Modifier
@@ -354,7 +337,7 @@ internal fun PrivacyPolicyScreen(
 }
 
 @Composable
-private fun HeroPanel(languageChip: String) {
+private fun HeroPanel(currentPage: String, onLanguageSelected: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -387,20 +370,52 @@ private fun HeroPanel(languageChip: String) {
             modifier = Modifier.padding(top = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Active-style chip for the resolved document language.
-            Text(
-                text = languageChip,
-                color = Color.White,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace,
-                modifier = Modifier
-                    .background(ChipActiveBg, RoundedCornerShape(999.dp))
-                    .border(1.dp, ChipActiveBorder, RoundedCornerShape(999.dp))
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-            )
+            LanguageSelector(currentPage = currentPage, onLanguageSelected = onLanguageSelected)
             Spacer(modifier = Modifier.width(8.dp))
             ChipPill(text = stringResource(R.string.privacy_policy_source_chip), tint = TextBright)
+        }
+    }
+}
+
+/**
+ * In-app language switch for the document itself. Tapping a segment reloads the same
+ * page in that language without leaving the screen; the chip labels are deliberately
+ * endonyms so they read correctly regardless of the current locale.
+ */
+@Composable
+private fun LanguageSelector(currentPage: String, onLanguageSelected: (String) -> Unit) {
+    val options = listOf(
+        AircraftConstants.PrivacyPolicy.ASSET_ZH to stringResource(R.string.policy_lang_hans),
+        AircraftConstants.PrivacyPolicy.ASSET_ZH_HANT to stringResource(R.string.policy_lang_hant),
+        AircraftConstants.PrivacyPolicy.ASSET_EN to stringResource(R.string.policy_lang_en)
+    )
+    Row(
+        modifier = Modifier
+            .background(ChipBg, RoundedCornerShape(999.dp))
+            .border(1.dp, ChipBorder, RoundedCornerShape(999.dp))
+            .padding(2.dp)
+            .testTag("policy_language_selector")
+    ) {
+        options.forEach { (asset, label) ->
+            val selected = asset == currentPage
+            Text(
+                text = label,
+                color = if (selected) Color.White else TextBody,
+                fontSize = 11.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier
+                    .background(
+                        if (selected) ChipActiveBg else Color.Transparent,
+                        RoundedCornerShape(999.dp)
+                    )
+                    .clickable(
+                        onClick = { if (!selected) onLanguageSelected(asset) },
+                        role = Role.Button
+                    )
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                    .testTag("policy_lang_${asset.substringAfter("_")}")
+            )
         }
     }
 }

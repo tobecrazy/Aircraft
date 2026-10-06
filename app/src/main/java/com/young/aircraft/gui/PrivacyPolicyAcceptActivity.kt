@@ -19,6 +19,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -105,7 +106,7 @@ class PrivacyPolicyAcceptActivity : BaseAircraftActivity() {
     override fun initializeUI() {
         supportActionBar?.hide()
 
-        // Already accepted → route to onboarding gate (it handles its own skip).
+        // Already accepted at the current policy version → route to onboarding.
         // Must stay ahead of setContent — this is the MAIN LAUNCHER entry regression guard.
         if (viewModel.isAlreadyAccepted()) {
             startActivity(Intent(this, OnboardingActivity::class.java))
@@ -113,10 +114,14 @@ class PrivacyPolicyAcceptActivity : BaseAircraftActivity() {
             return
         }
 
+        // Accepted an older revision: re-run consent rather than silently inheriting it.
+        val isUpdatedPolicy = viewModel.hasAcceptedEarlierVersion()
+
         enableEdgeToEdge()
         setContent {
             AircraftTheme {
                 PrivacyPolicyAcceptScreen(
+                    policyUpdated = isUpdatedPolicy,
                     onStarFieldCreated = { starFieldView = it },
                     onAccept = ::acceptAndContinue,
                     onReject = ::finishAffinity
@@ -145,6 +150,7 @@ class PrivacyPolicyAcceptActivity : BaseAircraftActivity() {
 
 @Composable
 internal fun PrivacyPolicyAcceptScreen(
+    policyUpdated: Boolean,
     onStarFieldCreated: (StarFieldView) -> Unit,
     onAccept: () -> Unit,
     onReject: () -> Unit
@@ -168,6 +174,10 @@ internal fun PrivacyPolicyAcceptScreen(
             MissionHeader()
             NeonDivider()
 
+            if (policyUpdated) {
+                PolicyUpdatedBanner(Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+            }
+
             PolicyWebViewCard(
                 onContentEndReached = { acceptUnlocked = true },
                 modifier = Modifier
@@ -179,8 +189,42 @@ internal fun PrivacyPolicyAcceptScreen(
 
             NeonDivider()
 
-            BottomActions(unlocked = acceptUnlocked, onAccept = onAccept, onReject = onReject)
+            BottomActions(
+                unlocked = acceptUnlocked,
+                policyUpdated = policyUpdated,
+                onAccept = onAccept,
+                onReject = onReject
+            )
         }
+    }
+}
+
+/** Shown instead of a bare document when the user is asked to re-consent to revised text. */
+@Composable
+private fun PolicyUpdatedBanner(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(CardBg, RoundedCornerShape(12.dp))
+            .border(1.dp, DividerGreen, RoundedCornerShape(12.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .testTag("policy_updated_banner")
+    ) {
+        Text(
+            text = stringResource(R.string.privacy_consent_updated_title),
+            color = AccentGreen,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace
+        )
+        Text(
+            text = stringResource(R.string.privacy_consent_updated_summary),
+            color = Color(0xFFB8C4D0),
+            fontSize = 11.sp,
+            lineHeight = 15.sp,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }
 
@@ -260,11 +304,7 @@ private fun PolicyWebViewCard(onContentEndReached: () -> Unit, modifier: Modifie
                         if (!wv.canScrollVertically(1)) onContentEndReached()
                     }
 
-                    val page = if (Locale.getDefault().language == AircraftConstants.PrivacyPolicy.LANG_ZH) {
-                        AircraftConstants.PrivacyPolicy.ASSET_ZH
-                    } else {
-                        AircraftConstants.PrivacyPolicy.ASSET_EN
-                    }
+                    val page = AircraftConstants.PrivacyPolicy.assetFor(Locale.getDefault())
                     loadUrl("${AircraftConstants.PrivacyPolicy.ASSET_PREFIX}$page")
                 }
             },
@@ -276,7 +316,12 @@ private fun PolicyWebViewCard(onContentEndReached: () -> Unit, modifier: Modifie
 }
 
 @Composable
-internal fun BottomActions(unlocked: Boolean, onAccept: () -> Unit, onReject: () -> Unit) {
+internal fun BottomActions(
+    unlocked: Boolean,
+    policyUpdated: Boolean = false,
+    onAccept: () -> Unit,
+    onReject: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -291,7 +336,12 @@ internal fun BottomActions(unlocked: Boolean, onAccept: () -> Unit, onReject: ()
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AcceptButton(unlocked = unlocked, onClick = onAccept, modifier = Modifier.weight(1f))
+            AcceptButton(
+                unlocked = unlocked,
+                policyUpdated = policyUpdated,
+                onClick = onAccept,
+                modifier = Modifier.weight(1f)
+            )
             TacticalActionButton(
                 text = stringResource(
                     R.string.privacy_policy_reject_tactical,
@@ -312,7 +362,12 @@ internal fun BottomActions(unlocked: Boolean, onAccept: () -> Unit, onReject: ()
 
 /** Locked at 30% alpha until the document end is reached; then fades in and pulses. */
 @Composable
-private fun AcceptButton(unlocked: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun AcceptButton(
+    unlocked: Boolean,
+    policyUpdated: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val fadeAlpha by animateFloatAsState(
         targetValue = if (unlocked) 1f else DISABLED_ALPHA,
         animationSpec = tween(FADE_MS),
@@ -330,7 +385,10 @@ private fun AcceptButton(unlocked: Boolean, onClick: () -> Unit, modifier: Modif
     TacticalActionButton(
         text = stringResource(
             R.string.privacy_policy_accept_tactical,
-            stringResource(R.string.privacy_policy_accept)
+            stringResource(
+                if (policyUpdated) R.string.privacy_accept_updated
+                else R.string.privacy_policy_accept
+            )
         ),
         enabled = unlocked,
         alpha = alpha,
@@ -389,6 +447,11 @@ private fun TacticalActionButton(
 @Composable
 private fun PrivacyPolicyAcceptScreenPreview() {
     AircraftTheme {
-        PrivacyPolicyAcceptScreen(onStarFieldCreated = {}, onAccept = {}, onReject = {})
+        PrivacyPolicyAcceptScreen(
+            policyUpdated = false,
+            onStarFieldCreated = {},
+            onAccept = {},
+            onReject = {}
+        )
     }
 }

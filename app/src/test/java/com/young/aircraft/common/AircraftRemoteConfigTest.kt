@@ -35,6 +35,21 @@ class AircraftRemoteConfigTest {
     }
 
     @Test
+    fun `accepts app icon variants one through five`() {
+        (1..5).forEach { variant ->
+            assertEquals(variant, parseAppIconVariant(variant.toString()))
+        }
+        assertEquals(3, parseAppIconVariant(" 3 "))
+    }
+
+    @Test
+    fun `invalid app icon values use default variant one`() {
+        listOf("", "abc", "1.5", "0", "6", "-1").forEach { value ->
+            assertEquals(1, parseAppIconVariant(value))
+        }
+    }
+
+    @Test
     fun `compares numeric version components instead of strings`() {
         assertTrue(compareAppVersions("1.10.0", "1.2.0")!! > 0)
         assertTrue(compareAppVersions("1.3.5", "1.3.6")!! < 0)

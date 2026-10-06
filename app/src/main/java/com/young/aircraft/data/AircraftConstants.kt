@@ -1,5 +1,7 @@
 package com.young.aircraft.data
 
+import java.util.Locale
+
 /**
  * Create by young on 05/01/2026
  **/
@@ -74,9 +76,34 @@ object AircraftConstants {
 
     object PrivacyPolicy {
         const val ASSET_ZH = "privacy_policy.html"
+        const val ASSET_ZH_HANT = "privacy_policy_zh_hant.html"
         const val ASSET_EN = "privacy_policy_en.html"
         const val ASSET_PREFIX = "file:///android_asset/"
         const val LANG_ZH = "zh"
+        val ALL_ASSETS = listOf(ASSET_ZH, ASSET_ZH_HANT, ASSET_EN)
+        private val TRADITIONAL_REGIONS = setOf("TW", "HK", "MO")
+
+        /**
+         * Bump whenever the policy text changes meaningfully. A stored acceptance older than
+         * this re-runs the consent screen at next launch.
+         */
+        const val POLICY_VERSION = 1
+
+        /**
+         * zh-TW / zh-HK / zh-MO (and any explicit zh-Hant tag) read the Traditional asset;
+         * plain zh and zh-Hans read the Simplified one; every other language reads English.
+         */
+        fun assetFor(locale: Locale): String = when {
+            locale.language != LANG_ZH -> ASSET_EN
+            locale.script == "Hant" ||
+                locale.country.uppercase(Locale.ROOT) in TRADITIONAL_REGIONS -> ASSET_ZH_HANT
+
+            else -> ASSET_ZH
+        }
+
+        /** Reverse lookup for a loaded asset URL; anything unknown falls back to English. */
+        fun assetFromUrl(url: String): String =
+            ALL_ASSETS.firstOrNull { url.substringAfterLast('/') == it } ?: ASSET_EN
     }
 
     object HudLabels {

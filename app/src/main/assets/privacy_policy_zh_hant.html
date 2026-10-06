@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="format-detection" content="telephone=no">
-<title>Aircraft Privacy Policy</title>
+<title>Aircraft 隱私協議</title>
 <style>
 /* Reset and Base Styles */
 * {
@@ -616,205 +616,205 @@ a:hover {
 
 <div class="container">
     <header class="header">
-        <div class="effective-date"> Effective Date: October 2026</div>
+        <div class="effective-date"> 生效時間：2026 年 10 月</div>
         <div class="lang-switcher">
             <a href="privacy_policy.html" class="lang-btn">简中</a>
-            <a href="privacy_policy_zh_hant.html" class="lang-btn">繁中</a>
-            <span class="lang-btn active">EN</span>
+            <span class="lang-btn active">繁中</span>
+            <a href="privacy_policy_en.html" class="lang-btn">EN</a>
         </div>
     </header>
 
     <main class="content">
         <nav class="toc">
-            <summary>Contents</summary>
+            <summary>目錄</summary>
             <ol id="tocList"></ol>
         </nav>
 
-        <!-- Introduction -->
+        <!-- 引言 -->
         <section class="section">
             <ul class="intro-list">
-                <li>This Policy explains what information Aircraft (the "App") collects while you use it, why we collect it, how it is stored, and what rights you have over it.</li>
-                <li>The App is a fully offline flight-shooter and puzzle game. Your progress, scores and settings are stored on your own device by default.</li>
-                <li>By using or continuing to use the App, you confirm that you have read and agree to the practices described here. If you have questions, contact us at the email address at the end of this document.</li>
+                <li>本協議說明 Aircraft（「本應用」）在你使用過程中會收集哪些資訊、收集目的、儲存方式，以及你對自己的資訊所擁有的權利。</li>
+                <li>本應用是一款完全離線的飛行射擊與拼圖遊戲。你的遊戲進度、成績與設定預設全部儲存在你自己的裝置上。</li>
+                <li>你的使用或繼續使用，即表示你已閱讀並同意本協議所述的資訊處理方式。如有疑問，請透過文末信箱與我們聯繫。</li>
             </ul>
         </section>
 
-        <!-- Permissions at a glance -->
+        <!-- 權限一覽 -->
         <section class="section">
-            <h2 class="section-title" id="information-we-collect">Information We Collect</h2>
-            <p>We collect information only to the extent necessary for the purposes described below. Declining a permission does not affect normal gameplay; it only disables the corresponding extra feature.</p>
+            <h2 class="section-title" id="sec1">我們收集的資訊</h2>
+            <p>我們只在下列用途所必需的範圍內收集資訊。拒絕授予某項權限不會影響遊戲的正常遊玩，只會關閉對應的附加功能。</p>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="device-and-runtime-information">Device and Runtime Information</h2>
+            <h2 class="section-title" id="sec2">裝置與執行資訊</h2>
             <ol class="numbered-list">
-                <li><span class="highlight">Random Installation Identifier</span>: on first launch the App generates a random UUID stored locally on your device. It contains no hardware identifier and cannot be traced back to you.</li>
-                <li><span class="highlight">Firebase Installation Identifier</span>: generated and stored locally by the Firebase SDK to establish connections to Google services.</li>
-                <li><span class="highlight">Basic Usage and Runtime Data</span>: the Firebase Analytics SDK automatically collects app version, device model and OS version, language and region, screen resolution, session duration, session count and similar runtime data, and sends it to Google. We have not integrated any custom event tracking, and we do not use this data for advertising.</li>
-                <li><span class="highlight">Crash Logs</span>: crash collection is <span class="highlight">disabled by default</span>. Only if crash collection is enabled via remote configuration will the App report stack traces, exception types and device state to Firebase Crashlytics.</li>
+                <li><span class="highlight">隨機安裝標識</span>：首次啟動時，本應用會在裝置本地產生一個隨機 UUID，用於區分不同安裝實例。它不包含任何裝置硬體標識，也無法反推你的身分。</li>
+                <li><span class="highlight">Firebase 安裝標識</span>：由 Firebase SDK 在裝置本地產生並儲存，用於向 Google 服務建立連線。</li>
+                <li><span class="highlight">基礎使用與執行資料</span>：Firebase Analytics SDK 會在應用啟動與會話過程中自動採集應用版本、裝置型號與系統版本、語言與地區、螢幕解析度、會話時長、啟動次數等基礎執行資料，並傳送至 Google。我們沒有接入任何自訂埋點，也不會將該資料用於廣告投放。</li>
+                <li><span class="highlight">當機日誌</span>：當機收集預設<span class="highlight">關閉</span>。僅當你在遠端設定中啟用了當機收集後，應用才會向 Firebase Crashlytics 上報當機時的堆疊、例外類型與裝置狀態資訊。</li>
             </ol>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="game-data-stored-on-your-device-only">Game Data (Stored on Your Device Only)</h2>
-            <p>The following data is kept in the App's private database and is <span class="highlight">never uploaded to any server</span>. Uninstalling the App deletes it:</p>
+            <h2 class="section-title" id="sec3">遊戲資料（僅儲存在本機）</h2>
+            <p>下列資料儲存在應用私有資料庫中，<span class="highlight">不會上傳到任何伺服器</span>，解除安裝應用即隨之刪除：</p>
             <ul class="intro-list">
-                <li>Combat level progress, cumulative kills, difficulty setting and selected jet;</li>
-                <li>Puzzle level progress, puzzle score and best move count;</li>
-                <li>Game mode, record timestamps, and the ordering used by the on-device leaderboard.</li>
+                <li>空戰關卡進度、累計擊殺數、難度設定與所選戰機；</li>
+                <li>拼圖關卡進度、拼圖得分與最佳步數；</li>
+                <li>遊戲模式、記錄時間戳，以及本排行榜的名次排序。</li>
             </ul>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="player-name-optional-stored-on-your-device-only">Player Name (Optional, Stored on Your Device Only)</h2>
-            <p>When you finish a run you may enter a nickname for display on the on-device leaderboard. The nickname is written only to the App's private database and <span class="highlight">never leaves your device</span>. If left blank, the entry appears as an anonymous player. Because leaderboard data lives entirely on your device, we can neither see nor recover a nickname you enter.</p>
+            <h2 class="section-title" id="sec4">玩家名稱（可選，僅儲存在本機）</h2>
+            <p>在遊戲結束時，你可以自願填寫一個暱稱用於本機排行榜展示。該暱稱僅寫入本應用私有資料庫，<span class="highlight">不會離開你的裝置</span>。留空時排行榜會顯示為匿名玩家。由於排行榜資料完全儲存在本機，我們無法得知、也無法找回你填寫的暱稱。</p>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="stored-settings">Stored Settings</h2>
-            <p>Preferences such as theme, language, sound toggles, haptics, and privacy/onboarding completion state are kept in the App's private local storage and are never uploaded.</p>
+            <h2 class="section-title" id="sec5">設定的儲存</h2>
+            <p>主題配色、語言、音效開關、震動效果、隱私政策與引導頁的完成狀態等偏好設定，儲存在裝置本地的應用私有儲存空間中，不會上傳。</p>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="permissions-we-request">Permissions We Request</h2>
-            <p>The App declares the following permissions in its manifest, each for the purpose listed:</p>
+            <h2 class="section-title" id="sec6">權限說明</h2>
+            <p>本應用在系統清單中聲明了以下權限，以及對應的具體用途：</p>
             <ul class="intro-list">
-                <li><span class="highlight">Network access</span> (INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE): to load puzzle background images, fetch remote configuration, and communicate with Firebase services.</li>
-                <li><span class="highlight">Camera</span> (CAMERA): for the flashlight feature, including the SOS strobe. Scanning is not included in release builds.</li>
-                <li><span class="highlight">Notifications</span> (POST_NOTIFICATIONS): to show the ongoing notification while the flashlight runs in the foreground, as Android requires for foreground services.</li>
-                <li><span class="highlight">Vibrate</span> (VIBRATE): for haptic cues accompanying the flashlight SOS pattern.</li>
-                <li><span class="highlight">Wake lock</span> (WAKE_LOCK): to keep SOS timing accurate while the screen is off.</li>
-                <li><span class="highlight">Read storage</span> (READ_EXTERNAL_STORAGE, Android 12 and below): this permission is declared in the manifest, but the App code does not request or use it. The QR tool reads an image you explicitly select through the system picker, which grants access only to that image.</li>
-                <li><span class="highlight">Contacts</span> (READ_CONTACTS, WRITE_CONTACTS): used only by a helper tool in development/debug builds. That screen is unreachable in release builds, and the App never reads or modifies your address book.</li>
-                <li><span class="highlight">Phone state</span> (READ_PHONE_STATE): declared in the manifest but <span class="highlight">not used</span> by the App. It never reads your phone number, IMEI or any other telephony data.</li>
+                <li><span class="highlight">網路存取</span>（INTERNET、ACCESS_NETWORK_STATE、ACCESS_WIFI_STATE）：用於載入拼關卡背景圖片、拉取遠端設定，以及與 Firebase 服務通訊。</li>
+                <li><span class="highlight">相機</span>（CAMERA）：用於手電筒（含 SOS 閃光求救）功能。發佈版本不包含掃碼入口。</li>
+                <li><span class="highlight">通知</span>（POST_NOTIFICATIONS）：用於手電筒在前台執行時顯示一條常駐通知，這是 Android 系統對前台服務的要求。</li>
+                <li><span class="highlight">振動</span>（VIBRATE）：用於手電筒 SOS 模式下的閃光與震動節奏提示。</li>
+                <li><span class="highlight">喚醒鎖</span>（WAKE_LOCK）：用於手電筒 SOS 模式在熄屏狀態下保持節奏準確。</li>
+                <li><span class="highlight">讀取儲存</span>（READ_EXTERNAL_STORAGE，僅 Android 12 及以下）：系統清單中聲明了此權限，但應用程式碼不會請求或使用它。二維碼工具透過系統圖片選擇器讀取你主動選取的圖片，系統僅授予應用程式存取該圖片的權限。</li>
+                <li><span class="highlight">聯絡人</span>（READ_CONTACTS、WRITE_CONTACTS）：僅用於開發除錯版本內建的輔助工具；發佈版本中該功能不可達，應用不會讀取或修改你的通訊錄。</li>
+                <li><span class="highlight">電話狀態</span>（READ_PHONE_STATE）：在系統清單中聲明，但應用程式碼中<span class="highlight">並未使用</span>，不會讀取裝置號碼、IMEI 等任何電話相關資訊。</li>
             </ul>
-            <p style="margin-top: 0.75rem;">The App does <span class="highlight">not</span> request location permission and collects no location data about you. It does not read SMS, call logs or the microphone, and it does not scan or access your photo library as a whole. The QR tool reads only an image you explicitly select.</p>
+            <p style="margin-top: 0.75rem;">本應用<span class="highlight">不申請定位權限</span>，不收集你的任何位置資訊；不讀取簡訊、通話記錄或麥克風，也不會掃描或存取你的整個相簿。二維碼工具僅在你主動選取圖片後讀取該圖片。</p>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="network-requests-and-third-party-services">Network Requests and Third-Party Services</h2>
-            <p>The App contacts only the following domains, and communicates with no other server:</p>
+            <h2 class="section-title" id="sec7">網路請求與第三方服務</h2>
+            <p>本應用會向下列網域發起請求，除此之外不會與任何其他伺服器通訊：</p>
             <ul class="intro-list">
-                <li><span class="highlight">peapix.com</span>: to fetch Bing's daily wallpaper feed used as the reference image for puzzle levels. This request carries your ordinary IP address and User-Agent between your device and that service.</li>
-                <li><span class="highlight">images.cnblogs.com, www.cnblogs.com, raw.githubusercontent.com, github.com, www.baidu.com</span>: to load the author avatar, a QR code image and a few sample assets (the sample features live in development/debug builds; the default rich-text sample includes an image from www.baidu.com).</li>
-                <li><span class="highlight">Firebase (Google)</span>: Analytics runtime data, remote configuration parameters, and crash logs when enabled.</li>
-                <li><span class="highlight">Google Play</span>: when you follow a store download link, your system browser handles it; the App is not part of that transfer.</li>
+                <li><span class="highlight">peapix.com</span>：取得 Bing 每日桌布資訊，作為拼圖關卡的參考圖片。該請求會在你的裝置與該服務之間傳遞一般的 IP 位址與 User-Agent。</li>
+                <li><span class="highlight">images.cnblogs.com、www.cnblogs.com、raw.githubusercontent.com、github.com、www.baidu.com</span>：載入作者頭像、二維碼圖片與少量範例素材（範例功能位於開發除錯版本；預設富文字範例中的圖片來自 www.baidu.com）。</li>
+                <li><span class="highlight">Firebase（Google）</span>：Analytics 基礎執行資料、遠端設定參數，以及在啟用後的當機日誌。</li>
+                <li><span class="highlight">Google Play</span>：跳轉應用商店下載連結時，由系統瀏覽器完成，本應用不參與該過程的資料傳輸。</li>
             </ul>
-            <p style="margin-top: 0.75rem;">These external services are operated independently by their own providers. Their data handling is governed by their own terms, which we cannot control on your behalf.</p>
+            <p style="margin-top: 0.75rem;">上述外部服務由各自的營運方獨立控制，其資料處理行為受其自身條款約束，我們無法代為控制。</p>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="how-we-use-information">How We Use Information</h2>
+            <h2 class="section-title" id="sec8">我們如何使用資訊</h2>
             <ol class="numbered-list">
-                <li>To store game progress and settings on your device so you can resume play next time;</li>
-                <li>To diagnose and fix defects by reviewing crash data (only after you enable crash collection);</li>
-                <li>To drive remote configuration, such as mandatory updates, feature flags, and the crash-collection switch;</li>
-                <li>To maintain the availability, stability and security of the App and its services.</li>
+                <li>在你的裝置本地儲存遊戲進度與設定，使你下次啟動時能夠繼續遊戲；</li>
+                <li>統計當機情況以定位和修復應用缺陷（僅在你啟用當機收集後）；</li>
+                <li>透過遠端設定控制應用行為，例如強制更新、功能開關與當機收集的啟用狀態；</li>
+                <li>保障應用與服務的可用性、穩定性與安全性。</li>
             </ol>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="what-we-do-not-do">What We Do Not Do</h2>
+            <h2 class="section-title" id="sec9">我們不做什麼</h2>
             <ul class="intro-list">
-                <li>We do <span class="highlight">not collect</span> your name, gender, age, identity documents, or precise or approximate location;</li>
-                <li>We do <span class="highlight">not sell, rent or trade</span> any of your personal information;</li>
-                <li>We do <span class="highlight">not serve advertising</span>. The App contains no advertising SDK and never pushes ads or marketing content based on your behaviour;</li>
-                <li>We do <span class="highlight">not use cookies or web beacons</span> to track you;</li>
-                <li>We do <span class="highlight">not require an account</span>, and collect no phone number, email address or payment information;</li>
-                <li>We do <span class="highlight">not share</span> your progress, scores or leaderboard nickname with third parties.</li>
+                <li>我們<span class="highlight">不收集</span>你的姓名、性別、年齡、身分證件、精確或粗略位置資訊；</li>
+                <li>我們<span class="highlight">不出售</span>、不出租、不交換你的任何個人資訊；</li>
+                <li>我們<span class="highlight">不投放廣告</span>，應用中不包含任何廣告 SDK，也不會基於你的行為推送廣告或行銷內容；</li>
+                <li>我們<span class="highlight">不使用 Cookie 或網頁信標</span>進行追蹤；</li>
+                <li>我們<span class="highlight">不要求你註冊帳號</span>，也不收集手機號碼、電子郵件或支付資訊；</li>
+                <li>我們<span class="highlight">不向第三方共享</span>你的遊戲進度、成績或排行榜暱稱。</li>
             </ul>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="third-party-sdk-list">Third-Party SDK List</h2>
+            <h2 class="section-title" id="sec10">第三方 SDK 清單</h2>
             <ul class="intro-list">
-                <li><span class="highlight">Firebase Analytics</span> (Google): app launches, sessions and basic runtime data.</li>
-                <li><span class="highlight">Firebase Remote Config</span> (Google): remote configuration parameter fetches.</li>
-                <li><span class="highlight">Firebase Crashlytics</span> (Google): crash logs, disabled by default and enabled remotely.</li>
-                <li><span class="highlight">Firebase Installations</span> (Google): local installation identifier and token.</li>
-                <li><span class="highlight">ML Kit Barcode Scanning</span> (Google): an on-device recognition model bundled with the app; scanning runs <span class="highlight">entirely offline on your device</span> and images are never uploaded (this entry point exists only in development/debug builds).</li>
+                <li><span class="highlight">Firebase Analytics</span>（Google）：應用啟動、會話與基礎執行資料。</li>
+                <li><span class="highlight">Firebase Remote Config</span>（Google）：遠端設定參數拉取。</li>
+                <li><span class="highlight">Firebase Crashlytics</span>（Google）：當機日誌，預設關閉，需遠端開啟。</li>
+                <li><span class="highlight">Firebase Installations</span>（Google）：本地安裝標識與權杖。</li>
+                <li><span class="highlight">ML Kit 條碼識別</span>（Google）：僅發佈前隨應用一同安裝的本地識別模型，掃碼在<span class="highlight">裝置本地離線完成</span>，不將圖像上傳至伺服器（該入口僅存在於開發除錯版本）。</li>
             </ul>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="storage-and-security">Storage and Security</h2>
+            <h2 class="section-title" id="sec11">資訊的儲存與安全</h2>
             <ol class="numbered-list">
-                <li>Your progress, settings and leaderboard data are stored in the App's private space on your device (private database and private preferences) and cannot be read by other apps.</li>
-                <li>If your device has system cloud backup (Android Auto Backup) enabled, that private data may be backed up by the operating system along with other app data to the system account you are signed in to. That process is governed by Android and your cloud account provider.</li>
-                <li>Puzzle images are cached in the app cache directory to speed up loading and may be reclaimed by the system at any time.</li>
-                <li>We use HTTPS to encrypt data in transit to and from external services.</li>
+                <li>你的遊戲進度、設定與排行榜資料全部儲存在你裝置的應用私有空間中（應用私有資料庫與私有設定），其他應用無法讀取。</li>
+                <li>你的裝置啟用了系統雲端備份（Android 自動備份）時，上述私有資料可能由作業系統連同其他應用資料一併備份至你登入的系統帳號，備份過程由 Android 系統與你的雲端帳號服務商控制。</li>
+                <li>拼圖關卡圖片會快取於應用快取目錄用於加速載入，可由系統隨時回收。</li>
+                <li>我們採用 HTTPS 加密保護與外部服務之間的資料傳輸。</li>
             </ol>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="sharing-and-disclosure">Sharing and Disclosure</h2>
-            <p>Beyond the Firebase and image services listed under "Network Requests and Third-Party Services", we will not disclose your personal information to any third party without your consent. We do not sell your personal information.</p>
-            <p style="margin-top: 0.75rem;">We may disclose necessary information in the following circumstances:</p>
+            <h2 class="section-title" id="sec12">資訊的共享與揭露</h2>
+            <p>除本協議「網路請求與第三方服務」一節所列的 Firebase 與圖片服務外，未經你的同意，我們不會向任何第三方揭露你的個人資訊。我們也不會出售你的個人資訊。</p>
+            <p style="margin-top: 0.75rem;">在下列情形下，我們可能需要揭露必要的資訊：</p>
             <ol class="numbered-list" style="margin-top: 0.5rem;">
-                <li>To comply with applicable laws and regulations;</li>
-                <li>To respond to lawful requests from judicial or government authorities;</li>
-                <li>Where necessary to protect the safety of users, ourselves, or the public.</li>
+                <li>遵守適用的法律法規；</li>
+                <li>回應司法機關或政府機關依法提出的要求；</li>
+                <li>為保護使用者、我們自身或公眾的人身與財產安全所必需的情形。</li>
             </ol>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="your-rights">Your Rights</h2>
-            <p>The App has no account system, so you retain full control over your data:</p>
+            <h2 class="section-title" id="sec13">你的權利</h2>
+            <p>本應用不設帳號體系，你對自己的資料擁有完全的控制權：</p>
             <ul class="intro-list">
-                <li>You can clear this app's data in system settings, or simply uninstall the App, at any time to delete all locally stored information;</li>
-                <li>Uninstalling removes your progress, leaderboard entries and nickname;</li>
-                <li>For basic runtime data reported through Firebase, you can use the operating system's "Clear storage" action or manage the data in your Google account privacy settings.</li>
+                <li>你可以隨時在系統設定中清除本應用的資料，或直接解除安裝應用，以刪除我們儲存的全部本機資訊；</li>
+                <li>你可以隨時解除安裝應用，這會使遊戲進度、排行榜記錄與暱稱一併被刪除；</li>
+                <li>對於透過 Firebase 上報的基礎執行資料，你可以使用作業系統的「清除應用資料」或在 Google 帳號的隱私設定中管理相關資料。</li>
             </ul>
-            <p style="margin-top: 0.75rem;">Because leaderboard data and nicknames exist only on your device, we hold no server-side record that we could look up, modify or delete on your behalf.</p>
+            <p style="margin-top: 0.75rem;">由於排行榜與暱稱僅存在於本機，我們在服務端沒有可用於查詢、修改或刪除你個人資訊的對應記錄。</p>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="minors">Minors</h2>
-            <p>The App does not collect information capable of identifying a minor and therefore does not knowingly collect personal information from children. We do not advertise to or market to you based on your age. If you are a parent or guardian with questions about this Policy, please contact us.</p>
+            <h2 class="section-title" id="sec14">未成年人保護</h2>
+            <p>本應用不收集任何可用於識別未成年人身分的資訊，因此也不會有意收集未成年人的個人資訊。我們不會基於你的年齡投放廣告或推送行銷內容。若你是未成年人的監護人並對本協議有疑問，請與我們聯繫。</p>
         </section>
 
         <section class="section">
-            <h2 class="section-title" id="changes-to-this-policy">Changes to This Policy</h2>
+            <h2 class="section-title" id="sec15">本協議的變更</h2>
             <ul class="intro-list">
-                <li>We may revise the terms of this Policy from time to time, and such revisions form part of this Policy. If a revision substantially reduces your rights, we will notify you in a prominent notice within the App before it takes effect.</li>
-                <li>If you continue to use the App after that, you agree to be bound by the revised Policy.</li>
+                <li>我們可能適時修訂本協議的條款，修訂構成本協議的一部分。如修訂造成你權利的實質減少，我們會在生效前透過應用內的顯著提示通知你。</li>
+                <li>若你繼續使用本應用，即表示你同意受經修訂的本協議約束。</li>
             </ul>
         </section>
 
-        <!-- Contact Information -->
+        <!-- 聯絡方式 -->
         <div class="contact-section">
             <div class="contact-item">
-                <span class="contact-label">Publish Date:</span>
-                <span class="contact-value">October 5, 2026</span>
+                <span class="contact-label">發布日期：</span>
+                <span class="contact-value">2026 年 10 月 5 日</span>
             </div>
             <div class="contact-item">
-                <span class="contact-label">Effective Date:</span>
-                <span class="contact-value">October 5, 2026</span>
+                <span class="contact-label">生效時間：</span>
+                <span class="contact-value">2026 年 10 月 5 日</span>
             </div>
             <div class="contact-item">
-                <span class="contact-label">Email:</span>
+                <span class="contact-label">信箱：</span>
                 <span class="contact-value"><a href="mailto:529079513@qq.com">529079513@qq.com</a></span>
             </div>
             <div class="contact-item">
-                <span class="contact-label">Author Page:</span>
+                <span class="contact-label">作者頁面：</span>
                 <span class="contact-value"><a href="https://github.com/tobecrazy" target="_blank" rel="noopener noreferrer">https://github.com/tobecrazy</a></span>
             </div>
             <div class="contact-item">
-                <span class="contact-label">Collected Data:</span>
-                <span class="contact-value">Random installation identifier, app runtime and crash data (crash data off by default)</span>
+                <span class="contact-label">收集的個人資訊：</span>
+                <span class="contact-value">隨機安裝標識、應用執行與當機資料（當機資料預設關閉）</span>
             </div>
             <div class="contact-item">
-                <span class="contact-label">Storage Locations:</span>
-                <span class="contact-value">On-device private storage + Firebase (Google)</span>
+                <span class="contact-label">資料儲存位置：</span>
+                <span class="contact-value">本機私有儲存 + Firebase（Google）</span>
             </div>
             <div class="contact-item">
-                <span class="contact-label">Third-party SDKs:</span>
-                <span class="contact-value">Firebase Analytics / Remote Config / Crashlytics / Installations, ML Kit Barcode Scanning</span>
+                <span class="contact-label">第三方 SDK：</span>
+                <span class="contact-value">Firebase Analytics / Remote Config / Crashlytics / Installations、ML Kit 條碼識別</span>
             </div>
         </div>
 
         <footer class="footer">
-            <p>[ END ]</p>
+            <p>[ 到底了 ]</p>
         </footer>
     </main>
 
