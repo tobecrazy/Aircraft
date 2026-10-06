@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- `ACCESS_WIFI_STATE` implied `android.hardware.wifi` as a required feature, hiding the app on Play from WiFi-less devices; declared it `required="false"` since the app works on mobile data too (verified via `aapt dump badging`: now `uses-feature-not-required`)
 - Launcher icon variants 2–5 were near-identical dark-red shades of variant 1 (same artwork, only slightly shifted reds, identical black monochromes), so switching Remote Config `AppIcon` had no visible effect. Variants 2–5 are now hue-shifted to the theme accents (blue/green/purple/yellow); variant 1 (default red) is unchanged
 
 ## [1.4.0] - 2026-10-06
