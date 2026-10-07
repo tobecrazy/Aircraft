@@ -66,7 +66,7 @@ import com.young.aircraft.ui.theme.AccentGreen
 import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.TextSubtle
-import com.young.aircraft.utils.DebugTools
+import com.young.aircraft.utils.DeveloperMode
 import com.young.aircraft.viewmodel.CameraScanUiState
 import com.young.aircraft.viewmodel.CameraScanViewModel
 
@@ -91,7 +91,7 @@ class CameraScanActivity : BaseAircraftActivity() {
     }
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
-        if (!DebugTools.isEnabled) {
+        if (!DeveloperMode.isEnabled(this)) {
             finish()
             return
         }

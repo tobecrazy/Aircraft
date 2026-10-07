@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-10-08
+
+### Fixed
+- Test crash button in Developer Settings now requires confirmation via a dialog before triggering the intentional crash, preventing accidental taps that would disrupt Firebase Crashlytics validation workflow
+- **Critical**: Removed native library exclusions (`libbarhopper_v3.so`, `libsurface_util_jni.so`, `libimage_processing_util_jni.so`) from release builds to prevent `UnsatisfiedLinkError` crashes when ML Kit barcode scanning is used. The exclusion logic caused runtime crashes because ML Kit code remained in the APK while its required native libraries were stripped
+
+### Added
+- Crash confirmation dialog with localized strings in all four language environments (English, Simplified Chinese, Traditional Chinese Taiwan, Traditional Chinese Hong Kong)
+- `develop_settings_crash_dialog_title`, `develop_settings_crash_dialog_message`, and `develop_settings_crash_dialog_confirm` string resources explaining the crash test consequences
+
+### Changed
+- ML Kit native libraries are now included in all build variants to ensure barcode scanning functionality works correctly in both debug and release builds
+- Release APK size increased from ~16MB to ~35MB due to inclusion of ML Kit native libraries, but this prevents runtime crashes and maintains full QR code scanning functionality
+
+## [1.4.1] - 2026-10-07
+
+### Added
+- Tapping the About Aircraft version badge 8 times now unlocks developer settings on release builds: a persistent `developer_options_unlocked` flag in `SettingsRepository` gates `DevelopSettingsActivity`, the assistant tools, contacts, camera scan, and rich-text editor via the new `DeveloperMode` helper, with countdown/confirmation feedback through `ThemedMessage`
+
 ### Fixed
 - `ACCESS_WIFI_STATE` implied `android.hardware.wifi` as a required feature, hiding the app on Play from WiFi-less devices; declared it `required="false"` since the app works on mobile data too (verified via `aapt dump badging`: now `uses-feature-not-required`)
 - Launcher icon variants 2–5 were near-identical dark-red shades of variant 1 (same artwork, only slightly shifted reds, identical black monochromes), so switching Remote Config `AppIcon` had no visible effect. Variants 2–5 are now hue-shifted to the theme accents (blue/green/purple/yellow); variant 1 (default red) is unchanged

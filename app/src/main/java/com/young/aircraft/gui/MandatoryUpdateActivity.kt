@@ -53,6 +53,7 @@ import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.TextBody
 import com.young.aircraft.ui.theme.TextBright
+import androidx.core.net.toUri
 
 // Panel visuals mirror the About/Settings card treatment so the blocking gate
 // reads as part of the same app rather than a stock Material dialog.
@@ -84,10 +85,10 @@ internal fun openUpdatePage(context: Context) {
     val playStoreUrl = "https://play.google.com/store/apps/details?id=${context.packageName}"
 
     try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(configuredUrl.ifBlank { marketUrl })))
+        context.startActivity(Intent(Intent.ACTION_VIEW, configuredUrl.ifBlank { marketUrl }.toUri()))
     } catch (_: ActivityNotFoundException) {
         try {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(playStoreUrl)))
+            context.startActivity(Intent(Intent.ACTION_VIEW, playStoreUrl.toUri()))
         } catch (_: ActivityNotFoundException) {
             // Keep the update prompt visible when the device has no store or browser.
         }

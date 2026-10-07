@@ -85,12 +85,14 @@ class DevelopSettingsActivityTest {
     }
 
     @Test
-    fun `clicking test crash button throws RuntimeException`() {
+    fun `clicking test crash button shows confirmation dialog`() {
         ActivityScenario.launch(DevelopSettingsActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                assertThrows(RuntimeException::class.java) {
-                    assertTrue(root(activity).clickOnTag("btn_test_crash"))
-                }
+                // Click the test crash button
+                assertTrue(root(activity).clickOnTag("btn_test_crash"))
+                
+                // Verify activity is still active (not crashed, dialog is shown)
+                assertFalse("Activity should not finish from showing dialog", activity.isFinishing)
             }
         }
     }

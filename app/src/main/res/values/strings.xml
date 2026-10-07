@@ -469,6 +469,9 @@ Installed browsers:
     <string name="develop_settings_danger_badge">HIGH RISK</string>
     <string name="develop_settings_crash_title">Crash Reporting Validation</string>
     <string name="develop_settings_crash_summary">Trigger a controlled crash to verify crash collection in development builds.</string>
+    <string name="develop_settings_crash_dialog_title">Confirm Test Crash</string>
+    <string name="develop_settings_crash_dialog_message">This will intentionally crash the app to test Firebase Crashlytics. All unsaved data will be lost. Continue?</string>
+    <string name="develop_settings_crash_dialog_confirm">Crash Now</string>
     <string name="test_crash">Test Crash</string>
     <string name="title_activity_device_info">SYSTEM MONITOR</string>
     <string name="device_info_cpu">CPU</string>
@@ -549,6 +552,9 @@ Installed browsers:
 
     <string name="invincible_mode_on">Invincible mode enabled. No damage will be taken.</string>
     <string name="invincible_mode_off">Normal mode restored. Damage will be taken normally.</string>
+    <string name="develop_settings_unlocked">Developer settings enabled</string>
+    <string name="develop_settings_already_enabled">Developer settings already enabled</string>
+    <string name="develop_settings_taps_remaining">%d more taps to enable developer settings</string>
 
     <!-- Rich Text Editor -->
     <string name="rich_text_section_title">Rich Text</string>

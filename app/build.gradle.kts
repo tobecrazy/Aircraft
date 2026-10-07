@@ -32,8 +32,8 @@ android {
         applicationId = "com.young.aircraft"
         minSdk = 31
         targetSdk = 37
-        versionCode = 12
-        versionName = "1.4.0"
+        versionCode = 14
+        versionName = "1.4.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -63,19 +63,6 @@ android {
     buildToolsVersion = "37.0.0"
     testOptions {
         unitTests.isIncludeAndroidResources = true
-    }
-}
-
-// CameraScanActivity is a debug-only tool (release finishes it via DebugTools
-// before any CameraX/ML Kit call), so strip its native payload from the release
-// variant for 16 KB page-size compatibility. Scoped via androidComponents because
-// a buildTypes-level packaging block also leaks into debug on this AGP version.
-// Debug keeps all native libraries, where the scanner stays functional.
-androidComponents {
-    onVariants(selector().withBuildType("release")) { variant ->
-        variant.packaging.jniLibs.excludes.add("**/libbarhopper_v3.so")
-        variant.packaging.jniLibs.excludes.add("**/libsurface_util_jni.so")
-        variant.packaging.jniLibs.excludes.add("**/libimage_processing_util_jni.so")
     }
 }
 

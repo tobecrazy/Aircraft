@@ -469,6 +469,9 @@ UA：%5$s
     <string name="develop_settings_danger_badge">高風險</string>
     <string name="develop_settings_crash_title">崩潰上報驗證</string>
     <string name="develop_settings_crash_summary">僅在開發版本中使用，用於驗證崩潰採集和恢復流程。</string>
+    <string name="develop_settings_crash_dialog_title">確認測試崩潰</string>
+    <string name="develop_settings_crash_dialog_message">這將故意使應用程式崩潰以測試 Firebase Crashlytics。所有未儲存的資料將遺失。是否繼續？</string>
+    <string name="develop_settings_crash_dialog_confirm">立即崩潰</string>
     <string name="test_crash">測試崩潰</string>
     <string name="title_activity_device_info">系統監控</string>
     <string name="device_info_cpu">CPU</string>
@@ -549,6 +552,9 @@ UA：%5$s
 
     <string name="invincible_mode_on">你已經進入無敵模式。該模式下被攻擊不掉血。</string>
     <string name="invincible_mode_off">你已經恢復正常模式。該模式下正常掉血。</string>
+    <string name="develop_settings_unlocked">已啟用開發者設定</string>
+    <string name="develop_settings_already_enabled">開發者設定已啟用</string>
+    <string name="develop_settings_taps_remaining">再點 %d 次即可啟用開發者設定</string>
 
     <!-- Rich Text Editor -->
     <string name="rich_text_section_title">富文本</string>
