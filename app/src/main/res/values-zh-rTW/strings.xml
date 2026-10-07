@@ -469,6 +469,9 @@ UA：%5$s
     <string name="develop_settings_danger_badge">高風險</string>
     <string name="develop_settings_crash_title">崩潰上報驗證</string>
     <string name="develop_settings_crash_summary">僅在開發版本中使用，用於驗證崩潰採集和恢復流程。</string>
+    <string name="develop_settings_crash_dialog_title">確認測試崩潰</string>
+    <string name="develop_settings_crash_dialog_message">這將故意使應用程式崩潰以測試 Firebase Crashlytics。所有未儲存的資料將遺失。是否繼續？</string>
+    <string name="develop_settings_crash_dialog_confirm">立即崩潰</string>
     <string name="test_crash">測試崩潰</string>
     <string name="title_activity_device_info">系統監控</string>
     <string name="device_info_cpu">CPU</string>
