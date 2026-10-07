@@ -80,7 +80,7 @@ class SettingsViewModel(
             hitShakeEnabled = hitShake,
             enabledSoundCount = soundOptions.count { it },
             soundOptionCount = soundOptions.size,
-            showDevelopSettings = DebugTools.isEnabled,
+            showDevelopSettings = DebugTools.isEnabled || repository.isDeveloperOptionsUnlocked(),
             bgmFormat = repository.getBgmFormat()
         )
     }

@@ -67,6 +67,13 @@ class SettingsRepository(context: Context) {
         prefs.edit { putBoolean(KEY_INVINCIBLE_MODE, enabled) }
     }
 
+    fun isDeveloperOptionsUnlocked(): Boolean =
+        prefs.getBoolean(KEY_DEVELOPER_OPTIONS_UNLOCKED, false)
+
+    fun setDeveloperOptionsUnlocked(unlocked: Boolean) {
+        prefs.edit { putBoolean(KEY_DEVELOPER_OPTIONS_UNLOCKED, unlocked) }
+    }
+
     fun acceptedPolicyVersion(): Int = prefs.getInt(KEY_POLICY_ACCEPTED_VERSION, 0)
 
     /** True only when the stored acceptance covers the policy text currently shipped. */
@@ -187,6 +194,7 @@ class SettingsRepository(context: Context) {
         const val BGM_FORMAT_OGG = "ogg"
         const val KEY_HIT_SHAKE_EFFECT = "hit_shake_effect"
         const val KEY_INVINCIBLE_MODE = "invincible_mode"
+        const val KEY_DEVELOPER_OPTIONS_UNLOCKED = "developer_options_unlocked"
         const val KEY_POLICY_ACCEPTED_VERSION = "privacy_policy_accepted_version"
         const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         const val KEY_PUZZLE_GUIDE_COMPLETED = "puzzle_guide_completed"

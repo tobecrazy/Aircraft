@@ -64,7 +64,7 @@ import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.TextBright
-import com.young.aircraft.utils.DebugTools
+import com.young.aircraft.utils.DeveloperMode
 import com.young.aircraft.viewmodel.LogSettingsViewModel
 import java.io.File
 import androidx.core.net.toUri
@@ -181,7 +181,7 @@ class AndroidDevAssistantToolsActivity : BaseAircraftActivity() {
     }
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
-        if (!DebugTools.isEnabled) {
+        if (!DeveloperMode.isEnabled(this)) {
             finish()
             return
         }

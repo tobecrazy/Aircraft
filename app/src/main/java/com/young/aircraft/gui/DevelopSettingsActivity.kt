@@ -84,7 +84,7 @@ import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.TextBody
 import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.ui.theme.TextSubtle
-import com.young.aircraft.utils.DebugTools
+import com.young.aircraft.utils.DeveloperMode
 import com.young.aircraft.viewmodel.DevelopSettingsViewModel
 import com.young.supperbanner.SupperBannerConfig
 import com.young.supperbanner.SupperBannerEffect
@@ -133,7 +133,7 @@ class DevelopSettingsActivity : BaseAircraftActivity() {
     }
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
-        if (!DebugTools.isEnabled) {
+        if (!DeveloperMode.isEnabled(this)) {
             finish()
             return
         }

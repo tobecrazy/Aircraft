@@ -59,6 +59,7 @@ import com.young.aircraft.ui.theme.TextMuted
 import com.young.aircraft.viewmodel.AboutAircraftViewModel
 import com.young.aircraft.viewmodel.AboutAircraftUiState
 import com.young.aircraft.viewmodel.ImageLoadState
+import com.young.aircraft.utils.DeveloperMode
 import com.young.supperbanner.SupperBannerImage
 import com.young.supperbanner.SupperBannerItem
 
@@ -84,9 +85,16 @@ private val SpecDivider = Color(0x10FFFFFF)
 class AboutAircraftActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: AboutAircraftViewModel
+    private var versionTapCount = 0
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
+        versionTapCount = savedInstanceState?.getInt(KEY_VERSION_TAP_COUNT, 0) ?: 0
         viewModel = ViewModelProvider(this, AboutAircraftViewModel.Factory(this))[AboutAircraftViewModel::class.java]
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_VERSION_TAP_COUNT, versionTapCount)
     }
 
     override fun initializeUI() {
@@ -99,12 +107,44 @@ class AboutAircraftActivity : BaseAircraftActivity() {
                     state = state,
                     onBack = { finish() },
                     onOpenRepo = ::openRepo,
+                    onVersionClick = ::onVersionClick,
                     onImageClick = ::openProjectImageDetails,
                     onImageLoadStarted = viewModel::onImageLoadStarted,
                     onImageLoadSuccess = viewModel::onImageLoadSuccess,
                     onImageLoadError = viewModel::onImageLoadError
                 )
             }
+        }
+    }
+
+    private fun onVersionClick() {
+        versionTapCount++
+        if (DeveloperMode.isEnabled(this)) {
+            if (DeveloperMode.isUnlockTap(versionTapCount)) {
+                ThemedMessage.makeText(
+                    this,
+                    R.string.develop_settings_already_enabled,
+                    ThemedMessage.LENGTH_SHORT
+                ).show()
+            }
+            return
+        }
+        if (DeveloperMode.isUnlockTap(versionTapCount)) {
+            DeveloperMode.unlock(this)
+            ThemedMessage.makeText(
+                this,
+                R.string.develop_settings_unlocked,
+                ThemedMessage.LENGTH_SHORT
+            ).show()
+        } else {
+            ThemedMessage.makeText(
+                this,
+                getString(
+                    R.string.develop_settings_taps_remaining,
+                    DeveloperMode.remainingTaps(versionTapCount)
+                ),
+                ThemedMessage.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -120,6 +160,10 @@ class AboutAircraftActivity : BaseAircraftActivity() {
         )
         startActivity(ShowImageDetailsActivity.createIntent(this, projectImage))
     }
+
+    private companion object {
+        const val KEY_VERSION_TAP_COUNT = "about_version_tap_count"
+    }
 }
 
 @Composable
@@ -127,6 +171,7 @@ internal fun AboutAircraftScreen(
     state: AboutAircraftUiState,
     onBack: () -> Unit,
     onOpenRepo: () -> Unit,
+    onVersionClick: () -> Unit,
     onImageClick: () -> Unit,
     onImageLoadStarted: () -> Unit,
     onImageLoadSuccess: () -> Unit,
@@ -147,7 +192,7 @@ internal fun AboutAircraftScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 14.dp)
         ) {
-            HeroPanel(state = state, onOpenRepo = onOpenRepo)
+            HeroPanel(state = state, onOpenRepo = onOpenRepo, onVersionClick = onVersionClick)
 
             ProjectImageCard(
                 state = state,
@@ -224,7 +269,7 @@ private fun AboutHeader(onBack: () -> Unit) {
 }
 
 @Composable
-private fun HeroPanel(state: AboutAircraftUiState, onOpenRepo: () -> Unit) {
+private fun HeroPanel(state: AboutAircraftUiState, onOpenRepo: () -> Unit, onVersionClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -263,7 +308,12 @@ private fun HeroPanel(state: AboutAircraftUiState, onOpenRepo: () -> Unit) {
             )
 
             Row(modifier = Modifier.padding(top = 14.dp)) {
-                BadgeChip(text = state.versionText, tint = AccentGreen)
+                BadgeChip(
+                    text = state.versionText,
+                    tint = AccentGreen,
+                    onClick = onVersionClick,
+                    modifier = Modifier.testTag("version_badge")
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 BadgeChip(text = state.platformText, tint = TextBright)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -281,14 +331,24 @@ private fun HeroPanel(state: AboutAircraftUiState, onOpenRepo: () -> Unit) {
 }
 
 @Composable
-private fun BadgeChip(text: String, tint: Color) {
+private fun BadgeChip(
+    text: String,
+    tint: Color,
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    val chipModifier = if (onClick != null) {
+        modifier.clickable(onClick = onClick)
+    } else {
+        modifier
+    }
     Text(
         text = text,
         color = tint,
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         fontFamily = FontFamily.Monospace,
-        modifier = Modifier
+        modifier = chipModifier
             .background(GaugeBg, RoundedCornerShape(12.dp))
             .padding(horizontal = 10.dp, vertical = 4.dp)
     )

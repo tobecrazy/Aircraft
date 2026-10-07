@@ -56,7 +56,7 @@ import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.themeAccent
 import com.young.aircraft.utils.DataUriUtils
-import com.young.aircraft.utils.DebugTools
+import com.young.aircraft.utils.DeveloperMode
 import com.young.aircraft.viewmodel.RichTextEditorViewModel
 import com.young.richtext.RichTextEditorView
 import com.young.supperbanner.SupperBannerImage
@@ -77,7 +77,7 @@ class RichTextEditorActivity : BaseAircraftActivity() {
         private set
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
-        if (!DebugTools.isEnabled) {
+        if (!DeveloperMode.isEnabled(this)) {
             finish()
             return
         }

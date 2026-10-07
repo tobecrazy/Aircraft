@@ -63,7 +63,7 @@ import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.NeonDivider
-import com.young.aircraft.utils.DebugTools
+import com.young.aircraft.utils.DeveloperMode
 import com.young.aircraft.data.DeviceContact
 import com.young.aircraft.data.isValidChinaPhoneNumber
 import com.young.aircraft.data.isValidOptionalEmail
@@ -73,7 +73,7 @@ class ContactsActivity : BaseAircraftActivity() {
     private lateinit var viewModel: ContactsViewModel
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
-        if (!DebugTools.isEnabled) {
+        if (!DeveloperMode.isEnabled(this)) {
             finish()
             return
         }

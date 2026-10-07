@@ -549,6 +549,9 @@ UA：%5$s
 
     <string name="invincible_mode_on">你已经进入无敌模式。该模式下被攻击不掉血。</string>
     <string name="invincible_mode_off">你已经恢复正常模式。该模式下正常掉血。</string>
+    <string name="develop_settings_unlocked">开发者设置已启用</string>
+    <string name="develop_settings_already_enabled">开发者设置已启用</string>
+    <string name="develop_settings_taps_remaining">再点击 %d 次即可启用开发者设置</string>
 
     <!-- Rich Text Editor -->
     <string name="rich_text_section_title">富文本</string>
