@@ -469,6 +469,9 @@ Installed browsers:
     <string name="develop_settings_danger_badge">HIGH RISK</string>
     <string name="develop_settings_crash_title">Crash Reporting Validation</string>
     <string name="develop_settings_crash_summary">Trigger a controlled crash to verify crash collection in development builds.</string>
+    <string name="develop_settings_crash_dialog_title">Confirm Test Crash</string>
+    <string name="develop_settings_crash_dialog_message">This will intentionally crash the app to test Firebase Crashlytics. All unsaved data will be lost. Continue?</string>
+    <string name="develop_settings_crash_dialog_confirm">Crash Now</string>
     <string name="test_crash">Test Crash</string>
     <string name="title_activity_device_info">SYSTEM MONITOR</string>
     <string name="device_info_cpu">CPU</string>

@@ -158,7 +158,8 @@ class DevelopSettingsActivity : BaseAircraftActivity() {
                     onOpenPdfReader = { startActivity(Intent(this, PdfReaderActivity::class.java)) },
                     onOpenBannerItem = { item ->
                         startActivity(ShowImageDetailsActivity.createIntent(this, item))
-                    }
+                    },
+                    onTestCrash = ::showCrashConfirmationDialog
                 )
             }
         }
@@ -186,6 +187,17 @@ class DevelopSettingsActivity : BaseAircraftActivity() {
             .setMessage(R.string.develop_settings_notification_dialog_message)
             .setPositiveButton(R.string.develop_settings_notification_dialog_ok) { _, _ ->
                 createQrToolNotification()
+            }
+            .setNegativeButton(R.string.history_cancel, null)
+            .showThemed()
+    }
+
+    private fun showCrashConfirmationDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.develop_settings_crash_dialog_title)
+            .setMessage(R.string.develop_settings_crash_dialog_message)
+            .setPositiveButton(R.string.develop_settings_crash_dialog_confirm) { _, _ ->
+                throw RuntimeException("Test Crash")
             }
             .setNegativeButton(R.string.history_cancel, null)
             .showThemed()
@@ -254,7 +266,8 @@ internal fun DevelopSettingsScreen(
     onNotificationTest: () -> Unit,
     onOpenCameraScan: () -> Unit,
     onOpenPdfReader: () -> Unit,
-    onOpenBannerItem: (SupperBannerItem) -> Unit
+    onOpenBannerItem: (SupperBannerItem) -> Unit,
+    onTestCrash: () -> Unit
 ) {
     var autoPlay by remember { mutableStateOf(true) }
     var showInfo by remember { mutableStateOf(true) }
@@ -580,7 +593,7 @@ internal fun DevelopSettingsScreen(
                     )
                     RejectButton(
                         textRes = R.string.test_crash,
-                        onClick = { throw RuntimeException("Test Crash") }, // Force a crash
+                        onClick = onTestCrash,
                         modifier = Modifier
                             .padding(top = 14.dp)
                             .testTag("btn_test_crash")
