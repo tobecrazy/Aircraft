@@ -49,6 +49,13 @@ class AircraftApplication : Application() {
             }
         }
         AircraftRemoteConfig.initialize()
+        // Repo JSON is the fallback whenever Remote Config holds no remote value
+        // (unreachable or key absent). A Firebase REMOTE value always wins when
+        // present, so regions where Firebase works are unaffected.
+        RepoUpdateConfigStore.onUpdated = {
+            mainHandler.post { enforceMinimumVersion() }
+        }
+        RepoUpdateConfigStore.refresh(applicationScope)
         // Apply the cached/default value immediately; fetch and real-time updates re-apply later.
         LauncherIconManager.apply(this, AircraftRemoteConfig.getAppIconVariant())
         val logSettings = LogSettings(this)
@@ -96,7 +103,7 @@ class AircraftApplication : Application() {
 
     private fun enforceMinimumVersion(activity: Activity? = foregroundActivity.get()) {
         if (activity == null || activity.isFinishing) return
-        val updateRequired = AircraftRemoteConfig.isCurrentVersionBelowMinimum()
+        val updateRequired = RepoUpdateConfigStore.isCurrentVersionBelowMinimum()
         if (activity is MandatoryUpdateActivity) {
             if (!updateRequired) activity.finish()
             return
@@ -113,8 +120,8 @@ class AircraftApplication : Application() {
 
     private fun showOptionalUpdatePrompt(activity: Activity): Boolean {
         if (optionalUpdateDialog?.isShowing == true) return true
-        if (!AircraftRemoteConfig.isOptionalUpdateAvailable()) return false
-        val latestVersion = AircraftRemoteConfig.getLatestVersion()
+        if (!RepoUpdateConfigStore.isOptionalUpdateAvailable()) return false
+        val latestVersion = RepoUpdateConfigStore.getLatestVersion()
         if (optionalPromptedVersion == latestVersion) return false
         optionalPromptedVersion = latestVersion
 
