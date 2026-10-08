@@ -17,7 +17,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter. Three Gradle modules: `
 - [docs/puzzle-game-redesign-plan.md](docs/puzzle-game-redesign-plan.md): working plan explaining *why* the puzzle scoring code looks the way it does. Read it before changing that area.
 - `docs/` also holds generated architecture artifacts: `aircraft-architecture.*`, `boss-combat-workflow.*`, and `pdf-reader-dataflow.*` at the top level, plus `aircraft-code-map.*` and `supperbanner-module.*` under `docs/diagrams/`. Each is a `.json` source plus a rendered `.html` and `.visual-check.*` screenshots. All 44 files are committed but machine-generated; edit the `.json`, not the `.html`.
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance, **several claims of which are wrong** — see the stale-documentation list below. No Cursor rules exist.
-- **[AGENTS.md](AGENTS.md) is a symlink to this file**; edit CLAUDE.md rather than replacing the symlink.
+- `AGENTS.md` 是面向 OpenCode 的精简版（本文件是完整手册）；改精简规则只改 `AGENTS.md`，改完整事实同步两份。
 
 ### Documentation that contradicts the code
 
