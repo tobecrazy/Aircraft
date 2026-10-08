@@ -32,8 +32,8 @@ android {
         applicationId = "com.young.aircraft"
         minSdk = 31
         targetSdk = 37
-        versionCode = 14
-        versionName = "1.4.2"
+        versionCode = 15
+        versionName = "1.4.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -89,6 +89,35 @@ val checkAppLogUsage = tasks.register("checkAppLogUsage") {
 
 tasks.configureEach {
     if (name.startsWith("lint")) dependsOn(checkAppLogUsage)
+}
+
+// Generates the repo-root app-update.json served to clients as the Remote
+// Config fallback (jsDelivr @main). latest_version tracks versionName;
+// minimum_version defaults to the last enforced floor and can be raised per
+// release with -PminimumVersion=X.Y.Z.
+val generateRepoUpdateConfig = tasks.register("generateRepoUpdateConfig") {
+    group = "release"
+    description = "Generates app-update.json from versionName for the Remote Config fallback."
+    val outputFile = rootProject.file("app-update.json")
+    val appVersionName = android.defaultConfig.versionName as String
+    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.3.6"
+    inputs.property("versionName", appVersionName)
+    inputs.property("minimumVersion", floorVersion)
+    outputs.file(outputFile)
+    doLast {
+        val tag = "V$appVersionName"
+        outputFile.writeText(
+            "{\n" +
+                "  \"minimum_version\": \"$floorVersion\",\n" +
+                "  \"latest_version\": \"$appVersionName\",\n" +
+                "  \"update_url\": \"https://github.com/tobecrazy/Aircraft/releases/tag/$tag\"\n" +
+                "}\n"
+        )
+    }
+}
+
+tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
+    dependsOn(generateRepoUpdateConfig)
 }
 
 dependencies {

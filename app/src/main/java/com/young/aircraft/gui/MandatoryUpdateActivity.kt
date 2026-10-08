@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
-import com.young.aircraft.common.AircraftRemoteConfig
+import com.young.aircraft.common.RepoUpdateConfigStore
 import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.ui.theme.AccentGreen
 import com.young.aircraft.ui.theme.AircraftTheme
@@ -71,7 +71,7 @@ class MandatoryUpdateActivity : ComponentActivity() {
                 BackHandler(enabled = true) {}
                 MandatoryUpdateScreen(
                     currentVersion = BuildConfig.VERSION_NAME,
-                    minimumVersion = AircraftRemoteConfig.getMinimumVersion(),
+                    minimumVersion = RepoUpdateConfigStore.getMinimumVersion(),
                     onUpdate = { openUpdatePage(this) }
                 )
             }
@@ -79,20 +79,46 @@ class MandatoryUpdateActivity : ComponentActivity() {
     }
 }
 
+internal const val GITHUB_RELEASES_BASE_URL = "https://github.com/tobecrazy/Aircraft/releases/tag"
+
+/**
+ * Builds the GitHub release tag URL for [version], tolerating a missing "V"
+ * prefix. Tags use the form `V1.4.2` while Remote Config versions are plain
+ * `1.4.2`, so both inputs must resolve to the same page. Returns null when
+ * the version is blank.
+ */
+internal fun githubReleaseTagUrl(version: String): String? {
+    val trimmed = version.trim().removePrefix("v").removePrefix("V")
+    if (trimmed.isEmpty()) return null
+    return "$GITHUB_RELEASES_BASE_URL/V$trimmed"
+}
+
 internal fun openUpdatePage(context: Context) {
-    val configuredUrl = AircraftRemoteConfig.getUpdateUrl().trim()
+    val configuredUrl = RepoUpdateConfigStore.getUpdateUrl().trim()
+    val latestVersion = RepoUpdateConfigStore.getLatestVersion().trim()
+    val minimumVersion = RepoUpdateConfigStore.getMinimumVersion().trim()
     val marketUrl = "market://details?id=${context.packageName}"
     val playStoreUrl = "https://play.google.com/store/apps/details?id=${context.packageName}"
 
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, configuredUrl.ifBlank { marketUrl }.toUri()))
-    } catch (_: ActivityNotFoundException) {
+    // GitHub sits ahead of the Play fallbacks: market:// and play.google.com
+    // have no handler on mainland-China devices, while the release page works
+    // everywhere a browser exists.
+    val candidates = listOf(
+        configuredUrl.ifBlank { null },
+        githubReleaseTagUrl(latestVersion.ifBlank { minimumVersion }),
+        marketUrl,
+        playStoreUrl
+    ).filterNotNull()
+
+    for (url in candidates) {
         try {
-            context.startActivity(Intent(Intent.ACTION_VIEW, playStoreUrl.toUri()))
+            context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+            return
         } catch (_: ActivityNotFoundException) {
-            // Keep the update prompt visible when the device has no store or browser.
+            // Try the next candidate.
         }
     }
+    // Keep the update prompt visible when the device has no store or browser.
 }
 
 @Composable

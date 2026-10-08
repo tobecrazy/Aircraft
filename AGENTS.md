@@ -18,7 +18,7 @@
 ./gradlew :supperbanner:publishReleasePublicationToBuildRepoRepository  # 发布 com.young:supperbanner 到 build/repo
 ```
 
-- Release 需要根目录 `keystore.properties`（未跟踪）；`connectedAndroidTest` 已死（仅脚手架），勿依赖。
+- Release 需要根目录 `keystore.properties`（未跟踪）；`assembleRelease`/`bundleRelease` 前自动重写根目录 `app-update.json`（Remote Config 回落源，`latest=versionName`，`minimum` 可用 `-PminimumVersion=` 抬高），release 后记得把它合到 `main`；`connectedAndroidTest` 已死（仅脚手架），勿依赖。
 
 ## 架构红线
 
