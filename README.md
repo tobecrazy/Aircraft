@@ -181,7 +181,9 @@ app/src/main/java/com/young/aircraft/
 │   ├── LauncherIconManager.kt          # internal object switching the enabled launcher activity-alias for the Remote Config `AppIcon` variant (1..5, invalid → 1); debug builds pin LauncherIcon1 so the IDE launch target stays valid
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
-│   ├── AppDatabase.kt                  # Room database (v2031) + explicit migrations 2027→2031
+│   ├── AppDatabase.kt                  # Room database (v2033) + explicit migrations 2027→2033
+│   ├── ApiRequestHistory.kt            # API Debug Tool request/response history entity (incl. responseHeaders column)
+│   ├── ApiRequestHistoryDao.kt         # History DAO: insert/queryById/queryAll/deleteById/deleteAll
 │   ├── PlayerGameData.kt               # Saved run entity
 │   ├── PlayerGameDataDao.kt            # Leaderboard/save DAO; replaceForPlayer() @Transaction
 │   ├── PlayerAircraft.kt               # Player HP and damage model
@@ -223,6 +225,8 @@ app/src/main/java/com/young/aircraft/
 │   ├── ShowImageDetailsActivity.kt     # Image details viewer (local drawable or network URL) with download capability
 │   ├── BannerDetailsActivity.kt        # Compose banner details screen launched from the supperbanner carousel
 │   ├── DevelopSettingsActivity.kt      # Debug-only crash/invincibility tools, banner effect lab, Android Dev Assistant entry, QR Tool notification test
+│   ├── ApiDebugToolActivity.kt         # Debug-only API Debug Tool: URL/method/headers/JSON body, cURL import, validation gate, response panel (DevelopSettings → Internal Tools)
+│   ├── ApiRequestHistoryActivity.kt    # Full request-history page: expandable details, load-back-to-debug, per-item delete, confirmed clear-all
 │   ├── AndroidDevAssistantToolsActivity.kt # Debug-only Android Developer Assistant tool hub (module toggles + actions)
 │   ├── ContactsActivity.kt             # Debug-only device contacts browser/editor over ContactsRepository (READ_CONTACTS/WRITE_CONTACTS)
 │   ├── CameraScanActivity.kt           # Debug-only live QR scan (CameraX LifecycleCameraController + MlKitAnalyzer)
@@ -241,6 +245,8 @@ app/src/main/java/com/young/aircraft/
 │       └── ThemedAlertDialog.kt        # MaterialAlertDialogBuilder.showThemed() native confirmation theming
 ├── providers/
 │   └── DatabaseProvider.kt             # Singleton Room provider (explicit migrations, no destructive fallback)
+├── repository/
+│   └── ApiDebugRepository.kt           # OkHttp request execution (timing/size), history save incl. response headers, Gson JSON pretty-print/parse helpers
 ├── service/
 │   ├── MusicService.kt                 # Bound BGM + SFX playback service
 │   └── FlashlightService.kt            # Foreground service (foregroundServiceType=camera) owning the torch + SOS coroutine + PARTIAL_WAKE_LOCK
@@ -268,9 +274,14 @@ app/src/main/java/com/young/aircraft/
 │   ├── DataUriUtils.kt                 # RFC 2397 data:image URI parsing for rich-text embedded images
 │   ├── FilePickerHelper.kt             # FileProvider URI and cache helpers for QR image export/import
 │   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
-│   └── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
+│   ├── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
+│   └── apidebug/
+│       ├── HeaderValidator.kt          # Per-line "Key: Value" parsing with line-numbered error positions
+│       ├── ApiRequestValidator.kt      # URL + JSON-body pre-checks feeding the canSend gate
+│       └── CurlParser.kt               # curl command parsing (-X/-H/-d/--url) for the import dialog
 └── viewmodel/
     ├── GameViewModel.kt                # Save/load game, sound prefs, player ID (MainActivity, PuzzleActivity)
+    ├── ApiDebugToolViewModel.kt        # Debug-tool UI state, validation gate (canSend), curl import, history load-by-id (ApiDebugToolActivity)
     ├── SettingsViewModel.kt            # Difficulty + sound toggles StateFlow (SettingsActivity, GameSettingsActivity)
     ├── SettingsUiState.kt              # UI state data class for settings screen
     ├── LaunchViewModel.kt              # Saved-game check and delete (LaunchActivity)
@@ -316,7 +327,7 @@ app/src/release/java/com/young/aircraft/
 - `SettingsActivityTest` for Compose settings controls, navigation, and cache-clear dialog wiring
 - `GameSettingsActivityTest` and `LanguageSettingsActivityTest` for the split preference and per-app locale screens
 - `AircraftThemeTest`, `ThemedAlertDialogTest`, and `ThemedMessageTest` for accent propagation and themed transient UI
-- `AppDatabaseMigrationTest` for the registered 2027→2031 Room migrations
+- `AppDatabaseMigrationTest` for the registered 2027→2033 Room migrations (incl. `api_request_history` creation and the `responseHeaders` column)
 - `FlashlightViewModelTest` for SOS timing pattern and brightness-strength mapping
 - `PdfViewModelTest` for the mutex-guarded `PdfRenderer` lifecycle and page bitmap cache
 - `GameStateManagerTest` for game-state emission
@@ -327,6 +338,8 @@ app/src/release/java/com/young/aircraft/
 - `AboutAircraftActivityTest`, `PrivacyPolicyActivityTest`, `ShowImageDetailsActivityTest` for the remaining Compose utility screens
 - `AndroidDevAssistantToolsActivityTest` for the debug tool-hub module grid, its per-module toggles, and the app-log switch row
 - `DevelopSettingsActivityTest` and `RichTextEditorActivityTest` for the debug tools hub and editor screen
+- `HeaderValidatorTest`, `ApiRequestValidatorTest`, and `CurlParserTest` for the API Debug Tool pure-function layer (line-numbered header errors, URL/JSON-body gate inputs, curl command parsing)
+- `ApiDebugToolViewModelTest`, `ApiDebugToolActivityTest`, and `ApiDebugRepositoryTest` for the debug tool's validation gate, history entrance/load-back, and OkHttp history persistence
 - `DominantPageIndexTest` for the PDF reader's header page counter
 - `SettingsRepositoryTest` for the SharedPreferences-backed settings store
 - `MainActivityTest` for tactical overlay behavior, mission-briefing chips, and low-memory pause handling
