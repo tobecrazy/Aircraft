@@ -105,7 +105,7 @@
    "id": "vm",
    "type": "backend",
    "label": "ViewModel 层",
-   "sublabel": "23 个 · StateFlow / LiveData",
+   "sublabel": "21 个 · StateFlow / LiveData",
    "pos": [
     400,
     190
@@ -134,7 +134,7 @@
    "id": "room",
    "type": "database",
    "label": "Room",
-   "sublabel": "AppDatabase v2031 · 显式迁移",
+   "sublabel": "AppDatabase v2033 · 显式迁移",
    "pos": [
     400,
     510
@@ -148,7 +148,7 @@
    "id": "tools",
    "type": "frontend",
    "label": "工具页",
-   "sublabel": "手电筒 · 二维码 · 设备信息",
+   "sublabel": "手电筒 · 二维码 · API 调试",
    "pos": [
     730,
     40
@@ -340,7 +340,7 @@
    "dot": "amber",
    "title": "持久化与模块边界",
    "items": [
-    "Room v2031 只注册显式迁移，无破坏性回退",
+    "Room v2033 只注册显式迁移，无破坏性回退",
     "进度统一走 replaceForPlayer() 事务，战斗与拼图互不覆盖",
     "两个 AAR 模块不依赖游戏与彼此，颜色全由宿主映射"
    ]

@@ -36,7 +36,7 @@ object AircraftRemoteConfig {
     const val LATEST_VERSION_PARAMETER = "latest_version"
     const val UPDATE_URL_PARAMETER = "update_url"
     const val APP_ICON_PARAMETER = "AppIcon"
-    private const val DEFAULT_MINIMUM_VERSION = "1.3.6"
+    private const val DEFAULT_MINIMUM_VERSION = "1.4.1"
 
     private val defaults: Map<String, Any> = mapOf(
         TOKEN_CONFIG_PARAMETER to """{"id":0,"name":"","createdAt":"1970-01-01T00:00:00Z","expiringAt":"1970-01-01T00:00:00Z","enable":false}""",
