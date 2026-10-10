@@ -59,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -136,8 +137,11 @@ private fun ApiDebugToolScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showCurlDialog by rememberSaveable { mutableStateOf(false) }
+    // Skill Step 5: hide the app bar on scroll down, show immediately on scroll up.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = BackgroundDark,
         contentWindowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
@@ -145,6 +149,7 @@ private fun ApiDebugToolScreen(
         topBar = {
             Column {
                 CenterAlignedTopAppBar(
+                    scrollBehavior = scrollBehavior,
                     title = {
                         Text(
                             text = stringResource(R.string.api_debug_tool_title),

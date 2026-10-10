@@ -16,9 +16,11 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,7 +28,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,7 +53,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import com.young.developtools.ui.FormFactorPreviews
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -403,23 +407,27 @@ internal fun AndroidDevAssistantToolsScreen(
         AssistantHeader(onBack = onBack)
         NeonDivider()
 
-        // LazyColumn, not Column+scroll: each module row is ~150dp, so this list is
-        // taller than any phone screen and only the visible rows should be composed.
-        LazyColumn(
+        // Adaptive grid (skill Step 4.1): single column on phones, two+ columns on
+        // tablets / unfolded foldables / desktop. Intro + log switch + footer span
+        // the full width; module cards flow into the adaptive columns.
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 320.dp),
             modifier = Modifier
                 .weight(1f)
                 .testTag(ModuleListTag),
-            horizontalAlignment = Alignment.CenterHorizontally
+            contentPadding = PaddingValues(start = 14.dp, top = 0.dp, end = 14.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item(key = "intro") {
-                IntroPanel(Modifier.maxContentWidth().padding(horizontal = 14.dp))
+            item(key = "intro", span = { GridItemSpan(maxLineSpan) }) {
+                IntroPanel(Modifier.maxContentWidth())
             }
 
-            item(key = "app_logs") {
+            item(key = "app_logs", span = { GridItemSpan(maxLineSpan) }) {
                 LogSwitchRow(
                     enabled = logsEnabled,
                     onToggle = onLogsToggle,
-                    modifier = Modifier.maxContentWidth().padding(horizontal = 14.dp)
+                    modifier = Modifier.maxContentWidth()
                 )
             }
 
@@ -436,13 +444,13 @@ internal fun AndroidDevAssistantToolsScreen(
                         onToggle(module.prefKey, value)
                     },
                     onOpenModule = { onOpenModule(module.prefKey) },
-                    modifier = Modifier
-                        .maxContentWidth()
-                        .padding(horizontal = 14.dp)
+                    modifier = Modifier.maxContentWidth()
                 )
             }
 
-            item(key = "footer") { Spacer(modifier = Modifier.height(24.dp)) }
+            item(key = "footer", span = { GridItemSpan(maxLineSpan) }) {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
@@ -643,7 +651,7 @@ private fun ActionButton(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF0F1118, widthDp = 412, heightDp = 892)
+@FormFactorPreviews
 @Composable
 private fun AndroidDevAssistantToolsScreenPreview() {
     AircraftTheme {

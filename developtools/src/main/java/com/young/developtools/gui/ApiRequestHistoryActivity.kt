@@ -24,8 +24,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -51,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -117,8 +119,11 @@ private fun ApiRequestHistoryScreen(
 ) {
     val history by viewModel.history.collectAsState()
     var showClearConfirm by rememberSaveable { mutableStateOf(false) }
+    // Skill Step 5: hide the app bar on scroll down, show immediately on scroll up.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = BackgroundDark,
         contentWindowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
@@ -126,6 +131,7 @@ private fun ApiRequestHistoryScreen(
         topBar = {
             Column {
                 CenterAlignedTopAppBar(
+                    scrollBehavior = scrollBehavior,
                     title = {
                         Text(
                             text = stringResource(R.string.api_debug_history_page_title),
@@ -193,14 +199,17 @@ private fun ApiRequestHistoryScreen(
                 )
             }
         } else {
-            LazyColumn(
+            // Adaptive grid (skill Step 4.1): one column on phones, two+ on tablets.
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 340.dp),
                 modifier = Modifier
                     .fillMaxSize()
                     .maxContentWidth()
                     .padding(innerPadding)
                     .testTag("history_list"),
                 contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(history, key = { it.id }) { item ->
                     HistoryDetailItem(

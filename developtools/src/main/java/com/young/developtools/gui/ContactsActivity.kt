@@ -12,6 +12,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -27,8 +28,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -196,14 +199,17 @@ private fun ContactsScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.maxContentWidth().padding(horizontal = 16.dp, vertical = 8.dp)
             )
-            LazyColumn(
+            // Adaptive grid (skill Step 4.1): one column on phones, two+ on tablets.
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 300.dp),
                 modifier = Modifier.weight(1f),
-                contentPadding = WindowInsets.navigationBars.asPaddingValues(),
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(state.contacts, key = { it.dataId }) { contact ->
                     Surface(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.surfaceContainer,
                         shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
@@ -245,7 +251,7 @@ private fun ContactsScreen(
                     }
                 }
                 if (state.contacts.isEmpty() && !state.loading && !state.error) {
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Text(
                             stringResource(R.string.contacts_empty),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

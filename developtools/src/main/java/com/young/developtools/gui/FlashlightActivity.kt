@@ -70,6 +70,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -241,7 +242,12 @@ private fun FlashlightScreen(
     onBrightnessChange: (Float) -> Unit,
     onRequestPermission: () -> Unit
 ) {
+    // Skill Step 5: hide the app bar on scroll down, show immediately on scroll up.
+    // The card list is heterogeneous (hero + toggles), so it stays a LazyColumn —
+    // only the app-bar behavior is adaptive here.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = BackgroundDark,
         contentWindowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
@@ -285,6 +291,7 @@ private fun FlashlightScreen(
                     titleContentColor = Color.Unspecified,
                     actionIconContentColor = Color.Unspecified
                 ),
+                scrollBehavior = scrollBehavior,
                 windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top)
             )
         }

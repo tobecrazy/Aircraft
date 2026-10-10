@@ -62,6 +62,7 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.young.developtools.R
+import com.young.developtools.ui.maxContentWidth
 import com.young.developtools.ui.theme.AccentGreen
 import com.young.developtools.ui.theme.AircraftTheme
 import com.young.developtools.ui.theme.BackgroundDark
@@ -168,7 +169,7 @@ private fun CameraScanScreen(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth()
+                .maxContentWidth()
                 .navigationBarsPadding()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
