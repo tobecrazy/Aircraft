@@ -4840,7 +4840,7 @@
       </div>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"request-path","label":"请求主链路","focus":["debugActivity","vm","repo","okhttp","server"],"note":"从调试页构建请求，经 ViewModel 门禁与 Repository 发往目标服务端。"},{"id":"validation","label":"校验与 cURL 导入","focus":["vm","validators"],"note":"Header/URL/Body 实时校验决定 canSend；cURL 解析回填表单。"},{"id":"history","label":"历史持久化","focus":["historyActivity","vm","room"],"note":"每次请求（含失败）入库，历史页可展开详情并回填调试页。"}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"request-path","label":"请求主链路","focus":["debugActivity","vm","repo","okhttp","server"],"note":"从调试页构建请求，经 ViewModel 门禁与 Repository 发往目标服务端。"},{"id":"validation","label":"校验与 cURL 导入","focus":["vm","validators"],"note":"Header/URL/Body 实时校验决定 canSend；cURL 解析回填表单。"},{"id":"history","label":"历史持久化","focus":["historyActivity","vm","room"],"note":"每次请求（含失败）经 ApiHistoryStore 入库，历史页可展开详情并回填调试页。"}]</script>
 
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
@@ -4909,8 +4909,11 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Boundaries (behind everything) -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" x="10" y="50" width="680" height="384" rx="12" class="c-region" stroke-width="1"/>
-        <text x="18" y="68" class="t-cloud" font-size="9" font-weight="600">App 内（仅开发者设置可见）</text>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" x="10" y="50" width="670" height="380" rx="12" class="c-region" stroke-width="1"/>
+        <text x="18" y="68" class="t-cloud" font-size="9" font-weight="600">:developtools（仅开发者设置可见）</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" x="460" y="320" width="230" height="114" rx="12" class="c-region" stroke-width="1"/>
+        <text x="468" y="338" class="t-cloud" font-size="9" font-weight="600">:app 内 Room</text>
 
         <!-- Connection paths (before components for correct z-order) -->
         <path data-edge-from="develop" data-edge-to="debugActivity" data-edge-label="API Tool 入口" data-edge-key="0" data-edge-id="entry" data-composition-points="120,140;120,210" d="M 120 140 L 120 210" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
@@ -4921,12 +4924,12 @@
         <path data-edge-from="repo" data-edge-to="okhttp" data-edge-label="构建 Request" data-edge-key="5" data-edge-id="build-request" data-composition-points="650,242;675,242;675,140;700,140" d="M 650 242 L 667 242 Q 675 242 675 234 L 675 148 Q 675 140 683 140 L 700 140" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="okhttp" data-edge-to="server" data-edge-label="HTTPS 请求" data-edge-key="6" data-edge-id="http-call" data-composition-points="830,140;890,140" d="M 830 140 L 890 140" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="repo" data-edge-to="room" data-edge-label="写入请求/响应历史" data-edge-key="7" data-edge-id="persist" data-composition-points="582,274;582,350" d="M 582 274 L 582 350" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="vm" data-edge-to="room" data-edge-label="查询历史 (DAO)" data-edge-key="8" data-edge-id="read-history" data-composition-points="350,274;350,312;568,312;568,350" d="M 350 274 L 350 304 Q 350 312 358 312 L 560 312 Q 568 312 568 320 L 568 350" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="vm" data-edge-to="room" data-edge-label="经 ApiHistoryStore 查询" data-edge-key="8" data-edge-id="read-history" data-composition-points="350,274;350,312;568,312;568,350" d="M 350 274 L 350 304 Q 350 312 358 312 L 560 312 Q 568 312 568 320 L 568 350" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="historyActivity" data-edge-to="vm" data-edge-label="EXTRA_HISTORY_ID 回填" data-edge-key="9" data-edge-id="load-back" data-composition-points="200,380;235,380;235,249;270,249" d="M 200 380 L 227 380 Q 235 380 235 372 L 235 257 Q 235 249 243 249 L 270 249" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
 
         <!-- Components -->
-        <g id="node-develop" data-node-id="develop" data-node-label="DevelopSettingsActivity" tabindex="0" role="button" aria-label="Focus DevelopSettingsActivity, Internal Tools 入口, App 内（仅开发者设置可见）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Internal Tools 入口" data-node-context="App 内（仅开发者设置可见）">
-          <title>DevelopSettingsActivity · Internal Tools 入口 · App 内（仅开发者设置可见）</title>
+        <g id="node-develop" data-node-id="develop" data-node-label="DevelopSettingsActivity" tabindex="0" role="button" aria-label="Focus DevelopSettingsActivity, Internal Tools 入口, :developtools（仅开发者设置可见）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Internal Tools 入口" data-node-context=":developtools（仅开发者设置可见）">
+          <title>DevelopSettingsActivity · Internal Tools 入口 · :developtools（仅开发者设置可见）</title>
           <rect x="40" y="80" width="160" height="60" rx="6" class="c-mask"/>
           <rect x="40" y="80" width="160" height="60" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(46 86) scale(0.6875)">
@@ -4939,8 +4942,8 @@
         <text data-detail="context" x="120" y="124" class="t-muted" font-size="9" text-anchor="middle">Internal Tools 入口</text>
         </g>
 
-        <g id="node-debugActivity" data-node-id="debugActivity" data-node-label="ApiDebugToolActivity" tabindex="0" role="button" aria-label="Focus ApiDebugToolActivity, Compose 请求构建页, App 内（仅开发者设置可见）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Compose 请求构建页" data-node-context="App 内（仅开发者设置可见）">
-          <title>ApiDebugToolActivity · Compose 请求构建页 · App 内（仅开发者设置可见）</title>
+        <g id="node-debugActivity" data-node-id="debugActivity" data-node-label="ApiDebugToolActivity" tabindex="0" role="button" aria-label="Focus ApiDebugToolActivity, Compose 请求构建页, :developtools（仅开发者设置可见）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Compose 请求构建页" data-node-context=":developtools（仅开发者设置可见）">
+          <title>ApiDebugToolActivity · Compose 请求构建页 · :developtools（仅开发者设置可见）</title>
           <rect x="40" y="210" width="160" height="64" rx="6" class="c-mask"/>
           <rect x="40" y="210" width="160" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(46 216) scale(0.6875)">
@@ -4953,8 +4956,8 @@
         <text data-detail="context" x="120" y="256" class="t-muted" font-size="9" text-anchor="middle">Compose 请求构建页</text>
         </g>
 
-        <g id="node-historyActivity" data-node-id="historyActivity" data-node-label="ApiRequestHistoryActivity" tabindex="0" role="button" aria-label="Focus ApiRequestHistoryActivity, 历史记录页, App 内（仅开发者设置可见）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="历史记录页" data-node-context="App 内（仅开发者设置可见）">
-          <title>ApiRequestHistoryActivity · 历史记录页 · App 内（仅开发者设置可见）</title>
+        <g id="node-historyActivity" data-node-id="historyActivity" data-node-label="ApiRequestHistoryActivity" tabindex="0" role="button" aria-label="Focus ApiRequestHistoryActivity, 历史记录页, :developtools（仅开发者设置可见）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="历史记录页" data-node-context=":developtools（仅开发者设置可见）">
+          <title>ApiRequestHistoryActivity · 历史记录页 · :developtools（仅开发者设置可见）</title>
           <rect x="40" y="350" width="160" height="60" rx="6" class="c-mask"/>
           <rect x="40" y="350" width="160" height="60" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(46 356) scale(0.6875)">
@@ -4967,8 +4970,8 @@
         <text data-detail="context" x="120" y="394" class="t-muted" font-size="9" text-anchor="middle">历史记录页</text>
         </g>
 
-        <g id="node-validators" data-node-id="validators" data-node-label="校验工具集" tabindex="0" role="button" aria-label="Focus 校验工具集, Header / Request / CurlParser, App 内（仅开发者设置可见）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Header / Request / CurlParser" data-node-context="App 内（仅开发者设置可见）">
-          <title>校验工具集 · Header / Request / CurlParser · App 内（仅开发者设置可见）</title>
+        <g id="node-validators" data-node-id="validators" data-node-label="校验工具集" tabindex="0" role="button" aria-label="Focus 校验工具集, Header / Request / CurlParser, :developtools（仅开发者设置可见）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Header / Request / CurlParser" data-node-context=":developtools（仅开发者设置可见）">
+          <title>校验工具集 · Header / Request / CurlParser · :developtools（仅开发者设置可见）</title>
           <rect x="270" y="80" width="160" height="64" rx="6" class="c-mask"/>
           <rect x="270" y="80" width="160" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(276 86) scale(0.6875)">
@@ -4978,8 +4981,8 @@
         <text data-detail="context" x="350" y="126" class="t-muted" font-size="8.7" text-anchor="middle">Header / Request / CurlParser</text>
         </g>
 
-        <g id="node-vm" data-node-id="vm" data-node-label="ApiDebugToolViewModel" tabindex="0" role="button" aria-label="Focus ApiDebugToolViewModel, UI 状态 · canSend 门禁, App 内（仅开发者设置可见）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="UI 状态 · canSend 门禁" data-node-context="App 内（仅开发者设置可见）">
-          <title>ApiDebugToolViewModel · UI 状态 · canSend 门禁 · App 内（仅开发者设置可见）</title>
+        <g id="node-vm" data-node-id="vm" data-node-label="ApiDebugToolViewModel" tabindex="0" role="button" aria-label="Focus ApiDebugToolViewModel, UI 状态 · canSend 门禁, :developtools（仅开发者设置可见）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="UI 状态 · canSend 门禁" data-node-context=":developtools（仅开发者设置可见）">
+          <title>ApiDebugToolViewModel · UI 状态 · canSend 门禁 · :developtools（仅开发者设置可见）</title>
           <rect x="270" y="210" width="160" height="64" rx="6" class="c-mask"/>
           <rect x="270" y="210" width="160" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(276 216) scale(0.6875)">
@@ -4989,8 +4992,8 @@
         <text data-detail="context" x="350" y="256" class="t-muted" font-size="9" text-anchor="middle">UI 状态 · canSend 门禁</text>
         </g>
 
-        <g id="node-repo" data-node-id="repo" data-node-label="ApiDebugRepository" tabindex="0" role="button" aria-label="Focus ApiDebugRepository, OkHttp 发送 · Gson 格式化, App 内（仅开发者设置可见）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="OkHttp 发送 · Gson 格式化" data-node-context="App 内（仅开发者设置可见）">
-          <title>ApiDebugRepository · OkHttp 发送 · Gson 格式化 · App 内（仅开发者设置可见）</title>
+        <g id="node-repo" data-node-id="repo" data-node-label="ApiDebugRepository" tabindex="0" role="button" aria-label="Focus ApiDebugRepository, OkHttp 发送 · Gson 格式化, :developtools（仅开发者设置可见）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="OkHttp 发送 · Gson 格式化" data-node-context=":developtools（仅开发者设置可见）">
+          <title>ApiDebugRepository · OkHttp 发送 · Gson 格式化 · :developtools（仅开发者设置可见）</title>
           <rect x="490" y="210" width="160" height="64" rx="6" class="c-mask"/>
           <rect x="490" y="210" width="160" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(496 216) scale(0.6875)">
@@ -5024,8 +5027,8 @@
         <text data-detail="context" x="960" y="154" class="t-muted" font-size="9" text-anchor="middle">被调试接口</text>
         </g>
 
-        <g id="node-room" data-node-id="room" data-node-label="Room: ApiRequestHistory" tabindex="0" role="button" aria-label="Focus Room: ApiRequestHistory, 含 responseHeaders 列, App 内（仅开发者设置可见）" aria-pressed="false" data-node-kind="database" data-node-sublabel="含 responseHeaders 列" data-node-tag="DB 2033" data-node-context="App 内（仅开发者设置可见）">
-          <title>Room: ApiRequestHistory · 含 responseHeaders 列 · App 内（仅开发者设置可见） · DB 2033</title>
+        <g id="node-room" data-node-id="room" data-node-label="Room: ApiRequestHistory" tabindex="0" role="button" aria-label="Focus Room: ApiRequestHistory, 含 responseHeaders 列, :app 内 Room" aria-pressed="false" data-node-kind="database" data-node-sublabel="含 responseHeaders 列" data-node-tag="DB 2033" data-node-context=":app 内 Room">
+          <title>Room: ApiRequestHistory · 含 responseHeaders 列 · :app 内 Room · DB 2033</title>
           <rect x="490" y="350" width="170" height="64" rx="6" class="c-mask"/>
           <rect x="490" y="350" width="170" height="64" rx="6" class="c-database" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(496 356) scale(0.6875)">
@@ -5070,9 +5073,9 @@
           <rect x="536.2" y="278" width="91.6" height="14" rx="3" class="c-mask"/>
           <text x="582" y="288" class="t-muted" font-size="8" text-anchor="middle">写入请求/响应历史</text>
         </g>
-        <g data-detail="context" data-edge-from="vm" data-edge-to="room" data-edge-label="查询历史 (DAO)" data-edge-key="8" data-edge-id="read-history">
-          <rect x="420.4" y="292" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="459" y="302" class="t-muted" font-size="8" text-anchor="middle">查询历史 (DAO)</text>
+        <g data-detail="context" data-edge-from="vm" data-edge-to="room" data-edge-label="经 ApiHistoryStore 查询" data-edge-key="8" data-edge-id="read-history">
+          <rect x="398.8" y="292" width="120.39999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="459" y="302" class="t-muted" font-size="8" text-anchor="middle">经 ApiHistoryStore 查询</text>
         </g>
         <g data-detail="context" data-edge-from="historyActivity" data-edge-to="vm" data-edge-label="EXTRA_HISTORY_ID 回填" data-edge-key="9" data-edge-id="load-back">
           <rect x="179.6" y="294.5" width="110.8" height="14" rx="3" class="c-mask"/>
@@ -5302,7 +5305,7 @@
         <ul>
           <li>&bull; OkHttp 同步请求，测速/测大小</li>
           <li>&bull; Gson pretty-print 响应体</li>
-          <li>&bull; Room 迁移 2032→2033 存响应头</li>
+          <li>&bull; Room 迁移 2032→2033 存响应头，app 侧 Room 实现 Store 接口</li>
         </ul>
       </div>
 

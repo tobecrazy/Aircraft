@@ -4840,7 +4840,7 @@
       </div>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"combat-rail","label":"战斗主链路与落库","focus":["launch","main","game","vm","data","room"],"note":"启动页进入战斗宿主，游戏状态由渲染线程独占，关卡与击杀数经 ViewModel 与 Data 层落到 Room。"},{"id":"render-thread","label":"渲染线程与常驻服务","focus":["main","game","services","vm","data"],"note":"UI 线程只向 gameCommands 队列提交命令与触摸坐标，帧循环在 SurfaceHolder 锁内消费。"},{"id":"modules","label":"工具页与两个库模块","focus":["settings","puzzle","richtext","supperbanner"],"note":"工具页与拼图是设置下的平行入口，两个 AAR 模块只被工具页消费，不参与战斗推进。"}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"combat-rail","label":"战斗主链路与落库","focus":["launch","main","game","vm","data","room"],"note":"启动页进入战斗宿主，游戏状态由渲染线程独占，关卡与击杀数经 ViewModel 与 Data 层落到 Room。"},{"id":"render-thread","label":"渲染线程与常驻服务","focus":["main","game","services","vm","data"],"note":"UI 线程只向 gameCommands 队列提交命令与触摸坐标，帧循环在 SurfaceHolder 锁内消费。"},{"id":"modules","label":"工具模块与两个库","focus":["tools","settings","richtext","supperbanner"],"note":"工具页整体抽为 :developtools，经 DevTools 桥接宿主；两个 View 库只被工具模块消费。"}]</script>
 
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
@@ -4912,8 +4912,8 @@
         <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" x="40" y="10" width="960" height="590" rx="12" class="c-region" stroke-width="1"/>
         <text x="48" y="28" class="t-cloud" font-size="9" font-weight="600">Android App（com.young.aircraft）</text>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" x="1030" y="10" width="570" height="270" rx="12" class="c-region" stroke-width="1"/>
-        <text x="1038" y="28" class="t-cloud" font-size="9" font-weight="600">独立 Gradle 库模块</text>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" x="700" y="10" width="900" height="270" rx="12" class="c-region" stroke-width="1"/>
+        <text x="708" y="28" class="t-cloud" font-size="9" font-weight="600">独立 Gradle 库模块</text>
 
         <!-- Connection paths (before components for correct z-order) -->
         <path data-edge-from="launch" data-edge-to="main" data-edge-label="开始 / 继续战斗" data-edge-key="0" data-edge-id="launch-main" data-composition-points="170,110;170,190" d="M 170 110 L 170 190" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
@@ -4925,8 +4925,9 @@
         <path data-edge-from="launch" data-edge-to="tools" data-edge-label="工具入口" data-edge-key="6" data-edge-id="launch-tools" data-composition-points="270,68;730,68" d="M 270 68 L 730 68" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="launch" data-edge-to="settings" data-edge-label="设置入口" data-edge-key="7" data-edge-id="launch-settings" data-composition-points="270,82;706,82;706,225;730,225" d="M 270 82 L 698 82 Q 706 82 706 90 L 706 217 Q 706 225 714 225 L 730 225" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="settings" data-edge-to="puzzle" data-edge-label="打开拼图" data-edge-key="8" data-edge-id="settings-puzzle" data-composition-points="850,260;850,350" d="M 850 260 L 850 350" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="settings" data-edge-to="richtext" data-edge-label="调试开发者入口" data-edge-key="9" data-edge-id="settings-richtext" data-composition-points="970,218;1015,218;1015,75;1060,75" d="M 970 218 L 1007 218 Q 1015 218 1015 210 L 1015 83 Q 1015 75 1023 75 L 1060 75" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="settings" data-edge-to="supperbanner" data-edge-label="Banner 轮播" data-edge-key="10" data-edge-id="settings-banner" data-composition-points="970,232;1340,232" d="M 970 232 L 1340 232" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="settings" data-edge-to="tools" data-edge-label="开发工具入口" data-edge-key="9" data-edge-id="settings-tools" data-composition-points="850,190;850,110" d="M 850 190 L 850 110" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="tools" data-edge-to="richtext" data-edge-label="承载编辑器" data-edge-key="10" data-edge-id="tools-richtext" data-composition-points="970,68;1060,68" d="M 970 68 L 1060 68" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="tools" data-edge-to="supperbanner" data-edge-label="Banner 轮播" data-edge-key="11" data-edge-id="tools-banner" data-composition-points="970,82;994,82;994,225;1340,225" d="M 970 82 L 986 82 Q 994 82 994 90 L 994 217 Q 994 225 1002 225 L 1340 225" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
         <!-- Components -->
         <g id="node-launch" data-node-id="launch" data-node-label="LaunchActivity" tabindex="0" role="button" aria-label="Focus LaunchActivity, 首启门禁 → 继续游戏 · 工具入口, Android App（com.young.aircraft）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="首启门禁 → 继续游戏 · 工具入口" data-node-context="Android App（com.young.aircraft）">
@@ -4971,26 +4972,26 @@
         <text data-detail="context" x="170" y="399" class="t-muted" font-size="9" text-anchor="middle">SurfaceView · 30FPS 渲染线程</text>
         </g>
 
-        <g id="node-services" data-node-id="services" data-node-label="常驻服务" tabindex="0" role="button" aria-label="Focus 常驻服务, MusicService · FlashlightService, Android App（com.young.aircraft）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="MusicService · FlashlightService" data-node-context="Android App（com.young.aircraft）">
-          <title>常驻服务 · MusicService · FlashlightService · Android App（com.young.aircraft）</title>
+        <g id="node-services" data-node-id="services" data-node-label="常驻服务" tabindex="0" role="button" aria-label="Focus 常驻服务, MusicService · FlashlightService（模块）, Android App（com.young.aircraft）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="MusicService · FlashlightService（模块）" data-node-context="Android App（com.young.aircraft）">
+          <title>常驻服务 · MusicService · FlashlightService（模块） · Android App（com.young.aircraft）</title>
           <rect x="70" y="510" width="200" height="70" rx="6" class="c-mask"/>
           <rect x="70" y="510" width="200" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(76 516) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-detail-anchor x="170" y="543" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">常驻服务</text>
-        <text data-detail="context" x="170" y="559" class="t-muted" font-size="9" text-anchor="middle">MusicService · FlashlightService</text>
+        <text data-detail="context" x="170" y="559" class="t-muted" font-size="8" text-anchor="middle">MusicService · FlashlightService（模块）</text>
         </g>
 
-        <g id="node-vm" data-node-id="vm" data-node-label="ViewModel 层" tabindex="0" role="button" aria-label="Focus ViewModel 层, 21 个 · StateFlow / LiveData, Android App（com.young.aircraft）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="21 个 · StateFlow / LiveData" data-node-tag="MVVM" data-node-context="Android App（com.young.aircraft）">
-          <title>ViewModel 层 · 21 个 · StateFlow / LiveData · Android App（com.young.aircraft） · MVVM</title>
+        <g id="node-vm" data-node-id="vm" data-node-label="ViewModel 层" tabindex="0" role="button" aria-label="Focus ViewModel 层, 9 个 · StateFlow / LiveData, Android App（com.young.aircraft）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="9 个 · StateFlow / LiveData" data-node-tag="MVVM" data-node-context="Android App（com.young.aircraft）">
+          <title>ViewModel 层 · 9 个 · StateFlow / LiveData · Android App（com.young.aircraft） · MVVM</title>
           <rect x="400" y="190" width="200" height="70" rx="6" class="c-mask"/>
           <rect x="400" y="190" width="200" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(406 196) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-detail-anchor x="500" y="223" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">ViewModel 层</text>
-        <text data-detail="context" x="500" y="239" class="t-muted" font-size="9" text-anchor="middle">21 个 · StateFlow / LiveData</text>
+        <text data-detail="context" x="500" y="239" class="t-muted" font-size="9" text-anchor="middle">9 个 · StateFlow / LiveData</text>
         <text data-detail="fine" x="500" y="252" class="t-backend" font-size="7" text-anchor="middle">MVVM</text>
         </g>
 
@@ -5017,8 +5018,8 @@
         <text data-detail="context" x="500" y="559" class="t-muted" font-size="9" text-anchor="middle">AppDatabase v2033 · 显式迁移</text>
         </g>
 
-        <g id="node-tools" data-node-id="tools" data-node-label="工具页" tabindex="0" role="button" aria-label="Focus 工具页, 手电筒 · 二维码 · API 调试, Android App（com.young.aircraft）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="手电筒 · 二维码 · API 调试" data-node-context="Android App（com.young.aircraft）">
-          <title>工具页 · 手电筒 · 二维码 · API 调试 · Android App（com.young.aircraft）</title>
+        <g id="node-tools" data-node-id="tools" data-node-label=":developtools" tabindex="0" role="button" aria-label="Focus :developtools, 工具页 13 Activity · 门控 + 日志, 独立 Gradle 库模块" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="工具页 13 Activity · 门控 + 日志" data-node-context="独立 Gradle 库模块">
+          <title>:developtools · 工具页 13 Activity · 门控 + 日志 · 独立 Gradle 库模块</title>
           <rect x="730" y="40" width="240" height="70" rx="6" class="c-mask"/>
           <rect x="730" y="40" width="240" height="70" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(736 46) scale(0.6875)">
@@ -5027,8 +5028,8 @@
             <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
-          <text data-detail-anchor x="850" y="73" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">工具页</text>
-        <text data-detail="context" x="850" y="89" class="t-muted" font-size="9" text-anchor="middle">手电筒 · 二维码 · API 调试</text>
+          <text data-detail-anchor x="850" y="73" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">:developtools</text>
+        <text data-detail="context" x="850" y="89" class="t-muted" font-size="9" text-anchor="middle">工具页 13 Activity · 门控 + 日志</text>
         </g>
 
         <g id="node-settings" data-node-id="settings" data-node-label="SettingsActivity" tabindex="0" role="button" aria-label="Focus SettingsActivity, 设置 · 主题 · 语言 · 难度, Android App（com.young.aircraft）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="设置 · 主题 · 语言 · 难度" data-node-context="Android App（com.young.aircraft）">
@@ -5120,13 +5121,17 @@
           <rect x="825.8" y="264" width="48.4" height="14" rx="3" class="c-mask"/>
           <text x="850" y="274" class="t-muted" font-size="8" text-anchor="middle">打开拼图</text>
         </g>
-        <g data-detail="context" data-edge-from="settings" data-edge-to="richtext" data-edge-label="调试开发者入口" data-edge-key="9" data-edge-id="settings-richtext">
-          <rect x="976.4" y="126.5" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="1015" y="136.5" class="t-muted" font-size="8" text-anchor="middle">调试开发者入口</text>
+        <g data-detail="context" data-edge-from="settings" data-edge-to="tools" data-edge-label="开发工具入口" data-edge-key="9" data-edge-id="settings-tools">
+          <rect x="816.2" y="170" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="850" y="180" class="t-muted" font-size="8" text-anchor="middle">开发工具入口</text>
         </g>
-        <g data-detail="context" data-edge-from="settings" data-edge-to="supperbanner" data-edge-label="Banner 轮播" data-edge-key="10" data-edge-id="settings-banner">
-          <rect x="1123.6" y="212" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="1155" y="222" class="t-muted" font-size="8" text-anchor="middle">Banner 轮播</text>
+        <g data-detail="context" data-edge-from="tools" data-edge-to="richtext" data-edge-label="承载编辑器" data-edge-key="10" data-edge-id="tools-richtext">
+          <rect x="986" y="48" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="1015" y="58" class="t-muted" font-size="8" text-anchor="middle">承载编辑器</text>
+        </g>
+        <g data-detail="context" data-edge-from="tools" data-edge-to="supperbanner" data-edge-label="Banner 轮播" data-edge-key="11" data-edge-id="tools-banner">
+          <rect x="962.6" y="133.5" width="62.8" height="14" rx="3" class="c-mask"/>
+          <text x="994" y="143.5" class="t-muted" font-size="8" text-anchor="middle">Banner 轮播</text>
         </g>
 
         <!-- Legend -->
@@ -5364,7 +5369,8 @@
         <ul>
           <li>&bull; Room v2033 只注册显式迁移，无破坏性回退</li>
           <li>&bull; 进度统一走 replaceForPlayer() 事务，战斗与拼图互不覆盖</li>
-          <li>&bull; 两个 AAR 模块不依赖游戏与彼此，颜色全由宿主映射</li>
+          <li>&bull; 三个库模块：:developtools 承载工具屏，经 DevTools 反向调用宿主</li>
+          <li>&bull; :developtools 依赖两个 View 库；View 库不碰游戏与主题</li>
         </ul>
       </div>
     </div>

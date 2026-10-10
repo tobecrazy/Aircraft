@@ -8,7 +8,7 @@
     "views": [
       { "id": "request-path", "label": "请求主链路", "focus": ["debugActivity", "vm", "repo", "okhttp", "server"], "note": "从调试页构建请求，经 ViewModel 门禁与 Repository 发往目标服务端。" },
       { "id": "validation", "label": "校验与 cURL 导入", "focus": ["vm", "validators"], "note": "Header/URL/Body 实时校验决定 canSend；cURL 解析回填表单。" },
-      { "id": "history", "label": "历史持久化", "focus": ["historyActivity", "vm", "room"], "note": "每次请求（含失败）入库，历史页可展开详情并回填调试页。" }
+      { "id": "history", "label": "历史持久化", "focus": ["historyActivity", "vm", "room"], "note": "每次请求（含失败）经 ApiHistoryStore 入库，历史页可展开详情并回填调试页。" }
     ]
   },
   "components": [
@@ -23,7 +23,8 @@
     { "id": "room", "type": "database", "label": "Room: ApiRequestHistory", "sublabel": "含 responseHeaders 列", "pos": [490, 350], "size": [170, 64], "tag": "DB 2033" }
   ],
   "boundaries": [
-    { "kind": "region", "label": "App 内（仅开发者设置可见）", "wraps": ["develop", "debugActivity", "historyActivity", "validators", "vm", "repo", "room"] }
+    { "kind": "region", "label": ":developtools（仅开发者设置可见）", "wraps": ["develop", "debugActivity", "historyActivity", "validators", "vm", "repo"] },
+    { "kind": "region", "label": ":app 内 Room", "wraps": ["room"] }
   ],
   "connections": [
     { "id": "entry", "from": "develop", "to": "debugActivity", "label": "API Tool 入口", "labelDy": 24 },
@@ -34,12 +35,12 @@
     { "id": "build-request", "from": "repo", "to": "okhttp", "label": "构建 Request" },
     { "id": "http-call", "from": "okhttp", "to": "server", "label": "HTTPS 请求", "variant": "emphasis" },
     { "id": "persist", "from": "repo", "to": "room", "label": "写入请求/响应历史", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
-    { "id": "read-history", "from": "vm", "to": "room", "label": "查询历史 (DAO)", "fromSide": "bottom", "toSide": "top" },
+    { "id": "read-history", "from": "vm", "to": "room", "label": "经 ApiHistoryStore 查询", "fromSide": "bottom", "toSide": "top" },
     { "id": "load-back", "from": "historyActivity", "to": "vm", "label": "EXTRA_HISTORY_ID 回填", "variant": "dashed", "fromSide": "right", "toSide": "left" }
   ],
   "cards": [
     { "dot": "cyan", "title": "校验门禁", "items": ["逐行 Header 报错（行号）", "URL 与 JSON Body 预检", "canSend=false 时禁用 Send"] },
-    { "dot": "emerald", "title": "网络与持久化", "items": ["OkHttp 同步请求，测速/测大小", "Gson pretty-print 响应体", "Room 迁移 2032→2033 存响应头"] },
+    { "dot": "emerald", "title": "网络与持久化", "items": ["OkHttp 同步请求，测速/测大小", "Gson pretty-print 响应体", "Room 迁移 2032→2033 存响应头，app 侧 Room 实现 Store 接口"] },
     { "dot": "violet", "title": "入口与历史", "items": ["仅 Developer Settings 可见", "历史页支持展开/删除/清空", "cURL 粘贴导入自动回填"] }
   ]
 }

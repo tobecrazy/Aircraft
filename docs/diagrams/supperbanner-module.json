@@ -35,7 +35,7 @@
           "details",
           "maven"
         ],
-        "note": "点击回调与详情下载留在 app，发布走独立的 maven-publish 通道。"
+        "note": "点击回调与详情下载随 :developtools 搬迁，发布走独立的 maven-publish 通道。"
       }
     ]
   },
@@ -127,7 +127,7 @@
     {
       "id": "details",
       "type": "frontend",
-      "label": "BannerDetailsActivity",
+      "label": "ShowImageDetailsActivity",
       "sublabel": "查看下载，读 Item 字段",
       "pos": [
         880,
@@ -158,9 +158,16 @@
       "kind": "region",
       "label": "Gradle 模块 :app",
       "wraps": [
+        "about"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Gradle 模块 :developtools",
+      "wraps": [
         "develop",
-        "about",
-        "richtext_screen"
+        "richtext_screen",
+        "details"
       ]
     },
     {
@@ -228,11 +235,11 @@
     },
     {
       "dot": "cyan",
-      "title": "仍留在 :app",
+      "title": "宿主侧分工",
       "items": [
-        "BannerDetailsActivity 与 BannerDetailsViewModel 的查看下载流程",
-        "主题配色、指示器样式与 settings 交互",
-        "各页面如何拼装 SupperBannerItem 列表"
+        "详情查看下载随 :developtools 搬迁（ShowImageDetailsActivity）",
+        ":app 仅 About 页构造 item 后跳转详情页",
+        "主题配色、指示器样式由宿主映射进库"
       ]
     },
     {
