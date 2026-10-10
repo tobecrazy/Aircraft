@@ -79,72 +79,6 @@
             android:label="@string/about_me_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
-            android:name=".gui.DeviceInfoActivity"
-            android:exported="false"
-            android:label="@string/title_activity_device_info"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.DevelopSettingsActivity"
-            android:exported="false"
-            android:label="@string/develop_settings_title"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.CameraScanActivity"
-            android:exported="false"
-            android:label="@string/camera_scan_title"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.ApiDebugToolActivity"
-            android:exported="false"
-            android:label="@string/api_debug_tool_title"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.ApiRequestHistoryActivity"
-            android:exported="false"
-            android:label="@string/api_debug_history_page_title"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.AndroidDevAssistantToolsActivity"
-            android:exported="false"
-            android:label="@string/android_dev_assistant_tools_title"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.ContactsActivity"
-            android:exported="false"
-            android:label="@string/develop_settings_assistant_module_contacts"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.ShowImageDetailsActivity"
-            android:exported="false"
-            android:label="@string/banner_details_title"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.QRCodeToolActivity"
-            android:exported="false"
-            android:label="@string/qr_code_tool_title"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.FlashlightActivity"
-            android:exported="false"
-            android:label="@string/flashlight_title"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.PdfReaderActivity"
-            android:exported="false"
-            android:label="@string/pdf_reader_title"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
-            android:name=".gui.RichTextEditorActivity"
-            android:exported="false"
-            android:label="@string/rich_text_editor_title"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.Aircraft.Common" />
-        <activity
             android:name=".gui.SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings"
@@ -267,11 +201,6 @@
                 android:value="true" />
         </service>
 
-        <service
-            android:name=".service.FlashlightService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="camera" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -15,23 +15,23 @@
 # ============================================================
 # Android Components (referenced by name in the manifest)
 # ============================================================
+# FlashlightService moved to :developtools (kept via its consumer-rules.pro).
 -keep class com.young.aircraft.service.MusicService { *; }
 -keep class com.young.aircraft.service.MusicService$MusicBinder { *; }
--keep class com.young.aircraft.service.FlashlightService { *; }
 -keep class com.young.aircraft.gui.StarFieldView { *; }
 
 # ============================================================
 # Enums (GameMode/GameDifficulty are persisted by name and
 # restored via valueOf; GameState is state-machine data)
 # ============================================================
+# GameMode/GameDifficulty are persisted by name and restored via valueOf; the
+# explicit values()/valueOf() lines are subsumed by the AGP default
+# `-keepclassmembers enum *` rule (see the R8 config analyzer report), so only
+# `*;` is declared here. GameState is state-machine data.
 -keepclassmembers enum com.young.aircraft.data.GameMode {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
     *;
 }
 -keepclassmembers enum com.young.aircraft.data.GameDifficulty {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
     *;
 }
 -keepclassmembers enum com.young.aircraft.data.GameState {

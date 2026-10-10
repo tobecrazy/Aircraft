@@ -5,7 +5,8 @@ import android.os.Looper
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.test.core.app.ActivityScenario
 import com.young.aircraft.R
-import com.young.aircraft.data.ImageDetailsIntentContract
+import com.young.developtools.data.ImageDetailsIntentContract
+import com.young.developtools.gui.ShowImageDetailsActivity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull

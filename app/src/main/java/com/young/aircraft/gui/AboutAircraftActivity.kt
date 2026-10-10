@@ -59,7 +59,8 @@ import com.young.aircraft.ui.theme.TextMuted
 import com.young.aircraft.viewmodel.AboutAircraftViewModel
 import com.young.aircraft.viewmodel.AboutAircraftUiState
 import com.young.aircraft.viewmodel.ImageLoadState
-import com.young.aircraft.utils.DeveloperMode
+import com.young.developtools.gui.ShowImageDetailsActivity
+import com.young.developtools.utils.DeveloperMode
 import com.young.supperbanner.SupperBannerImage
 import com.young.supperbanner.SupperBannerItem
 

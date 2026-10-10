@@ -96,48 +96,6 @@ class AboutMeActivityTest {
     }
 
     @Test
-    fun `flashlight torch hero click toggles flashlight like switch`() {
-        val toggledValues = mutableListOf<Boolean>()
-
-        composeRule.activity.setContent {
-            var torchOn by remember { mutableStateOf(false) }
-
-            MaterialTheme {
-                TorchHero(
-                    isOn = torchOn,
-                    isSosMode = false,
-                    enabled = true,
-                    onToggleFlashlight = {
-                        torchOn = !torchOn
-                        toggledValues += torchOn
-                    }
-                )
-            }
-        }
-
-        composeRule.onNodeWithTag(FLASHLIGHT_TORCH_HERO_TAG).performClick()
-        composeRule.onNodeWithTag(FLASHLIGHT_TORCH_HERO_TAG).performClick()
-
-        assertEquals(listOf(true, false), toggledValues)
-    }
-
-    @Test
-    fun `flashlight torch hero is disabled when controls are disabled`() {
-        composeRule.activity.setContent {
-            MaterialTheme {
-                TorchHero(
-                    isOn = false,
-                    isSosMode = false,
-                    enabled = false,
-                    onToggleFlashlight = {}
-                )
-            }
-        }
-
-        composeRule.onNodeWithTag(FLASHLIGHT_TORCH_HERO_TAG).assertIsNotEnabled()
-    }
-
-    @Test
     fun `project copy is localized for english and chinese`() {
         val appContext = ApplicationProvider.getApplicationContext<Context>()
 

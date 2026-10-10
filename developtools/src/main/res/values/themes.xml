@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Standalone fallback so the module (and its Robolectric tests) links without :app.
+         At app merge the app's same-named Theme.Aircraft.Common wins; values match it. -->
+    <style name="Theme.Aircraft.Common" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#252A3A</item>
+        <item name="colorPrimaryVariant">#1B1F2B</item>
+        <item name="colorOnPrimary">#FFFFFFFF</item>
+        <item name="colorSecondary">#FF03DAC5</item>
+        <item name="colorSecondaryVariant">#FF018786</item>
+        <item name="colorOnSecondary">#FF000000</item>
+        <item name="homeAsUpIndicator">@drawable/ic_header_back</item>
+        <item name="android:statusBarColor">#1B1F2B</item>
+        <item name="android:windowBackground">#1B1F2B</item>
+    </style>
+
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/dialog_exit</item>
+    </style>
+
+    <style name="ThemeOverlay.Aircraft.QrToolBottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Aircraft.QrToolBottomSheet</item>
+        <item name="android:backgroundDimAmount">0.75</item>
+    </style>
+
+    <style name="Widget.Aircraft.QrToolBottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+</resources>

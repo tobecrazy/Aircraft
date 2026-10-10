@@ -123,6 +123,7 @@ tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.co
 dependencies {
     implementation(project(":richtexteditor"))
     implementation(project(":supperbanner"))
+    implementation(project(":developtools"))
     implementation(libs.androidx.foundation.layout)
     implementation(libs.zxing)
     implementation(libs.retrofit)

@@ -3,7 +3,7 @@ package com.young.aircraft.common
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
-import com.young.aircraft.utils.DebugTools
+import com.young.developtools.utils.DebugTools
 
 /** Applies one of the manifest launcher aliases selected by Remote Config. */
 internal object LauncherIconManager {
