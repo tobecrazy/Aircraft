@@ -100,7 +100,7 @@ val generateRepoUpdateConfig = tasks.register("generateRepoUpdateConfig") {
     description = "Generates app-update.json from versionName for the Remote Config fallback."
     val outputFile = rootProject.file("app-update.json")
     val appVersionName = android.defaultConfig.versionName as String
-    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.3.6"
+    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.4.1"
     inputs.property("versionName", appVersionName)
     inputs.property("minimumVersion", floorVersion)
     outputs.file(outputFile)
