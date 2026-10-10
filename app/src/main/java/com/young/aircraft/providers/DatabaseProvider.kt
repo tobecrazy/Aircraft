@@ -20,6 +20,8 @@ object DatabaseProvider {
                 "aircraft_game.db"
             )
                 .addMigrations(
+                    AppDatabase.MIGRATION_2032_2033,
+                    AppDatabase.MIGRATION_2031_2032,
                     AppDatabase.MIGRATION_2030_2031,
                     AppDatabase.MIGRATION_2027_2028,
                     AppDatabase.MIGRATION_2028_2029,

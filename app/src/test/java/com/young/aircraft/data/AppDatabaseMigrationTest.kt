@@ -34,7 +34,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun `migrations from 2027 to 2031 preserve existing player data`() = runBlocking {
+    fun `migrations from 2027 to 2033 preserve existing player data`() = runBlocking {
         createVersion2027Database()
 
         val migratedDb = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
@@ -42,7 +42,9 @@ class AppDatabaseMigrationTest {
                 AppDatabase.MIGRATION_2027_2028,
                 AppDatabase.MIGRATION_2028_2029,
                 AppDatabase.MIGRATION_2029_2030,
-                AppDatabase.MIGRATION_2030_2031
+                AppDatabase.MIGRATION_2030_2031,
+                AppDatabase.MIGRATION_2031_2032,
+                AppDatabase.MIGRATION_2032_2033
             )
             .allowMainThreadQueries()
             .build()

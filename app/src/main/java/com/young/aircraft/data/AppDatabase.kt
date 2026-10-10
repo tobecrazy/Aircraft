@@ -5,11 +5,37 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [PlayerGameData::class], version = 2031)
+@Database(entities = [PlayerGameData::class, ApiRequestHistory::class], version = 2033)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun playerGameDataDao(): PlayerGameDataDao
+    abstract fun apiRequestHistoryDao(): ApiRequestHistoryDao
 
     companion object {
+        val MIGRATION_2032_2033 = object : Migration(2032, 2033) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE api_request_history ADD COLUMN responseHeaders TEXT")
+            }
+        }
+
+        val MIGRATION_2031_2032 = object : Migration(2031, 2032) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS api_request_history (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        timestamp INTEGER NOT NULL,
+                        url TEXT NOT NULL,
+                        method TEXT NOT NULL,
+                        requestHeaders TEXT NOT NULL,
+                        requestBody TEXT,
+                        responseCode INTEGER,
+                        responseBody TEXT,
+                        responseTime INTEGER,
+                        error TEXT
+                    )
+                """.trimIndent())
+            }
+        }
+
         val MIGRATION_2030_2031 = object : Migration(2030, 2031) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE player_game_data ADD COLUMN air_battle_level INTEGER NOT NULL DEFAULT 1")

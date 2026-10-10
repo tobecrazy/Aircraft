@@ -32,8 +32,8 @@ android {
         applicationId = "com.young.aircraft"
         minSdk = 31
         targetSdk = 37
-        versionCode = 15
-        versionName = "1.4.3"
+        versionCode = 16
+        versionName = "1.4.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -127,6 +127,7 @@ dependencies {
     implementation(libs.zxing)
     implementation(libs.retrofit)
     implementation(libs.okhttp)
+    implementation(libs.gson)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.datastore.preferences)

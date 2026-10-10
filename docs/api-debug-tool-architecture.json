@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "API Debug Tool 架构",
+    "output": "api-debug-tool-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "request-path", "label": "请求主链路", "focus": ["debugActivity", "vm", "repo", "okhttp", "server"], "note": "从调试页构建请求，经 ViewModel 门禁与 Repository 发往目标服务端。" },
+      { "id": "validation", "label": "校验与 cURL 导入", "focus": ["vm", "validators"], "note": "Header/URL/Body 实时校验决定 canSend；cURL 解析回填表单。" },
+      { "id": "history", "label": "历史持久化", "focus": ["historyActivity", "vm", "room"], "note": "每次请求（含失败）入库，历史页可展开详情并回填调试页。" }
+    ]
+  },
+  "components": [
+    { "id": "develop", "type": "frontend", "label": "DevelopSettingsActivity", "sublabel": "Internal Tools 入口", "pos": [40, 80], "size": [160, 60] },
+    { "id": "debugActivity", "type": "frontend", "label": "ApiDebugToolActivity", "sublabel": "Compose 请求构建页", "pos": [40, 210], "size": [160, 64] },
+    { "id": "historyActivity", "type": "frontend", "label": "ApiRequestHistoryActivity", "sublabel": "历史记录页", "pos": [40, 350], "size": [160, 60] },
+    { "id": "validators", "type": "backend", "label": "校验工具集", "sublabel": "Header / Request / CurlParser", "pos": [270, 80], "size": [160, 64] },
+    { "id": "vm", "type": "backend", "label": "ApiDebugToolViewModel", "sublabel": "UI 状态 · canSend 门禁", "pos": [270, 210], "size": [160, 64] },
+    { "id": "repo", "type": "backend", "label": "ApiDebugRepository", "sublabel": "OkHttp 发送 · Gson 格式化", "pos": [490, 210], "size": [160, 64] },
+    { "id": "okhttp", "type": "external", "label": "OkHttp", "sublabel": "HTTP 客户端", "pos": [700, 110], "size": [130, 60] },
+    { "id": "server", "type": "external", "label": "目标 API 服务端", "sublabel": "被调试接口", "pos": [890, 110], "size": [140, 60] },
+    { "id": "room", "type": "database", "label": "Room: ApiRequestHistory", "sublabel": "含 responseHeaders 列", "pos": [490, 350], "size": [170, 64], "tag": "DB 2033" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "App 内（仅开发者设置可见）", "wraps": ["develop", "debugActivity", "historyActivity", "validators", "vm", "repo", "room"] }
+  ],
+  "connections": [
+    { "id": "entry", "from": "develop", "to": "debugActivity", "label": "API Tool 入口", "labelDy": 24 },
+    { "id": "form-send", "from": "debugActivity", "to": "vm", "label": "表单状态 · 发送", "variant": "emphasis", "labelDy": -19 },
+    { "id": "open-history", "from": "debugActivity", "to": "historyActivity", "label": "View All", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "validate", "from": "vm", "to": "validators", "label": "实时校验", "fromSide": "top", "toSide": "bottom" },
+    { "id": "gated-send", "from": "vm", "to": "repo", "label": "canSend 通过才发送", "variant": "emphasis", "labelDy": -26 },
+    { "id": "build-request", "from": "repo", "to": "okhttp", "label": "构建 Request" },
+    { "id": "http-call", "from": "okhttp", "to": "server", "label": "HTTPS 请求", "variant": "emphasis" },
+    { "id": "persist", "from": "repo", "to": "room", "label": "写入请求/响应历史", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "read-history", "from": "vm", "to": "room", "label": "查询历史 (DAO)", "fromSide": "bottom", "toSide": "top" },
+    { "id": "load-back", "from": "historyActivity", "to": "vm", "label": "EXTRA_HISTORY_ID 回填", "variant": "dashed", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "校验门禁", "items": ["逐行 Header 报错（行号）", "URL 与 JSON Body 预检", "canSend=false 时禁用 Send"] },
+    { "dot": "emerald", "title": "网络与持久化", "items": ["OkHttp 同步请求，测速/测大小", "Gson pretty-print 响应体", "Room 迁移 2032→2033 存响应头"] },
+    { "dot": "violet", "title": "入口与历史", "items": ["仅 Developer Settings 可见", "历史页支持展开/删除/清空", "cURL 粘贴导入自动回填"] }
+  ]
+}

@@ -95,6 +95,18 @@
             android:label="@string/camera_scan_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
+            android:name=".gui.ApiDebugToolActivity"
+            android:exported="false"
+            android:label="@string/api_debug_tool_title"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.Aircraft.Common" />
+        <activity
+            android:name=".gui.ApiRequestHistoryActivity"
+            android:exported="false"
+            android:label="@string/api_debug_history_page_title"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.Aircraft.Common" />
+        <activity
             android:name=".gui.AndroidDevAssistantToolsActivity"
             android:exported="false"
             android:label="@string/android_dev_assistant_tools_title"
