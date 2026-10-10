@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.4] - 2026-10-10
+
+### Added
+- Debug-only API Debug Tool (`ApiDebugToolActivity` + `ApiDebugToolViewModel` + `ApiDebugRepository`), entered from Developer Settings → Internal Tools → "API Tool": URL input, HTTP method picker (GET/POST/PUT/DELETE/PATCH/OPTIONS/HEAD/TRACE/CONNECT), multi-line `Key: Value` headers, JSON body (for POST/PUT/PATCH), and a response panel with status code, timing, size, and Gson pretty-printed body
+- Per-line header validation with line-numbered errors (missing `:`, empty key, illegal key characters); invalid input disables Send via a `canSend` validation gate, which also covers malformed URLs and non-JSON bodies (a body on GET/DELETE-style methods is rejected instead of silently dropped)
+- "Import from cURL" dialog: pastes a `curl` command (`-X/--request`, `-H/--header`, `-d/--data*`, `--url`/bare URL, `-d`-implies-POST) and auto-fills method/URL/headers/body
+- Copy button on valid responses copies status/time/size lines plus the formatted body to the clipboard
+- Dedicated request-history page (`ApiRequestHistoryActivity`): full Room-backed list with expandable request/response details (including response headers), Load-back-to-debug via `EXTRA_HISTORY_ID`, per-item delete, and a confirmed clear-all; the debug page itself now only keeps the history entrance
+- `api_debug_*` string resources in all four locales (English, Simplified Chinese, Traditional Chinese Taiwan/Hong Kong)
+
+### Changed
+- Room database `2032` → `2033`: new nullable `responseHeaders` column on `api_request_history` (`MIGRATION_2032_2033`); request/response headers are Gson-serialized for the history detail view
+- Added `com.google.code.gson:gson:2.11.0` dependency for JSON formatting and header map serialization
+
 ## [1.4.2] - 2026-10-08
 
 ### Fixed

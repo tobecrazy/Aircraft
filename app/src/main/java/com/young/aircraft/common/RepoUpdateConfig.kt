@@ -72,7 +72,7 @@ object RepoUpdateConfigStore {
         val request = Request.Builder().url(url).build()
         httpClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) return null
-            val body = response.body?.string().orEmpty()
+            val body = response.body.string()
             if (body.isBlank()) return null
             return parseRepoUpdateConfig(body)
         }

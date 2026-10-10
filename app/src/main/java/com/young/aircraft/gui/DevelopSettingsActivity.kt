@@ -155,6 +155,7 @@ class DevelopSettingsActivity : BaseAircraftActivity() {
                     onOpenRichText = { startActivity(Intent(this, RichTextEditorActivity::class.java)) },
                     onNotificationTest = ::showNotificationConfirmationDialog,
                     onOpenCameraScan = { startActivity(Intent(this, CameraScanActivity::class.java)) },
+                    onOpenApiDebug = { startActivity(Intent(this, ApiDebugToolActivity::class.java)) },
                     onOpenPdfReader = { startActivity(Intent(this, PdfReaderActivity::class.java)) },
                     onOpenBannerItem = { item ->
                         startActivity(ShowImageDetailsActivity.createIntent(this, item))
@@ -265,6 +266,7 @@ internal fun DevelopSettingsScreen(
     onOpenRichText: () -> Unit,
     onNotificationTest: () -> Unit,
     onOpenCameraScan: () -> Unit,
+    onOpenApiDebug: () -> Unit,
     onOpenPdfReader: () -> Unit,
     onOpenBannerItem: (SupperBannerItem) -> Unit,
     onTestCrash: () -> Unit
@@ -556,6 +558,13 @@ internal fun DevelopSettingsScreen(
                         modifier = Modifier
                             .padding(top = 10.dp)
                             .testTag("btn_camera_scan")
+                    )
+                    ToolButton(
+                        textRes = R.string.develop_settings_api_debug_button,
+                        onClick = onOpenApiDebug,
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .testTag("btn_api_debug")
                     )
                 }
             }
