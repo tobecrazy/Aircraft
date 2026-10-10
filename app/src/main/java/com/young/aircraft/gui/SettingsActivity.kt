@@ -15,6 +15,11 @@ import com.young.aircraft.gui.dialogs.GameDialogContent
 import com.young.aircraft.gui.dialogs.GameDialogStat
 import com.young.aircraft.gui.dialogs.setDialogComposeContent
 import com.young.aircraft.ui.theme.AircraftTheme
+import com.young.developtools.gui.AndroidDevAssistantToolsActivity
+import com.young.developtools.gui.DeviceInfoActivity
+import com.young.developtools.gui.DevelopSettingsActivity
+import com.young.developtools.gui.FlashlightActivity
+import com.young.developtools.gui.QRCodeToolActivity
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch

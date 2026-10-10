@@ -59,7 +59,7 @@ import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.TextBody
 import com.young.aircraft.ui.theme.TextBright
-import com.young.aircraft.utils.DebugTools
+import com.young.developtools.utils.DebugTools
 import java.util.Locale
 
 @Suppress("DEPRECATION")

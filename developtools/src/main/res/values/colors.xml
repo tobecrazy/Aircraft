@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Standalone fallbacks so the module links without :app (tests/AAR).
+         At app merge the app's same-named colors win; values match. -->
+    <color name="header_back_icon">#FF00FF88</color>
+</resources>

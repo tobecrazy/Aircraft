@@ -5008,8 +5008,8 @@
         <text data-detail="context" x="1210" y="334" class="t-muted" font-size="9" text-anchor="middle">玩家 · 敌机 · Boss · 道具</text>
         </g>
 
-        <g id="node-utility-screens" data-node-id="utility-screens" data-node-label="设置与工具界面" tabindex="0" role="button" aria-label="Focus 设置与工具界面, Compose 为主 · 独立拼图, Architecture component" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Compose 为主 · 独立拼图" data-node-context="Architecture component">
-          <title>设置与工具界面 · Compose 为主 · 独立拼图 · Architecture component</title>
+        <g id="node-utility-screens" data-node-id="utility-screens" data-node-label="设置与工具界面" tabindex="0" role="button" aria-label="Focus 设置与工具界面, 设置在 app · 工具屏在 :developtools, Architecture component" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="设置在 app · 工具屏在 :developtools" data-node-context="Architecture component">
+          <title>设置与工具界面 · 设置在 app · 工具屏在 :developtools · Architecture component</title>
           <rect x="40" y="500" width="240" height="80" rx="6" class="c-mask"/>
           <rect x="40" y="500" width="240" height="80" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(46 506) scale(0.6875)">
@@ -5019,7 +5019,7 @@
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-detail-anchor x="160" y="538" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">设置与工具界面</text>
-        <text data-detail="context" x="160" y="554" class="t-muted" font-size="9" text-anchor="middle">Compose 为主 · 独立拼图</text>
+        <text data-detail="context" x="160" y="554" class="t-muted" font-size="9" text-anchor="middle">设置在 app · 工具屏在 :developtools</text>
         </g>
 
         <g id="node-editor-library" data-node-id="editor-library" data-node-label="富文本编辑库" tabindex="0" role="button" aria-label="Focus 富文本编辑库, :richtexteditor · View / AAR, Architecture component" aria-pressed="false" data-node-kind="frontend" data-node-sublabel=":richtexteditor · View / AAR" data-node-context="Architecture component">
@@ -5312,8 +5312,8 @@
           <h3>模块与服务边界</h3>
         </div>
         <ul>
-          <li>&bull; :app 集成编辑库；大段原始 HTML 不应直接塞入 EditText。</li>
-          <li>&bull; FlashlightService 独立管理手电与 SOS，不属于游戏音频。</li>
+          <li>&bull; :developtools 消费编辑库与 Banner 库；大段原始 HTML 不应直接塞入 EditText。</li>
+          <li>&bull; FlashlightService 随工具搬入 :developtools，不属于游戏音频。</li>
         </ul>
       </div>
     </div>

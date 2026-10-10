@@ -16,6 +16,11 @@ import com.young.aircraft.data.AppDatabase
 import com.young.aircraft.data.GameDifficulty
 import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.providers.DatabaseProvider
+import com.young.developtools.gui.AndroidDevAssistantToolsActivity
+import com.young.developtools.gui.DeviceInfoActivity
+import com.young.developtools.gui.DevelopSettingsActivity
+import com.young.developtools.gui.FlashlightActivity
+import com.young.developtools.gui.QRCodeToolActivity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -114,6 +119,8 @@ class SettingsActivityTest {
             activity.getString(R.string.language_settings_title) to LanguageSettingsActivity::class.java,
             activity.getString(R.string.device_info_title) to DeviceInfoActivity::class.java,
             activity.getString(R.string.flashlight_title) to FlashlightActivity::class.java,
+            activity.getString(R.string.qr_code_tool_title) to QRCodeToolActivity::class.java,
+            activity.getString(R.string.develop_settings_title) to DevelopSettingsActivity::class.java,
             activity.getString(R.string.puzzle_game_title) to PuzzleActivity::class.java,
             activity.getString(R.string.about_aircraft_title) to AboutAircraftActivity::class.java,
             activity.getString(R.string.privacy_policy_title) to PrivacyPolicyActivity::class.java,

@@ -33,14 +33,14 @@
    },
    {
     "id": "modules",
-    "label": "工具页与两个库模块",
+    "label": "工具模块与两个库",
     "focus": [
+     "tools",
      "settings",
-     "puzzle",
      "richtext",
      "supperbanner"
     ],
-    "note": "工具页与拼图是设置下的平行入口，两个 AAR 模块只被工具页消费，不参与战斗推进。"
+    "note": "工具页整体抽为 :developtools，经 DevTools 桥接宿主；两个 View 库只被工具模块消费。"
    }
   ]
  },
@@ -91,7 +91,7 @@
    "id": "services",
    "type": "backend",
    "label": "常驻服务",
-   "sublabel": "MusicService · FlashlightService",
+   "sublabel": "MusicService · FlashlightService（模块）",
    "pos": [
     70,
     510
@@ -105,7 +105,7 @@
    "id": "vm",
    "type": "backend",
    "label": "ViewModel 层",
-   "sublabel": "21 个 · StateFlow / LiveData",
+   "sublabel": "9 个 · StateFlow / LiveData",
    "pos": [
     400,
     190
@@ -147,8 +147,8 @@
   {
    "id": "tools",
    "type": "frontend",
-   "label": "工具页",
-   "sublabel": "手电筒 · 二维码 · API 调试",
+   "label": ":developtools",
+   "sublabel": "工具页 13 Activity · 门控 + 日志",
    "pos": [
     730,
     40
@@ -227,7 +227,6 @@
     "vm",
     "data",
     "room",
-    "tools",
     "settings",
     "puzzle"
    ]
@@ -236,6 +235,7 @@
    "kind": "region",
    "label": "独立 Gradle 库模块",
    "wraps": [
+    "tools",
     "richtext",
     "supperbanner"
    ]
@@ -305,14 +305,20 @@
    "labelDy": 24
   },
   {
-   "id": "settings-richtext",
+   "id": "settings-tools",
    "from": "settings",
-   "to": "richtext",
-   "label": "调试开发者入口"
+   "to": "tools",
+   "label": "开发工具入口"
   },
   {
-   "id": "settings-banner",
-   "from": "settings",
+   "id": "tools-richtext",
+   "from": "tools",
+   "to": "richtext",
+   "label": "承载编辑器"
+  },
+  {
+   "id": "tools-banner",
+   "from": "tools",
    "to": "supperbanner",
    "label": "Banner 轮播"
   }
@@ -342,7 +348,8 @@
    "items": [
     "Room v2033 只注册显式迁移，无破坏性回退",
     "进度统一走 replaceForPlayer() 事务，战斗与拼图互不覆盖",
-    "两个 AAR 模块不依赖游戏与彼此，颜色全由宿主映射"
+    "三个库模块：:developtools 承载工具屏，经 DevTools 反向调用宿主",
+     ":developtools 依赖两个 View 库；View 库不碰游戏与主题"
    ]
   }
  ]

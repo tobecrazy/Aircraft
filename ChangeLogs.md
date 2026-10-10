@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.5] - 2026-10-10
+
+### Added
+- New `:developtools` Gradle library module holding every developer/utility screen: 13 tool Activities (Develop hub, assistant tools, API debugger + history, camera scan, contacts, PDF reader, rich-text editor, QR tool, image/banner details, flashlight, device info), 12 tool ViewModels, `DeveloperMode`/`DebugTools` gate (per-variant source sets), `DevLog`/`LogSettings`, `ApiHistoryStore` contract, and `FlashlightService`; the module ships its own 4-locale strings, drawables, and theme/base copies, and never depends on `:app`
+- `DevTools` host bridge (four hooks wired in `AircraftApplication`): activity-monitor opener, invincible-mode sync into `GameStateManager`, Room-backed history store provider with an in-memory fallback, and log-switch forwarding from `DevLog` to the app-wide `AppLog`
+- `RoomApiHistoryStoreTest` and `DevToolsTest` covering the Room history mapping and the bridge fallbacks; a module `StringResourceTest` (locale parity + usage coverage) and a `checkDevLogUsage` lint gate mirroring `checkAppLogUsage`
+- `docs/develop-settings-module-plan.md` recording the extraction plan, the R8/consumer-rules reasoning, and the shared-resource mirror policy
+
+### Changed
+- `:app` keeps only game + user screens; tool strings/drawables/assets moved with their screens (host-consumed navigation strings stay mirrored in the app)
+- R8 config refined per the analyzer report: dropped the `values()`/`valueOf()` lines subsumed by the AGP default enum rule from the `GameMode`/`GameDifficulty` keeps (verified retained in the release mapping)
+- Interactive architecture docs regenerated for the new module layout (`aircraft-architecture`, `api-debug-tool-architecture`, `aircraft-code-map`, `supperbanner-module`)
+- README/CLAUDE.md/AGENTS.md module tables and package trees updated for the four-module layout
+
 ## [1.4.4] - 2026-10-10
 
 ### Added

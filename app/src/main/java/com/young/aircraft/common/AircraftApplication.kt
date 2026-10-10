@@ -11,7 +11,11 @@ import android.os.Looper
 import android.view.WindowManager
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
-import com.young.aircraft.data.LogSettings
+import com.young.aircraft.data.RoomApiHistoryStore
+import com.young.developtools.data.LogSettings
+import com.young.aircraft.gui.HistoryActivity
+import com.young.developtools.DevTools
+import com.young.developtools.utils.DevLog
 import com.young.aircraft.data.GameState
 import com.young.aircraft.gui.MandatoryUpdateActivity
 import com.young.aircraft.gui.openUpdatePage
@@ -42,6 +46,8 @@ class AircraftApplication : Application() {
         super.onCreate()
         LogSettings.defaultEnabled = BuildConfig.DEBUG
         AppLog.enabled = BuildConfig.DEBUG
+        DevLog.enabled = BuildConfig.DEBUG
+        wireDevTools()
         AircraftRemoteConfig.onConfigActivated = {
             mainHandler.post {
                 LauncherIconManager.apply(this, AircraftRemoteConfig.getAppIconVariant())
@@ -162,6 +168,23 @@ class AircraftApplication : Application() {
             .setPositiveButton(android.R.string.ok, null)
             .setCancelable(true)
             .showThemed()
+    }
+
+    private fun wireDevTools() {
+        DevTools.openActivityMonitor = { context ->
+            context.startActivity(
+                Intent(context, HistoryActivity::class.java)
+            )
+        }
+        DevTools.onInvincibleChanged = { enabled ->
+            GameStateManager.isInvincible = enabled
+        }
+        DevTools.historyStoreProvider = { context ->
+            RoomApiHistoryStore(context)
+        }
+        DevTools.onLogEnabledChanged = { enabled ->
+            AppLog.enabled = enabled
+        }
     }
 
     override fun onLowMemory() {

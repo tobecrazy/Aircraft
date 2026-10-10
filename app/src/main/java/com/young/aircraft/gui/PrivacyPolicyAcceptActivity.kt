@@ -65,7 +65,7 @@ import com.young.aircraft.ui.theme.BackgroundDark
 import com.young.aircraft.ui.theme.DividerGreen
 import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.NeonDivider
-import com.young.aircraft.utils.DebugTools
+import com.young.developtools.utils.DebugTools
 import com.young.aircraft.viewmodel.PrivacyPolicyViewModel
 import java.util.Locale
 

@@ -32,8 +32,8 @@ android {
         applicationId = "com.young.aircraft"
         minSdk = 31
         targetSdk = 37
-        versionCode = 16
-        versionName = "1.4.4"
+        versionCode = 17
+        versionName = "1.4.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -100,7 +100,7 @@ val generateRepoUpdateConfig = tasks.register("generateRepoUpdateConfig") {
     description = "Generates app-update.json from versionName for the Remote Config fallback."
     val outputFile = rootProject.file("app-update.json")
     val appVersionName = android.defaultConfig.versionName as String
-    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.3.6"
+    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.4.1"
     inputs.property("versionName", appVersionName)
     inputs.property("minimumVersion", floorVersion)
     outputs.file(outputFile)
@@ -123,6 +123,7 @@ tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.co
 dependencies {
     implementation(project(":richtexteditor"))
     implementation(project(":supperbanner"))
+    implementation(project(":developtools"))
     implementation(libs.androidx.foundation.layout)
     implementation(libs.zxing)
     implementation(libs.retrofit)
