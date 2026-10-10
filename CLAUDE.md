@@ -16,6 +16,7 @@ Aircraft is a Kotlin Android vertical-scrolling shooter. Three Gradle modules: `
 - [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md): banner carousel integration and AAR publishing.
 - [docs/puzzle-game-redesign-plan.md](docs/puzzle-game-redesign-plan.md): working plan explaining *why* the puzzle scoring code looks the way it does. Read it before changing that area.
 - `docs/` also holds generated architecture artifacts: `aircraft-architecture.*`, `boss-combat-workflow.*`, and `pdf-reader-dataflow.*` at the top level, plus `aircraft-code-map.*` and `supperbanner-module.*` under `docs/diagrams/`. Each is a `.json` source plus a rendered `.html` and `.visual-check.*` screenshots. All 44 files are committed but machine-generated; edit the `.json`, not the `.html`.
+- **Archify (and any diagram-generation skill) output must be written into `docs/`** — set `meta.output` to a `docs/…` path (or pass it on the command line) and keep the `.json` source, rendered `.html`, and `.visual-check.*` sidecars together there. Never leave generated diagrams at the repository root.
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance, **several claims of which are wrong** — see the stale-documentation list below. No Cursor rules exist.
 - `AGENTS.md` 是面向 OpenCode 的精简版（本文件是完整手册）；改精简规则只改 `AGENTS.md`，改完整事实同步两份。
 

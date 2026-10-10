@@ -34,4 +34,4 @@
 - 字符串 4 套 locale（`values/values-zh/values-zh-rTW/values-zh-rHK`）必须齐；`StringResourceTest` 还会 fail 未被引用的默认串（Firebase 白名单 8 个除外），删最后引用即破构建。
 - Robolectric 屏测用 `createAndroidComposeRule` + `@GraphicsMode(NATIVE)`；长列表用高视口（`w420dp-h2000dp`，屏外点击静默无操作）；有转圈指示器的屏**禁 `waitForIdle()`**（会 60s hang）；碰 `AppLog`/`LogSettings` 的测试固定 `@Config(sdk=[34], application=Application::class)`。
 - 勿用 `!!`；游戏 sprite 保留 `bitmap.density = screenDensity`；QR 解码保留 ZXing 反色 fallback（生成码是亮底暗字）；分享走 `${applicationId}.fileprovider` + `FLAG_GRANT_READ_URI_PERMISSION`。
-- `SupperBannerEffect` 11 个值，加 effect 要同步 enum、`SupperBannerTransformers`、DevelopSettings 映射、4 套 locale。`docs/` 下 `*.html`/`visual-check` 是生成物，只改 `.json`。
+- `SupperBannerEffect` 11 个值，加 effect 要同步 enum、`SupperBannerTransformers`、DevelopSettings 映射、4 套 locale。`docs/` 下 `*.html`/`visual-check` 是生成物，只改 `.json`。archify 等图表技能的产物（`.json`/`.html`/`.visual-check.*`）一律存到 `docs/`，勿留仓库根目录。
