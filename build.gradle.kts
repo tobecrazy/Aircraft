@@ -7,13 +7,14 @@ plugins {
     alias(libs.plugins.firebase.crashlytics) apply false
 }
 
-// Raise AGP's built-in Kotlin (KGP) from 2.2.10 to match the Compose compiler plugin (2.4.10),
-// so AGP's compose mapping tasks can resolve org.jetbrains.kotlin:compose-group-mapping:2.4.10
-// (that artifact is only published for KGP 2.3.0+).
+// KGP and the Compose compiler plugin share one version (see `kotlin` in
+// libs.versions.toml; Kotlin 2.0+ ships the Compose compiler with Kotlin itself).
+// The pin below puts that KGP on the buildscript classpath so AGP's compose
+// mapping tasks can resolve a matching compose-group-mapping artifact.
 buildscript {
     dependencies {
         //noinspection UseTomlInstead
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.10")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.20")
     }
 }
 

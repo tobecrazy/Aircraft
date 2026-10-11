@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `LogCheckTest` (9 cases) covering the extracted `findDirectLogUsages` matching core behind `checkAppLogUsage` / `checkDevLogUsage`; runs as `:convention:test` in the `build-logic` build
+
+## [1.4.7] - 2026-10-11
+
+### Added
+- `build-logic` included build (`build-logic/convention`, plugin IDs `aircraft.android.library` / `aircraft.android.compose` / `aircraft.android.application`) centralizing the shared compile setup: `compile-sdk`/`min-sdk`/`target-sdk` read from `gradle/libs.versions.toml`, Java 17, `unitTests.isIncludeAndroidResources`, and the Compose switch plus BOM platform (see `docs/build-logic-extraction-plan.md`)
+- Shared typed `LogCheckTask` behind `registerLogCheck`, backing both `checkAppLogUsage` and `checkDevLogUsage` with the same `lint*` wiring; the task is configuration-cache compatible (inputs snapshotted at configuration time, no `Task.project` at execution)
+- Single `kotlin = "2.4.20"` version ref shared by the `kotlin-compose` plugin alias and the root `kotlin-gradle-plugin` buildscript pin (previously `2.4.20` vs `2.4.10`; conflict resolution already picked `2.4.20`, so behavior is unchanged)
+
+### Changed
+- All four module build scripts slimmed to plugin IDs + `namespace` + their own dependencies; the Compose `alias` / `buildFeatures.compose` / BOM platform lines removed from `:app` / `:developtools` (now provided by convention). Signing, R8, `buildToolsVersion`, `supperbanner` publishing, `generateRepoUpdateConfig`, and both log-check wirings are untouched
+- Version bump `1.4.6` → `1.4.7` (`versionCode` 18 → 19); `app-update.json` regenerated with `latest_version` `1.4.7`
+
 ## [1.4.6] - 2026-10-11
 
 ### Added
