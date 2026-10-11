@@ -27,7 +27,14 @@ internal const val REPO_UPDATE_JSON_RAW_URL =
 data class RepoUpdateConfig(
     val minimumVersion: String = "",
     val latestVersion: String = "",
-    val updateUrl: String = ""
+    val updateUrl: String = "",
+    // Mirrors the Firebase `AppIcon` parameter (1..5, invalid falls back to 1
+    // via parseAppIconVariant, same as the Remote Config logic).
+    val appIcon: String = "",
+    // Mirrors the token-config welcome gating (showWelcome && non-blank
+    // welcomeMessage, same as AircraftApplication.showWelcomeDialog).
+    val welcomeMessage: String = "",
+    val showWelcome: Boolean = false
 )
 
 object RepoUpdateConfigStore {
@@ -97,6 +104,32 @@ object RepoUpdateConfigStore {
             AircraftRemoteConfig::getUpdateUrl
         ) { cached?.updateUrl }
 
+    /** Launcher icon variant: Firebase REMOTE `AppIcon` wins, repo `app_icon`
+     * is the fallback, validated exactly like the Remote Config logic. */
+    fun getAppIconVariant(): Int {
+        if (hasRemoteValue(AircraftRemoteConfig.APP_ICON_PARAMETER)) {
+            return AircraftRemoteConfig.getAppIconVariant()
+        }
+        val repoIcon = cached?.appIcon
+        if (!repoIcon.isNullOrBlank()) return parseAppIconVariant(repoIcon)
+        return AircraftRemoteConfig.getAppIconVariant()
+    }
+
+    /** Welcome message: Firebase token config wins when it enables the
+     * welcome dialog, otherwise the repo JSON fallback applies with the same
+     * gating (showWelcome && non-blank message). */
+    fun getWelcomeMessage(): String {
+        val tokenConfig = AircraftRemoteConfig.getTokenConfig()
+        if (tokenConfig != null && tokenConfig.showWelcome && tokenConfig.welcomeMessage.isNotBlank()) {
+            return tokenConfig.welcomeMessage
+        }
+        val repo = cached
+        if (repo != null && repo.showWelcome && repo.welcomeMessage.isNotBlank()) {
+            return repo.welcomeMessage
+        }
+        return ""
+    }
+
     private inline fun firebaseOrRepo(
         key: String,
         firebaseValue: () -> String,
@@ -138,7 +171,12 @@ internal fun parseRepoUpdateConfig(json: String): RepoUpdateConfig? = try {
     RepoUpdateConfig(
         minimumVersion = value.optString("minimum_version", ""),
         latestVersion = value.optString("latest_version", ""),
-        updateUrl = value.optString("update_url", "")
+        updateUrl = value.optString("update_url", ""),
+        // Accept the generated `app_icon` key as well as the Firebase-canonical
+        // `AppIcon` key; optString coerces a numeric literal (3) to "3".
+        appIcon = value.optString("app_icon", "").ifBlank { value.optString("AppIcon", "") },
+        welcomeMessage = value.optString("welcomeMessage", ""),
+        showWelcome = value.optBoolean("showWelcome", false)
     )
 } catch (_: Exception) {
     null

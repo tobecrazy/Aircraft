@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.6] - 2026-10-11
+
+### Added
+- `app-update.json` now carries `app_icon`, `welcomeMessage`, and `showWelcome` alongside the version fields; `:app:generateRepoUpdateConfig` emits them (defaults `3` / bundled Chinese welcome text / `true`, overridable per release with `-PappIcon=`, `-PwelcomeMessage=`, `-PshowWelcome=`) so release builds no longer wipe the hand-added keys
+- Repo-JSON fallback for launcher icon and welcome dialog: `RepoUpdateConfigStore.getAppIconVariant()`/`getWelcomeMessage()` mirror the Firebase validation and gating (`parseAppIconVariant` 1..5, `showWelcome` && non-blank message), and `AircraftApplication` reads the icon and welcome through them; the parser accepts both `app_icon` and the Firebase-canonical `AppIcon` key
+
+### Changed
+- Version bump `1.4.5` → `1.4.6` (`versionCode` 17 → 18); `app-update.json` regenerated with `latest_version` `1.4.6`
+
 ## [1.4.5] - 2026-10-10
 
 ### Added

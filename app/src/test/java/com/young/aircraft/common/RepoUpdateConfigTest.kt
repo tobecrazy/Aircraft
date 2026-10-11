@@ -2,7 +2,9 @@ package com.young.aircraft.common
 
 import android.app.Application
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -24,12 +26,30 @@ class RepoUpdateConfigTest {
     }
 
     @Test
-    fun `missing fields default to blank`() {
+    fun `parses icon and welcome fallback fields`() {
+        val config = parseRepoUpdateConfig(
+            """{"minimum_version":"1.4.1","latest_version":"1.4.5","update_url":"https://example.com/app.apk","app_icon":3,"welcomeMessage":"hello","showWelcome":true}"""
+        )
+
+        assertEquals("3", config?.appIcon)
+        assertEquals("hello", config?.welcomeMessage)
+        assertTrue(config?.showWelcome == true)
+    }
+
+    @Test
+    fun `accepts Firebase-canonical AppIcon key`() {
+        val config = parseRepoUpdateConfig("""{"AppIcon":"4"}""")
+
+        assertEquals("4", config?.appIcon)
+    }
+
+    @Test
+    fun `missing icon and welcome fields default to blank and false`() {
         val config = parseRepoUpdateConfig("""{"latest_version":"1.4.2"}""")
 
-        assertEquals("", config?.minimumVersion)
-        assertEquals("1.4.2", config?.latestVersion)
-        assertEquals("", config?.updateUrl)
+        assertEquals("", config?.appIcon)
+        assertEquals("", config?.welcomeMessage)
+        assertFalse(config?.showWelcome == true)
     }
 
     @Test

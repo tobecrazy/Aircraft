@@ -45,6 +45,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -774,20 +775,56 @@ private fun ContentPane(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .maxContentWidth()
-                .padding(horizontal = 14.dp)
-                .padding(bottom = 24.dp)
         ) {
-            HeroCard(state = state)
-            PreviewCard(state = state, onSave = onSave, onShare = onShare)
-            GenerateSectionHeader()
-            EditorCard(
-                onEditorCreated = onEditorCreated,
-                onEditorMessage = onEditorMessage
-            )
+            // Wide windows (tablet / unfolded foldable / desktop): preview + editor
+            // share one row under the full-width hero instead of stacking.
+            val wide = maxWidth >= 840.dp
+            if (wide) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp)
+                        .padding(bottom = 24.dp)
+                ) {
+                    HeroCard(state = state)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 18.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PreviewCard(state = state, onSave = onSave, onShare = onShare, topPadding = 0.dp)
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            GenerateSectionHeader(topPadding = 0.dp)
+                            EditorCard(
+                                onEditorCreated = onEditorCreated,
+                                onEditorMessage = onEditorMessage
+                            )
+                        }
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp)
+                        .padding(bottom = 24.dp)
+                ) {
+                    HeroCard(state = state)
+                    PreviewCard(state = state, onSave = onSave, onShare = onShare)
+                    GenerateSectionHeader()
+                    EditorCard(
+                        onEditorCreated = onEditorCreated,
+                        onEditorMessage = onEditorMessage
+                    )
+                }
+            }
         }
     }
 }
@@ -881,12 +918,17 @@ private fun HintCard(label: String, hint: String, modifier: Modifier = Modifier)
 }
 
 @Composable
-private fun PreviewCard(state: QRCodeToolUiState, onSave: () -> Unit, onShare: () -> Unit) {
+private fun PreviewCard(
+    state: QRCodeToolUiState,
+    onSave: () -> Unit,
+    onShare: () -> Unit,
+    topPadding: androidx.compose.ui.unit.Dp = 18.dp
+) {
     val hasQr = state.generatedBitmap != null
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 18.dp)
+            .padding(top = topPadding)
             .background(Color(0x20252A3A), RoundedCornerShape(12.dp))
             .border(1.dp, Color(0x2200FF88), RoundedCornerShape(12.dp))
             .padding(16.dp)
@@ -989,11 +1031,11 @@ private fun QrIconOverlay(
 }
 
 @Composable
-private fun GenerateSectionHeader() {
+private fun GenerateSectionHeader(topPadding: androidx.compose.ui.unit.Dp = 22.dp) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 22.dp),
+            .padding(top = topPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(

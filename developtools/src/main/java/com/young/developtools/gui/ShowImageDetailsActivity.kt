@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -44,6 +45,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -186,7 +189,10 @@ private fun ImageDetailsScreen(
     onBack: () -> Unit,
     onDownload: () -> Unit
 ) {
+    // Skill Step 5: hide the app bar on scroll down, show immediately on scroll up.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = BackgroundDark,
         contentWindowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
@@ -195,27 +201,53 @@ private fun ImageDetailsScreen(
             DetailsTopBar(
                 isSaving = uiState.isSaving,
                 onBack = onBack,
-                onDownload = onDownload
+                onDownload = onDownload,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { innerPadding ->
-        LazyColumn(
+        // Wide windows (tablet / unfolded foldable / desktop): image + summary share
+        // one row instead of stacking, so the detail reads as a two-pane layout.
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .maxContentWidth()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(innerPadding)
         ) {
-            item {
-                FullImagePanel(imageModel = uiState.imageModel, contentDescription = uiState.details.name)
-            }
-            item {
-                DetailsSummaryPanel(uiState = uiState, onDownload = onDownload)
-            }
-            item {
-                if (uiState.isSaving) {
-                    SavingPanel()
+            val wide = maxWidth >= 840.dp
+            LazyColumn(
+                modifier = if (wide) {
+                    Modifier.fillMaxSize()
+                } else {
+                    Modifier
+                        .fillMaxSize()
+                        .maxContentWidth()
+                },
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                if (wide) {
+                    item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Box(modifier = Modifier.weight(1.15f)) {
+                                FullImagePanel(imageModel = uiState.imageModel, contentDescription = uiState.details.name)
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                DetailsSummaryPanel(uiState = uiState, onDownload = onDownload)
+                            }
+                        }
+                    }
+                } else {
+                    item {
+                        FullImagePanel(imageModel = uiState.imageModel, contentDescription = uiState.details.name)
+                    }
+                    item {
+                        DetailsSummaryPanel(uiState = uiState, onDownload = onDownload)
+                    }
+                }
+                item {
+                    if (uiState.isSaving) {
+                        SavingPanel()
+                    }
                 }
             }
         }
@@ -227,7 +259,8 @@ private fun ImageDetailsScreen(
 private fun DetailsTopBar(
     isSaving: Boolean,
     onBack: () -> Unit,
-    onDownload: () -> Unit
+    onDownload: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     var expanded by remember { mutableStateOf(false) }
     TopAppBar(
@@ -269,7 +302,8 @@ private fun DetailsTopBar(
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = HeaderBackground)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = HeaderBackground),
+        scrollBehavior = scrollBehavior
     )
 }
 

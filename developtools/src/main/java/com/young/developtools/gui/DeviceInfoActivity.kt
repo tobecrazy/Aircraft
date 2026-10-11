@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -196,23 +197,33 @@ fun DeviceInfoScreen(
         MonitorHeader(onBack = onBack)
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(DividerGreen))
 
-        Column(
+        // Adaptive (skill Step 4): foldable-unfolded state OR a genuinely wide window
+        // both trigger the two-column hero/system rows. The OR keeps the existing
+        // systemInfoWide contract (and its tests) intact on narrow windows.
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .testTag("device_info_scroll")
-                .padding(horizontal = 14.dp)
         ) {
-            HeroCard(uiState.staticInfo, uiState.time, wide = systemInfoWide)
-            SectionHeader(R.string.device_info_section_resources)
-            CpuCard(cpu = uiState.cpu, cpuInfo = uiState.staticInfo.cpuInfo)
-            MemoryDiskRow(uiState.memory, uiState.disk)
-            BatteryCard(uiState.battery)
-            NetworkCard(uiState.network)
-            SectionHeader(R.string.device_info_section_system)
-            SystemInfoCard(uiState.staticInfo, systemInfoWide = systemInfoWide)
-            Spacer(modifier = Modifier.height(24.dp))
+            val wide = systemInfoWide || maxWidth >= 600.dp
+            val statsStacked = maxWidth < 480.dp
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .testTag("device_info_scroll")
+                    .padding(horizontal = 14.dp)
+            ) {
+                HeroCard(uiState.staticInfo, uiState.time, wide = wide)
+                SectionHeader(R.string.device_info_section_resources)
+                CpuCard(cpu = uiState.cpu, cpuInfo = uiState.staticInfo.cpuInfo)
+                MemoryDiskRow(uiState.memory, uiState.disk, stacked = statsStacked)
+                BatteryCard(uiState.battery)
+                NetworkCard(uiState.network)
+                SectionHeader(R.string.device_info_section_system)
+                SystemInfoCard(uiState.staticInfo, systemInfoWide = wide)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
@@ -467,7 +478,33 @@ private fun cpuTempText(temp: Float?): String =
     }
 
 @Composable
-private fun MemoryDiskRow(memory: MemoryState, disk: DiskState) {
+private fun MemoryDiskRow(memory: MemoryState, disk: DiskState, stacked: Boolean = false) {
+    // Narrow phones stack the two stat cards vertically so neither is squeezed;
+    // wider windows keep the side-by-side row.
+    if (stacked) {
+        Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
+            ResourceStatCard(
+                labelRes = R.string.device_info_memory,
+                pct = memory.pct,
+                detail = stringResource(
+                    R.string.device_info_fmt_memory_detail,
+                    memory.usedGB, memory.availGB, memory.totalGB,
+                    memory.buffersGB, memory.cachedGB
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            ResourceStatCard(
+                labelRes = R.string.device_info_disk,
+                pct = disk.pct,
+                detail = stringResource(
+                    R.string.device_info_fmt_disk_detail,
+                    disk.usedGB, disk.availGB, disk.totalGB
+                ),
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
+            )
+        }
+        return
+    }
     Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
         ResourceStatCard(
             labelRes = R.string.device_info_memory,
