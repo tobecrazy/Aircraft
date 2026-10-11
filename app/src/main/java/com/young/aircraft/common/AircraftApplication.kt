@@ -41,6 +41,7 @@ class AircraftApplication : Application() {
     private var optionalPromptedVersion: String? = null
     private var optionalUpdateDialog: AlertDialog? = null
     private var welcomedConfigId: Long? = null
+    private var welcomedRepoMessage: String? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -50,7 +51,7 @@ class AircraftApplication : Application() {
         wireDevTools()
         AircraftRemoteConfig.onConfigActivated = {
             mainHandler.post {
-                LauncherIconManager.apply(this, AircraftRemoteConfig.getAppIconVariant())
+                LauncherIconManager.apply(this, RepoUpdateConfigStore.getAppIconVariant())
                 enforceMinimumVersion()
             }
         }
@@ -63,7 +64,7 @@ class AircraftApplication : Application() {
         }
         RepoUpdateConfigStore.refresh(applicationScope)
         // Apply the cached/default value immediately; fetch and real-time updates re-apply later.
-        LauncherIconManager.apply(this, AircraftRemoteConfig.getAppIconVariant())
+        LauncherIconManager.apply(this, RepoUpdateConfigStore.getAppIconVariant())
         val logSettings = LogSettings(this)
         applicationScope.launch {
             logSettings.enabledFlow
@@ -157,14 +158,27 @@ class AircraftApplication : Application() {
     private fun showWelcomeDialog(activity: Activity) {
         if (activity is MandatoryUpdateActivity || activity.isFinishing) return
         if (foregroundActivity.get() !== activity) return
-        val tokenConfig = AircraftRemoteConfig.getTokenConfig() ?: return
-        if (!tokenConfig.showWelcome || tokenConfig.welcomeMessage.isBlank()) return
-        if (welcomedConfigId == tokenConfig.id) return
+        val tokenConfig = AircraftRemoteConfig.getTokenConfig()
+        if (tokenConfig != null && tokenConfig.showWelcome && tokenConfig.welcomeMessage.isNotBlank()) {
+            if (welcomedConfigId == tokenConfig.id) return
+            welcomedConfigId = tokenConfig.id
+            showWelcomeMessage(activity, tokenConfig.welcomeMessage)
+            return
+        }
+        // Firebase token absent or welcome disabled: repo JSON fallback with
+        // the same gating (showWelcome && non-blank message), shown once per
+        // message per process.
+        val repo = RepoUpdateConfigStore.cached
+        if (repo == null || !repo.showWelcome || repo.welcomeMessage.isBlank()) return
+        if (welcomedRepoMessage == repo.welcomeMessage) return
+        welcomedRepoMessage = repo.welcomeMessage
+        showWelcomeMessage(activity, repo.welcomeMessage)
+    }
 
-        welcomedConfigId = tokenConfig.id
+    private fun showWelcomeMessage(activity: Activity, message: String) {
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.remote_welcome_title)
-            .setMessage(tokenConfig.welcomeMessage)
+            .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)
             .setCancelable(true)
             .showThemed()
