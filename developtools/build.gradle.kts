@@ -1,57 +1,25 @@
+import aircraft.buildlogic.registerLogCheck
+
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.compose)
+    id("aircraft.android.library")
+    id("aircraft.android.compose")
 }
 
 android {
     namespace = "com.young.developtools"
-    compileSdk = 37
 
     defaultConfig {
-        minSdk = 31
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    testOptions {
-        unitTests.isIncludeAndroidResources = true
     }
 }
 
 // Mirrors :app's checkAppLogUsage: android.util.Log is only legal inside DevLog.kt.
-val checkDevLogUsage = tasks.register("checkDevLogUsage") {
-    val productionSources = fileTree("src/main") {
-        include("**/*.kt", "**/*.java")
-    }
-    inputs.files(productionSources)
-
-    doLast {
-        val directLogUsage = Regex(
-            """(?m)^\s*import\s+android\.util\.Log(?:\s+as\s+\w+)?\s*$|android\.util\.Log\s*\.|\bLog\s*\."""
-        )
-        val violations = productionSources.files
-            .filterNot { it.invariantSeparatorsPath.endsWith("/utils/DevLog.kt") }
-            .filter { directLogUsage.containsMatchIn(it.readText()) }
-
-        check(violations.isEmpty()) {
-            "Use DevLog instead of android.util.Log in developtools production sources:\n" +
-                violations.joinToString("\n") { " - ${it.relativeTo(projectDir)}" }
-        }
-    }
-}
-
-tasks.configureEach {
-    if (name.startsWith("lint")) dependsOn(checkDevLogUsage)
-}
+registerLogCheck(
+    "checkDevLogUsage",
+    "/utils/DevLog.kt",
+    "Use DevLog instead of android.util.Log in developtools production sources"
+)
 
 dependencies {
     implementation(project(":richtexteditor"))
@@ -66,7 +34,6 @@ dependencies {
     implementation(libs.androidx.window)
     implementation(libs.datastore.preferences)
 
-    implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)

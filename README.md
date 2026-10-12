@@ -1,16 +1,16 @@
 # Aircraft
 
-Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus two reusable Android library modules, `:richtexteditor` and `:supperbanner`, that can be built as AARs. The app combines a first-launch privacy gate, a four-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, a Remote Config–driven forced-update gate, and debug-only developer tools (including an API debug tool with request history). The canonical repository is `https://github.com/tobecrazy/Aircraft`.
+Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `SurfaceView` + Canvas game loop. The current project includes the `:app` module plus three Android library modules — `:richtexteditor`, `:supperbanner`, and `:developtools` — plus a `build-logic` included build carrying the shared Gradle convention plugins. The app combines a first-launch privacy gate, a four-screen onboarding flow, 10 time-based combat stages, a separate 10-level puzzle mode, boss fights, collectible power-ups, QR code and flashlight utilities, local progress saving, localized About screens, a Remote Config–driven forced-update gate, and debug-only developer tools (including an API debug tool with request history). The canonical repository is `https://github.com/tobecrazy/Aircraft`.
 
 ## Download
 
-Latest published release APK (V1.4.6):
+Latest published release APK (V1.4.7):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.4.6/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.4.7/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.4.6` (`versionCode` 18); releases up to `V1.4.6` are on GitHub.
+> The app currently builds as `1.4.7` (`versionCode` 19); releases up to `V1.4.7` are on GitHub.
 
 ## Demo
 
@@ -142,8 +142,25 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 ## Project Structure
 
 ```text
+settings.gradle.kts                  # includeBuild("build-logic"); FAIL_ON_PROJECT_REPOS (new repos only here)
+build.gradle.kts                     # apply-false plugin registry + kotlin-gradle-plugin buildscript pin (single `kotlin` ref)
+gradle/libs.versions.toml            # Single source of versions (incl. compile/min/target SDK) and the android-gradle library
+
+build-logic/                         # Included build: shared compile setup, never shipped in the APK
+├── settings.gradle.kts              # Private `libs` catalog wired to ../gradle/libs.versions.toml
+└── convention/
+    ├── build.gradle.kts             # kotlin-dsl; compileOnly AGP + JUnit tests; registers aircraft.android.* plugins
+    ├── src/main/kotlin/aircraft/buildlogic/
+    │   ├── AircraftAndroidLibraryPlugin.kt      # com.android.library + SDK 37/31, Java 17, unit-test resources
+    │   ├── AircraftAndroidComposePlugin.kt      # Compose switch + BOM platform for library modules
+    │   ├── AircraftAndroidApplicationPlugin.kt  # com.android.application + target SDK 37 + Compose
+    │   ├── ConfigureAndroid.kt / ConfigureCompose.kt / LibsExt.kt
+    │   └── LogCheckTask.kt           # Typed checkAppLogUsage/checkDevLogUsage task (configuration-cache safe)
+    └── src/test/kotlin/aircraft/buildlogic/
+        └── LogCheckTest.kt          # 9 cases over the shared log-matching core (`:convention:test`)
+
 richtexteditor/
-├── build.gradle.kts                    # Android library module; builds richtexteditor-*.aar
+├── build.gradle.kts                    # aircraft.android.library convention; builds richtexteditor-*.aar
 ├── consumer-rules.pro                  # Consumer ProGuard rules shipped with the AAR
 ├── src/main/AndroidManifest.xml
 ├── src/main/java/com/young/richtext/
@@ -158,7 +175,7 @@ richtexteditor/
     └── RichTextEditorViewTest.kt       # Markdown conversion, plain-text escaping, image-tap URL round-trip, preview format
 
 supperbanner/
-├── build.gradle.kts                    # Android library module; builds + maven-publishes supperbanner-*.aar
+├── build.gradle.kts                    # aircraft.android.library convention; builds + maven-publishes supperbanner-*.aar
 ├── consumer-rules.pro
 ├── src/main/AndroidManifest.xml
 ├── src/main/java/com/young/supperbanner/
@@ -176,7 +193,7 @@ supperbanner/
     └── SupperBannerTransformerTest.kt  # Per-effect transform math, clamping, and the shader fallback path
 
 developtools/
-├── build.gradle.kts                    # Android library module (Compose); consumer-rules.pro ships entry-point keeps
+├── build.gradle.kts                    # aircraft.android.library + aircraft.android.compose conventions; deps stay in-module
 ├── consumer-rules.pro                  # Keeps for the 13 tool Activities, FlashlightService, gate, and DevTools bridge
 ├── src/main/AndroidManifest.xml        # 13 tool Activities + FlashlightService + module permission set (merged into :app)
 ├── src/main/assets/
@@ -196,7 +213,10 @@ developtools/
 ├── src/main/res/                       # Tool strings (4 locales), drawables, DialogAnimation + QrToolBottomSheet styles, Theme.Aircraft.Common fallback
 └── src/test/java/com/young/developtools/ # Module Robolectric/JUnit suites incl. module StringResourceTest
 
-app/src/main/java/com/young/aircraft/
+app/
+├── build.gradle.kts                    # aircraft.android.application convention + KSP/Firebase plugins; signing, R8, buildTools 37.0.0, generateRepoUpdateConfig, checkAppLogUsage stay here
+├── proguard-rules.pro                  # Release keeps: Room entities/DAO + migrations, manifest entry points, enums, singletons (see R8 below)
+└── src/main/java/com/young/aircraft/
 ├── common/
 │   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, enforces the minimum-version gate on every resume
 │   ├── AircraftRemoteConfig.kt         # Firebase Remote Config singleton: typed parameters, token JSON, version compare, Crashlytics collection toggle
@@ -286,13 +306,6 @@ app/src/main/java/com/young/aircraft/
     ├── AboutAircraftUiState.kt         # UI state for about-aircraft screen
     ├── AboutMeViewModel.kt             # Developer profile data (AboutMeActivity)
 
-app/src/debug/java/com/young/aircraft/
-└── utils/
-    └── DebugTools.kt                  # isEnabled = true; log() and enableWebViewDebugging() are live
-
-app/src/release/java/com/young/aircraft/
-└── utils/
-    └── DebugTools.kt                  # Same class, isEnabled = false; every method is a no-op (debug gate is a source-set split, not a runtime flag)
 ```
 
 ## Tests
@@ -328,7 +341,7 @@ app/src/release/java/com/young/aircraft/
 
 `richtexteditor/src/test` includes focused unit tests for Markdown conversion, plain-text escaping, image tap URL round-tripping, and preview image format support. `supperbanner/src/test` covers banner auto-play interval clamping and the Robolectric-backed color palette and page transformers (`SupperBannerViewColorsTest`, `SupperBannerTransformerTest`, `@Config(sdk = [34])`).
 
-`developtools/src/test` holds every tool screen suite, mirrored from the app: `DevelopSettingsActivityTest` (version-badge toggle, crash dialog, QR notification), `AndroidDevAssistantToolsActivityTest` (module grid, toggles, log switch), `ApiDebugToolActivityTest` / `ApiDebugToolViewModelTest` / `ApiDebugRepositoryTest` (validation gate, history load-back over a fake store), `QRCodeToolActivityTest`, `RichTextEditorActivityTest`, `RichTextMarkdownTest`, `ShowImageDetailsActivityTest`, `DeviceInfoActivityTest`, `FlashlightTorchHeroTest`, `FlashlightViewModelTest` (SOS timing, brightness mapping), `PdfViewModelTest`, `DominantPageIndexTest`, `DeviceResourceCalculatorsTest`, `ContactsRepositoryTest` / `ContactsValidationTest` / `ContactsViewModelTest`, `LogSettingsTest` / `LogSettingsViewModelTest` (now driving `DevLog`), `DataUriUtilsTest`, `BannerDetailsIntentContractTest`, `ImageDetailsIntentContractTest`, the `apidebug` pure-function tests, `ThemedMessageTest`, and a module `StringResourceTest` (locale parity + usage coverage).
+`developtools/src/test` holds every tool screen suite, mirrored from the app: `DevelopSettingsActivityTest` (version-badge toggle, crash dialog, QR notification), `AndroidDevAssistantToolsActivityTest` (module grid, toggles, log switch), `ApiDebugToolActivityTest` / `ApiDebugToolViewModelTest` / `ApiDebugRepositoryTest` (validation gate, history load-back over a fake store), `QRCodeToolActivityTest`, `RichTextEditorActivityTest`, `RichTextMarkdownTest`, `ShowImageDetailsActivityTest`, `DeviceInfoActivityTest`, `FlashlightTorchHeroTest`, `FlashlightViewModelTest` (SOS timing, brightness mapping), `PdfViewModelTest`, `DominantPageIndexTest`, `DeviceResourceCalculatorsTest`, `ContactsRepositoryTest` / `ContactsValidationTest` / `ContactsViewModelTest`, `LogSettingsTest` / `LogSettingsViewModelTest` (now driving `DevLog`), `DataUriUtilsTest`, `BannerDetailsIntentContractTest`, `ImageDetailsIntentContractTest`, the `apidebug` pure-function tests, `ThemedMessageTest`, and a module `StringResourceTest` (locale parity + usage coverage). `build-logic`'s `:convention:test` runs `LogCheckTest` (9 cases over the shared AppLog/DevLog matching core behind `checkAppLogUsage` / `checkDevLogUsage`).
 
 Instrumented tests belong in `app/src/androidTest`.
 
@@ -366,18 +379,19 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.4.6` (`versionCode` 18)
+- **Version**: `1.4.7` (`versionCode` 19)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `31`
 - **Target SDK**: `37`
 - **Java**: `17`
 - **Gradle Wrapper**: `9.8.0`
-- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin `2.4.20` and a `buildscript`-pinned `kotlin-gradle-plugin` `2.4.10` are still required)
+- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin and the `buildscript`-pinned `kotlin-gradle-plugin` share the single `kotlin` version ref `2.4.20`)
 - **KSP**: `2.3.11`
 - **Build scripts**: Kotlin DSL (`*.gradle.kts`)
 - **Release minification**: R8 code shrinking + resource shrinking enabled (mapping files uploaded to Crashlytics automatically)
 - **Dependency versions**: `gradle/libs.versions.toml` Gradle version catalog
+- **Shared build setup**: `build-logic` included build (`aircraft.android.library` / `aircraft.android.compose` / `aircraft.android.application` convention plugins for SDK levels, Java 17, unit-test resources, Compose + BOM, and the AppLog/DevLog usage checks; see `docs/build-logic-extraction-plan.md`)
 
 ## Build
 
@@ -389,6 +403,14 @@ Instrumented tests belong in `app/src/androidTest`.
 ./gradlew lint                   # Run Android lint
 ./gradlew clean                  # Clean build outputs
 ```
+
+## R8
+
+Release builds (`assembleRelease`) enable R8 minification + resource shrinking, with `mapping.txt` uploaded to Crashlytics (see Requirements):
+
+- `app/proguard-rules.pro` — Room entities/DAO (`AppDatabase`, `PlayerGameData*`) plus `MIGRATION_*` members, manifest entry points (`MusicService`, `StarFieldView`; `FlashlightService` is kept by `:developtools`), enums persisted by name (`GameMode`, `GameDifficulty`, `GameState`), `DatabaseProvider`/`GameStateManager` singletons, and `*Annotation*` / `SourceFile,LineNumberTable` attributes for Crashlytics symbolication. OkHttp/Firebase ship their own consumer rules (`-dontwarn` only here).
+- `:developtools/consumer-rules.pro` — belt-and-braces keeps for the tool Activities, `FlashlightService`, the `DebugTools`/`DeveloperMode` gate, the `DevTools` bridge, and the `ApiHistoryStore` contract.
+- `:supperbanner` / `:richtexteditor` consumer rules are intentionally empty (view-only API needs no keeps).
 
 ## Setup
 

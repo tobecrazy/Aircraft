@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.library)
+    id("aircraft.android.library")
     `maven-publish`
 }
 
@@ -8,27 +8,16 @@ version = "1.0.0"
 
 android {
     namespace = "com.young.supperbanner"
-    compileSdk = 37
 
     defaultConfig {
-        minSdk = 31
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 
     publishing {
         singleVariant("release") {
             withSourcesJar()
         }
-    }
-
-    testOptions {
-        unitTests.isIncludeAndroidResources = true
     }
 }
 

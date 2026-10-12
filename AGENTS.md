@@ -5,8 +5,8 @@
 
 ## 模块
 
-- `:app` 游戏本体 + 设置/关于/隐私等用户屏；`:developtools` 全部工具屏（Develop/助手/API调试/扫码/联系人/PDF/富文本/二维码/图片详情/手电/设备信息 + 门控/日志/历史存储契约，见 `docs/develop-settings-module-plan.md`）；`:richtexteditor`（仅 `RichTextEditorView`）；`:supperbanner`（`SupperBannerView` + config/colors/effect/transition 类型）。后两者是无字符串、无游戏依赖的纯 View 库；`:developtools` 自带字符串（4 套 locale）与主题/基类拷贝，依赖 `:supperbanner` + `:richtexteditor`，禁止反向依赖 `:app`（跨模块经 `DevTools` 4 hook）。
-- JDK 17 + 签入的 Gradle wrapper；`compileSdk 37 / minSdk 31`；版本集中在 `gradle/libs.versions.toml`。勿加 `org.jetbrains.kotlin.android`（AGP 内置 Kotlin），app 仍需 `org.jetbrains.kotlin.plugin.compose`。
+- `:app` 游戏本体 + 设置/关于/隐私等用户屏；`:developtools` 全部工具屏（Develop/助手/API调试/扫码/联系人/PDF/富文本/二维码/图片详情/手电/设备信息 + 门控/日志/历史存储契约，见 `docs/develop-settings-module-plan.md`）；`:richtexteditor`（仅 `RichTextEditorView`）；`:supperbanner`（`SupperBannerView` + config/colors/effect/transition 类型）。后两者是无游戏依赖的纯 View 库（`supperbanner` 无字符串，`richtexteditor` 自带 4 套 locale 编辑器字符串）；`:developtools` 自带字符串（4 套 locale）与主题/基类拷贝，依赖 `:supperbanner` + `:richtexteditor`，禁止反向依赖 `:app`（跨模块经 `DevTools` 4 hook）。
+- JDK 17 + 签入的 Gradle wrapper；`compileSdk 37 / minSdk 31`；版本集中在 `gradle/libs.versions.toml`。勿加 `org.jetbrains.kotlin.android`（AGP 内置 Kotlin），app 仍需 `org.jetbrains.kotlin.plugin.compose`。公共编译配置收敛在 `build-logic`（`aircraft.android.*` 三插件，见 `docs/build-logic-extraction-plan.md`），签名/R8/发布/`generateRepoUpdateConfig` 留在各模块。
 - `settings.gradle.kts` 为 `FAIL_ON_PROJECT_REPOS`：新仓库只能加在 settings，不能加在模块。ViewBinding 已删除、DataBinding 未用；无 DI 框架。
 
 ## 命令（仓库根）

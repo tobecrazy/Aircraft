@@ -1,9 +1,9 @@
+import aircraft.buildlogic.registerLogCheck
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
+    id("aircraft.android.application")
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
@@ -26,14 +26,11 @@ android {
             }
         }
     }
-    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.young.aircraft"
-        minSdk = 31
-        targetSdk = 37
-        versionCode = 18
-        versionName = "1.4.6"
+        versionCode = 19
+        versionName = "1.4.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -51,45 +48,18 @@ android {
             isJniDebuggable = true
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
     buildFeatures {
         buildConfig = true
-        compose = true
     }
     namespace = "com.young.aircraft"
     buildToolsVersion = "37.0.0"
-    testOptions {
-        unitTests.isIncludeAndroidResources = true
-    }
 }
 
-val checkAppLogUsage = tasks.register("checkAppLogUsage") {
-    val productionSources = fileTree("src/main") {
-        include("**/*.kt", "**/*.java")
-    }
-    inputs.files(productionSources)
-
-    doLast {
-        val directLogUsage = Regex(
-            """(?m)^\s*import\s+android\.util\.Log(?:\s+as\s+\w+)?\s*$|android\.util\.Log\s*\.|\bLog\s*\."""
-        )
-        val violations = productionSources.files
-            .filterNot { it.invariantSeparatorsPath.endsWith("/utils/AppLog.kt") }
-            .filter { directLogUsage.containsMatchIn(it.readText()) }
-
-        check(violations.isEmpty()) {
-            "Use AppLog instead of android.util.Log in production sources:\n" +
-                violations.joinToString("\n") { " - ${it.relativeTo(projectDir)}" }
-        }
-    }
-}
-
-tasks.configureEach {
-    if (name.startsWith("lint")) dependsOn(checkAppLogUsage)
-}
+registerLogCheck(
+    "checkAppLogUsage",
+    "/utils/AppLog.kt",
+    "Use AppLog instead of android.util.Log in production sources"
+)
 
 // Generates the repo-root app-update.json served to clients as the Remote
 // Config fallback (jsDelivr @main). latest_version tracks versionName;
@@ -117,7 +87,7 @@ val generateRepoUpdateConfig = tasks.register("generateRepoUpdateConfig") {
     val outputFile = rootProject.file("app-update.json")
     val appVersionName = android.defaultConfig.versionName as String
     val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.4.1"
-    val appIcon = (findProperty("appIcon") as String?) ?: "3"
+    val appIcon = (findProperty("appIcon") as String?) ?: "2"
     val welcomeMessage = (findProperty("welcomeMessage") as String?)
         ?: "Aircraft 是一款 Kotlin Android 纵版飞行射击游戏，含十关空战与拼图模式、排行榜，以及可发布的富文本与轮播图库模块。"
     val showWelcome = ((findProperty("showWelcome") as String?) ?: "true").toBooleanStrictOrNull() ?: true
@@ -181,7 +151,6 @@ dependencies {
     implementation(libs.coil.gif)
     implementation(libs.coil.svg)
 
-    implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)

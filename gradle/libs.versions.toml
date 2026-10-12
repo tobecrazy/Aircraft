@@ -1,7 +1,7 @@
 [versions]
 agp = "9.4.1"
 ksp = "2.3.11"
-kotlin-compose = "2.4.20"
+kotlin = "2.4.21"
 google-services = "4.5.0"
 crashlytics-plugin = "3.0.8"
 zxing = "3.5.4"
@@ -37,6 +37,9 @@ foundation-layout = "1.12.1"
 camerax = "1.6.2"
 mlkit-barcode = "17.3.0"
 graphics-path = "1.1.0"
+compile-sdk = "37"
+min-sdk = "31"
+target-sdk = "37"
 
 [libraries]
 zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
@@ -93,11 +96,12 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 camera-mlkit-vision = { group = "androidx.camera", name = "camera-mlkit-vision", version.ref = "camerax" }
 mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit-barcode" }
 graphics-path = { module = "androidx.graphics:graphics-path", version.ref = "graphics-path" }
+android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin-compose" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }

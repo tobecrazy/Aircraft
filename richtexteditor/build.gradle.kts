@@ -1,24 +1,13 @@
 plugins {
-    alias(libs.plugins.android.library)
+    id("aircraft.android.library")
 }
 
 android {
     namespace = "com.young.richtext"
-    compileSdk = 37
 
     defaultConfig {
-        minSdk = 31
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    testOptions {
-        unitTests.isIncludeAndroidResources = true
     }
 }
 
