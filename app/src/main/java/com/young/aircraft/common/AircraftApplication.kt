@@ -17,12 +17,14 @@ import com.young.aircraft.gui.HistoryActivity
 import com.young.developtools.DevTools
 import com.young.developtools.utils.DevLog
 import com.young.aircraft.data.GameState
+import com.young.aircraft.gui.MainActivity
 import com.young.aircraft.gui.MandatoryUpdateActivity
 import com.young.aircraft.gui.openUpdatePage
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AlertDialog
 import com.young.aircraft.gui.dialogs.showThemed
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.GameInterruptionShield
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -45,6 +47,7 @@ class AircraftApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        GameInterruptionShield.restoreAfterProcessDeath(this)
         LogSettings.defaultEnabled = BuildConfig.DEBUG
         AppLog.enabled = BuildConfig.DEBUG
         DevLog.enabled = BuildConfig.DEBUG
@@ -110,6 +113,9 @@ class AircraftApplication : Application() {
 
     private fun enforceMinimumVersion(activity: Activity? = foregroundActivity.get()) {
         if (activity == null || activity.isFinishing) return
+        // Suppress all in-app dialogs (forced/optional update, welcome) during combat;
+        // the next onActivityResumed after combat re-triggers them so dogfights stay uninterrupted.
+        if (activity is MainActivity) return
         val updateRequired = RepoUpdateConfigStore.isCurrentVersionBelowMinimum()
         if (activity is MandatoryUpdateActivity) {
             if (!updateRequired) activity.finish()
@@ -156,7 +162,7 @@ class AircraftApplication : Application() {
     }
 
     private fun showWelcomeDialog(activity: Activity) {
-        if (activity is MandatoryUpdateActivity || activity.isFinishing) return
+        if (activity is MandatoryUpdateActivity || activity is MainActivity || activity.isFinishing) return
         if (foregroundActivity.get() !== activity) return
         val tokenConfig = AircraftRemoteConfig.getTokenConfig()
         if (tokenConfig != null && tokenConfig.showWelcome && tokenConfig.welcomeMessage.isNotBlank()) {

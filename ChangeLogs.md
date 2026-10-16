@@ -4,8 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.8] - 2026-10-16
+
 ### Added
 - `LogCheckTest` (9 cases) covering the extracted `findDirectLogUsages` matching core behind `checkAppLogUsage` / `checkDevLogUsage`; runs as `:convention:test` in the `build-logic` build
+- `GameInterruptionShield` combat DND shield: suppresses system notification heads-up via `INTERRUPTION_FILTER_NONE` while a dogfight runs and restores the previous filter on exit; declares `ACCESS_NOTIFICATION_POLICY`, no-ops without the user grant, preserves a user-changed filter, and recovers a leaked filter after process death via `restoreAfterProcessDeath`
+- `GameInterruptionShieldTest` covering the restore-only-while-shield-active predicate
+
+### Changed
+- `MainActivity` auto-pauses combat on any occlusion (`onPause`, focus loss from the notification shade or system dialogs) and requires a manual tap to resume; the DND shield engages on `onResume` with an `onStop` safety net so DND state never leaks
+- `AircraftApplication` suppresses all in-app dialogs (forced/optional update, welcome) while `MainActivity` is in the foreground; they re-trigger on the next `onActivityResumed` after combat
+- Version bump `1.4.7` → `1.4.8` (`versionCode` 19 → 20); `app-update.json` regenerated with `latest_version` `1.4.8`
 
 ## [1.4.7] - 2026-10-11
 
