@@ -162,6 +162,7 @@ class AircraftApplication : Application() {
                 }
             }
             return true
+        } catch (_: IllegalArgumentException) {
             AppLog.w("AircraftApplication", "Host theme cannot show update prompt; skipping")
             return false
         }
