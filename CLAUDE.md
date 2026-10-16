@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Language
 
 - **Respond in Chinese (中文回复)**: All responses and explanations should be in Chinese.
+- **Code comments and documents in English**: All new/modified code comments, KDoc, and Markdown documents must be in English, never Chinese.
 
 ## Project and Documentation
 

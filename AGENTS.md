@@ -3,9 +3,13 @@
 - **中文回复**：所有解释用中文。
 - 详情见 `CLAUDE.md`（完整手册）；`docs/puzzle-game-redesign-plan.md` 必读后再改拼图计分；`docs/*-aar-usage.md` 有库集成说明。`.github/copilot-instructions.md` 部分声明已过时，以代码为准。
 
-## 模块
+## 项目结构
 
-- `:app` 游戏本体 + 设置/关于/隐私等用户屏；`:developtools` 全部工具屏（Develop/助手/API调试/扫码/联系人/PDF/富文本/二维码/图片详情/手电/设备信息 + 门控/日志/历史存储契约，见 `docs/develop-settings-module-plan.md`）；`:richtexteditor`（仅 `RichTextEditorView`）；`:supperbanner`（`SupperBannerView` + config/colors/effect/transition 类型）。后两者是无游戏依赖的纯 View 库（`supperbanner` 无字符串，`richtexteditor` 自带 4 套 locale 编辑器字符串）；`:developtools` 自带字符串（4 套 locale）与主题/基类拷贝，依赖 `:supperbanner` + `:richtexteditor`，禁止反向依赖 `:app`（跨模块经 `DevTools` 4 hook）。
+- `app/` 是游戏本体及设置、关于、隐私等用户屏；`developtools/` 是开发设置、助手、API 调试、扫码、联系人、PDF、富文本、二维码、图片详情、手电筒和设备信息等工具屏。两者的 Kotlin 代码在 `src/main/java`，测试在 `src/test`；`app/src/androidTest` 是仪器测试，`src/debug`/`src/release` 放构建变体专属代码。资源和本地化字符串在 `src/main/res`，静态文件在 `src/main/assets`。
+- `richtexteditor/` 只提供 `RichTextEditorView`；`supperbanner/` 提供 `SupperBannerView` 及 config/colors/effect/transition 类型。它们是无游戏依赖的 View 库；`supperbanner` 无字符串，`richtexteditor` 自带 4 套 locale 编辑器字符串。
+- `developtools` 自带字符串（4 套 locale）与主题/基类拷贝，依赖 `supperbanner` 和 `richtexteditor`，禁止反向依赖 `app`；跨模块由 `DevTools` 的 4 个 hook 对接。模块拆分计划见 `docs/develop-settings-module-plan.md`。
+- `build-logic/` 存放共享 Gradle convention plugins；`gradle/` 管理 wrapper 和版本目录；`docs/` 存放架构、模块计划及 AAR 集成说明。图表 HTML 和 visual-check 文件是生成物，只编辑对应 JSON 源文件。
+
 - JDK 17 + 签入的 Gradle wrapper；`compileSdk 37 / minSdk 31`；版本集中在 `gradle/libs.versions.toml`。勿加 `org.jetbrains.kotlin.android`（AGP 内置 Kotlin），app 仍需 `org.jetbrains.kotlin.plugin.compose`。公共编译配置收敛在 `build-logic`（`aircraft.android.*` 三插件，见 `docs/build-logic-extraction-plan.md`），签名/R8/发布/`generateRepoUpdateConfig` 留在各模块。
 - `settings.gradle.kts` 为 `FAIL_ON_PROJECT_REPOS`：新仓库只能加在 settings，不能加在模块。ViewBinding 已删除、DataBinding 未用；无 DI 框架。
 
@@ -31,6 +35,7 @@
 
 ## 易错约定
 
+- 注释与文档一律英文（回复仍用中文）：新增/修改的代码注释、KDoc、Markdown 文档全部用英文，勿写中文注释或中文文档。
 - 日志只用 `AppLog`（`android.util.Log` 仅允许在 `utils/AppLog.kt` 内，`:developtools` 内对应为 `DevLog`/`utils/DevLog.kt`）；lambda 消息用尾随形式，勿写成 `AppLog.d(tag, { … })`。
 - 字符串 4 套 locale（`values/values-zh/values-zh-rTW/values-zh-rHK`）必须齐；`StringResourceTest` 还会 fail 未被引用的默认串（Firebase 白名单 8 个除外），删最后引用即破构建。
 - Robolectric 屏测用 `createAndroidComposeRule` + `@GraphicsMode(NATIVE)`；长列表用高视口（`w420dp-h2000dp`，屏外点击静默无操作）；有转圈指示器的屏**禁 `waitForIdle()`**（会 60s hang）；碰 `AppLog`/`LogSettings`/`DevLog` 的测试固定 `@Config(sdk=[34], application=Application::class)`。

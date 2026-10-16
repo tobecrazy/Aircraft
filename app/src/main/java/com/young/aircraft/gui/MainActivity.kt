@@ -30,6 +30,7 @@ import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.themeAccent
+import com.young.aircraft.utils.GameInterruptionShield
 import com.young.aircraft.utils.HallOfHeroesNameUtils
 import com.young.aircraft.gui.dialogs.GameDialogStat
 import com.young.aircraft.gui.dialogs.GameDialogContent
@@ -92,6 +93,7 @@ class MainActivity : AppCompatActivity() {
     private var exitTime: Long = 0
     private var isExitInProgress = false
     private var isServiceBound = false
+    private var savedInterruptionFilter: Int? = null
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
@@ -206,13 +208,7 @@ class MainActivity : AppCompatActivity() {
         coreView.onGameWon = {
             showHallOfHeroesBottomSheet()
         }
-        val controller = window.insetsController
-        if (controller != null) {
-            controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-            controller.systemBarsBehavior =
-                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-
+        hideSystemBars()
         lifecycleScope.launch {
             GameStateManager.gameState.collect { state ->
                 when (state) {
@@ -225,6 +221,33 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun hideSystemBars() {
+        window.insetsController?.let { controller ->
+            controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+            controller.systemBarsBehavior =
+                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        hideSystemBars()
+        // Suppress system notification heads-up when DND access is granted; returns null
+        // when unauthorized, falling back to the auto-pause below.
+        savedInterruptionFilter = GameInterruptionShield.enter(this)
+    }
+
+    override fun onPause() {
+        // Any occlusion (notification shade, incoming-call popup, backgrounding) freezes
+        // combat first; resuming requires a manual tap to continue.
+        if (!isFinishing) {
+            showPauseOverlay()
+        }
+        GameInterruptionShield.exit(this, savedInterruptionFilter)
+        savedInterruptionFilter = null
+        super.onPause()
     }
 
     private fun showPauseOverlay() {
@@ -389,18 +412,20 @@ class MainActivity : AppCompatActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
-            window.insetsController?.let { controller ->
-                controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                controller.systemBarsBehavior =
-                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
+            hideSystemBars()
+        } else if (!isFinishing) {
+            // The game keeps running when the notification shade/system dialog steals focus,
+            // so freeze it; resuming requires a manual tap to continue.
+            showPauseOverlay()
         }
     }
 
 
     override fun onStop() {
         super.onStop()
-        hidePauseOverlay(shouldResumeGame = false)
+        // onPause already restores DND; this is a safety net in case an abnormal path leaks DND state.
+        GameInterruptionShield.exit(this, savedInterruptionFilter)
+        savedInterruptionFilter = null
         if (isServiceBound) {
             mService.backgroundSoundStop()
             unbindService(connection)
