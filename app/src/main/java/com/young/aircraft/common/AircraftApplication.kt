@@ -138,7 +138,10 @@ class AircraftApplication : Application() {
         if (optionalPromptedVersion == latestVersion) return false
         optionalPromptedVersion = latestVersion
 
-        optionalUpdateDialog = MaterialAlertDialogBuilder(activity)
+        // Best-effort prompt: never crash the resume path when the host theme
+        // cannot render Material dialogs (e.g. plain test Activities).
+        try {
+            optionalUpdateDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.remote_update_available_title)
             .setMessage(
                 activity.getString(
@@ -158,7 +161,10 @@ class AircraftApplication : Application() {
                     showWelcomeDialog(activity)
                 }
             }
-        return true
+            return true
+            AppLog.w("AircraftApplication", "Host theme cannot show update prompt; skipping")
+            return false
+        }
     }
 
     private fun showWelcomeDialog(activity: Activity) {
@@ -182,12 +188,18 @@ class AircraftApplication : Application() {
     }
 
     private fun showWelcomeMessage(activity: Activity, message: String) {
-        MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.remote_welcome_title)
-            .setMessage(message)
-            .setPositiveButton(android.R.string.ok, null)
-            .setCancelable(true)
-            .showThemed()
+        // Best-effort message: skip instead of crashing when the host theme
+        // cannot render Material dialogs (e.g. plain test Activities).
+        try {
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.remote_welcome_title)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, null)
+                .setCancelable(true)
+                .showThemed()
+        } catch (_: IllegalArgumentException) {
+            AppLog.w("AircraftApplication", "Host theme cannot show welcome message; skipping")
+        }
     }
 
     private fun wireDevTools() {
