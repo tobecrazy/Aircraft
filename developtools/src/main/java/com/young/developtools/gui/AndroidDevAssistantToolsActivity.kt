@@ -238,7 +238,7 @@ class AndroidDevAssistantToolsActivity : BaseAircraftActivity() {
                 }
             }
 
-            MODULE_APP_BROWSER -> showAppListDialog()
+            MODULE_APP_BROWSER -> startActivity(Intent(this, AppListActivity::class.java))
 
             MODULE_CONTACTS -> startActivity(Intent(this, ContactsActivity::class.java))
 
@@ -290,14 +290,6 @@ class AndroidDevAssistantToolsActivity : BaseAircraftActivity() {
                 browsers
             )
         )
-    }
-
-    private fun showAppListDialog() {
-        val dialog = AlertDialog.Builder(this).create()
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
-        dialog.window?.setDimAmount(0.7f)
-        dialog.setDialogComposeContent(this) { AppListDialogContent() }
     }
 
     /** Monospace scrollable panel; native message dialogs truncate these dumps. */

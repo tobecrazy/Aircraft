@@ -45,6 +45,12 @@
             android:label="@string/android_dev_assistant_tools_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
+            android:name=".gui.AppListActivity"
+            android:exported="false"
+            android:label="@string/develop_settings_assistant_apps_title"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.Aircraft.Common" />
+        <activity
             android:name=".gui.ContactsActivity"
             android:exported="false"
             android:label="@string/develop_settings_assistant_module_contacts"
