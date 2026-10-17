@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,9 +46,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
+import com.young.aircraft.common.RepoUpdateConfigStore
+import com.young.aircraft.common.compareAppVersions
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.ui.theme.AccentGreen
 import com.young.aircraft.ui.theme.AircraftTheme
@@ -56,6 +62,9 @@ import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.TextBright
 import com.young.aircraft.ui.theme.TextBody
 import com.young.aircraft.ui.theme.TextMuted
+import com.young.aircraft.gui.dialogs.showAlreadyLatestVersionDialog
+import com.young.aircraft.gui.dialogs.showUpdateAvailableDialog
+import com.young.aircraft.gui.MandatoryUpdateActivity
 import com.young.aircraft.viewmodel.AboutAircraftViewModel
 import com.young.aircraft.viewmodel.AboutAircraftUiState
 import com.young.aircraft.viewmodel.ImageLoadState
@@ -63,6 +72,8 @@ import com.young.developtools.gui.ShowImageDetailsActivity
 import com.young.developtools.utils.DeveloperMode
 import com.young.supperbanner.SupperBannerImage
 import com.young.supperbanner.SupperBannerItem
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 // Panel visuals lifted from device_info_hero_bg / device_info_card_bg /
 // device_info_item_bg / the legacy outlined MaterialButton styling.
@@ -109,12 +120,49 @@ class AboutAircraftActivity : BaseAircraftActivity() {
                     onBack = { finish() },
                     onOpenRepo = ::openRepo,
                     onVersionClick = ::onVersionClick,
+                    onCheckUpdate = ::checkForUpdates,
                     onImageClick = ::openProjectImageDetails,
                     onImageLoadStarted = viewModel::onImageLoadStarted,
                     onImageLoadSuccess = viewModel::onImageLoadSuccess,
                     onImageLoadError = viewModel::onImageLoadError
                 )
             }
+        }
+    }
+
+    /** Manual "check for updates": refreshes the repo JSON fallback first so
+     * the version comparison sees values published after this process started,
+     * then routes to the forced-update screen, the shared app-wide upgrade
+     * prompt, or the already-latest dialog. */
+    private fun checkForUpdates() {
+        lifecycleScope.launch {
+            updateConfigRefresher()
+            if (isFinishing) return@launch
+            when (val check = resolveAboutUpdateCheck(
+                currentVersion = BuildConfig.VERSION_NAME,
+                minimumVersion = RepoUpdateConfigStore.getMinimumVersion(),
+                latestVersion = RepoUpdateConfigStore.getLatestVersion()
+            )) {
+                AboutUpdateCheckResult.ForcedUpdate ->
+                    startActivity(Intent(this@AboutAircraftActivity, MandatoryUpdateActivity::class.java))
+                is AboutUpdateCheckResult.UpdateAvailable ->
+                    showUpdateAvailableDialog(check.latestVersion)
+                AboutUpdateCheckResult.AlreadyLatest ->
+                    showAlreadyLatestVersionDialog()
+            }
+        }
+    }
+
+    /** Test seam: the refresh step of [checkForUpdates]; inject a no-op to
+     * keep screen tests off the network. Rethrows cancellation so a disposed
+     * activity stops mid-check instead of showing dialogs. */
+    internal var updateConfigRefresher: suspend () -> Unit = {
+        try {
+            RepoUpdateConfigStore.refreshNow()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Unreachable fallback sources leave the startup values in place.
         }
     }
 
@@ -173,6 +221,7 @@ internal fun AboutAircraftScreen(
     onBack: () -> Unit,
     onOpenRepo: () -> Unit,
     onVersionClick: () -> Unit,
+    onCheckUpdate: () -> Unit,
     onImageClick: () -> Unit,
     onImageLoadStarted: () -> Unit,
     onImageLoadSuccess: () -> Unit,
@@ -226,6 +275,8 @@ internal fun AboutAircraftScreen(
             SectionHeader(titleRes = R.string.about_section_specs)
             StatsRow()
             SpecsCard()
+
+            CheckUpdateCard(onCheckUpdate = onCheckUpdate)
 
             SectionHeader(titleRes = R.string.about_section_source)
             GithubCard(onOpenRepo = onOpenRepo)
@@ -308,7 +359,10 @@ private fun HeroPanel(state: AboutAircraftUiState, onOpenRepo: () -> Unit, onVer
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            Row(modifier = Modifier.padding(top = 14.dp)) {
+            Row(
+                modifier = Modifier.padding(top = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 BadgeChip(
                     text = state.versionText,
                     tint = AccentGreen,
@@ -338,21 +392,30 @@ private fun BadgeChip(
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val chipModifier = if (onClick != null) {
-        modifier.clickable(onClick = onClick)
-    } else {
-        modifier
+    val chip: @Composable () -> Unit = {
+        Text(
+            text = text,
+            color = tint,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier
+                .background(GaugeBg, RoundedCornerShape(12.dp))
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        )
     }
-    Text(
-        text = text,
-        color = tint,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        fontFamily = FontFamily.Monospace,
-        modifier = chipModifier
-            .background(GaugeBg, RoundedCornerShape(12.dp))
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-    )
+    if (onClick == null) {
+        Box(modifier = modifier) { chip() }
+    } else {
+        // Keep the visual pill small but meet the 48dp minimum touch-target
+        // requirement for the developer-unlock taps.
+        Box(
+            modifier = modifier
+                .sizeIn(minHeight = 48.dp)
+                .clickable(onClick = onClick, role = Role.Button),
+            contentAlignment = Alignment.Center
+        ) { chip() }
+    }
 }
 
 @Composable
@@ -360,7 +423,7 @@ private fun GithubCta(modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
         modifier = modifier
             .background(CtaBg, RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick, role = Role.Button)
             .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
         Text(
@@ -408,7 +471,7 @@ private fun ProjectImageCard(
                 modifier = Modifier
                     .matchParentSize()
                     .testTag("project_image")
-                    .clickable(onClick = onClick)
+                    .clickable(onClick = onClick, role = Role.Button)
             )
 
             if (state.imageLoadState == ImageLoadState.Loading) {
@@ -426,6 +489,50 @@ private fun ProjectImageCard(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun CheckUpdateCard(onCheckUpdate: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .testTag("check_update_card")
+            .clickable(onClick = onCheckUpdate, role = Role.Button),
+        shape = RoundedCornerShape(12.dp),
+        color = CardBg,
+        border = androidx.compose.foundation.BorderStroke(1.dp, CardBorder)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.about_check_update_title),
+                    color = TextBright,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+                Text(
+                    text = stringResource(R.string.about_check_update_summary),
+                    color = TextBody,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Icon(
+                painter = painterResource(R.drawable.arrow_upward_black_24dp),
+                contentDescription = null,
+                tint = AccentGreen,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
@@ -564,7 +671,7 @@ private fun GithubCard(onOpenRepo: () -> Unit) {
             .fillMaxWidth()
             .padding(top = 10.dp)
             .testTag("github_source_card")
-            .clickable(onClick = onOpenRepo),
+            .clickable(onClick = onOpenRepo, role = Role.Button),
         shape = RoundedCornerShape(12.dp),
         color = CardBg,
         border = androidx.compose.foundation.BorderStroke(1.dp, CardBorder)
@@ -605,5 +712,37 @@ private fun GithubCard(onOpenRepo: () -> Unit) {
                 GithubCta(onClick = onOpenRepo)
             }
         }
+    }
+}
+
+/** Outcome of a manual update check driven by the effectively configured
+ * versions. Invalid (unparsable) versions fail open to AlreadyLatest, matching
+ * the rest of the update pipeline. */
+internal sealed interface AboutUpdateCheckResult {
+    data object AlreadyLatest : AboutUpdateCheckResult
+    /** Optional update: the shared remote_update_available_* prompt. */
+    data class UpdateAvailable(val latestVersion: String) : AboutUpdateCheckResult
+    /** Below the enforced minimum: route to MandatoryUpdateActivity. */
+    data object ForcedUpdate : AboutUpdateCheckResult
+}
+
+internal fun resolveAboutUpdateCheck(
+    currentVersion: String,
+    minimumVersion: String,
+    latestVersion: String
+): AboutUpdateCheckResult {
+    // Mirror the app-wide pipeline (RepoUpdateConfigStore.isOptionalUpdateAvailable):
+    // an unparsable minimum suppresses every update offer, falling through to
+    // AlreadyLatest instead of prompting an update on misconfigured data.
+    val minimumComparison = compareAppVersions(currentVersion, minimumVersion)
+        ?: return AboutUpdateCheckResult.AlreadyLatest
+    if (minimumComparison < 0) {
+        return AboutUpdateCheckResult.ForcedUpdate
+    }
+    val latestComparison = compareAppVersions(currentVersion, latestVersion)
+    return if (latestComparison != null && latestComparison < 0) {
+        AboutUpdateCheckResult.UpdateAvailable(latestVersion)
+    } else {
+        AboutUpdateCheckResult.AlreadyLatest
     }
 }
