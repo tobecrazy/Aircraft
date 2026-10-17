@@ -2,6 +2,7 @@ package com.young.aircraft.gui
 
 import android.content.Intent
 import android.os.Looper
+import android.widget.TextView
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.test.core.app.ActivityScenario
 import com.young.aircraft.R
@@ -16,6 +17,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowDialog
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w420dp-h920dp")
@@ -92,6 +94,31 @@ class AboutAircraftActivityTest {
                 assertNotNull(description)
                 assertEquals(ImageDetailsIntentContract.SOURCE_NETWORK, sourceType)
                 assertNotNull(url)
+            }
+        }
+    }
+
+    @Test
+    fun `check update card refreshes config first then shows already-latest dialog`() {
+        ActivityScenario.launch(AboutAircraftActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                // Keep the manual check off the network; a no-op still lets the
+                // comparison and dialog render synchronously on the main thread.
+                var refreshInvoked = false
+                activity.updateConfigRefresher = { refreshInvoked = true }
+
+                assertTrue(root(activity).clickOnTag("check_update_card"))
+                // The dialog only appears after the refresh step, so a true flag
+                // here proves the config refresh happens before the result.
+                assertTrue("Manual check should refresh the repo config first", refreshInvoked)
+
+                val dialog = ShadowDialog.getLatestDialog()
+                assertNotNull("Already-latest dialog should be shown", dialog)
+                assertTrue(dialog.isShowing)
+                assertEquals(
+                    activity.getString(R.string.about_update_already_latest_message),
+                    dialog.findViewById<TextView>(android.R.id.message)?.text
+                )
             }
         }
     }

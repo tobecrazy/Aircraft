@@ -143,6 +143,9 @@
     <string name="about_source_summary">在 GitHub 上檢視倉庫、釋出歷史和實現細節。</string>
     <string name="about_source_cta">開啟倉庫</string>
     <string name="about_description">一款使用 Kotlin 編寫的 Android 2D 縱向卷軸射擊遊戲。操控戰鬥機向上發射子彈，消滅敵機並避免碰撞。遊戲包含 10 個基於時間的關卡，難度遞增，每關末尾有 Boss 戰，以及多種道具系統。</string>
+    <string name="about_check_update_title">檢查更新</string>
+    <string name="about_check_update_summary">檢查是否有新版本可用。</string>
+    <string name="about_update_already_latest_message">已經是最新版本</string>
 
     <!-- Game Settings page -->
     <string name="game_settings_title">遊戲設定</string>

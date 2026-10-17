@@ -19,7 +19,7 @@ import com.young.developtools.utils.DevLog
 import com.young.aircraft.data.GameState
 import com.young.aircraft.gui.MainActivity
 import com.young.aircraft.gui.MandatoryUpdateActivity
-import com.young.aircraft.gui.openUpdatePage
+import com.young.aircraft.gui.dialogs.showUpdateAvailableDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AlertDialog
 import com.young.aircraft.gui.dialogs.showThemed
@@ -138,34 +138,15 @@ class AircraftApplication : Application() {
         if (optionalPromptedVersion == latestVersion) return false
         optionalPromptedVersion = latestVersion
 
-        // Best-effort prompt: never crash the resume path when the host theme
-        // cannot render Material dialogs (e.g. plain test Activities).
-        try {
-            optionalUpdateDialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.remote_update_available_title)
-            .setMessage(
-                activity.getString(
-                    R.string.remote_update_available_message,
-                    BuildConfig.VERSION_NAME,
-                    latestVersion
-                )
-            )
-            .setPositiveButton(R.string.remote_update_available_action) { _, _ ->
-                openUpdatePage(activity)
+        // Dialog rendering lives in a shared helper so the About screen's
+        // manual check reuses the exact same prompt.
+        optionalUpdateDialog = activity.showUpdateAvailableDialog(latestVersion) {
+            optionalUpdateDialog = null
+            if (foregroundActivity.get() === activity && !activity.isFinishing) {
+                showWelcomeDialog(activity)
             }
-            .setNegativeButton(R.string.remote_update_later_action, null)
-            .setCancelable(true)
-            .showThemed {
-                optionalUpdateDialog = null
-                if (foregroundActivity.get() === activity && !activity.isFinishing) {
-                    showWelcomeDialog(activity)
-                }
-            }
-            return true
-        } catch (_: IllegalArgumentException) {
-            AppLog.w("AircraftApplication", "Host theme cannot show update prompt; skipping")
-            return false
         }
+        return optionalUpdateDialog != null
     }
 
     private fun showWelcomeDialog(activity: Activity) {

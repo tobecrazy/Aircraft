@@ -7,6 +7,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -54,16 +55,26 @@ object RepoUpdateConfigStore {
         .build()
 
     fun refresh(scope: CoroutineScope) {
-        scope.launch(Dispatchers.IO) {
-            val config = fetchFirstSuccess()
-            if (config != null) {
-                cached = config
-                AppLog.d(TAG) { "Repo update config applied: $config" }
-                onUpdated?.invoke()
-            } else {
-                AppLog.w(TAG, "Repo update config unreachable; staying on Firebase values")
-            }
+        scope.launch { refreshNow() }
+    }
+
+    /**
+     * Suspend variant of [refresh]: fetches the repo JSON and applies it
+     * before returning, so callers (the About screen's manual update check)
+     * compare against fallback values published after this process started.
+     * Returns the applied config, or null when neither CDN source was
+     * reachable (Firebase REMOTE values still take precedence either way).
+     */
+    suspend fun refreshNow(): RepoUpdateConfig? = withContext(Dispatchers.IO) {
+        val config = fetchFirstSuccess()
+        if (config != null) {
+            cached = config
+            AppLog.d(TAG) { "Repo update config applied: $config" }
+            onUpdated?.invoke()
+        } else {
+            AppLog.w(TAG, "Repo update config unreachable; staying on Firebase values")
         }
+        config
     }
 
     private fun fetchFirstSuccess(): RepoUpdateConfig? {
