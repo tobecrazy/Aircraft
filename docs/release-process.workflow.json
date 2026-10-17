@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "版本发布流程",
+    "output": "release-process.workflow.html",
+    "quality_profile": "showcase",
+    "viewBox": [1000, 480]
+  },
+  "lanes": [
+    { "id": "dev", "label": "开发与文档" },
+    { "id": "build", "label": "构建与产物" },
+    { "id": "pub", "label": "发布与回落源" }
+  ],
+  "phases": [
+    { "id": "prepare", "label": "版本与文档", "fromCol": 0, "toCol": 1 },
+    { "id": "build", "label": "构建与回写", "fromCol": 2, "toCol": 3 },
+    { "id": "publish", "label": "发布落地", "fromCol": 4, "toCol": 5, "variant": "emphasis" }
+  ],
+  "mainPath": ["bump", "docsverify", "release", "appupdate", "tag"],
+  "nodes": [
+    { "id": "bump", "lane": "dev", "col": 0, "type": "backend", "label": "递增版本号", "sublabel": "十进制递增" },
+    { "id": "docsverify", "lane": "dev", "col": 2, "type": "frontend", "label": "同步 README", "sublabel": "CI 三件套" },
+    { "id": "release", "lane": "build", "col": 2, "type": "backend", "label": "assembleRelease", "sublabel": "keystore · R8", "width": 112 },
+    { "id": "appupdate", "lane": "build", "col": 4, "type": "database", "label": "重写回落配置", "sublabel": "latest = versionName" },
+    { "id": "tag", "lane": "pub", "col": 4, "type": "external", "label": "发布 V-tag", "sublabel": "GitHub + APK" }
+  ],
+  "edges": [
+    { "from": "bump", "to": "docsverify", "label": "patch 至 9 进位" },
+    { "from": "docsverify", "to": "release", "label": "CI 等价通过" },
+    { "from": "release", "to": "appupdate", "label": "自动重写" },
+    { "from": "appupdate", "to": "tag", "label": "提交并发布" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "版本红线", "items": [
+      "versionName 十进制递增：patch+1；至 9 进位 minor，再进位 major",
+      "versionCode 每次发版固定 +1"
+    ] },
+    { "dot": "cyan", "title": "回落源就绪", "items": [
+      "assembleRelease 自动重写根目录 app-update.json（minimum 可用 -PminimumVersion 抬高）",
+      "release 后需把该文件合回 main，否则仓库 JSON 回落源滞后"
+    ] },
+    { "dot": "amber", "title": "发布前置", "items": [
+      "keystore.properties 未跟踪且必须存在，丢签即失败",
+      "打 V1.4.x tag 上传 app-release.apk；aapt2 dump badging 校验版本先行"
+    ] }
+  ]
+}

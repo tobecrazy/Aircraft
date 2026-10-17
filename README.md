@@ -32,7 +32,7 @@ The demo above walks through the end-to-end player experience on a real device:
 
 ![Project Architecture](project_diagram.svg)
 
-> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). The Remote Config update-gate flow is diagrammed separately at [docs/remote-update-enforcement.workflow.html](docs/remote-update-enforcement.workflow.html), generated from [docs/remote-update-enforcement.workflow.json](docs/remote-update-enforcement.workflow.json). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
+> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). The Remote Config update-gate flow is diagrammed separately at [docs/remote-update-enforcement.workflow.html](docs/remote-update-enforcement.workflow.html), generated from [docs/remote-update-enforcement.workflow.json](docs/remote-update-enforcement.workflow.json); companion diagrams cover the About manual update check ([docs/about-manual-update-check.workflow.html](docs/about-manual-update-check.workflow.html) / `.workflow.json`), the end-to-end remote update chain ([docs/remote-update-chain.architecture.html](docs/remote-update-chain.architecture.html) / `.architecture.json`), and the release process ([docs/release-process.workflow.html](docs/release-process.workflow.html) / `.workflow.json`). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
 
 ## Class Diagram
 
@@ -218,9 +218,10 @@ app/
 ├── proguard-rules.pro                  # Release keeps: Room entities/DAO + migrations, manifest entry points, enums, singletons (see R8 below)
 └── src/main/java/com/young/aircraft/
 ├── common/
-│   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, enforces the minimum-version gate on every resume
+│   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, refreshes the repo-update fallback JSON at startup, and enforces the minimum-version / optional-update prompts on every resume
 │   ├── AircraftRemoteConfig.kt         # Firebase Remote Config singleton: typed parameters, token JSON, version compare, Crashlytics collection toggle
 │   ├── LauncherIconManager.kt          # internal object switching the enabled launcher activity-alias for the Remote Config `AppIcon` variant (1..5, invalid → 1); debug builds pin LauncherIcon1 so the IDE launch target stays valid
+│   ├── RepoUpdateConfig.kt             # Repo `app-update.json` fallback: data class + RepoUpdateConfigStore (Firebase REMOTE wins; jsDelivr → raw fetch at startup and via the About manual check)
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
 │   ├── AppDatabase.kt                  # Room database (v2033) + explicit migrations 2027→2033
@@ -256,15 +257,17 @@ app/
 │   ├── SettingsScreen.kt               # Compose settings presentation + SettingsDestination enum
 │   ├── GameSettingsActivity.kt         # Difficulty / audio / color-theme screen (Settings → Game settings)
 │   ├── LanguageSettingsActivity.kt     # Per-app locale picker: follow system, zh-CN, zh-TW, zh-HK, en
-│   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
+│   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, manual check-for-updates card, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer
+│   ├── DataPrivacyActivity.kt          # Delete on-device data + withdraw consent (re-opens the privacy gate on next launch)
 │   ├── ThemedMessage.kt                # Themed Material Snackbar factory (replaces system Toasts)
 │   ├── StarFieldView.kt                # Animated cinematic background
 │   └── dialogs/
 │       ├── DialogCompose.kt            # Dialog.setDialogComposeContent(host) — lifecycle + theme + dismiss plumbing
 │       ├── GameDialogContent.kt        # Compose game-over / level-complete / victory content + palette/stat models
-│       └── ThemedAlertDialog.kt        # MaterialAlertDialogBuilder.showThemed() native confirmation theming
+│       ├── ThemedAlertDialog.kt        # MaterialAlertDialogBuilder.showThemed() native confirmation theming
+│       └── UpdateDialogs.kt            # Shared update prompts: showUpdateAvailableDialog() (app-wide + About manual check) and showAlreadyLatestVersionDialog()
 ├── providers/
 │   └── DatabaseProvider.kt             # Singleton Room provider (explicit migrations, no destructive fallback)
 ├── service/
@@ -290,6 +293,7 @@ app/
 ├── utils/
 │   ├── AppLog.kt                       # Runtime kill-switch wrapper over android.util.Log; d() takes a lambda so disabled messages are never built
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
+│   ├── GameInterruptionShield.kt       # Combat Do-Not-Disturb shield: requests DND full-suppression during dogfights; null when unauthorized (callers fall back to auto-pause)
 │   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
 │   ├── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
 └── viewmodel/
