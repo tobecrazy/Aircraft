@@ -6,8 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -88,14 +86,6 @@ class DeviceInfoActivity : BaseAircraftActivity() {
     // True while a foldable's hinge reports FLAT (device unfolded) — widens the Current time and System Info rows.
     private val systemInfoWide = mutableStateOf(false)
 
-    private val handler = Handler(Looper.getMainLooper())
-    private val refreshRunnable = object : Runnable {
-        override fun run() {
-            viewModel.refreshDynamicInfo()
-            handler.postDelayed(this, 1000L)
-        }
-    }
-
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
@@ -110,10 +100,9 @@ class DeviceInfoActivity : BaseAircraftActivity() {
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(this, DeviceInfoViewModel.Factory(this))[DeviceInfoViewModel::class.java]
+        // Static identity is initialized once here; dynamic sampling starts and
+        // stops with screen visibility in onStart/onStop.
         viewModel.initStaticInfo()
-        viewModel.initCpuSnapshot()
-        viewModel.initTrafficSnapshot()
-        viewModel.refreshDynamicInfo()
     }
 
     override fun initializeUI() {
@@ -149,16 +138,17 @@ class DeviceInfoActivity : BaseAircraftActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        handler.post(refreshRunnable)
+    override fun onStart() {
+        super.onStart()
+        // Battery receiver and periodic sampling both follow STARTED visibility.
         registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        viewModel.startSampling()
     }
 
-    override fun onPause() {
-        super.onPause()
-        handler.removeCallbacks(refreshRunnable)
-        unregisterReceiver(batteryReceiver)
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopSampling()
+        runCatching { unregisterReceiver(batteryReceiver) }
     }
 }
 
@@ -401,19 +391,32 @@ private fun CpuCard(cpu: CpuState, cpuInfo: String) {
                     horizontalAlignment = Alignment.End
                 ) {
                     Text(
-                        text = stringResource(R.string.device_info_fmt_pct, cpu.overallPct),
+                        text = cpuOverallPctText(cpu),
                         color = AccentGreen,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
-                    Box(modifier = Modifier.padding(top = 4.dp)) {
+                    Row(
+                        modifier = Modifier.padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         GaugeChip(
                             text = cpuTempText(cpu.temperature),
                             textColor = if (cpu.temperature == null) Color(0x55FFFFFF) else TextPrimary,
                             textSize = 10.sp,
                             bold = false
                         )
+                        // Estimate marker pairs with the ~% number so the
+                        // fallback value is never presented as measured.
+                        if (cpu.isEstimate) {
+                            GaugeChip(
+                                text = stringResource(R.string.device_info_cpu_estimated),
+                                textColor = Color(0x99FFFFFF),
+                                textSize = 10.sp,
+                                bold = false
+                            )
+                        }
                     }
                 }
             }
@@ -423,7 +426,7 @@ private fun CpuCard(cpu: CpuState, cpuInfo: String) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 cpu.coreUsages.forEach { core ->
-                    CoreUsageRow(core)
+                    CoreUsageRow(core, cpuIsEstimate = cpu.isEstimate)
                 }
             }
         }
@@ -431,7 +434,7 @@ private fun CpuCard(cpu: CpuState, cpuInfo: String) {
 }
 
 @Composable
-private fun CoreUsageRow(core: CoreUsage) {
+private fun CoreUsageRow(core: CoreUsage, cpuIsEstimate: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -447,14 +450,14 @@ private fun CoreUsageRow(core: CoreUsage) {
             fontFamily = FontFamily.Monospace
         )
         PercentBar(
-            pct = if (core.isOnline) core.pct else 0,
+            pct = if (core.isOnline && core.pctAvailable) core.pct else 0,
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 10.dp),
             barHeight = 4.dp
         )
         Text(
-            text = corePctText(core),
+            text = corePctText(core, cpuIsEstimate),
             color = AccentGreen,
             fontSize = 9.sp,
             fontFamily = FontFamily.Monospace
@@ -463,10 +466,20 @@ private fun CoreUsageRow(core: CoreUsage) {
 }
 
 @Composable
-private fun corePctText(core: CoreUsage): String = when {
+private fun corePctText(core: CoreUsage, cpuIsEstimate: Boolean): String = when {
     !core.isOnline -> stringResource(R.string.device_info_cpu_core_off)
+    !core.pctAvailable -> stringResource(R.string.device_info_cpu_unavailable)
+    cpuIsEstimate && core.freqMhz != null ->
+        stringResource(R.string.device_info_fmt_core_pct_freq_est, core.pct, core.freqMhz)
     core.freqMhz != null -> stringResource(R.string.device_info_fmt_core_pct_freq, core.pct, core.freqMhz)
     else -> stringResource(R.string.device_info_fmt_core_pct, core.pct)
+}
+
+@Composable
+private fun cpuOverallPctText(cpu: CpuState): String = when {
+    !cpu.overallPctAvailable -> stringResource(R.string.device_info_cpu_unavailable)
+    cpu.isEstimate -> stringResource(R.string.device_info_fmt_pct_est, cpu.overallPct)
+    else -> stringResource(R.string.device_info_fmt_pct, cpu.overallPct)
 }
 
 @Composable
@@ -485,6 +498,8 @@ private fun MemoryDiskRow(memory: MemoryState, disk: DiskState, stacked: Boolean
         Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
             ResourceStatCard(
                 labelRes = R.string.device_info_memory,
+                scopeRes = R.string.device_info_memory_scope,
+                available = memory.pctAvailable,
                 pct = memory.pct,
                 detail = stringResource(
                     R.string.device_info_fmt_memory_detail,
@@ -495,6 +510,8 @@ private fun MemoryDiskRow(memory: MemoryState, disk: DiskState, stacked: Boolean
             )
             ResourceStatCard(
                 labelRes = R.string.device_info_disk,
+                scopeRes = R.string.device_info_disk_scope,
+                available = disk.pctAvailable,
                 pct = disk.pct,
                 detail = stringResource(
                     R.string.device_info_fmt_disk_detail,
@@ -508,6 +525,8 @@ private fun MemoryDiskRow(memory: MemoryState, disk: DiskState, stacked: Boolean
     Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
         ResourceStatCard(
             labelRes = R.string.device_info_memory,
+            scopeRes = R.string.device_info_memory_scope,
+            available = memory.pctAvailable,
             pct = memory.pct,
             detail = stringResource(
                 R.string.device_info_fmt_memory_detail,
@@ -518,6 +537,8 @@ private fun MemoryDiskRow(memory: MemoryState, disk: DiskState, stacked: Boolean
         )
         ResourceStatCard(
             labelRes = R.string.device_info_disk,
+            scopeRes = R.string.device_info_disk_scope,
+            available = disk.pctAvailable,
             pct = disk.pct,
             detail = stringResource(
                 R.string.device_info_fmt_disk_detail,
@@ -531,24 +552,35 @@ private fun MemoryDiskRow(memory: MemoryState, disk: DiskState, stacked: Boolean
 @Composable
 private fun ResourceStatCard(
     labelRes: Int,
+    scopeRes: Int,
+    available: Boolean,
     pct: Int,
     detail: String,
     modifier: Modifier = Modifier
 ) {
+    // An unreadable source must not look like a measured 0%; render N/A and
+    // keep the empty track uncolored.
+    val unavailableText = stringResource(R.string.device_info_cpu_unavailable)
     CardBox(modifier = modifier) {
         Column {
             ItemLabel(labelRes)
             Text(
-                text = stringResource(R.string.device_info_fmt_pct, pct),
+                text = stringResource(scopeRes),
+                color = TextMuted,
+                fontSize = 9.sp,
+                fontFamily = FontFamily.Monospace
+            )
+            Text(
+                text = if (available) stringResource(R.string.device_info_fmt_pct, pct) else unavailableText,
                 modifier = Modifier.padding(top = 8.dp),
-                color = pctColor(pct),
+                color = if (available) pctColor(pct) else TextMuted,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace
             )
-            PercentBar(pct = pct, modifier = Modifier.padding(top = 10.dp))
+            PercentBar(pct = if (available) pct else 0, modifier = Modifier.padding(top = 10.dp))
             Text(
-                text = detail,
+                text = if (available) detail else unavailableText,
                 modifier = Modifier.padding(top = 10.dp),
                 color = TextSubtle,
                 fontSize = 10.sp,
@@ -812,13 +844,14 @@ private fun previewUiState(): DeviceInfoUiState = DeviceInfoUiState(
     ),
     cpu = CpuState(
         overallPct = 34,
+        overallPctAvailable = true,
         coreUsages = List(8) { i ->
-            CoreUsage(index = i, pct = (i * 11) % 100, freqMhz = 1800 + i * 100)
+            CoreUsage(index = i, pct = (i * 11) % 100, freqMhz = 1800 + i * 100, pctAvailable = true)
         },
         temperature = 45.7f
     ),
-    memory = MemoryState(pct = 61, usedGB = 5.2, availGB = 3.1, totalGB = 8.0, buffersGB = 0.31, cachedGB = 1.2),
-    disk = DiskState(pct = 47, usedGB = 48.1, availGB = 54.0, totalGB = 102.4),
+    memory = MemoryState(pct = 61, usedGB = 5.2, availGB = 3.1, totalGB = 8.0, buffersGB = 0.31, cachedGB = 1.2, pctAvailable = true),
+    disk = DiskState(pct = 47, usedGB = 48.1, availGB = 54.0, totalGB = 102.4, pctAvailable = true),
     network = NetworkState(
         type = NetworkType.WIFI,
         detail = "HOME_5G 300Mbps RSSI:-52dBm [4/4]",

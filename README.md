@@ -10,7 +10,7 @@ Latest published release APK (V1.4.9):
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.5.0` (`versionCode` 22); releases up to `V1.4.9` are on GitHub.
+> The app currently builds as `1.5.1` (`versionCode` 23); releases up to `V1.4.9` are on GitHub.
 
 ## Demo
 
@@ -345,7 +345,7 @@ app/
 
 `richtexteditor/src/test` includes focused unit tests for Markdown conversion, plain-text escaping, image tap URL round-tripping, and preview image format support. `supperbanner/src/test` covers banner auto-play interval clamping and the Robolectric-backed color palette and page transformers (`SupperBannerViewColorsTest`, `SupperBannerTransformerTest`, `@Config(sdk = [34])`).
 
-`developtools/src/test` holds every tool screen suite, mirrored from the app: `DevelopSettingsActivityTest` (version-badge toggle, crash dialog, QR notification), `AndroidDevAssistantToolsActivityTest` (module grid, toggles, log switch, and app-browser navigation), `AppListActivityTest` (user/system/all filters, search, empty state, details intent, rememberSaveable persistence across recreation, and back navigation over Robolectric's PackageManager shadow), `ApiDebugToolActivityTest` / `ApiDebugToolViewModelTest` / `ApiDebugRepositoryTest` (validation gate, history load-back over a fake store), `QRCodeToolActivityTest`, `RichTextEditorActivityTest`, `RichTextMarkdownTest`, `ShowImageDetailsActivityTest`, `DeviceInfoActivityTest`, `FlashlightTorchHeroTest`, `FlashlightViewModelTest` (SOS timing, brightness mapping), `PdfViewModelTest`, `DominantPageIndexTest`, `DeviceResourceCalculatorsTest`, `ContactsRepositoryTest` / `ContactsValidationTest` / `ContactsViewModelTest`, `LogSettingsTest` / `LogSettingsViewModelTest` (now driving `DevLog`), `DataUriUtilsTest`, `BannerDetailsIntentContractTest`, `ImageDetailsIntentContractTest`, the `apidebug` pure-function tests, `ThemedMessageTest`, and a module `StringResourceTest` (locale parity + usage coverage). `build-logic`'s `:convention:test` runs `LogCheckTest` (9 cases over the shared AppLog/DevLog matching core behind `checkAppLogUsage` / `checkDevLogUsage`).
+`developtools/src/test` holds every tool screen suite, mirrored from the app: `DevelopSettingsActivityTest` (version-badge toggle, crash dialog, QR notification), `AndroidDevAssistantToolsActivityTest` (module grid, toggles, log switch, and app-browser navigation), `AppListActivityTest` (user/system/all filters, search, empty state, details intent, rememberSaveable persistence across recreation, and back navigation over Robolectric's PackageManager shadow), `ApiDebugToolActivityTest` / `ApiDebugToolViewModelTest` / `ApiDebugRepositoryTest` (validation gate, history load-back over a fake store), `QRCodeToolActivityTest`, `RichTextEditorActivityTest`, `RichTextMarkdownTest`, `ShowImageDetailsActivityTest`, `DeviceInfoActivityTest` (unavailable/estimate rendering, layout, and navigation) plus `DeviceInfoViewModelTest` (source-unavailable retention, CPU estimate labeling, sampling lifecycle), `FlashlightTorchHeroTest`, `FlashlightViewModelTest` (SOS timing, brightness mapping), `PdfViewModelTest`, `DominantPageIndexTest`, `DeviceResourceCalculatorsTest`, `ContactsRepositoryTest` / `ContactsValidationTest` / `ContactsViewModelTest`, `LogSettingsTest` / `LogSettingsViewModelTest` (now driving `DevLog`), `DataUriUtilsTest`, `BannerDetailsIntentContractTest`, `ImageDetailsIntentContractTest`, the `apidebug` pure-function tests, `ThemedMessageTest`, and a module `StringResourceTest` (locale parity + usage coverage). `build-logic`'s `:convention:test` runs `LogCheckTest` (9 cases over the shared AppLog/DevLog matching core behind `checkAppLogUsage` / `checkDevLogUsage`).
 
 Instrumented tests belong in `app/src/androidTest`.
 
@@ -383,7 +383,7 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.5.0` (`versionCode` 22)
+- **Version**: `1.5.1` (`versionCode` 23)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `31`

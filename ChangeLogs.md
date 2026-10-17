@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-17
+
+### Added
+- Device info screen reliability and accuracy hardening: periodic sampling moved off the main thread into a ViewModel coroutine loop on `Dispatchers.IO` (periodic dynamic reads, rate-snapshot re-anchoring at start-up, and the one-time static `/proc/cpuinfo` read are all off the main thread), started and stopped with screen visibility, guarded by a mutex against overlapping passes, with unsupported readings keeping the last valid value instead of fabricated zeros
+- CPU semantics: the frequency-based fallback is labeled with a `~` estimate plus an explicit "Estimated" chip (frequency is not measured utilization), per-core utilization that cannot be read renders as `N/A`, and unchanged `/proc/stat` intervals are reported as unavailable until a real measurement exists (a null calculation retains the previous valid reading)
+- Memory/disk scope labels ("Device-wide" / "Internal storage") clarifying what each percentage measures, plus a new `DeviceInfoViewModelTest` (source-unavailable retention, CPU fallback estimate/availability semantics, sampling lifecycle transitions) and extended `DeviceInfoActivityTest` rendering/list tests; new device-info strings synchronized across all four locales
+
+### Changed
+- Dismissing a game dialog (game over / level complete) no longer auto-resumes a paused game: cleanup only clears the dialog state, so a pause engaged by any occlusion (e.g. the notification shade over the dialog) always requires a manual tap to continue, covered by a new `MainActivityTest` regression
+- Version bump `1.5.0` → `1.5.1` (`versionCode` 22 → 23); `app-update.json` regenerated with `latest_version` `1.5.1`
+
 ## [1.5.0] - 2026-10-17
 
 ### Added

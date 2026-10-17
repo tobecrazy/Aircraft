@@ -42,7 +42,7 @@
     ] },
     { "dot": "amber", "title": "发布前置", "items": [
       "keystore.properties 未跟踪且必须存在，丢签即失败",
-      "打 V1.4.x tag 上传 app-release.apk；aapt2 dump badging 校验版本先行"
+      "打 V1.5.x tag 上传 app-release.apk；aapt2 dump badging 校验版本先行"
     ] }
   ]
 }

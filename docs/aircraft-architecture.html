@@ -4840,7 +4840,7 @@
       </div>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"combat-rail","label":"Combat rail and persistence","focus":["launch","main","game","vm","data","room"],"note":"Launch enters the combat host, the render thread owns game state, levels and kills persist via ViewModel and Data layers."},{"id":"render-thread","label":"Render thread and services","focus":["main","game","services","vm","data"],"note":"UI thread only enqueues commands and touch coordinates; the frame loop drains them under the SurfaceHolder lock."},{"id":"combat-shield","label":"Combat interruption shield","focus":["main","shield","game"],"note":"DND suppresses heads-up on resume; any occlusion auto-pauses and needs a manual resume; app dialogs wait until after combat."},{"id":"modules","label":"Tool module and view libraries","focus":["tools","settings","viewlibs"],"note":"Tool screens live in :developtools and bridge the host via DevTools; the two View libraries stay game-free."}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"combat-rail","label":"Combat rail and persistence","focus":["launch","main","game","vm","data","room"],"note":"Launch enters the combat host, the render thread owns game state, levels and kills persist via ViewModel and Data layers."},{"id":"render-thread","label":"Render thread and services","focus":["main","game","services","vm","data"],"note":"UI thread only enqueues commands and touch coordinates; the frame loop drains them under the SurfaceHolder lock."},{"id":"combat-shield","label":"Combat interruption shield","focus":["main","shield","game"],"note":"DND suppresses heads-up on resume; focus loss auto-pauses and needs a manual resume; app-owned result dialogs excluded."},{"id":"modules","label":"Tool module and view libraries","focus":["tools","settings","viewlibs"],"note":"Tool screens live in :developtools and bridge the host via DevTools; the two View libraries stay game-free."}]</script>
 
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
@@ -5363,7 +5363,7 @@
           <li>&bull; Render thread owns game state; UI thread only enqueues lambdas to gameCommands</li>
           <li>&bull; Touch coordinates ride a pendingPlayerTouch atomic, latest wins per frame</li>
           <li>&bull; Resume engages DND filter NONE; pause and stop restore the previous filter</li>
-          <li>&bull; Any occlusion auto-pauses combat; resume needs a manual tap</li>
+          <li>&bull; Focus loss auto-pauses combat; app-owned dialogs exempt, tap to resume</li>
         </ul>
       </div>
 
