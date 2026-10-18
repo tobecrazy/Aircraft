@@ -161,4 +161,45 @@ class GameViewModelTest {
         viewModel.deletePlayerData()
         verify(dao).deleteByPlayerId("test-player")
     }
+
+    @Test
+    fun `savePuzzleData persists the next playable level with the accumulated score`() = runTest(testDispatcher) {
+        viewModel.savePuzzleData(
+            puzzleProgressLevel = 4,
+            puzzleScore = 320,
+            totalKills = 7,
+            jetPlaneResId = 55,
+            jetPlaneIndex = 2
+        )
+
+        val captor = argumentCaptor<PlayerGameData>()
+        verify(dao).replaceForPlayer(captor.capture())
+
+        val inserted = captor.firstValue
+        assertEquals(4, inserted.puzzleLevel)
+        assertEquals(4, inserted.level)
+        assertEquals(GameMode.PUZZLE.name, inserted.gameMode)
+        assertEquals(320L, inserted.puzzleScore)
+        assertEquals(7, inserted.totalKills)
+        assertEquals(55, inserted.jetPlaneRes)
+        assertEquals(2, inserted.jetPlaneIndex)
+    }
+
+    @Test
+    fun `savePuzzleData keeps the finale override of combat level`() = runTest(testDispatcher) {
+        viewModel.savePuzzleData(
+            puzzleProgressLevel = 10,
+            puzzleScore = 1400,
+            combatLevel = 1,
+            totalKills = 3,
+            jetPlaneResId = 0,
+            jetPlaneIndex = 0
+        )
+
+        val captor = argumentCaptor<PlayerGameData>()
+        verify(dao).replaceForPlayer(captor.capture())
+        assertEquals(10, captor.firstValue.puzzleLevel)
+        assertEquals(1, captor.firstValue.level)
+        assertEquals(1400L, captor.firstValue.puzzleScore)
+    }
 }

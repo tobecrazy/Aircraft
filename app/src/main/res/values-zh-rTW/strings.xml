@@ -225,7 +225,6 @@
     <string name="puzzle_hint_image_desc">拼圖提示圖</string>
     <string name="puzzle_save">儲存</string>
     <string name="puzzle_save_and_exit">儲存並退出</string>
-    <string name="puzzle_undo_button">撤銷</string>
     <string name="puzzle_hint_button">掃描情報 (%1$d)</string>
     <string name="puzzle_hint_active">參考圖已顯示</string>
     <string name="puzzle_piece_progress">已歸位 %1$d / %2$d 塊</string>
@@ -244,6 +243,17 @@
     <string name="puzzle_guide_title">拼圖引導</string>
     <string name="puzzle_guide_message">拖動碎片復原情報圖。掃描情報可查看完整參考圖 3 秒。少移動、少掃描可獲得更多星級；撤銷不會抹去步數。</string>
     <string name="puzzle_guide_confirm">開始</string>
+    <string name="puzzle_timer_desc">剩餘時間 %1$s</string>
+    <string name="puzzle_undo_icon_desc">撤銷上一步</string>
+    <string name="puzzle_save_icon_desc">儲存並退出</string>
+    <string name="puzzle_image_stale">已使用快取圖片，最新圖片取得失敗。</string>
+    <string name="puzzle_refresh_image">重新整理圖片</string>
+    <string name="puzzle_scan_close">關閉掃描</string>
+    <string name="puzzle_scan_remaining">掃描將在 %1$d 秒後結束</string>
+    <string name="puzzle_result_scans">本局掃描：%1$d 次</string>
+    <string name="puzzle_result_retries">本局重試：%1$d 次</string>
+    <string name="puzzle_failure_network">圖片來源連線失敗，請檢查網路後重試。</string>
+    <string name="puzzle_failure_feed">圖片服務暫無可用圖片，請稍後再試。</string>
 
     <!-- Device info format strings -->
 

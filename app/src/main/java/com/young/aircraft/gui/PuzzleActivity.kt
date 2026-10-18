@@ -11,11 +11,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -31,15 +31,15 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +54,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
@@ -73,8 +72,13 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,7 +91,6 @@ import coil.compose.AsyncImage
 import com.young.aircraft.R
 import com.young.aircraft.data.AircraftConstants
 import com.young.aircraft.data.GameDifficulty
-import com.young.aircraft.data.GameMode
 import com.young.aircraft.ui.GameCoreView
 import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.ui.theme.AccentGreen
@@ -97,6 +100,9 @@ import com.young.aircraft.ui.theme.DividerGreen
 import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.TextSubtle
 import com.young.aircraft.viewmodel.GameViewModel
+import com.young.aircraft.viewmodel.PuzzleImageFailure
+import com.young.aircraft.viewmodel.PuzzleImageLoadState
+import com.young.aircraft.viewmodel.PuzzleImageUiState
 import com.young.aircraft.viewmodel.PuzzleImageViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -104,11 +110,10 @@ import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.random.Random
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class PuzzleActivity : BaseAircraftActivity() {
     companion object {
-        private const val MAX_PUZZLE_LEVEL = 10
         private const val KEY_ACTIVE_PUZZLE_IMAGE_LEVEL = "active_puzzle_image_level"
     }
 
@@ -122,7 +127,7 @@ class PuzzleActivity : BaseAircraftActivity() {
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
         viewModel.getDifficulty()
-        puzzleLevel = intent.getIntExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, 1).coerceIn(1, MAX_PUZZLE_LEVEL)
+        puzzleLevel = intent.getIntExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, 1).coerceIn(1, PUZZLE_LEVEL_COUNT)
         puzzleScore = intent.getLongExtra(AircraftConstants.IntentExtras.PUZZLE_SCORE, 0L)
         totalKills = intent.getIntExtra(AircraftConstants.IntentExtras.TOTAL_KILLS, 0)
         jetPlaneRes = intent.getIntExtra(AircraftConstants.IntentExtras.JET_PLANE_RES, R.drawable.jet_plane_2)
@@ -142,31 +147,24 @@ class PuzzleActivity : BaseAircraftActivity() {
         setContent {
             AircraftTheme {
                 val imageState by imageViewModel.uiState.collectAsState()
-                if (imageState.hasStarted) {
+                if (imageState.sessionStarted) {
                     PuzzleScreen(
                         startLevel = puzzleLevel,
                         startScore = puzzleScore,
                         difficulty = viewModel.getDifficulty(),
-                        puzzleImageUrl = imageState.activeImage?.toString(),
-                        isImageLoading = imageState.isActiveLoading,
-                        imageLoadFailed = imageState.activeImageError != null,
-                        imageLoadErrorDetail = imageState.activeImageError,
-                        onLevelImageNeeded = imageViewModel::ensureLevelImage,
-                        onRetryImage = imageViewModel::retryLevelImage,
-                        onSaveAndExit = { level, score ->
-                            savePuzzleProgress(level, score, finishAfterSave = true)
-                        },
-                        onProgressSaved = { level, score -> persistPuzzleProgress(level, score) },
-                        onAllLevelsCleared = { score -> showPuzzleCongratsAndFinish(score) },
-                        showGuide = imageState.showGuide,
-                        onGuideDismiss = imageViewModel::dismissGuide
+                        imageState = imageState,
+                        onImageForLevel = imageViewModel::loadLevel,
+                        onRetryImage = imageViewModel::retryLevel,
+                        onRefreshImage = imageViewModel::refreshLevel,
+                        onGuideDismissed = imageViewModel::dismissGuide,
+                        onProgressPersisted = ::persistPuzzleProgress,
+                        onSaveAndExit = ::saveAndExit,
+                        onFinaleRequested = ::finishPuzzleGame
                     )
                 } else {
-                    PuzzleLoadingScreen(
-                        isLoading = imageState.isActiveLoading,
-                        hasError = imageState.activeImageError != null,
-                        errorDetail = imageState.activeImageError,
-                        onRetry = { imageViewModel.retryLevelImage(imageState.activeImageLevel) }
+                    PuzzleStartupScreen(
+                        load = imageState.load,
+                        onRetry = { imageViewModel.retryLevel() }
                     )
                 }
             }
@@ -175,82 +173,276 @@ class PuzzleActivity : BaseAircraftActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, imageViewModel.uiState.value.activeImageLevel)
+        outState.putInt(KEY_ACTIVE_PUZZLE_IMAGE_LEVEL, imageViewModel.uiState.value.activeLevel)
     }
 
-    private fun persistPuzzleProgress(level: Int, score: Long) {
+    /** Persists the next playable level without finishing the activity. */
+    private fun persistPuzzleProgress(nextPlayableLevel: Int, totalScore: Long) {
         lifecycleScope.launch {
-            viewModel.saveGameData(
-                level = level,
+            viewModel.savePuzzleData(
+                puzzleProgressLevel = nextPlayableLevel,
+                puzzleScore = totalScore,
                 totalKills = totalKills,
-                puzzleScore = score,
-                puzzleLevel = level,
-                gameMode = GameMode.PUZZLE,
                 jetPlaneResId = jetPlaneRes,
                 jetPlaneIndex = jetPlaneIndex
             )
         }
     }
 
-    private fun showPuzzleCongratsAndFinish(score: Long) {
+    private fun saveAndExit(nextPlayableLevel: Int, totalScore: Long) {
         lifecycleScope.launch {
-            viewModel.saveGameData(
-                level = 1,
+            viewModel.savePuzzleData(
+                puzzleProgressLevel = nextPlayableLevel,
+                puzzleScore = totalScore,
                 totalKills = totalKills,
-                puzzleScore = score,
-                puzzleLevel = MAX_PUZZLE_LEVEL,
-                gameMode = GameMode.PUZZLE,
+                jetPlaneResId = jetPlaneRes,
+                jetPlaneIndex = jetPlaneIndex
+            )
+            finish()
+        }
+    }
+
+    private fun finishPuzzleGame(totalScore: Long) {
+        lifecycleScope.launch {
+            viewModel.savePuzzleData(
+                puzzleProgressLevel = PUZZLE_LEVEL_COUNT,
+                puzzleScore = totalScore,
+                combatLevel = 1,
+                totalKills = totalKills,
                 jetPlaneResId = jetPlaneRes,
                 jetPlaneIndex = jetPlaneIndex
             )
             setResult(
                 RESULT_OK,
                 Intent()
-                    .putExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, MAX_PUZZLE_LEVEL)
-                    .putExtra(AircraftConstants.IntentExtras.PUZZLE_SCORE, score)
+                    .putExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, PUZZLE_LEVEL_COUNT)
+                    .putExtra(AircraftConstants.IntentExtras.PUZZLE_SCORE, totalScore)
             )
             finish()
         }
     }
-
-    private fun savePuzzleProgress(level: Int, score: Long, finishAfterSave: Boolean) {
-        lifecycleScope.launch {
-            viewModel.saveGameData(
-                level = level,
-                totalKills = totalKills,
-                puzzleScore = score,
-                puzzleLevel = level,
-                gameMode = GameMode.PUZZLE,
-                jetPlaneResId = jetPlaneRes,
-                jetPlaneIndex = jetPlaneIndex
-            )
-            if (finishAfterSave) {
-                finish()
-            } else {
-                setResult(
-                    RESULT_OK,
-                    Intent()
-                        .putExtra(AircraftConstants.IntentExtras.PUZZLE_LEVEL, level)
-                        .putExtra(AircraftConstants.IntentExtras.PUZZLE_SCORE, score)
-                )
-                finish()
-            }
-        }
-    }
 }
+
+/** Ten fixed levels; the difficulty only changes the grid size. */
+internal const val PUZZLE_LEVEL_COUNT = 10
+
+/** How many scan-intel peeks a player can spend per level. */
+internal const val PUZZLE_SCANS_PER_LEVEL = 3
+
+/** How long a scan overlay stays open before closing itself. */
+internal const val PUZZLE_SCAN_PEEK_SECONDS = 3
 
 private val PuzzleTileBg = Color(0xFF263142)
 private val PuzzleButtonBg = Color(0xFF1F2636)
 private val PuzzleTargetBg = Color(0xFF1A2331)
 private val PuzzleTrayBg = Color(0xFF101722)
+private val PuzzleScanButtonBg: Color
+    @Composable get() = AccentGreen
+private val PuzzleScanButtonContent = Color(0xFF0A0F18)
 private val PuzzlePieceTouchTargetMin = 72.dp
+private val PuzzleActionButtonHeight = 52.dp
 private const val DRAGGING_PIECE_SCALE = 1.14f
 
+/** One exclusive full-screen overlay at a time; every other state renders in the screen body. */
+internal enum class PuzzleOverlay { NONE, GUIDE, SCAN, RESULT, TIMEOUT }
+
+/** Derives which single overlay (if any) should be on screen. */
+internal fun puzzleOverlayFor(
+    showGuide: Boolean,
+    scanActive: Boolean,
+    solved: Boolean,
+    timedOut: Boolean
+): PuzzleOverlay = when {
+    scanActive -> PuzzleOverlay.SCAN
+    solved -> PuzzleOverlay.RESULT
+    timedOut -> PuzzleOverlay.TIMEOUT
+    showGuide -> PuzzleOverlay.GUIDE
+    else -> PuzzleOverlay.NONE
+}
+
+/** User-visible events the puzzle session reacts to. */
+internal sealed interface PuzzleSessionEvent {
+    data object PieceDropped : PuzzleSessionEvent
+    data object Solved : PuzzleSessionEvent
+    data object Tick : PuzzleSessionEvent
+    data object Expired : PuzzleSessionEvent
+    data object ScanRequested : PuzzleSessionEvent
+    data object RetryRequested : PuzzleSessionEvent
+    data object ContinueRequested : PuzzleSessionEvent
+    data class PlacedCountChanged(val count: Int) : PuzzleSessionEvent
+}
+
+/**
+ * Authoritative state of one puzzle session: current level, accumulated score,
+ * round bookkeeping, and the round result. Pure data so transitions are testable.
+ */
+internal data class PuzzleSessionState(
+    val level: Int = 1,
+    val totalScore: Long = 0L,
+    val moves: Int = 0,
+    val elapsedSeconds: Int = 0,
+    val scansRemaining: Int = PUZZLE_SCANS_PER_LEVEL,
+    val retries: Int = 0,
+    val placedCount: Int = 0,
+    val roundScore: Long = 0L,
+    val roundStars: Int = 0,
+    val roundSolved: Boolean = false,
+    val roundTimedOut: Boolean = false,
+    val boardResetToken: Int = 1
+) {
+    val scansUsed: Int get() = PUZZLE_SCANS_PER_LEVEL - scansRemaining
+
+    /**
+     * Save target for the next playable level: after a non-final win the cleared
+     * level must not be stored again (replaying it would award the round score twice).
+     */
+    val saveTargetLevel: Int
+        get() = if (roundSolved && level < PUZZLE_LEVEL_COUNT) level + 1 else level
+}
+
+internal fun createInitialPuzzleSession(level: Int, totalScore: Long, gridSize: Int): PuzzleSessionState {
+    val safeLevel = level.coerceIn(1, PUZZLE_LEVEL_COUNT)
+    return PuzzleSessionState(
+        level = safeLevel,
+        totalScore = totalScore.coerceAtLeast(0L),
+        boardResetToken = safeLevel * 100 + gridSize
+    )
+}
+
+/**
+ * Reducer-style transition for puzzle session events. Solved results are applied
+ * at most once per round and later solve events are ignored.
+ */
+internal fun reducePuzzleSession(
+    state: PuzzleSessionState,
+    event: PuzzleSessionEvent,
+    gridSize: Int,
+    levelDurationSeconds: Int
+): PuzzleSessionState {
+    val roundOver = state.roundSolved || state.roundTimedOut
+    return when (event) {
+        PuzzleSessionEvent.PieceDropped -> if (roundOver) state else state.copy(moves = state.moves + 1)
+
+        is PuzzleSessionEvent.PlacedCountChanged -> if (roundOver) state else state.copy(placedCount = event.count)
+
+        PuzzleSessionEvent.Solved -> {
+            if (roundOver) return state
+            val result = calculatePuzzleRoundResult(
+                level = state.level,
+                gridSize = gridSize,
+                moves = state.moves,
+                scansUsed = state.scansUsed,
+                retries = state.retries,
+                remainingSeconds = levelDurationSeconds - state.elapsedSeconds
+            )
+            state.copy(
+                roundScore = result.score,
+                roundStars = result.stars,
+                roundSolved = true,
+                totalScore = state.totalScore + result.score
+            )
+        }
+
+        PuzzleSessionEvent.Tick ->
+            if (roundOver || state.elapsedSeconds >= levelDurationSeconds.coerceAtLeast(0)) {
+                state
+            } else {
+                state.copy(elapsedSeconds = state.elapsedSeconds + 1)
+            }
+
+        PuzzleSessionEvent.Expired -> if (roundOver) state else state.copy(roundTimedOut = true)
+
+        PuzzleSessionEvent.ScanRequested -> {
+            if (roundOver || state.scansRemaining <= 0) {
+                state
+            } else {
+                state.copy(scansRemaining = state.scansRemaining - 1)
+            }
+        }
+
+        PuzzleSessionEvent.RetryRequested -> {
+            if (!state.roundTimedOut) {
+                state
+            } else {
+                state.copy(
+                    retries = state.retries + 1,
+                    elapsedSeconds = 0,
+                    placedCount = 0,
+                    roundTimedOut = false,
+                    boardResetToken = state.boardResetToken + 1
+                )
+            }
+        }
+
+        PuzzleSessionEvent.ContinueRequested -> {
+            if (!state.roundSolved || state.level >= PUZZLE_LEVEL_COUNT) {
+                state
+            } else {
+                state.copy(
+                    level = state.level + 1,
+                    moves = 0,
+                    elapsedSeconds = 0,
+                    scansRemaining = PUZZLE_SCANS_PER_LEVEL,
+                    retries = 0,
+                    placedCount = 0,
+                    roundScore = 0L,
+                    roundStars = 0,
+                    roundSolved = false,
+                    roundTimedOut = false,
+                    boardResetToken = state.boardResetToken + 1
+                )
+            }
+        }
+    }
+}
+
+/** Restores the whole session across rotation, fold changes, and process recreation. */
+private val puzzleSessionSaver = listSaver<PuzzleSessionState, Any>(
+    save = { state ->
+        buildList {
+            add(state.level)
+            add(state.totalScore)
+            add(state.moves)
+            add(state.elapsedSeconds)
+            add(state.scansRemaining)
+            add(state.retries)
+            add(state.placedCount)
+            add(state.roundScore)
+            add(state.roundStars)
+            add(state.boardResetToken)
+            add(if (state.roundSolved) 1 else 0)
+            add(if (state.roundTimedOut) 1 else 0)
+        }
+    },
+    restore = { values ->
+        PuzzleSessionState(
+            level = values[0] as Int,
+            totalScore = values[1] as Long,
+            moves = values[2] as Int,
+            elapsedSeconds = values[3] as Int,
+            scansRemaining = values[4] as Int,
+            retries = values[5] as Int,
+            placedCount = values[6] as Int,
+            roundScore = values[7] as Long,
+            roundStars = values[8] as Int,
+            boardResetToken = values[9] as Int,
+            roundSolved = (values[10] as Int) == 1,
+            roundTimedOut = (values[11] as Int) == 1
+        )
+    }
+)
+
+/** Events reported by [PuzzleBoard]; the board knows nothing about scoring or persistence. */
+internal sealed interface PuzzleBoardEvent {
+    data object PieceDropped : PuzzleBoardEvent
+    data class PlacedCountChanged(val count: Int) : PuzzleBoardEvent
+    data object Solved : PuzzleBoardEvent
+    data class UndoAvailabilityChanged(val available: Boolean) : PuzzleBoardEvent
+}
+
 @Composable
-private fun PuzzleLoadingScreen(
-    isLoading: Boolean,
-    hasError: Boolean,
-    errorDetail: String?,
+private fun PuzzleStartupScreen(
+    load: PuzzleImageLoadState,
     onRetry: () -> Unit
 ) {
     Surface(
@@ -265,7 +457,7 @@ private fun PuzzleLoadingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (hasError) {
+            if (load is PuzzleImageLoadState.Failed) {
                 Text(
                     text = "⚠",
                     color = AccentGreen,
@@ -279,31 +471,22 @@ private fun PuzzleLoadingScreen(
                     color = Color.White
                 )
                 Text(
-                    text = stringResource(R.string.puzzle_load_failed_hint),
+                    text = puzzleImageFailureMessage(load.category),
                     modifier = Modifier.padding(top = 6.dp, start = 16.dp, end = 16.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSubtle
                 )
-                if (!errorDetail.isNullOrBlank()) {
-                    Text(
-                        text = errorDetail,
-                        modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSubtle,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
                 Button(
                     onClick = onRetry,
                     modifier = Modifier.padding(top = 20.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = PuzzleButtonBg,
                         contentColor = AccentGreen
                     )
                 ) {
                     Text(stringResource(R.string.puzzle_retry))
                 }
-            } else if (isLoading) {
+            } else {
                 CircularProgressIndicator(color = AccentGreen)
                 Text(
                     text = stringResource(R.string.puzzle_loading),
@@ -317,23 +500,26 @@ private fun PuzzleLoadingScreen(
 }
 
 @Composable
+private fun puzzleImageFailureMessage(category: PuzzleImageFailure): String = when (category) {
+    PuzzleImageFailure.NETWORK -> stringResource(R.string.puzzle_failure_network)
+    PuzzleImageFailure.FEED_EMPTY -> stringResource(R.string.puzzle_failure_feed)
+    PuzzleImageFailure.DOWNLOAD_FAILED -> stringResource(R.string.puzzle_load_failed_hint)
+}
+
+@Composable
 private fun PuzzleScreen(
     startLevel: Int,
     startScore: Long,
     difficulty: GameDifficulty,
-    puzzleImageUrl: String?,
-    isImageLoading: Boolean,
-    imageLoadFailed: Boolean,
-    imageLoadErrorDetail: String?,
-    onLevelImageNeeded: (Int) -> Unit,
-    onRetryImage: (Int) -> Unit,
+    imageState: PuzzleImageUiState,
+    onImageForLevel: (Int) -> Unit,
+    onRetryImage: () -> Unit,
+    onRefreshImage: () -> Unit,
+    onGuideDismissed: () -> Unit,
+    onProgressPersisted: (Int, Long) -> Unit,
     onSaveAndExit: (Int, Long) -> Unit,
-    onProgressSaved: (Int, Long) -> Unit,
-    onAllLevelsCleared: (Long) -> Unit,
-    showGuide: Boolean,
-    onGuideDismiss: () -> Unit
+    onFinaleRequested: (Long) -> Unit
 ) {
-    val maxPuzzleLevel = 10
     val lifecycleOwner = LocalLifecycleOwner.current
     var appActive by remember { mutableIntStateOf(1) }
 
@@ -349,47 +535,77 @@ private fun PuzzleScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Survive rotation/fold recreation — the board must not reset mid-puzzle
-    var level by rememberSaveable { mutableIntStateOf(startLevel.coerceIn(1, maxPuzzleLevel)) }
-    var score by rememberSaveable { mutableLongStateOf(startScore) }
-    var moves by rememberSaveable(level) { mutableIntStateOf(0) }
-    var elapsedSec by rememberSaveable(level) { mutableIntStateOf(0) }
-    var hintsRemaining by rememberSaveable(level) { mutableIntStateOf(3) }
-    var retries by rememberSaveable(level) { mutableIntStateOf(0) }
-    var roundScore by rememberSaveable(level) { mutableLongStateOf(0L) }
-    var roundStars by rememberSaveable(level) { mutableIntStateOf(0) }
-    var placedCount by rememberSaveable(level) { mutableIntStateOf(0) }
-    var hintVisible by remember(level) { mutableIntStateOf(0) }
-    var solvedState by rememberSaveable(level) { mutableIntStateOf(0) }
-
     val gridSize = remember(difficulty) { gridSizeForDifficulty(difficulty) }
-    var boardResetToken by rememberSaveable(level, gridSize) { mutableIntStateOf(level * 100 + gridSize) }
-    var undoRequested by remember(level, gridSize) { mutableIntStateOf(0) }
-    var canUndo by rememberSaveable(level, gridSize) { mutableStateOf(false) }
 
-    val totalSec = remember(level) { (GameCoreView.getLevelDurationMs(level) / 1000L).toInt() }
-    val remainingSec = (totalSec - elapsedSec).coerceAtLeast(0)
-    val isLevelImageReady = !puzzleImageUrl.isNullOrBlank()
+    // Survive rotation/fold recreation — the board must not reset mid-puzzle
+    var session by rememberSaveable(stateSaver = puzzleSessionSaver) {
+        mutableStateOf(createInitialPuzzleSession(startLevel, startScore, gridSize))
+    }
 
-    LaunchedEffect(appActive, solvedState, remainingSec, isLevelImageReady, showGuide) {
-        while (appActive == 1 && solvedState == 0 && remainingSec > 0 && isLevelImageReady && !showGuide) {
-            delay(1000.milliseconds)
-            elapsedSec += 1
+    var undoRequested by rememberSaveable(session.level, session.boardResetToken) { mutableIntStateOf(0) }
+    var canUndo by rememberSaveable(session.level, session.boardResetToken) { mutableStateOf(false) }
+    var scanRequestToken by rememberSaveable(session.level) { mutableIntStateOf(0) }
+    var scanRemainingSec by rememberSaveable { mutableIntStateOf(0) }
+
+    val activeLoad = imageState.load
+    val imageReady = activeLoad is PuzzleImageLoadState.Ready && activeLoad.level == session.level
+    val totalSec = remember(session.level) { (GameCoreView.getLevelDurationMs(session.level) / 1000L).toInt() }
+    val remainingSec = (totalSec - session.elapsedSeconds).coerceAtLeast(0)
+    val roundOver = session.roundSolved || session.roundTimedOut
+    val boardResetToken = session.boardResetToken
+
+    fun dispatch(event: PuzzleSessionEvent) {
+        session = reducePuzzleSession(session, event, gridSize, totalSec)
+    }
+
+    // One image request per level; idempotent when the level is already Ready.
+    LaunchedEffect(session.level) {
+        onImageForLevel(session.level)
+    }
+
+    // The round timer only runs while an image is ready and no overlay stops play.
+    LaunchedEffect(
+        appActive,
+        imageReady,
+        session.level,
+        session.elapsedSeconds,
+        session.roundSolved,
+        session.roundTimedOut,
+        imageState.showGuide
+    ) {
+        while (appActive == 1 &&
+            imageReady &&
+            !session.roundSolved &&
+            !session.roundTimedOut &&
+            !imageState.showGuide &&
+            session.elapsedSeconds < totalSec
+        ) {
+            delay(1.seconds)
+            dispatch(PuzzleSessionEvent.Tick)
         }
     }
 
-    LaunchedEffect(remainingSec, solvedState) {
-        if (remainingSec == 0 && solvedState == 0) {
-            solvedState = -1
+    LaunchedEffect(session.elapsedSeconds, session.roundSolved) {
+        if (imageReady && !session.roundSolved && session.elapsedSeconds >= totalSec) {
+            dispatch(PuzzleSessionEvent.Expired)
         }
     }
 
-    LaunchedEffect(hintVisible) {
-        if (hintVisible == 1) {
-            delay(3000.milliseconds)
-            hintVisible = 0
+    LaunchedEffect(scanRequestToken) {
+        if (scanRequestToken > 0 && scanRemainingSec > 0) {
+            while (scanRemainingSec > 0) {
+                delay(1.seconds)
+                scanRemainingSec -= 1
+            }
         }
     }
+
+    val overlay = puzzleOverlayFor(
+        showGuide = imageState.showGuide,
+        scanActive = scanRemainingSec > 0,
+        solved = session.roundSolved,
+        timedOut = session.roundTimedOut
+    )
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -400,7 +616,7 @@ private fun PuzzleScreen(
             contentWindowInsets = WindowInsets.safeDrawing.only(
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
             ),
-            topBar = { PuzzleTopBarHeader(onBack = { onSaveAndExit(level, score) }) }
+            topBar = { PuzzleTopBarHeader(onBack = { onSaveAndExit(session.saveTargetLevel, session.totalScore) }) }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -412,12 +628,12 @@ private fun PuzzleScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 PuzzleTopBar(
-                    level = level,
-                    maxLevel = maxPuzzleLevel,
-                    score = score,
+                    level = session.level,
+                    maxLevel = PUZZLE_LEVEL_COUNT,
+                    score = session.totalScore,
                     remainingSec = remainingSec,
-                    moves = moves,
-                    placedCount = placedCount,
+                    moves = session.moves,
+                    placedCount = session.placedCount,
                     totalPieces = gridSize * gridSize
                 )
 
@@ -429,24 +645,22 @@ private fun PuzzleScreen(
                     border = BorderStroke(1.dp, DividerGreen),
                     shape = RoundedCornerShape(18.dp)
                 ) {
-                    if (isLevelImageReady) {
+                    if (imageReady) {
                         PuzzleBoard(
-                            imageModel = puzzleImageUrl,
+                            imageModel = activeLoad.uri.toString(),
                             gridSize = gridSize,
-                            level = level,
-                            enabled = solvedState == 0,
+                            level = session.level,
+                            enabled = !roundOver,
                             resetToken = boardResetToken,
                             undoRequest = undoRequested,
-                            onUndoAvailabilityChanged = { canUndo = it },
-                            onPieceDropped = { moves += 1 },
-                            onPlacedCountChanged = { placedCount = it },
-                            onSolved = {
-                                if (solvedState == 0) {
-                                    val result = calculatePuzzleRoundResult(level, gridSize, moves + 1, 3 - hintsRemaining, retries, remainingSec)
-                                    roundScore = result.score
-                                    roundStars = result.stars
-                                    score += result.score
-                                    solvedState = 1
+                            onBoardEvent = { event ->
+                                when (event) {
+                                    is PuzzleBoardEvent.UndoAvailabilityChanged -> canUndo = event.available
+                                    is PuzzleBoardEvent.PlacedCountChanged ->
+                                        dispatch(PuzzleSessionEvent.PlacedCountChanged(event.count))
+
+                                    is PuzzleBoardEvent.PieceDropped -> dispatch(PuzzleSessionEvent.PieceDropped)
+                                    is PuzzleBoardEvent.Solved -> dispatch(PuzzleSessionEvent.Solved)
                                 }
                             },
                             modifier = Modifier
@@ -455,10 +669,8 @@ private fun PuzzleScreen(
                         )
                     } else {
                         PuzzleLevelImageStatus(
-                            isLoading = isImageLoading,
-                            hasError = imageLoadFailed,
-                            errorDetail = imageLoadErrorDetail,
-                            onRetry = { onRetryImage(level) },
+                            load = activeLoad,
+                            onRetry = onRetryImage,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(10.dp)
@@ -466,164 +678,256 @@ private fun PuzzleScreen(
                     }
                 }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    FilledTonalButton(
-                        onClick = { onSaveAndExit(level, score) },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(stringResource(R.string.puzzle_save))
-                    }
-                    FilledTonalButton(
-                        enabled = canUndo && solvedState == 0 && isLevelImageReady,
-                        onClick = { undoRequested += 1 },
-                        contentPadding = PaddingValues(horizontal = 10.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(stringResource(R.string.puzzle_undo_button))
-                    }
-                    Button(
-                        enabled = hintsRemaining > 0 && hintVisible == 0 && solvedState == 0 && isLevelImageReady,
-                        onClick = {
-                            hintsRemaining -= 1
-                            hintVisible = 1
-                        },
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                            containerColor = PuzzleButtonBg,
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(stringResource(R.string.puzzle_hint_button, hintsRemaining))
-                    }
+                if (imageState.showStaleNotice) {
+                    PuzzleStaleBanner(onRefresh = onRefreshImage)
                 }
-            }
-        }
 
-        if (hintVisible == 1 && isLevelImageReady) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.62f))
-                    .clickable(enabled = false) {},
-                contentAlignment = Alignment.Center
-            ) {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    AsyncImage(
-                        model = puzzleImageUrl,
-                        contentDescription = stringResource(R.string.puzzle_hint_image_desc),
-                        modifier = Modifier
-                            .size(240.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.puzzle_hint_active),
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 64.dp)
+                PuzzleActionRow(
+                    scanLabel = stringResource(R.string.puzzle_hint_button, session.scansRemaining),
+                    scanEnabled = imageReady && !roundOver &&
+                        session.scansRemaining > 0 && scanRemainingSec == 0,
+                    onScanRequested = {
+                        dispatch(PuzzleSessionEvent.ScanRequested)
+                        scanRemainingSec = PUZZLE_SCAN_PEEK_SECONDS
+                        scanRequestToken += 1
+                    },
+                    undoEnabled = canUndo && imageReady && !roundOver,
+                    onUndoRequested = { undoRequested += 1 },
+                    onSaveRequested = { onSaveAndExit(session.saveTargetLevel, session.totalScore) }
                 )
             }
         }
 
-        if (solvedState == 1) {
-            AlertDialog(
+        when (overlay) {
+            PuzzleOverlay.SCAN -> PuzzleScanOverlay(
+                imageUrl = (activeLoad as? PuzzleImageLoadState.Ready)?.uri?.toString(),
+                remainingSec = scanRemainingSec,
+                onClose = { scanRemainingSec = 0 }
+            )
+
+            PuzzleOverlay.GUIDE -> AlertDialog(
+                onDismissRequest = onGuideDismissed,
+                title = { Text(stringResource(R.string.puzzle_guide_title)) },
+                text = { Text(stringResource(R.string.puzzle_guide_message)) },
+                confirmButton = {
+                    TextButton(onClick = onGuideDismissed) {
+                        Text(stringResource(R.string.puzzle_guide_confirm))
+                    }
+                }
+            )
+
+            PuzzleOverlay.RESULT -> AlertDialog(
                 onDismissRequest = {},
                 title = {
                     Text(
-                        if (level >= maxPuzzleLevel) stringResource(R.string.hall_of_heroes_title)
+                        if (session.level >= PUZZLE_LEVEL_COUNT) stringResource(R.string.hall_of_heroes_title)
                         else stringResource(R.string.puzzle_cleared_title)
                     )
                 },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(stringResource(R.string.puzzle_round_stars, roundStars))
-                        Text(stringResource(R.string.puzzle_cleared_message, moves, formatTime(elapsedSec)))
-                        Text(stringResource(R.string.puzzle_round_score, roundScore))
-                        Text(stringResource(R.string.puzzle_total_score, score))
+                        Text(stringResource(R.string.puzzle_round_stars, session.roundStars))
+                        Text(stringResource(R.string.puzzle_cleared_message, session.moves, formatTime(session.elapsedSeconds)))
+                        Text(stringResource(R.string.puzzle_result_scans, session.scansUsed))
+                        Text(stringResource(R.string.puzzle_result_retries, session.retries))
+                        Text(stringResource(R.string.puzzle_round_score, session.roundScore))
+                        Text(stringResource(R.string.puzzle_total_score, session.totalScore))
                     }
                 },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                                if (level >= maxPuzzleLevel) {
-                                    onAllLevelsCleared(score)
-                                } else {
-                                val nextLevel = level + 1
-                                onLevelImageNeeded(nextLevel)
-                                level = nextLevel
-                                moves = 0
-                                elapsedSec = 0
-                                hintsRemaining = 3
-                                retries = 0
-                                roundScore = 0L
-                                roundStars = 0
-                                placedCount = 0
-                                hintVisible = 0
-                                solvedState = 0
-                                boardResetToken += 1
-                                onProgressSaved(level, score)
+                            if (session.level >= PUZZLE_LEVEL_COUNT) {
+                                onFinaleRequested(session.totalScore)
+                            } else {
+                                val clearedLevel = session.level
+                                val nextScore = session.totalScore
+                                dispatch(PuzzleSessionEvent.ContinueRequested)
+                                canUndo = false
+                                scanRemainingSec = 0
+                                // Persist the next playable level so reopening cannot rescore the cleared round.
+                                onProgressPersisted(clearedLevel + 1, nextScore)
                             }
                         }
                     ) {
-                        Text(if (level >= maxPuzzleLevel) stringResource(R.string.hall_of_heroes_record_button) else stringResource(R.string.puzzle_continue))
+                        Text(
+                            if (session.level >= PUZZLE_LEVEL_COUNT) stringResource(R.string.hall_of_heroes_record_button)
+                            else stringResource(R.string.puzzle_continue)
+                        )
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { onSaveAndExit(level, score) }) {
+                    TextButton(onClick = { onSaveAndExit(session.saveTargetLevel, session.totalScore) }) {
                         Text(stringResource(R.string.puzzle_save))
                     }
                 }
             )
-        }
 
-        if (solvedState == -1) {
-            AlertDialog(
+            PuzzleOverlay.TIMEOUT -> AlertDialog(
                 onDismissRequest = {},
                 title = { Text(stringResource(R.string.puzzle_time_up_title)) },
                 text = { Text(stringResource(R.string.puzzle_time_up_message)) },
                 confirmButton = {
-                    TextButton(onClick = {
-                        retries += 1
-                        elapsedSec = 0
-                        placedCount = 0
-                        hintVisible = 0
-                        solvedState = 0
-                        boardResetToken += 1
-                    }) {
+                    TextButton(onClick = { dispatch(PuzzleSessionEvent.RetryRequested) }) {
                         Text(stringResource(R.string.puzzle_retry))
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { onSaveAndExit(level, score) }) {
+                    TextButton(onClick = { onSaveAndExit(session.saveTargetLevel, session.totalScore) }) {
                         Text(stringResource(R.string.puzzle_save_and_exit))
                     }
                 }
             )
+
+            PuzzleOverlay.NONE -> Unit
+        }
+    }
+}
+
+@Composable
+private fun PuzzleActionRow(
+    scanLabel: String,
+    scanEnabled: Boolean,
+    onScanRequested: () -> Unit,
+    undoEnabled: Boolean,
+    onUndoRequested: () -> Unit,
+    onSaveRequested: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Scan intel is the primary action; undo and save become compact icon buttons.
+        Button(
+            onClick = onScanRequested,
+            enabled = scanEnabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PuzzleScanButtonBg,
+                contentColor = PuzzleScanButtonContent
+            ),
+            modifier = Modifier
+                .weight(1.6f)
+                .height(PuzzleActionButtonHeight)
+        ) {
+            Text(
+                text = scanLabel,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1
+            )
         }
 
-        if (showGuide) {
-            AlertDialog(
-                onDismissRequest = onGuideDismiss,
-                title = { Text(stringResource(R.string.puzzle_guide_title)) },
-                text = { Text(stringResource(R.string.puzzle_guide_message)) },
-                confirmButton = {
-                    TextButton(onClick = onGuideDismiss) {
-                        Text(stringResource(R.string.puzzle_guide_confirm))
-                    }
-                }
+        IconButton(
+            onClick = onUndoRequested,
+            enabled = undoEnabled,
+            modifier = Modifier
+                .size(PuzzleActionButtonHeight)
+                .background(PuzzleButtonBg, CircleShape)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_puzzle_undo),
+                contentDescription = stringResource(R.string.puzzle_undo_icon_desc),
+                tint = AccentGreen
             )
+        }
+
+        IconButton(
+            onClick = onSaveRequested,
+            modifier = Modifier
+                .size(PuzzleActionButtonHeight)
+                .background(PuzzleButtonBg, CircleShape)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_puzzle_save),
+                contentDescription = stringResource(R.string.puzzle_save_icon_desc),
+                tint = AccentGreen
+            )
+        }
+    }
+}
+
+@Composable
+private fun PuzzleStaleBanner(onRefresh: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = PuzzleButtonBg,
+        border = BorderStroke(1.dp, DividerGreen.copy(alpha = 0.3f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.puzzle_image_stale),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.labelMedium,
+                color = TextSubtle
+            )
+            TextButton(onClick = onRefresh) {
+                Text(stringResource(R.string.puzzle_refresh_image), color = AccentGreen)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PuzzleScanOverlay(
+    imageUrl: Any?,
+    remainingSec: Int,
+    onClose: () -> Unit
+) {
+    // Closing early keeps the scan consumed: the cost is paid when the scan starts.
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.62f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                // Swallows taps so the board stays blocked while the scan is open.
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = stringResource(R.string.puzzle_hint_image_desc),
+                    modifier = Modifier
+                        .size(240.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Text(
+                text = stringResource(R.string.puzzle_scan_remaining, remainingSec.coerceAtLeast(1)),
+                color = AccentGreen,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    // Announce countdown changes to assistive technology without stealing focus.
+                    .semantics { liveRegion = LiveRegionMode.Polite }
+            )
+            Text(
+                text = stringResource(R.string.puzzle_hint_active),
+                color = TextSubtle,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            TextButton(
+                onClick = onClose,
+                modifier = Modifier.padding(top = 10.dp)
+            ) {
+                Text(stringResource(R.string.puzzle_scan_close), color = Color.White)
+            }
         }
     }
 }
@@ -636,10 +940,7 @@ private fun PuzzleBoard(
     enabled: Boolean,
     resetToken: Int,
     undoRequest: Int,
-    onUndoAvailabilityChanged: (Boolean) -> Unit,
-    onPieceDropped: () -> Unit,
-    onPlacedCountChanged: (Int) -> Unit,
-    onSolved: () -> Unit,
+    onBoardEvent: (PuzzleBoardEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var boardSizePx by remember { mutableIntStateOf(0) }
@@ -687,11 +988,11 @@ private fun PuzzleBoard(
     }
 
     LaunchedEffect(undoStack) {
-        onUndoAvailabilityChanged(undoStack.isNotEmpty())
+        onBoardEvent(PuzzleBoardEvent.UndoAvailabilityChanged(undoStack.isNotEmpty()))
     }
 
     LaunchedEffect(pieces) {
-        onPlacedCountChanged(pieces.count { it.snapped })
+        onBoardEvent(PuzzleBoardEvent.PlacedCountChanged(pieces.count { it.snapped }))
     }
 
     BoxWithConstraints(
@@ -812,12 +1113,12 @@ private fun PuzzleBoard(
                         val after = result.pieces.firstOrNull { it.id == piece.id }
                         if (before != null && after != null && hasPieceMoved(before, after)) {
                             undoStack = undoStack + PuzzleMove(piece.id, before)
-                            onPieceDropped()
+                            onBoardEvent(PuzzleBoardEvent.PieceDropped)
                         }
                         activeMoveStart = null
                         activePieceId = 0
                         if (result.pieces.isNotEmpty() && result.pieces.all { it.snapped }) {
-                            onSolved()
+                            onBoardEvent(PuzzleBoardEvent.Solved)
                         }
                     }
                 )
@@ -831,7 +1132,7 @@ private fun PuzzlePiece(
     piece: PuzzlePieceState,
     imageModel: Any,
     gridSize: Int,
-    pieceSize: androidx.compose.ui.unit.Dp,
+    pieceSize: Dp,
     enabled: Boolean,
     isDragging: Boolean,
     spacingPx: Float,
@@ -975,11 +1276,24 @@ private fun PuzzleTopBar(
                     )
                 }
 
-                AssistChip(
-                    onClick = { },
-                    label = { Text(text = formatTime(remainingSec), color = AccentGreen) },
-                    border = BorderStroke(1.dp, AccentGreen.copy(alpha = 0.32f))
-                )
+                // Expose the remaining duration to assistive technology, too; the chip is
+                // intentionally non-interactive, so it must not read as a button.
+                val timerText = formatTime(remainingSec)
+                val timerDescription = stringResource(R.string.puzzle_timer_desc, timerText)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.Transparent,
+                    border = BorderStroke(1.dp, AccentGreen.copy(alpha = 0.32f)),
+                    modifier = Modifier.semantics {
+                        contentDescription = timerDescription
+                    }
+                ) {
+                    Text(
+                        text = timerText,
+                        color = AccentGreen,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
             }
 
             Text(
@@ -1009,9 +1323,7 @@ private fun PuzzleTopBar(
 
 @Composable
 private fun PuzzleLevelImageStatus(
-    isLoading: Boolean,
-    hasError: Boolean,
-    errorDetail: String?,
+    load: PuzzleImageLoadState,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -1027,36 +1339,37 @@ private fun PuzzleLevelImageStatus(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (hasError) {
-                Text(
-                    text = stringResource(R.string.puzzle_load_failed),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White
-                )
-                if (!errorDetail.isNullOrBlank()) {
+            when (load) {
+                is PuzzleImageLoadState.Failed -> {
                     Text(
-                        text = errorDetail,
+                        text = stringResource(R.string.puzzle_load_failed),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White
+                    )
+                    Text(
+                        text = puzzleImageFailureMessage(load.category),
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSubtle,
-                        fontFamily = FontFamily.Monospace
+                        color = TextSubtle
+                    )
+                    Button(
+                        onClick = onRetry,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PuzzleButtonBg,
+                            contentColor = AccentGreen
+                        )
+                    ) {
+                        Text(stringResource(R.string.puzzle_retry))
+                    }
+                }
+
+                else -> {
+                    CircularProgressIndicator(color = AccentGreen)
+                    Text(
+                        text = stringResource(R.string.puzzle_loading),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSubtle
                     )
                 }
-                Button(
-                    onClick = onRetry,
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = PuzzleButtonBg,
-                        contentColor = AccentGreen
-                    )
-                ) {
-                    Text(stringResource(R.string.puzzle_retry))
-                }
-            } else if (isLoading) {
-                CircularProgressIndicator(color = AccentGreen)
-                Text(
-                    text = stringResource(R.string.puzzle_loading),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextSubtle
-                )
             }
         }
     }
