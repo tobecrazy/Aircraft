@@ -10,7 +10,7 @@ Latest published release APK (V1.4.9):
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.5.1` (`versionCode` 23); releases up to `V1.4.9` are on GitHub.
+> The app currently builds as `1.5.2` (`versionCode` 24); releases up to `V1.4.9` are on GitHub.
 
 ## Demo
 
@@ -75,7 +75,8 @@ The demo above walks through the end-to-end player experience on a real device:
 - Compose-powered Settings hub screen, with preference controls split into a dedicated Game Settings screen and a per-app language picker (system / zh-CN / zh-TW / zh-HK / en)
 - 10 combat levels with boss fights, scaling kill targets, and randomized scrolling backgrounds
 - Combat progression is linear: clearing a level's boss advances straight to the next combat level. The puzzle game is a separate ten-level mode opened from Settings (Easy = 3×3, Normal = 4×4, Hard = 5×5), with its own progress record
-- Compose-based `PuzzleActivity` shell with drag-and-drop pieces, two-finger zoom, auto-snapping, hint preview, undo, the standard tactical 52dp header (back button saves progress), and status-bar inset handling
+- Compose-based `PuzzleActivity` shell with drag-and-drop pieces, two-finger zoom, auto-snapping, a countdown-backed scan-intel overlay (three peeks per level, inaccessible-during-scan board input, undo, and save/exit icon actions), and the standard tactical header (back button saves progress); the image feed is cache-first with size-validated atomic downloads, retry/refresh states for slow-or-missing networks, and progress is saved as the next playable level so a cleared level cannot be re-scored
+- Status-bar inset handling for the puzzle shell; single mutually exclusive overlay host for guide, scan, result, and timeout states
 - Four power-up systems: red envelopes/rockets, medical kits, shields, and time freezes
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty

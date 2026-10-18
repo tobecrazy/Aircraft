@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-10-18
+
+### Added
+- Sealed `PuzzleImageLoadState` (Loading / Ready / Failed with user-safe `NETWORK` / `FEED_EMPTY` / `DOWNLOAD_FAILED` categories) replacing the parallel image-state maps in `PuzzleImageViewModel`; raw exception details stay in `AppLog`, and the API is now `loadLevel` / `retryLevel` / `refreshLevel` with one in-flight request per level plus generation-guarded suppression so a superseded (cancellation-resistant, blocking-OkHttp) request can never overwrite the active state
+- Download hardening for the Bing feed images: writes go to a temporary file in `cacheDir` first, responses are validated by content type or JPEG/PNG/WebP/GIF magic bytes, a 4 MB ceiling is enforced both on `Content-Length` and while streaming, and only a complete image is atomically renamed into the level cache file (temp file deleted on failure); thumbnail-first candidate order and regex feed parsing are unchanged
+- Non-blocking stale-image notice: a failed image refresh keeps the valid cached image playable (`Ready`, from-cache) and raises a dismissible banner with a secondary "Refresh image" action; a failed initial load shows one retry path and the round timer never starts before the image is ready
+- Puzzle session API in `PuzzleActivity`: `PuzzleSessionState` (level, cumulative score, moves, elapsed time, scans, retries, placed count, board reset token, round result) driven by `PuzzleSessionEvent`s through a pure `reducePuzzleSession` reducer with a custom `rememberSaveable` saver covering rotation/fold/process recreation for the whole session
+- Deterministic single overlay host: `puzzleOverlayFor` yields exactly one of SCAN > RESULT > TIMEOUT > GUIDE (checked by tests), the scan modal shows a visible countdown plus an accessible close action (closing early does not refund the scan), and the round timer exposes its remaining duration to assistive technology
+- Action-row hierarchy: scan intel is the primary filled button showing remaining scans; undo and save/export became compact circular icon buttons (`ic_puzzle_undo`, `ic_puzzle_save`) labeled in all four locales, keeping compact/Chinese-locale widths comfortable
+- Tests: `PuzzleSessionReducerTest` (15 cases: once-per-round scoring including the cumulative-score fix, retry penalty, scan consumption, continue reset, next-playable-level save target, save-and-reopen rescoring regression, score formula values, overlay exclusivity), `PuzzleImageViewModelTest` (12 Robolectric cases: cache-first without network, failed refresh retains cache, stale/successful refresh, invalid-response and oversized rejection with temp cleanup, magic-bytes fallback, failure-category mapping, superseded-request suppression, level clamping), and two `GameViewModelTest` cases for `savePuzzleData`
+
+### Changed
+- A cleared non-final puzzle level can no longer be re-scored: progress now persists the **next playable level** (`level + 1`) together with the accumulated score, and the result-dialog save uses the same target; the final win keeps level 10 and the existing result extras
+- `PuzzleBoard` reports a single event stream (`PieceDropped` / `PlacedCountChanged` / `Solved` / `UndoAvailabilityChanged`) instead of callback fan-out; the board knows nothing about scoring, dialogs, or persistence; `calculatePuzzleRoundResult` and the board Saver contract are unchanged
+- `GameViewModel.savePuzzleData(puzzleProgressLevel, puzzleScore, combatLevel, ...)` centralizes the three duplicated puzzle save call sites; `finish()` still happens only after the suspend save
+- Fixed a duplicate move count in round scoring (the final drop was counted twice via `moves + 1` in the old onSolved path) — the score formula itself is unchanged
+- Version bump `1.5.1` → `1.5.2` (`versionCode` 23 → 24); `app-update.json` regenerated with `latest_version` `1.5.2`
+
 ## [1.5.1] - 2026-10-17
 
 ### Added

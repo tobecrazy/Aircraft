@@ -24,6 +24,28 @@ class GameViewModel(
 
     fun getDifficulty(): GameDifficulty = settingsRepository.getDifficulty()
 
+    /**
+     * Saves puzzle-mode progress in one call. [puzzleProgressLevel] is the playable
+     * level to store (the next playable level after a won round), and [combatLevel]
+     * keeps combat-mode progression in sync: pass 1 when all puzzle levels are cleared.
+     */
+    suspend fun savePuzzleData(
+        puzzleProgressLevel: Int,
+        puzzleScore: Long,
+        totalKills: Int,
+        jetPlaneResId: Int,
+        jetPlaneIndex: Int,
+        combatLevel: Int = puzzleProgressLevel
+    ) = saveGameData(
+        level = combatLevel,
+        totalKills = totalKills,
+        puzzleScore = puzzleScore,
+        puzzleLevel = puzzleProgressLevel,
+        gameMode = GameMode.PUZZLE,
+        jetPlaneResId = jetPlaneResId,
+        jetPlaneIndex = jetPlaneIndex
+    )
+
     suspend fun saveGameData(
         level: Int,
         totalKills: Int,

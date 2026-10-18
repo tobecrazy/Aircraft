@@ -225,7 +225,6 @@
     <string name="puzzle_hint_image_desc">Puzzle hint image</string>
     <string name="puzzle_save">Save</string>
     <string name="puzzle_save_and_exit">Save &amp; Exit</string>
-    <string name="puzzle_undo_button">Undo</string>
     <string name="puzzle_hint_button">Scan intel (%1$d)</string>
     <string name="puzzle_hint_active">Reference image revealed</string>
     <string name="puzzle_piece_progress">%1$d / %2$d pieces placed</string>
@@ -244,6 +243,17 @@
     <string name="puzzle_guide_title">Puzzle Guide</string>
     <string name="puzzle_guide_message">Restore the image by dragging each fragment into place. Scan intel to reveal the full image for 3 seconds. Earn more stars with fewer moves and scans; Undo does not erase a move.</string>
     <string name="puzzle_guide_confirm">Start</string>
+    <string name="puzzle_timer_desc">Remaining time %1$s</string>
+    <string name="puzzle_undo_icon_desc">Undo the last move</string>
+    <string name="puzzle_save_icon_desc">Save and exit</string>
+    <string name="puzzle_image_stale">Using the cached image; a fresh copy could not be fetched.</string>
+    <string name="puzzle_refresh_image">Refresh image</string>
+    <string name="puzzle_scan_close">Close scan</string>
+    <string name="puzzle_scan_remaining">Scan ends in %1$d seconds</string>
+    <string name="puzzle_result_scans">Scans used: %1$d</string>
+    <string name="puzzle_result_retries">Retries used: %1$d</string>
+    <string name="puzzle_failure_network">The image feed is unreachable. Check your connection and retry.</string>
+    <string name="puzzle_failure_feed">The image service returned no usable picture. Try again later.</string>
 
     <!-- Device info format strings -->
 
