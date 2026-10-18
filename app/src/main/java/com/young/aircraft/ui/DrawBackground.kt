@@ -7,7 +7,6 @@ import android.graphics.RectF
 import com.young.aircraft.R
 import com.young.aircraft.utils.BitmapUtils
 import com.young.aircraft.utils.ScreenUtils
-import kotlin.math.floor
 
 /**
  * Create by Young
@@ -27,16 +26,14 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
 
     internal data class BackgroundTile(
         val top: Float,
-        val bottom: Float,
-        val mirrored: Boolean
+        val bottom: Float
     )
 
     // background Top/Bottom
     var mTopY: Float = 0F
     var mBottomY: Float = 0F
     private var backgroundResId: Int = BACKGROUNDS.random()
-    private var primaryBitmap: Bitmap? = null
-    private var mirroredBitmap: Bitmap? = null
+    private var tileBitmap: Bitmap? = null
     private var renderedWidth: Int = 0
     private var renderedHeight: Int = 0
     private var scrollOffset: Float = 0F
@@ -63,20 +60,17 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
             return
         }
 
-        // Use the optimized and cached mirrored bitmap from BitmapUtils
-        val flippedBitmap = BitmapUtils.getScaleMap(resizedBitmap)
-
-        primaryBitmap = resizedBitmap
-        mirroredBitmap = flippedBitmap
+        // Assets are wrapped to tile vertically, so repeat the single upright
+        // bitmap instead of alternating with a mirrored (upside-down) copy.
+        tileBitmap = resizedBitmap
         renderedWidth = resizedBitmap.width
         renderedHeight = resizedBitmap.height
-        loopHeight = renderedHeight * 2f
+        loopHeight = renderedHeight.toFloat()
         resetScroll()
     }
 
     private fun clearBitmaps() {
-        primaryBitmap = null
-        mirroredBitmap = null
+        tileBitmap = null
         renderedWidth = 0
         renderedHeight = 0
         loopHeight = 0f
@@ -92,7 +86,7 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
     }
 
     private fun ensureBitmapForCanvas(canvas: Canvas) {
-        if (primaryBitmap == null || mirroredBitmap == null ||
+        if (tileBitmap == null ||
             renderedWidth != canvas.width || renderedHeight != canvas.height
         ) {
             loadBitmap(canvas.width, canvas.height)
@@ -114,7 +108,6 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
 
         val tileHeight = renderedHeight.toFloat()
         val normalizedOffset = normalizeScrollOffset(scrollOffset)
-        var tileIndex = floor(normalizedOffset / tileHeight).toInt()
         var drawY = -(normalizedOffset % tileHeight)
         val visibleTiles = mutableListOf<BackgroundTile>()
 
@@ -123,12 +116,10 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
             visibleTiles.add(
                 BackgroundTile(
                     top = drawY,
-                    bottom = bottom,
-                    mirrored = tileIndex % 2 != 0
+                    bottom = bottom
                 )
             )
             drawY = bottom
-            tileIndex++
         }
 
         return visibleTiles
@@ -161,8 +152,7 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
     override fun onDraw(canvas: Canvas) {
         ensureBitmapForCanvas(canvas)
 
-        val baseBitmap = primaryBitmap ?: return
-        val flippedBitmap = mirroredBitmap ?: return
+        val baseBitmap = tileBitmap ?: return
 
         canvas.density = baseBitmap.density
         scrollOffset = normalizeScrollOffset(scrollOffset + BASE_SCROLL_SPEED * speed)
@@ -175,8 +165,7 @@ class DrawBackground(var context: Context, var speed: Float) : DrawBaseObject(co
         updateLegacyOffsets(visibleTiles)
 
         for (tile in visibleTiles) {
-            val bitmap = if (tile.mirrored) flippedBitmap else baseBitmap
-            canvas.drawBitmap(bitmap, 0F, tile.top, mPaint)
+            canvas.drawBitmap(baseBitmap, 0F, tile.top, mPaint)
         }
     }
 
