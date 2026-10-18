@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "远程更新完整链路",
+    "output": "remote-update-chain.architecture.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "cols": 3,
+    "origin": [40, 40],
+    "cellW": 280,
+    "cellH": 56,
+    "gapX": 150,
+    "gapY": 48
+  },
+  "components": [
+    { "id": "firebase", "type": "cloud", "row": 0, "col": 0, "label": "Firebase Remote Config", "sublabel": "fetchAndActivate / 实时激活", "size": [152, 64] },
+    { "id": "repojson", "type": "cloud", "row": 0, "col": 1, "label": "仓库 app-update.json", "sublabel": "jsDelivr / raw · main", "size": [144, 64] },
+    { "id": "store", "type": "backend", "row": 1, "col": 0, "label": "RepoUpdateConfigStore", "sublabel": "REMOTE 优先 → 仓库回退", "size": [152, 64] },
+    { "id": "gate", "type": "security", "row": 1, "col": 1, "label": "应用级版本闸门", "sublabel": "enforceMinimumVersion" },
+    { "id": "mandatory", "type": "frontend", "row": 1, "col": 2, "label": "强制更新拦截屏", "sublabel": "BackHandler 拦返回" },
+    { "id": "about", "type": "frontend", "row": 2, "col": 0, "label": "About 手动检查", "sublabel": "先 refreshNow() 刷新", "size": [152, 64] },
+    { "id": "appstart", "type": "backend", "row": 2, "col": 1, "label": "AircraftApplication", "sublabel": "启动与回前台触发" },
+    { "id": "dialog", "type": "frontend", "row": 3, "col": 0, "label": "UpdateDialogs", "sublabel": "可选更新 / 已是最新", "size": [152, 64] },
+    { "id": "releases", "type": "external", "row": 3, "col": 1, "label": "GitHub Release / 市场", "sublabel": "openUpdatePage", "size": [148, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "App 进程 (:app)", "wraps": ["store", "gate", "about", "appstart", "dialog", "mandatory"] }
+  ],
+  "connections": [
+    { "from": "firebase", "to": "store", "label": "REMOTE 值优先", "labelAt": [116, 120] },
+    { "from": "repojson", "to": "store", "label": "回退 JSON 拉取", "labelAt": [280, 110] },
+    { "from": "store", "to": "gate", "label": "版本值快照", "labelAt": [404, 162] },
+    { "from": "about", "to": "store", "label": "手动 refreshNow()", "variant": "emphasis", "labelAt": [66, 226] },
+    { "from": "appstart", "to": "gate", "label": "启动 / 回前台触发", "labelAt": [596, 224] },
+    { "from": "gate", "to": "mandatory", "label": "低于最低版本", "variant": "security" },
+    { "from": "gate", "to": "dialog", "label": "可选更新提示", "variant": "emphasis", "fromSide": "bottom", "toSide": "right", "via": [[530, 240], [220, 240], [220, 384]], "labelAt": [368, 230] },
+    { "from": "about", "to": "dialog", "label": "判定结果弹窗", "labelAt": [40, 324] },
+    { "from": "dialog", "to": "releases", "label": "openUpdatePage", "labelAt": [316, 370] },
+    { "from": "mandatory", "to": "releases", "label": "openUpdatePage", "variant": "security", "labelAt": [700, 392] }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "双源信任序", "items": [
+      "Firebase REMOTE 值优先；仓库 JSON（jsDelivr → raw）仅无远程值时兜底",
+      "About 手动检查先 refreshNow() 再判定，运行期不读启动期缓存"
+    ] },
+    { "dot": "rose", "title": "强制门", "items": [
+      "低于 minimum_version 任意界面进入强制更新屏，BackHandler 拦返回"
+    ] },
+    { "dot": "emerald", "title": "更新目标", "items": [
+      "可选更新弹窗经 openUpdatePage 打开 GitHub Release 或应用市场"
+    ] }
+  ]
+}

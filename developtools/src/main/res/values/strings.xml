@@ -274,6 +274,12 @@ Installed browsers:
     <string name="device_info_net_throughput">\u2193%1$s \u2191%2$s</string>
     <string name="device_info_net_throughput_init">\u2193-- \u2191--</string>
     <string name="device_info_net_ip">IP: %s</string>
+    <string name="device_info_cpu_estimated">Estimated</string>
+    <string name="device_info_cpu_unavailable">N/A</string>
+    <string name="device_info_fmt_pct_est">~%d%%</string>
+    <string name="device_info_fmt_core_pct_freq_est">~%1$3d%% %2$dMHz</string>
+    <string name="device_info_memory_scope">Device-wide</string>
+    <string name="device_info_disk_scope">Internal storage</string>
     <string name="invincible_mode_on">Invincible mode enabled. No damage will be taken.</string>
     <string name="invincible_mode_off">Normal mode restored. Damage will be taken normally.</string>
     <string name="rich_text_section_title">Rich Text</string>

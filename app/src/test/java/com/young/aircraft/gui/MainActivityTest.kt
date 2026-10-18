@@ -27,6 +27,8 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowDialog
+import org.robolectric.util.ReflectionHelpers
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -122,5 +124,29 @@ class MainActivityTest {
     fun `low memory event shows pause overlay`() {
         GameStateManager.emit(GameState.LOW_MEMORY)
         composeRule.waitUntil(10_000) { resumeNodeCount() > 0 }
+    }
+
+    // ── Dialog-associated pause behavior ──────────────────────────────
+
+    @Test
+    fun `game dialog dismissal does not auto resume a paused game`() {
+        composeRule.waitForIdle()
+        val activity = composeRule.activity
+        // Engage the pause overlay exactly like an occlusion (notification
+        // shade over the dialog) would.
+        ReflectionHelpers.callInstanceMethod<Unit>(activity, "showPauseOverlay")
+        composeRule.waitUntil(10_000) { resumeNodeCount() > 0 }
+
+        // Show the game-over dialog and dismiss it.
+        val coreView = findGameCoreView(activity.findViewById<ViewGroup>(android.R.id.content))!!
+        coreView.onGameOver?.invoke()
+        val dialog = ShadowDialog.getLatestDialog()
+        assertNotNull("expected the game-over dialog to show", dialog)
+        composeRule.waitForIdle()
+        dialog.dismiss()
+        composeRule.waitForIdle()
+
+        // The overlay must stay up: resuming requires a manual tap to continue.
+        org.junit.Assert.assertTrue(resumeNodeCount() > 0)
     }
 }

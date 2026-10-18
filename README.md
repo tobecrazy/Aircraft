@@ -10,7 +10,7 @@ Latest published release APK (V1.4.9):
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.4.9` (`versionCode` 21); releases up to `V1.4.9` are on GitHub.
+> The app currently builds as `1.5.1` (`versionCode` 23); releases up to `V1.4.9` are on GitHub.
 
 ## Demo
 
@@ -32,7 +32,7 @@ The demo above walks through the end-to-end player experience on a real device:
 
 ![Project Architecture](project_diagram.svg)
 
-> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). The Remote Config update-gate flow is diagrammed separately at [docs/remote-update-enforcement.workflow.html](docs/remote-update-enforcement.workflow.html), generated from [docs/remote-update-enforcement.workflow.json](docs/remote-update-enforcement.workflow.json). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
+> An interactive version of the architecture (theme, pan/zoom, guided views) is available at [docs/aircraft-architecture.html](docs/aircraft-architecture.html), generated from [docs/aircraft-arch.json](docs/aircraft-arch.json). For the full UML class diagram, see [class_diagram.svg](class_diagram.svg). The Remote Config update-gate flow is diagrammed separately at [docs/remote-update-enforcement.workflow.html](docs/remote-update-enforcement.workflow.html), generated from [docs/remote-update-enforcement.workflow.json](docs/remote-update-enforcement.workflow.json); companion diagrams cover the About manual update check ([docs/about-manual-update-check.workflow.html](docs/about-manual-update-check.workflow.html) / `.workflow.json`), the end-to-end remote update chain ([docs/remote-update-chain.architecture.html](docs/remote-update-chain.architecture.html) / `.architecture.json`), and the release process ([docs/release-process.workflow.html](docs/release-process.workflow.html) / `.workflow.json`). For detailed developer documentation, see [DOCUMENT.md](DOCUMENT.md). For release history, see [ChangeLogs.md](ChangeLogs.md).
 
 ## Class Diagram
 
@@ -51,7 +51,7 @@ The demo above walks through the end-to-end player experience on a real device:
 | `gui/` (Presentation) | Purple | `BaseAircraftActivity`, `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `GameHudScreen`, `MandatoryUpdateActivity`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `GameSettingsActivity`, `LanguageSettingsActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `StarFieldView`, `ThemedMessage`, `gui/dialogs/*` (minus `InfoDialogContent`) | Game/user screens, navigation, Compose-only UI (no ViewBinding), themed dialogs/Snackbars, blocking update gate (tool Activities live in `:developtools`) |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM/SFX bound service (`FlashlightService` lives in `:developtools`) |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
-| `developtools/` | Slate-blue | `gui/` (13 tool Activities), `viewmodel/` (12 tool ViewModels), `data/` (`ImageDetails`, `BannerDetails`, contacts + `LogSettings`), `repository/` (`ApiDebugRepository`, `ApiHistoryStore`), `service/` (`FlashlightService`), `utils/` (`DeveloperMode`, `DebugTools` per-variant, `DevLog`, `DevPrefs`) | All developer/utility screens + gate, logging, history contract; host wiring via `DevTools` |
+| `developtools/` | Slate-blue | `gui/` (14 tool Activities), `viewmodel/` (12 tool ViewModels), `data/` (`ImageDetails`, `BannerDetails`, contacts + `LogSettings`), `repository/` (`ApiDebugRepository`, `ApiHistoryStore`), `service/` (`FlashlightService`), `utils/` (`DeveloperMode`, `DebugTools` per-variant, `DevLog`, `DevPrefs`) | All developer/utility screens + gate, logging, history contract; host wiring via `DevTools` |
 | `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, name formatting (tool helpers live in `:developtools`) |
 
 ### Key Relationships
@@ -122,7 +122,7 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
   - Shields grant temporary invincibility with a blink indicator
   - Time freezes can freeze enemies or the player for 5 seconds depending on who collects them
 - **Progress persistence**: combat continuation restores the saved level, cumulative kills, and aircraft, then starts a fresh level scene; puzzle progress is saved separately for the Settings puzzle
-- **Debug flow**: debug builds expose the `:developtools` module — Developer Settings, test-crash tooling, hidden invincible-mode toggle, an Android Dev Assistant tools hub (`AndroidDevAssistantToolsActivity`) with an app-browser module, an activity-monitor module, and a device-contacts browser/editor (`ContactsActivity`, runtime `READ_CONTACTS`/`WRITE_CONTACTS` grant), plus a QR Tool notification navigation test; release builds unlock the same screens via the About-page 8-tap gate
+- **Debug flow**: debug builds expose the `:developtools` module — Developer Settings, test-crash tooling, hidden invincible-mode toggle, an Android Dev Assistant tools hub (`AndroidDevAssistantToolsActivity`) with an app-browser module (a full-screen installed-app browser, `AppListActivity`, that replaced the former modal dialog), an activity-monitor module, and a device-contacts browser/editor (`ContactsActivity`, runtime `READ_CONTACTS`/`WRITE_CONTACTS` grant), plus a QR Tool notification navigation test; release builds unlock the same screens via the About-page 8-tap gate
 
 ## Features
 
@@ -194,14 +194,14 @@ supperbanner/
 
 developtools/
 ├── build.gradle.kts                    # aircraft.android.library + aircraft.android.compose conventions; deps stay in-module
-├── consumer-rules.pro                  # Keeps for the 13 tool Activities, FlashlightService, gate, and DevTools bridge
-├── src/main/AndroidManifest.xml        # 13 tool Activities + FlashlightService + module permission set (merged into :app)
+├── consumer-rules.pro                  # Keeps for the 14 tool Activities, FlashlightService, gate, and DevTools bridge
+├── src/main/AndroidManifest.xml        # 14 tool Activities + FlashlightService + module permission set (merged into :app)
 ├── src/main/assets/
 │   ├── example.json                    # Rich-text editor JSON sample
 │   └── rich_text_default.html          # Rich-text editor default content
 ├── src/main/java/com/young/developtools/
 │   ├── DevTools.kt                     # Host bridge: openActivityMonitor / onInvincibleChanged / historyStoreProvider / onLogEnabledChanged
-│   ├── gui/                            # 13 tool Activities + BaseAircraftActivity/ThemedMessage copies + dialogs/
+│   ├── gui/                            # 14 tool Activities (incl. AppListActivity full-screen installed-app browser; AppListDialog.kt keeps the shared list data/query/filter helpers) + BaseAircraftActivity/ThemedMessage copies + dialogs/
 │   ├── viewmodel/                      # 12 tool ViewModels (history via ApiHistoryStore, never Room directly)
 │   ├── data/                           # ImageDetails, BannerDetails, ContactsRepository, DeviceContact, LogSettings
 │   ├── repository/                     # ApiDebugRepository (OkHttp/Gson) + ApiHistoryStore contract + in-memory fallback
@@ -218,9 +218,10 @@ app/
 ├── proguard-rules.pro                  # Release keeps: Room entities/DAO + migrations, manifest entry points, enums, singletons (see R8 below)
 └── src/main/java/com/young/aircraft/
 ├── common/
-│   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, enforces the minimum-version gate on every resume
+│   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, refreshes the repo-update fallback JSON at startup, and enforces the minimum-version / optional-update prompts on every resume
 │   ├── AircraftRemoteConfig.kt         # Firebase Remote Config singleton: typed parameters, token JSON, version compare, Crashlytics collection toggle
 │   ├── LauncherIconManager.kt          # internal object switching the enabled launcher activity-alias for the Remote Config `AppIcon` variant (1..5, invalid → 1); debug builds pin LauncherIcon1 so the IDE launch target stays valid
+│   ├── RepoUpdateConfig.kt             # Repo `app-update.json` fallback: data class + RepoUpdateConfigStore (Firebase REMOTE wins; jsDelivr → raw fetch at startup and via the About manual check)
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
 │   ├── AppDatabase.kt                  # Room database (v2033) + explicit migrations 2027→2033
@@ -256,15 +257,17 @@ app/
 │   ├── SettingsScreen.kt               # Compose settings presentation + SettingsDestination enum
 │   ├── GameSettingsActivity.kt         # Difficulty / audio / color-theme screen (Settings → Game settings)
 │   ├── LanguageSettingsActivity.kt     # Per-app locale picker: follow system, zh-CN, zh-TW, zh-HK, en
-│   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, and clickable project image viewer
+│   ├── AboutAircraftActivity.kt        # Project overview, GitHub link, manual check-for-updates card, and clickable project image viewer
 │   ├── AboutMeActivity.kt              # Compose-based developer profile and project details screen
 │   ├── PrivacyPolicyActivity.kt        # Standalone privacy policy viewer
+│   ├── DataPrivacyActivity.kt          # Delete on-device data + withdraw consent (re-opens the privacy gate on next launch)
 │   ├── ThemedMessage.kt                # Themed Material Snackbar factory (replaces system Toasts)
 │   ├── StarFieldView.kt                # Animated cinematic background
 │   └── dialogs/
 │       ├── DialogCompose.kt            # Dialog.setDialogComposeContent(host) — lifecycle + theme + dismiss plumbing
 │       ├── GameDialogContent.kt        # Compose game-over / level-complete / victory content + palette/stat models
-│       └── ThemedAlertDialog.kt        # MaterialAlertDialogBuilder.showThemed() native confirmation theming
+│       ├── ThemedAlertDialog.kt        # MaterialAlertDialogBuilder.showThemed() native confirmation theming
+│       └── UpdateDialogs.kt            # Shared update prompts: showUpdateAvailableDialog() (app-wide + About manual check) and showAlreadyLatestVersionDialog()
 ├── providers/
 │   └── DatabaseProvider.kt             # Singleton Room provider (explicit migrations, no destructive fallback)
 ├── service/
@@ -290,6 +293,7 @@ app/
 ├── utils/
 │   ├── AppLog.kt                       # Runtime kill-switch wrapper over android.util.Log; d() takes a lambda so disabled messages are never built
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
+│   ├── GameInterruptionShield.kt       # Combat Do-Not-Disturb shield: requests DND full-suppression during dogfights; null when unauthorized (callers fall back to auto-pause)
 │   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
 │   ├── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
 └── viewmodel/
@@ -341,7 +345,7 @@ app/
 
 `richtexteditor/src/test` includes focused unit tests for Markdown conversion, plain-text escaping, image tap URL round-tripping, and preview image format support. `supperbanner/src/test` covers banner auto-play interval clamping and the Robolectric-backed color palette and page transformers (`SupperBannerViewColorsTest`, `SupperBannerTransformerTest`, `@Config(sdk = [34])`).
 
-`developtools/src/test` holds every tool screen suite, mirrored from the app: `DevelopSettingsActivityTest` (version-badge toggle, crash dialog, QR notification), `AndroidDevAssistantToolsActivityTest` (module grid, toggles, log switch), `ApiDebugToolActivityTest` / `ApiDebugToolViewModelTest` / `ApiDebugRepositoryTest` (validation gate, history load-back over a fake store), `QRCodeToolActivityTest`, `RichTextEditorActivityTest`, `RichTextMarkdownTest`, `ShowImageDetailsActivityTest`, `DeviceInfoActivityTest`, `FlashlightTorchHeroTest`, `FlashlightViewModelTest` (SOS timing, brightness mapping), `PdfViewModelTest`, `DominantPageIndexTest`, `DeviceResourceCalculatorsTest`, `ContactsRepositoryTest` / `ContactsValidationTest` / `ContactsViewModelTest`, `LogSettingsTest` / `LogSettingsViewModelTest` (now driving `DevLog`), `DataUriUtilsTest`, `BannerDetailsIntentContractTest`, `ImageDetailsIntentContractTest`, the `apidebug` pure-function tests, `ThemedMessageTest`, and a module `StringResourceTest` (locale parity + usage coverage). `build-logic`'s `:convention:test` runs `LogCheckTest` (9 cases over the shared AppLog/DevLog matching core behind `checkAppLogUsage` / `checkDevLogUsage`).
+`developtools/src/test` holds every tool screen suite, mirrored from the app: `DevelopSettingsActivityTest` (version-badge toggle, crash dialog, QR notification), `AndroidDevAssistantToolsActivityTest` (module grid, toggles, log switch, and app-browser navigation), `AppListActivityTest` (user/system/all filters, search, empty state, details intent, rememberSaveable persistence across recreation, and back navigation over Robolectric's PackageManager shadow), `ApiDebugToolActivityTest` / `ApiDebugToolViewModelTest` / `ApiDebugRepositoryTest` (validation gate, history load-back over a fake store), `QRCodeToolActivityTest`, `RichTextEditorActivityTest`, `RichTextMarkdownTest`, `ShowImageDetailsActivityTest`, `DeviceInfoActivityTest` (unavailable/estimate rendering, layout, and navigation) plus `DeviceInfoViewModelTest` (source-unavailable retention, CPU estimate labeling, sampling lifecycle), `FlashlightTorchHeroTest`, `FlashlightViewModelTest` (SOS timing, brightness mapping), `PdfViewModelTest`, `DominantPageIndexTest`, `DeviceResourceCalculatorsTest`, `ContactsRepositoryTest` / `ContactsValidationTest` / `ContactsViewModelTest`, `LogSettingsTest` / `LogSettingsViewModelTest` (now driving `DevLog`), `DataUriUtilsTest`, `BannerDetailsIntentContractTest`, `ImageDetailsIntentContractTest`, the `apidebug` pure-function tests, `ThemedMessageTest`, and a module `StringResourceTest` (locale parity + usage coverage). `build-logic`'s `:convention:test` runs `LogCheckTest` (9 cases over the shared AppLog/DevLog matching core behind `checkAppLogUsage` / `checkDevLogUsage`).
 
 Instrumented tests belong in `app/src/androidTest`.
 
@@ -379,7 +383,7 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.4.9` (`versionCode` 21)
+- **Version**: `1.5.1` (`versionCode` 23)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `31`

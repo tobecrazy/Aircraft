@@ -167,12 +167,24 @@ class AndroidDevAssistantToolsActivityTest {
     }
 
     @Test
-    fun `app browser module shows the in-app list dialog instead of navigating`() {
-        openModuleDialog(AndroidDevAssistantToolsActivity.MODULE_APP_BROWSER)
+    fun `app browser module launches the full-screen AppListActivity`() {
+        tick()
 
-        assertEquals("app browser module shows a dialog, it does not navigate", null,
-            shadowOf(composeTestRule.activity).nextStartedActivity)
-        assertTrue(ShadowDialog.getLatestDialog().isShowing)
+        composeTestRule
+            .onNodeWithTag(ModuleListTag)
+            .performScrollToNode(hasTestTag("assistant_open_${AndroidDevAssistantToolsActivity.MODULE_APP_BROWSER}"))
+        composeTestRule
+            .onNodeWithTag("assistant_open_${AndroidDevAssistantToolsActivity.MODULE_APP_BROWSER}")
+            .performClick()
+        tick()
+
+        val nextIntent = shadowOf(composeTestRule.activity).nextStartedActivity
+        assertNotNull(nextIntent)
+        assertEquals(
+            "app browser module navigates to AppListActivity",
+            AppListActivity::class.java.name,
+            nextIntent.component?.className
+        )
     }
 
     @Test
@@ -219,10 +231,9 @@ class AndroidDevAssistantToolsActivityTest {
             .onNodeWithTag(ModuleListTag)
             .performScrollToNode(hasTestTag("assistant_open_$prefKey"))
         composeTestRule.onNodeWithTag("assistant_open_$prefKey").performClick()
-        // The app-browser dialog shows a CircularProgressIndicator while it queries the package
-        // manager, and Robolectric's default choreographer re-fires vsync inline — an infinite
+        // Dialog content composes on the dialog window with its own recomposer; pause
+        // Robolectric's choreographer and drive a bounded number of frames — an infinite
         // animation never lets Compose go idle, so waitForIdle() spins until the 60s cap.
-        // Pause the choreographer and drive a bounded number of frames instead.
         ShadowChoreographer.setPaused(true)
         try {
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))

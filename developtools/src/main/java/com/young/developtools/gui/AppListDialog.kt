@@ -7,16 +7,15 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,11 +30,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,21 +46,23 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.young.developtools.R
-import com.young.developtools.gui.dialogs.LocalDialogDismiss
-import com.young.developtools.gui.dialogs.devDialogPalette
 import com.young.developtools.ui.theme.TextSubtle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /** Tag on the app-list LazyColumn; tests scroll it with performScrollToNode. */
 internal const val AppListTag = "assistant_app_list"
+
+/** Tag on the app-list search field; tests type search queries into it. */
+internal const val AppListSearchTag = "assistant_app_search"
+
+/** Tag prefix for the filter chips; the suffix is [AppFilter].name.lowercase(). */
+internal const val AppListFilterTagPrefix = "assistant_app_filter_"
 
 /** One launchable package. Icon is loaded lazily per row, not stored here. */
 internal data class InstalledApp(
@@ -113,52 +114,32 @@ internal fun filterApps(apps: List<InstalledApp>, query: String, filter: AppFilt
     }
 }
 
+/**
+ * Reusable app-list body: search box, filter chips, and the loading/unavailable/empty
+ * and result states, styled for the full-screen [AppListActivity] page without any
+ * dialog-only chrome. [apps] stays null while the package query runs; [loadFailed]
+ * reports a failed query. The search text and selected filter survive Activity
+ * recreation via rememberSaveable.
+ */
 @Composable
-internal fun AppListDialogContent() {
+internal fun AppListBody(apps: List<InstalledApp>?, loadFailed: Boolean) {
     val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
-    val palette = devDialogPalette(colors.primary)
-    val dismiss = LocalDialogDismiss.current
 
-    var apps by remember { mutableStateOf<List<InstalledApp>?>(null) }
-    var loadFailed by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-    var filter by remember { mutableStateOf(AppFilter.USER) }
-
-    // ponytail: queried once per dialog; filtering is in-memory over a few hundred rows.
-    LaunchedEffect(Unit) {
-        val result = withContext(Dispatchers.IO) { runCatching { readInstalledApps(context) } }
-        apps = result.getOrNull()
-        loadFailed = result.isFailure
-    }
+    var query by rememberSaveable { mutableStateOf("") }
+    var filter by rememberSaveable { mutableStateOf(AppFilter.USER) }
 
     val visible = remember(apps, query, filter) {
         apps?.let { filterApps(it, query, filter) }.orEmpty()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(palette.statCardContainer, RoundedCornerShape(20.dp))
-            .border(1.5.dp, palette.badgeBorder, RoundedCornerShape(20.dp))
-            .padding(20.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.develop_settings_assistant_apps_title),
-            color = palette.titleColor,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
+    Column(modifier = Modifier.fillMaxSize()) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 12.dp)
+                .padding(horizontal = 16.dp)
                 .testTag(AppListSearchTag),
             placeholder = {
                 Text(
@@ -177,7 +158,7 @@ internal fun AppListDialogContent() {
                 focusedTextColor = colors.onSurface,
                 unfocusedTextColor = colors.onSurface,
                 focusedBorderColor = colors.primary,
-                unfocusedBorderColor = palette.badgeBorder,
+                unfocusedBorderColor = TextSubtle,
                 focusedPlaceholderColor = colors.onSurfaceVariant,
                 unfocusedPlaceholderColor = colors.onSurfaceVariant,
                 cursorColor = colors.primary
@@ -187,13 +168,14 @@ internal fun AppListDialogContent() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
+                .padding(start = 16.dp, top = 8.dp, end = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             AppFilter.entries.forEach { entry ->
                 FilterChip(
                     selected = filter == entry,
                     onClick = { filter = entry },
+                    modifier = Modifier.testTag(AppListFilterTagPrefix + entry.name.lowercase()),
                     label = {
                         Text(
                             text = stringResource(
@@ -216,7 +198,7 @@ internal fun AppListDialogContent() {
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = filter == entry,
-                        borderColor = palette.badgeBorder,
+                        borderColor = TextSubtle.copy(alpha = 0.5f),
                         selectedBorderColor = colors.primary.copy(alpha = 0.45f)
                     )
                 )
@@ -226,7 +208,7 @@ internal fun AppListDialogContent() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 120.dp, max = 360.dp)
+                .weight(1f)
                 .padding(top = 8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -247,40 +229,27 @@ internal fun AppListDialogContent() {
                     fontFamily = FontFamily.Monospace
                 )
 
-                else -> LazyColumn(modifier = Modifier.fillMaxWidth().testTag(AppListTag)) {
+                else -> LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag(AppListTag),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
                     items(visible, key = { it.packageName }) { app ->
                         AppRow(
                             app = app,
                             onLaunch = { context.launchApp(app.packageName) },
                             onDetails = { context.openAppDetails(app.packageName) }
                         )
-                        HorizontalDivider(color = palette.dividerColor)
+                        HorizontalDivider(
+                            color = colors.primary.copy(alpha = 0x44 / 255f)
+                        )
                     }
                 }
             }
         }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-                .height(48.dp)
-                .background(colors.primary, RoundedCornerShape(12.dp))
-                .clickable { dismiss?.invoke() },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stringResource(android.R.string.ok),
-                color = colors.onPrimary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace
-            )
-        }
     }
 }
-
-internal const val AppListSearchTag = "assistant_app_search"
 
 @Composable
 private fun AppRow(app: InstalledApp, onLaunch: () -> Unit, onDetails: () -> Unit) {
@@ -354,7 +323,7 @@ private fun AppRow(app: InstalledApp, onLaunch: () -> Unit, onDetails: () -> Uni
 
 private fun Context.launchApp(packageName: String) {
     // Every row came from a launcher query, so this only fails if the app is uninstalled
-    // while the dialog is open.
+    // while this screen is open.
     val intent = packageManager.getLaunchIntentForPackage(packageName) ?: return
     startActivity(intent)
 }

@@ -2,38 +2,48 @@
   "schema_version": 1,
   "diagram_type": "workflow",
   "meta": {
-    "title": "远程配置强制更新执行流程",
+    "title": "远程配置更新闸门流程",
     "output": "remote-update-enforcement.workflow.html",
-    "quality_profile": "showcase"
+    "quality_profile": "showcase",
+    "viewBox": [1000, 600]
   },
   "lanes": [
     { "id": "cfg", "label": "配置与校验" },
-    { "id": "out", "label": "降级与处置" }
+    { "id": "out", "label": "降级与处置" },
+    { "id": "manual", "label": "手动检查入口" },
+    { "id": "repo", "label": "仓库回退" }
   ],
   "phases": [
     { "id": "boot", "label": "拉取与激活", "fromCol": 0, "toCol": 2 },
     { "id": "check", "label": "版本校验与处置", "fromCol": 3, "toCol": 4, "variant": "emphasis" }
   ],
-  "mainPath": ["init", "activate", "enforce", "mandatory"],
+  "mainPath": ["init", "activate", "enforce", "prompt"],
   "nodes": [
     { "id": "init", "lane": "cfg", "col": 0, "type": "cloud", "label": "初始化远程配置", "sublabel": "initialize() 单次" },
     { "id": "activate", "lane": "cfg", "col": 2, "type": "cloud", "label": "拉取并激活配置", "sublabel": "fetchAndActivate" },
-    { "id": "enforce", "lane": "cfg", "col": 4, "type": "security", "label": "版本闸门", "sublabel": "enforceMinimumVersion" },
-    { "id": "defaults", "lane": "out", "col": 0, "type": "database", "label": "内置默认值兜底", "sublabel": "拉取失败时降级" },
-    { "id": "prompt", "lane": "out", "col": 2, "type": "frontend", "label": "可选更新弹窗", "sublabel": "每版本一次" },
-    { "id": "mandatory", "lane": "out", "col": 4, "type": "frontend", "label": "强制更新拦截屏", "sublabel": "BackHandler 拦返回" }
+    { "id": "enforce", "lane": "cfg", "col": 4, "type": "security", "label": "应用级版本闸门", "sublabel": "enforceMinimumVersion" },
+    { "id": "alllatest", "lane": "out", "col": 0, "type": "frontend", "label": "已是最新提示", "sublabel": "手动检查专用结果" },
+    { "id": "mandatory", "lane": "out", "col": 2, "type": "frontend", "label": "强制更新拦截屏", "sublabel": "BackHandler 拦返回" },
+    { "id": "prompt", "lane": "out", "col": 4, "type": "frontend", "label": "可选更新弹窗", "sublabel": "每版本一次 · 共享弹窗" },
+    { "id": "aboutcheck", "lane": "manual", "col": 0, "type": "frontend", "label": "检查更新卡片", "sublabel": "About 页手动入口" },
+    { "id": "aboutresolve", "lane": "manual", "col": 2, "type": "security", "label": "手动版本判定", "sublabel": "resolveAboutUpdateCheck" },
+    { "id": "repojson", "lane": "repo", "col": 0, "type": "cloud", "label": "仓库回退配置", "sublabel": "app-update.json" }
   ],
   "edges": [
     { "from": "init", "to": "activate", "route": "straight" },
     { "from": "activate", "to": "enforce", "route": "straight" },
-    { "from": "activate", "to": "defaults", "label": "拉取失败", "variant": "dashed", "role": "error" },
-    { "from": "defaults", "to": "enforce", "label": "兜底版本号", "variant": "dashed", "role": "return" },
     { "from": "enforce", "to": "prompt", "label": "版本达标", "variant": "emphasis", "role": "branch" },
-    { "from": "enforce", "to": "mandatory", "label": "低于最低版本", "variant": "security", "role": "branch" }
+    { "from": "enforce", "to": "mandatory", "label": "低于最低版本", "variant": "security", "role": "branch" },
+    { "from": "aboutcheck", "to": "aboutresolve", "route": "straight" },
+    { "from": "aboutresolve", "to": "alllatest", "label": "最低版本无效或已最新", "role": "branch" },
+    { "from": "aboutresolve", "to": "mandatory", "label": "低于最低版本" },
+    { "from": "aboutresolve", "to": "prompt", "label": "低于 latest_version", "variant": "emphasis", "role": "branch", "toSide": "bottom" },
+    { "from": "aboutcheck", "to": "repojson", "label": "refreshNow()", "variant": "dashed", "role": "async", "labelDx": 56 },
+    { "from": "repojson", "to": "enforce", "label": "无远程值时兜底", "variant": "dashed", "role": "return", "fromSide": "right", "toSide": "right", "route": "outside-right" }
   ],
   "cards": [
     { "dot": "rose", "title": "强制阻断", "items": ["低于 minimum_version 启动拦截屏并 finish 当前界面", "BackHandler 拦返回键，自检达标才关闭"] },
-    { "dot": "amber", "title": "Fail open", "items": ["拉取失败回落硬编码 defaults", "compareAppVersions 为 null 按无需更新处理"] },
-    { "dot": "cyan", "title": "触发与去重", "items": ["onCreate 实时激活 与 onActivityResumed 双触发", "可选更新按 latest_version 每版一次"] }
+    { "dot": "amber", "title": "Fail open", "items": ["Firebase 拉取失败回落内置默认值；仓库 JSON 仅在无远程值时兜底", "最低版本不可解析：应用级静默放行，手动检查返回已最新（两处一致）"] },
+    { "dot": "cyan", "title": "触发与去重", "items": ["启动时 Firebase 初始化与 RepoUpdateConfigStore.refresh() 并行，可选更新按 latest_version 每版一次", "About 手动检查先 refreshNow() 刷新仓库 JSON，判定读取的是刷新后的回退配置，运行期不读启动期缓存"] }
   ]
 }

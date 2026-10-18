@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "About 页手动检查更新流程",
+    "output": "about-manual-update-check.workflow.html",
+    "quality_profile": "showcase",
+    "viewBox": [1000, 480]
+  },
+  "lanes": [
+    { "id": "about", "label": "About 页" },
+    { "id": "cfg", "label": "配置与判定" },
+    { "id": "result", "label": "检查结果处置" }
+  ],
+  "phases": [
+    { "id": "trigger", "label": "触发与刷新", "fromCol": 0, "toCol": 2 },
+    { "id": "decide", "label": "版本判定与处置", "fromCol": 3, "toCol": 4, "variant": "emphasis" }
+  ],
+  "mainPath": ["card", "refresh", "resolve", "optional"],
+  "nodes": [
+    { "id": "card", "lane": "about", "col": 0, "type": "frontend", "label": "检查更新卡片", "sublabel": "About 页手动入口" },
+    { "id": "already", "lane": "about", "col": 4, "type": "frontend", "label": "已是最新提示", "sublabel": "检查结果之一" },
+    { "id": "refresh", "lane": "cfg", "col": 2, "type": "cloud", "label": "刷新回退配置", "sublabel": "refreshNow()", "width": 132 },
+    { "id": "resolve", "lane": "cfg", "col": 4, "type": "security", "label": "手动版本判定", "sublabel": "resolveAboutUpdateCheck" },
+    { "id": "mandatory", "lane": "result", "col": 0, "type": "frontend", "label": "强制更新拦截屏", "sublabel": "低于 minimum_version" },
+    { "id": "optional", "lane": "result", "col": 4, "type": "frontend", "label": "可选更新弹窗", "sublabel": "低于 latest_version" }
+  ],
+  "edges": [
+    { "from": "card", "to": "refresh", "label": "先 refreshNow()", "variant": "dashed", "role": "async" },
+    { "from": "refresh", "to": "resolve", "route": "straight" },
+    { "from": "resolve", "to": "already", "label": "已最新 / 最低版本无效", "role": "branch" },
+    { "from": "resolve", "to": "mandatory", "label": "低于 minimum_version", "variant": "security", "role": "branch", "labelDy": 26 },
+    { "from": "resolve", "to": "optional", "label": "低于 latest_version", "variant": "emphasis", "role": "branch", "labelDx": 32 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "刷新先行", "items": [
+      "点击后先 refreshNow() 拉取仓库 JSON（jsDelivr → raw，10s 超时）再判定",
+      "拉取失败沿用启动时已拉取的值，不再读启动期缓存"
+    ] },
+    { "dot": "rose", "title": "强制分支", "items": [
+      "current < minimum_version 直接跳转强制更新屏并 finish 当前界面"
+    ] },
+    { "dot": "emerald", "title": "Fail open 兜底", "items": [
+      "minimum 或版本串不可解析时返回已是最新，与应用级判定一致"
+    ] },
+    { "dot": "amber", "title": "共享弹窗", "items": [
+      "可选更新弹窗与启动时全局提示共用 showUpdateAvailableDialog",
+      "按 latest_version 每个版本只提示一次"
+    ] }
+  ]
+}

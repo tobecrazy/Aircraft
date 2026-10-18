@@ -94,6 +94,9 @@ class MainActivity : AppCompatActivity() {
     private var isExitInProgress = false
     private var isServiceBound = false
     private var savedInterruptionFilter: Int? = null
+    // True while an app-owned dialog (level complete / game over / Hall of Heroes) temporarily
+    // owns the window focus; the focus-loss auto-pause must not treat that as an occlusion.
+    private var isAppDialogShowing = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
@@ -288,6 +291,13 @@ class MainActivity : AppCompatActivity() {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
         dialog.window?.setDimAmount(0.7f)
+        isAppDialogShowing = true
+        dialog.setOnDismissListener {
+            isAppDialogShowing = false
+            // Dismissal only clears the dialog state. A HUD pause that engaged
+            // while the dialog was up (e.g. the notification shade opened
+            // behind it) stays: resuming requires a manual tap to continue.
+        }
 
         dialog.setDialogComposeContent(this) {
             GameDialogContent(
@@ -317,6 +327,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun showHallOfHeroesBottomSheet() {
         val dialog = BottomSheetDialog(this, R.style.ThemeOverlay_Aircraft_HallOfHeroesBottomSheet)
+        isAppDialogShowing = true
+        dialog.setOnDismissListener {
+            isAppDialogShowing = false
+            if (!isFinishing) {
+                hidePauseOverlay()
+            }
+        }
 
         fun recordHero(rawName: String) {
             if (!dialog.isShowing) return
@@ -413,9 +430,12 @@ class MainActivity : AppCompatActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
             hideSystemBars()
-        } else if (!isFinishing) {
+        } else if (!isFinishing && !isAppDialogShowing) {
             // The game keeps running when the notification shade/system dialog steals focus,
             // so freeze it; resuming requires a manual tap to continue.
+            // App-owned dialogs (score sheets) also take the window focus, so they must be
+            // excluded here or every level-complete/game-over dialog would engage the
+            // pause overlay and freeze the next level after dismissal.
             showPauseOverlay()
         }
     }

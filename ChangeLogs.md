@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-17
+
+### Added
+- Device info screen reliability and accuracy hardening: periodic sampling moved off the main thread into a ViewModel coroutine loop on `Dispatchers.IO` (periodic dynamic reads, rate-snapshot re-anchoring at start-up, and the one-time static `/proc/cpuinfo` read are all off the main thread), started and stopped with screen visibility, guarded by a mutex against overlapping passes, with unsupported readings keeping the last valid value instead of fabricated zeros
+- CPU semantics: the frequency-based fallback is labeled with a `~` estimate plus an explicit "Estimated" chip (frequency is not measured utilization), per-core utilization that cannot be read renders as `N/A`, and unchanged `/proc/stat` intervals are reported as unavailable until a real measurement exists (a null calculation retains the previous valid reading)
+- Memory/disk scope labels ("Device-wide" / "Internal storage") clarifying what each percentage measures, plus a new `DeviceInfoViewModelTest` (source-unavailable retention, CPU fallback estimate/availability semantics, sampling lifecycle transitions) and extended `DeviceInfoActivityTest` rendering/list tests; new device-info strings synchronized across all four locales
+
+### Changed
+- Dismissing a game dialog (game over / level complete) no longer auto-resumes a paused game: cleanup only clears the dialog state, so a pause engaged by any occlusion (e.g. the notification shade over the dialog) always requires a manual tap to continue, covered by a new `MainActivityTest` regression
+- Version bump `1.5.0` → `1.5.1` (`versionCode` 22 → 23); `app-update.json` regenerated with `latest_version` `1.5.1`
+
+## [1.5.0] - 2026-10-17
+
+### Added
+- Full-screen `AppListActivity` installed-app browser in `:developtools` for the Android Dev Assistant App Browser module: standard `BaseAircraftActivity` lifecycle (`initializeViewModel`/`initializeUI`) with the `DeveloperMode` gate, `Theme.Aircraft.Common` from the manifest plus `AircraftTheme` for Compose, edge-to-edge layout with a header back icon (plus normal system back), and 16dp horizontal content padding for the search field, filter chips, and list rows
+- `AppListBody` reusable list UI (search field, user/system/all filter chips, loading/unavailable/empty states, lazy per-row icons, row-tap launch + system app-details action); `AppListDialog` keeps the shared data/query/filter helpers without dialog-only chrome, and the app-level `<queries>` declaration stays the single source for launcher-app visibility
+
+### Changed
+- The App Browser module navigates to `AppListActivity` instead of opening a modal dialog (`AndroidDevAssistantToolsActivityTest` asserts the navigation); search text and selected filter survive Activity recreation via `rememberSaveable`, covered by `AppListActivityTest` (filters, search, empty state, details intent, recreation persistence, back navigation over Robolectric's PackageManager shadow)
+- Version bump `1.4.9` → `1.5.0` (`versionCode` 21 → 22); `app-update.json` regenerated with `latest_version` `1.5.0`
+
+## [1.4.9] - 2026-10-17
+
+### Added
+- About-Aircraft manual "check for updates" card: walks the same Firebase/Repo update chain as the automatic checks and shares the `UpdateDialogs` prompts (update-available, already-latest) plus the `RepoUpdateConfig` jsDelivr fallback JSON (fetched at startup and via the manual check); `AboutUpdateCheckTest` and expanded About tests cover the flow
+- Release signing loaded from untracked `keystore.properties` (guarded by file existence) and project-specific ProGuard rules (Room entities/DAO/migrations, services, enums, Kotlin singletons, OkHttp/Firebase `-dontwarn`, `SourceFile`/`LineNumberTable` for Crashlytics); CI switched to `assembleDebug lintDebug` so runners without the keystore still build
+
+### Changed
+- Dialog/badge polish: new badge and stat-card drawables with `DialogTone`-aware styling across game dialogs, bottom sheets, and the hall-of-heroes UI
+- `MainActivity` auto-saves progress on exit (guarded by `shouldAutoSaveOnExit`/`isExitInProgress`) and passes a `levelOverride` into `saveGameData`; `LaunchActivity` offers saved games via `shouldOfferSavedGame`
+- `HistoryActivity` redesigned edge-to-edge with a refreshed hierarchy (summary card, chips, empty state, top-record badge) and a simplified adapter API; `AboutMeActivity`/`AboutAircraftActivity` rewritten as responsive Compose scaffolds with hero cards, chips, and repo-opening buttons
+- Version bump `1.4.8` → `1.4.9` (`versionCode` 20 → 21); `app-update.json` regenerated with `latest_version` `1.4.9`
+
 ## [1.4.8] - 2026-10-16
 
 ### Added

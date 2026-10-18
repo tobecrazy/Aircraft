@@ -1,16 +1,38 @@
 package com.young.developtools.gui
 
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import com.young.developtools.R
+import com.young.developtools.ui.theme.AircraftTheme
+import com.young.developtools.viewmodel.BatteryState
+import com.young.developtools.viewmodel.CoreUsage
+import com.young.developtools.viewmodel.CpuState
+import com.young.developtools.viewmodel.DeviceInfoUiState
+import com.young.developtools.viewmodel.DeviceInfoViewModel
+import com.young.developtools.viewmodel.DiskState
+import com.young.developtools.viewmodel.MemoryState
+import com.young.developtools.viewmodel.NetworkState
+import com.young.developtools.viewmodel.NetworkType
+import com.young.developtools.viewmodel.TimeState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -98,6 +120,244 @@ class DeviceInfoActivityTest {
         val boot = composeRule.onNodeWithText(activity.getString(R.string.device_info_boot_time))
             .fetchSemanticsNode().boundsInRoot
         return resolution to boot
+    }
+
+    // ── Estimate / unavailable rendering (Phase 2) ────────────────────
+
+    @Test
+    fun `cpu frequency fallback renders estimate labels and unavailable core`() {
+        val activity = composeRule.activity
+        composeRule.waitForIdle()
+        stopLiveSampling(activity)
+        activity.setContent {
+            AircraftTheme {
+                DeviceInfoScreen(uiState = estimateUiState(), systemInfoWide = false, onBack = {})
+            }
+        }
+        composeRule.waitForIdle()
+
+        // Overall frequency-based utilization is shown with "~" plus an
+        // explicit chip, never presented as a measured value.
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_fmt_pct_est, 44)).assertExists()
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_cpu_estimated)).assertExists()
+        // Per core: estimate format, OFF for hotplugged core, N/A for the one
+        // whose utilization cannot be read (distinct from a measured 0%).
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_fmt_core_pct_freq_est, 50, 2400)).assertExists()
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_cpu_core_off)).assertExists()
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_cpu_unavailable)).assertExists()
+        // Scope labels tell the reader what each percentage measures.
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_memory_scope)).assertExists()
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_disk_scope)).assertExists()
+    }
+
+    @Test
+    fun `overall cpu shows unavailable when no core is measurable`() {
+        val activity = composeRule.activity
+        composeRule.waitForIdle()
+        stopLiveSampling(activity)
+        val cores = List(4) { i -> CoreUsage(index = i, pct = 0, pctAvailable = false) }
+        activity.setContent {
+            AircraftTheme {
+                DeviceInfoScreen(
+                    uiState = DeviceInfoUiState(
+                        cpu = CpuState(
+                            overallPct = 0,
+                            overallPctAvailable = false,
+                            coreUsages = cores,
+                            temperature = 30f,
+                            isEstimate = true
+                        )
+                    ),
+                    systemInfoWide = false,
+                    onBack = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+
+        // Keep memory/disk readable so only the five CPU texts (overall plus
+        // one per non-measurable core) contribute to the count.
+        val overallUnavailableState = DeviceInfoUiState(
+            cpu = CpuState(
+                overallPct = 0,
+                overallPctAvailable = false,
+                coreUsages = cores,
+                temperature = 30f,
+                isEstimate = true
+            ),
+            memory = MemoryState(pct = 61, pctAvailable = true),
+            disk = DiskState(pct = 47, pctAvailable = true)
+        )
+        activity.setContent {
+            AircraftTheme {
+                DeviceInfoScreen(
+                    uiState = overallUnavailableState,
+                    systemInfoWide = false,
+                    onBack = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+
+        // Overall N/A plus one per non-measurable core.
+        composeRule.onAllNodesWithText(activity.getString(R.string.device_info_cpu_unavailable))
+            .assertCountEquals(5)
+    }
+
+    @Test
+    fun `long localized metric text renders as a full node`() {
+        val activity = composeRule.activity
+        composeRule.waitForIdle()
+        stopLiveSampling(activity)
+        val longDetail = buildString { repeat(60) { append("Network detail line,") } }
+        activity.setContent {
+            AircraftTheme {
+                DeviceInfoScreen(
+                    uiState = DeviceInfoUiState(
+                        cpu = CpuState(
+                            overallPct = 10,
+                            overallPctAvailable = true,
+                            coreUsages = List(4) { i ->
+                                CoreUsage(index = i, pct = 10, pctAvailable = true)
+                            },
+                            temperature = 30f
+                        ),
+                        network = NetworkState(
+                            type = NetworkType.WIFI,
+                            detail = longDetail,
+                            ipAddress = "192.168.100.100",
+                            throughputReady = true
+                        )
+                    ),
+                    systemInfoWide = false,
+                    onBack = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+
+        // The whole long detail string stays addressable (wrapped, not clipped).
+        composeRule.onNodeWithText(longDetail).assertExists()
+    }
+
+    @Test
+    fun `unavailable memory and disk render na instead of zero percent`() {
+        val activity = composeRule.activity
+        composeRule.waitForIdle()
+        stopLiveSampling(activity)
+        // Default state: memory/disk never read successfully (pctAvailable false).
+        activity.setContent {
+            AircraftTheme {
+                DeviceInfoScreen(
+                    uiState = DeviceInfoUiState(
+                        cpu = CpuState(
+                            overallPct = 10,
+                            overallPctAvailable = true,
+                            coreUsages = List(4) { i ->
+                                CoreUsage(index = i, pct = 10, pctAvailable = true)
+                            },
+                            temperature = 30f
+                        ),
+                        battery = BatteryState(pct = 76, isCharging = false),
+                        network = NetworkState(
+                            type = NetworkType.WIFI,
+                            detail = "Wi-Fi",
+                            ipAddress = "1.2.3.4",
+                            throughputReady = true
+                        ),
+                        time = TimeState(currentTime = "12:00:00", uptime = "01:00:00")
+                    ),
+                    systemInfoWide = false,
+                    onBack = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+
+        val na = activity.getString(R.string.device_info_cpu_unavailable)
+        // Two cards × two N/A texts (percent + detail).
+        composeRule.onAllNodesWithText(na).assertCountEquals(4)
+        // No fabricated "0%" anywhere on screen.
+        composeRule.onAllNodesWithText(activity.getString(R.string.device_info_fmt_pct, 0))
+            .assertCountEquals(0)
+    }
+
+    @Test
+    fun `resource cards stack when narrow and share a row when wide`() {
+        val activity = composeRule.activity
+        composeRule.waitForIdle()
+        stopLiveSampling(activity)
+        val memory = activity.getString(R.string.device_info_memory)
+        val disk = activity.getString(R.string.device_info_disk)
+
+        fun renderAt(widthDp: Int) {
+            activity.setContent {
+                AircraftTheme {
+                    Box(modifier = Modifier.requiredWidth(widthDp.dp)) {
+                        DeviceInfoScreen(
+                            uiState = estimateUiState().copy(
+                                cpu = CpuState(
+                                    overallPct = 10,
+                                    overallPctAvailable = true,
+                                    coreUsages = List(4) { i ->
+                                        CoreUsage(index = i, pct = 10, pctAvailable = true)
+                                    },
+                                    temperature = 30f
+                                ),
+                                network = NetworkState(
+                                    type = NetworkType.WIFI,
+                                    detail = "Wi-Fi",
+                                    ipAddress = "1.2.3.4",
+                                    throughputReady = true
+                                )
+                            ),
+                            systemInfoWide = false,
+                            onBack = {}
+                        )
+                    }
+                }
+            }
+            composeRule.waitForIdle()
+        }
+
+        // Narrow: memory card above the disk card.
+        renderAt(320)
+        val narrowMemory = composeRule.onNodeWithText(memory).fetchSemanticsNode().boundsInRoot
+        val narrowDisk = composeRule.onNodeWithText(disk).fetchSemanticsNode().boundsInRoot
+        assertTrue("narrow layout must stack cards", narrowDisk.top >= narrowMemory.bottom)
+
+        // Wide: side-by-side row.
+        renderAt(660)
+        val wideMemory = composeRule.onNodeWithText(memory).fetchSemanticsNode().boundsInRoot
+        val wideDisk = composeRule.onNodeWithText(disk).fetchSemanticsNode().boundsInRoot
+        assertTrue("wide layout keeps one row", wideDisk.top == wideMemory.top)
+    }
+
+    @Test
+    fun `core values stay addressable at increased font scale`() {
+        val activity = composeRule.activity
+        composeRule.waitForIdle()
+        stopLiveSampling(activity)
+        activity.setContent {
+            AircraftTheme {
+                CompositionLocalProvider(
+                    LocalDensity provides Density(density = 2f, fontScale = 2f)
+                ) {
+                    Box(modifier = Modifier.requiredWidth(340.dp)) {
+                        DeviceInfoScreen(uiState = estimateUiState(), systemInfoWide = false, onBack = {})
+                    }
+                }
+            }
+        }
+        composeRule.waitForIdle()
+
+        // Small controllable layout: at 2× font scale every core value and
+        // label must still wrap and remain addressable, not clipped away.
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_fmt_pct_est, 44)).assertExists()
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_cpu_estimated)).assertExists()
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_memory_scope)).assertExists()
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_disk_scope)).assertExists()
+        composeRule.onNodeWithText(activity.getString(R.string.device_info_cpu_unavailable)).assertExists()
     }
 
     // ── Uptime format unit tests ──────────────────────────────────────
@@ -221,6 +481,39 @@ class DeviceInfoActivityTest {
     @Test
     fun `formatBytes exact boundary MB`() {
         assertEquals("1.0 MB/s", formatBytesForTest(1_000_000))
+    }
+
+    // ── Fabricated UI states for phase-2 rendering checks ─────────────
+
+    private fun estimateUiState(): DeviceInfoUiState = DeviceInfoUiState(
+        cpu = CpuState(
+            overallPct = 44,
+            overallPctAvailable = true,
+            coreUsages = listOf(
+                CoreUsage(index = 0, pct = 50, freqMhz = 2400, pctAvailable = true),
+                CoreUsage(index = 1, pct = 0, isOnline = false),
+                CoreUsage(index = 2, pct = 0, pctAvailable = false)
+            ),
+            temperature = 40f,
+            isEstimate = true
+        ),
+        memory = MemoryState(pct = 61, usedGB = 5.2, availGB = 3.1, totalGB = 8.0, pctAvailable = true),
+        disk = DiskState(pct = 47, usedGB = 48.1, availGB = 54.0, totalGB = 102.4, pctAvailable = true),
+        network = NetworkState(
+            type = NetworkType.WIFI,
+            detail = "Wi-Fi",
+            ipAddress = "1.2.3.4",
+            throughputReady = true
+        ),
+        battery = BatteryState(pct = 76, isCharging = false),
+        time = TimeState(currentTime = "12:00:00", uptime = "01:00:00"),
+        staticInfo = com.young.developtools.viewmodel.DeviceStaticInfo(deviceModel = "Test")
+    )
+
+    private fun stopLiveSampling(activity: DeviceInfoActivity) {
+        // The Activity's ViewModel refresh loop would overwrite fabricated state.
+        ViewModelProvider(activity, DeviceInfoViewModel.Factory(activity))[DeviceInfoViewModel::class.java]
+            .stopSampling()
     }
 
     // ── Helper functions that mirror the ViewModel logic for pure unit testing ──
