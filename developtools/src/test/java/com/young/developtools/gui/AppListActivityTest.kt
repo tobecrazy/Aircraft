@@ -124,16 +124,28 @@ class AppListActivityTest {
         awaitPackageQuery()
 
         composeRule.onNodeWithTag("${AppListFilterTagPrefix}system").performClick()
+        // Robolectric native graphics can lag one frame behind a chip click, so
+        // poll for the list result instead of asserting in the same tick
+        waitUntilVisible("SettingsProbe")
         composeRule.onNodeWithText("SettingsProbe").assertIsDisplayed()
         composeRule.onNodeWithText("AircraftProbe").assertDoesNotExist()
 
         composeRule.onNodeWithTag("${AppListFilterTagPrefix}all").performClick()
+        waitUntilVisible("AircraftProbe")
         composeRule.onNodeWithText("AircraftProbe").assertIsDisplayed()
         composeRule.onNodeWithText("SettingsProbe").assertIsDisplayed()
 
         composeRule.onNodeWithTag("${AppListFilterTagPrefix}user").performClick()
+        waitUntilVisible("AircraftProbe")
         composeRule.onNodeWithText("AircraftProbe").assertIsDisplayed()
         composeRule.onNodeWithText("SettingsProbe").assertDoesNotExist()
+    }
+
+    /** Waits until [label] is present in the row list, tolerating one-frame lag. */
+    private fun waitUntilVisible(label: String) {
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     @Test
