@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.3] - 2026-10-19
+
+### Added
+- Release APK for `V1.5.3` published; `app-update.json` regenerated with `latest_version` `1.5.3`
+
+### Changed
+- R8 configuration refined per the R8 config analyzer report (scores for the previous build: optimization 97.4% / shrinking 97.7% / obfuscation 97.6% of the live codebase available to R8):
+  - `:app` — removed the full-member keeps for `AppDatabase` / `PlayerGameData` / `PlayerGameDataDao` (Room's runtime consumer rules and direct generated-code references cover them), the `-keepclassmembers AppDatabase$Companion { ** MIGRATION_*; }` rule (matched nothing in the analyzed build; migrations are registered as direct references in `DatabaseProvider`), the `MusicService` / `MusicService$MusicBinder` member keeps (manifest components are auto-kept by AAPT2 and the binder uses direct references), and the `StarFieldView` keep (instantiated only from Compose code, never XML); narrowed the three persisted enums (`GameMode` / `GameDifficulty` / `GameState`) from `{ *; }` to explicit `values()` / `valueOf()` lines so constant names and members can now be optimized; removed the `DatabaseProvider` / `GameStateManager` `INSTANCE` keeps (static-final fields with no reflection); dropped the redundant `-keepattributes *Annotation*` line (the AGP default `-keepattributes` list already retains `AnnotationDefault` and every runtime-visible annotation type)
+  - `:developtools` — narrowed the consumer keeps from full-member `{ *; }` to class-name-only: the 15 tool Activities + `FlashlightService` + hook classes had ~595 members reachable only via direct references, and the `DevTools` / `DebugTools` / `DeveloperMode` / `ApiHistoryStore` hook boundary is name-only (wired with direct references, no reflection)
+  - Library-bundled subsumption duplicates reported by the analyzer (AGP-default vs play-services `Parcelable.CREATOR` rules, `@Keep` class-name vs class+members pairs, Compose `throw*Exception` trios, kotlinx-serialization `INSTANCE` pair, datastore `NativeSharedCounter` vs the AGP native-methods rule) cannot be edited from project files and are left to the libraries
+- Version bump `1.5.2` → `1.5.3` (`versionCode` 24 → 25)
+
 ## [1.5.2] - 2026-10-18
 
 ### Added

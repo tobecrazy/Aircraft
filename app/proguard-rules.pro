@@ -1,58 +1,64 @@
 # ============================================================
 # Room Database
-# Room emits its own rules for the generated _Impl classes, so only the
-# entities/DAO the app references by name are kept here.
+# Room's runtime consumer rules keep the generated *_Impl classes
+# and `* extends androidx.room.RoomDatabase { void <init>(); }`.
+# The database, entity, and DAO classes are reached from the
+# generated code directly (no reflection), and migrations are
+# registered as direct references in DatabaseProvider, so no
+# manual keeps are needed (verified with the R8 config analyzer
+# report: the previous keep rules matched nothing not already
+# retained).
 # ============================================================
--keep class com.young.aircraft.data.AppDatabase { *; }
--keep class com.young.aircraft.data.PlayerGameData { *; }
--keep class com.young.aircraft.data.PlayerGameDataDao { *; }
-
-# Room migrations live in AppDatabase.Companion (registered in DatabaseProvider)
--keepclassmembers class com.young.aircraft.data.AppDatabase$Companion {
-    ** MIGRATION_*;
-}
 
 # ============================================================
 # Android Components (referenced by name in the manifest)
 # ============================================================
+# Manifest components (MusicService) are auto-kept by AAPT2, and
+# the binder interaction uses direct references only, so no
+# manual member keeps are needed. StarFieldView is instantiated
+# exclusively from Compose code (AndroidView factory) and is
+# therefore always reachable.
 # FlashlightService moved to :developtools (kept via its consumer-rules.pro).
--keep class com.young.aircraft.service.MusicService { *; }
--keep class com.young.aircraft.service.MusicService$MusicBinder { *; }
--keep class com.young.aircraft.gui.StarFieldView { *; }
 
 # ============================================================
 # Enums (GameMode/GameDifficulty are persisted by name and
 # restored via valueOf; GameState is state-machine data)
 # ============================================================
-# GameMode/GameDifficulty are persisted by name and restored via valueOf; the
-# explicit values()/valueOf() lines are subsumed by the AGP default
-# `-keepclassmembers enum *` rule (see the R8 config analyzer report), so only
-# `*;` is declared here. GameState is state-machine data.
+# The AGP default `-keepclassmembers enum *` rule already covers
+# values()/valueOf() for every enum, so nothing would be needed
+# here; the explicit lines narrow the previous `{ *; }` member
+# keeps (which blocked obfuscation/optimization of every
+# constant and member) to exactly what state restoration
+# requires.
 -keepclassmembers enum com.young.aircraft.data.GameMode {
-    *;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }
 -keepclassmembers enum com.young.aircraft.data.GameDifficulty {
-    *;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }
 -keepclassmembers enum com.young.aircraft.data.GameState {
-    *;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }
 
 # ============================================================
 # Kotlin singletons (object declarations) — INSTANCE field
 # ============================================================
--keepclassmembers class com.young.aircraft.providers.DatabaseProvider {
-    public static final ** INSTANCE;
-}
--keepclassmembers class com.young.aircraft.common.GameStateManager {
-    public static final ** INSTANCE;
-}
+# Removed: DatabaseProvider.INSTANCE and GameStateManager.INSTANCE
+# are static-final fields referenced directly, never via
+# reflection, so their keep rules matched nothing that R8 would
+# otherwise strip (per the R8 config analyzer report).
 
 # ============================================================
-# Attributes (needed for Room / Crashlytics symbolication)
-# Coroutines and kotlin.Metadata are covered by their own bundled rules.
+# Attributes (needed for Crashlytics symbolication)
+# The AGP default file already retains AnnotationDefault and all
+# runtime-visible annotation types through its own
+# -keepattributes list, so no extra `*Annotation*` line is
+# declared here. Coroutines and kotlin.Metadata are covered by
+# their own bundled rules.
 # ============================================================
--keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
