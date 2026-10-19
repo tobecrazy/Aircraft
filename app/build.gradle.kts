@@ -29,8 +29,8 @@ android {
 
     defaultConfig {
         applicationId = "com.young.aircraft"
-        versionCode = 24
-        versionName = "1.5.2"
+        versionCode = 25
+        versionName = "1.5.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }

@@ -4,13 +4,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Download
 
-Latest published release APK (V1.4.9):
+Latest published release APK (V1.5.3):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.4.9/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.3/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.5.2` (`versionCode` 24); releases up to `V1.4.9` are on GitHub.
+> The app currently builds as `1.5.3` (`versionCode` 25); releases up to `V1.4.9` are on GitHub.
 
 ## Demo
 
@@ -216,7 +216,7 @@ developtools/
 
 app/
 ├── build.gradle.kts                    # aircraft.android.application convention + KSP/Firebase plugins; signing, R8, buildTools 37.0.0, generateRepoUpdateConfig, checkAppLogUsage stay here
-├── proguard-rules.pro                  # Release keeps: Room entities/DAO + migrations, manifest entry points, enums, singletons (see R8 below)
+├── proguard-rules.pro                  # Release keeps: explicit enums values()/valueOf(), Crashlytics attributes, -dontwarn (see R8 below)
 └── src/main/java/com/young/aircraft/
 ├── common/
 │   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, refreshes the repo-update fallback JSON at startup, and enforces the minimum-version / optional-update prompts on every resume
@@ -384,7 +384,7 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.5.1` (`versionCode` 23)
+- **Version**: `1.5.3` (`versionCode` 25)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `31`
@@ -413,8 +413,8 @@ Instrumented tests belong in `app/src/androidTest`.
 
 Release builds (`assembleRelease`) enable R8 minification + resource shrinking, with `mapping.txt` uploaded to Crashlytics (see Requirements):
 
-- `app/proguard-rules.pro` — Room entities/DAO (`AppDatabase`, `PlayerGameData*`) plus `MIGRATION_*` members, manifest entry points (`MusicService`, `StarFieldView`; `FlashlightService` is kept by `:developtools`), enums persisted by name (`GameMode`, `GameDifficulty`, `GameState`), `DatabaseProvider`/`GameStateManager` singletons, and `*Annotation*` / `SourceFile,LineNumberTable` attributes for Crashlytics symbolication. OkHttp/Firebase ship their own consumer rules (`-dontwarn` only here).
-- `:developtools/consumer-rules.pro` — belt-and-braces keeps for the tool Activities, `FlashlightService`, the `DebugTools`/`DeveloperMode` gate, the `DevTools` bridge, and the `ApiHistoryStore` contract.
+- `app/proguard-rules.pro` — explicit `values()` / `valueOf()` keeps for the enums persisted by name (`GameMode`, `GameDifficulty`, `GameState`). Room (database / entities / DAO / migrations), manifest components (`MusicService`), Compose-instantiated views (`StarFieldView`), and the Kotlin singletons need no manual keeps — they are covered by Room's runtime consumer rules, AAPT2's manifest keeps, or direct references. Attributes for Crashlytics symbolication: `SourceFile,LineNumberTable` + `-renamesourcefileattribute` (the AGP default file already retains the needed annotation attributes). OkHttp/Firebase ship their own consumer rules (`-dontwarn` only here).
+- `:developtools/consumer-rules.pro` — belt-and-braces, class-name-only keeps for the tool Activities, `FlashlightService`, the `DebugTools`/`DeveloperMode` gate, the `DevTools` bridge, and the `ApiHistoryStore` contract (all wired with direct references, no member keeps needed).
 - `:supperbanner` / `:richtexteditor` consumer rules are intentionally empty (view-only API needs no keeps).
 
 ## Setup

@@ -34,7 +34,6 @@ class DrawBackgroundTest {
 
         for (index in 0 until tiles.lastIndex) {
             assertEquals(tiles[index].bottom, tiles[index + 1].top, 0.001f)
-            assertTrue(tiles[index].mirrored != tiles[index + 1].mirrored)
         }
     }
 

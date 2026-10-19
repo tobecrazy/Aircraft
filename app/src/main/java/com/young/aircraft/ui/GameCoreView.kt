@@ -2,12 +2,14 @@ package com.young.aircraft.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
+import android.os.Build
 import android.os.VibrationEffect
 import android.os.VibratorManager
 import com.young.aircraft.utils.AppLog
@@ -853,6 +855,49 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     private var isRunning = true
     var canvas: Canvas? = null
 
+    // On Android 16 (API 36) the software-canvas surface path leaks one sync-fence
+    // fd per posted frame; at 30 FPS the fd table is exhausted after ~20 minutes,
+    // lockCanvas then returns null and the render loop exits, freezing the game.
+    // The hardware-canvas surface path does not leak, but it ignores Canvas density
+    // scaling, which would render every density-tagged sprite (bullets, pickups,
+    // jet, boss) at its raw pixel size instead of the software-path size. So on
+    // API 36+ each frame is rasterized into a software bitmap first — keeping the
+    // exact software-path density semantics and BlurMaskFilter effects — and that
+    // bitmap is blitted once with the hardware canvas. Below API 36 the game draws
+    // straight into the software surface canvas as before.
+    private val useFrameBitmap = Build.VERSION.SDK_INT >= 36
+    private var frameBitmap: Bitmap? = null
+    private var frameCanvas: Canvas? = null
+
+    private fun lockSurfaceCanvas(): Canvas? =
+        if (useFrameBitmap) surfaceHolder?.lockHardwareCanvas() else surfaceHolder?.lockCanvas()
+
+    private fun frameDrawCanvas(surfaceCanvas: Canvas): Canvas {
+        if (!useFrameBitmap) return surfaceCanvas
+        val existing = frameBitmap
+        val current = frameCanvas
+        if (existing != null && current != null &&
+            existing.width == surfaceCanvas.width && existing.height == surfaceCanvas.height
+        ) {
+            return current
+        }
+        existing?.recycle()
+        val bitmap = Bitmap.createBitmap(
+            surfaceCanvas.width, surfaceCanvas.height, Bitmap.Config.ARGB_8888
+        )
+        bitmap.density = Bitmap.DENSITY_NONE
+        val canvas = Canvas(bitmap)
+        frameBitmap = bitmap
+        frameCanvas = canvas
+        return canvas
+    }
+
+    private fun postFrame(surfaceCanvas: Canvas, drawCanvas: Canvas) {
+        if (drawCanvas !== surfaceCanvas) {
+            frameBitmap?.let { surfaceCanvas.drawBitmap(it, 0f, 0f, null) }
+        }
+    }
+
     override fun run() {
         var startTime: Long
         var timeMillis: Long
@@ -863,8 +908,10 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         while (isRunning) {
             startTime = System.nanoTime()
             try {
-                canvas = surfaceHolder?.lockCanvas()
-                if (null == canvas || null == surfaceHolder) return
+                val surfaceCanvas = lockSurfaceCanvas()
+                canvas = surfaceCanvas
+                if (null == surfaceCanvas || null == surfaceHolder) return
+                val drawCanvas = frameDrawCanvas(surfaceCanvas)
                 surfaceHolder?.let {
                     synchronized(it) {
                         while (true) {
@@ -876,7 +923,8 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                             drawAircraft.jetX = touch.x - renderedW / 2f
                             drawAircraft.jetY = touch.y - renderedH / 2f
                         }
-                        onUpdateGameDraw(canvas)
+                        onUpdateGameDraw(drawCanvas)
+                        postFrame(surfaceCanvas, drawCanvas)
                     }
                 }
 
