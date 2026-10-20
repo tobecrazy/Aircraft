@@ -1988,7 +1988,7 @@
     <text x="10" y="161" font-size="10" fill="#333">utils/ — DeveloperMode, DebugTools, DevLog,</text>
     <text x="10" y="174" font-size="10" fill="#333">  DevPrefs, DevUrls, DataUriUtils, FilePickerHelper</text>
     <line x1="5" y1="180" x2="315" y2="180" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="193" font-size="9" fill="#888">Debug-gated: DebugTools.isEnabled (debug/release</text>
+    <text x="10" y="193" font-size="9" fill="#888">Debug-gated: DebugTools.isEnabled (source-set split)</text>
   </g>
 
   <!-- DevTools host bridge -->
@@ -2181,9 +2181,8 @@
     <text x="10" y="135" font-size="10" fill="#333">  + getUpdateUrl() / getAppIconVariant()</text>
     <text x="10" y="148" font-size="10" fill="#333">  + getWelcomeMessage()</text>
     <line x1="5" y1="154" x2="285" y2="154" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="167" font-size="9" fill="#888">Fetches app-update.json from jsDelivr (raw GitHub</text>
-    <text x="10" y="179" font-size="9" fill="#888">fallback) and wins whenever Firebase holds no</text>
-    <text x="10" y="191" font-size="9" fill="#888">remote value for a key.</text>
+    <text x="10" y="167" font-size="9" fill="#888">Repo-JSON fallback: fetches app-update.json via</text>
+    <text x="10" y="179" font-size="9" fill="#888">jsDelivr (raw GitHub) when Firebase has no value.</text>
   </g>
 
   <!-- GameInterruptionShield -->
