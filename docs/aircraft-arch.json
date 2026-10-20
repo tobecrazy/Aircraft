@@ -5,6 +5,10 @@
   "title": "Aircraft Combat Game App Architecture",
   "output": "aircraft-architecture.html",
   "quality_profile": "showcase",
+  "viewBox": [
+   1600,
+   618
+  ],
   "views": [
    {
     "id": "combat-rail",
@@ -158,7 +162,7 @@
    "id": "tools",
    "type": "frontend",
    "label": ":developtools",
-   "sublabel": "13 tool activities, gate, logs",
+   "sublabel": "14 tool activities, gate, logs",
    "pos": [
     770,
     40
