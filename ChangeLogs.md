@@ -4,12 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.4] - 2026-10-20
+
+### Added
+- Release APK for `V1.5.4` built; `app-update.json` regenerated with `latest_version` `1.5.4`
+
 ### Changed
 - `class_diagram.svg` and `project_diagram.svg` refreshed against the 1.5.3 codebase:
   - `class_diagram.svg` — header now lists all four modules plus `build-logic`; `AppDatabase` shows v2033 with the six explicit migrations and both DAOs; `SettingsRepository` shows its 12 keys; the scattered tool Activities are relabelled with their real `:developtools` package; a dashed "2026-10-20 SYNC BAND" was appended for the `:developtools` module and the v1.5.x `:app` additions (`DevTools` bridge, debug gate, `ApiHistoryStore` contract, `BaseAircraftActivity`, `MandatoryUpdateActivity`, `DataPrivacyActivity`, `RepoUpdateConfig`)
   - `project_diagram.svg` — module header updated; the ViewModel layer now reports 21 ViewModels (`:app` 9 + `:developtools` 12) and 5 UiState files; the data layer reports Room v2033 with the `api_request_history` table; the service/common/utility panels carry the `:developtools` and `RepoUpdateConfig` / `AppLog` / `GameInterruptionShield` entries; a full-width `:developtools MODULE` band was appended
 - README "Package Overview", "Key Relationships", and "Project Structure" refreshed to the current tree: the `:developtools` `data/`, `utils/`, `ui/`, and `viewmodel/` file lists are corrected (the non-existent `DeviceContact` is gone; `ChinaPhoneNumber`, `EmailAddress`, `DataUriUtils`, `FilePickerHelper`, and `FormFactorPreviews` are listed), the ViewModel counts are split per module, `DataPrivacyActivity` / `GameInterruptionShield` / `RepoUpdateConfig` are added to the package table, the module tree now shows `app-update.json` and `docs/`, and the Kotlin version note reflects the catalog ref `2.4.21` alongside the root `buildscript` pin `2.4.20`
 - The trailing "Architecture Diagrams" section of this file was rewritten from the v1.2.8 structure to the current 1.5.3 structure (four modules, `:developtools` layers, Room v2033, 21 ViewModels)
+- Version bump `1.5.3` → `1.5.4` (`versionCode` 25 → 26)
 
 ## [1.5.3] - 2026-10-19
 
