@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.4] - 2026-10-20
+
+### Added
+- Release APK for `V1.5.4` built; `app-update.json` regenerated with `latest_version` `1.5.4`
+
+### Changed
+- `class_diagram.svg` and `project_diagram.svg` refreshed against the 1.5.3 codebase:
+  - `class_diagram.svg` — header now lists all four modules plus `build-logic`; `AppDatabase` shows v2033 with the six explicit migrations and both DAOs; `SettingsRepository` shows its 12 keys; the scattered tool Activities are relabelled with their real `:developtools` package; a dashed "2026-10-20 SYNC BAND" was appended for the `:developtools` module and the v1.5.x `:app` additions (`DevTools` bridge, debug gate, `ApiHistoryStore` contract, `BaseAircraftActivity`, `MandatoryUpdateActivity`, `DataPrivacyActivity`, `RepoUpdateConfig`)
+  - `project_diagram.svg` — module header updated; the ViewModel layer now reports 21 ViewModels (`:app` 9 + `:developtools` 12) and 5 UiState files; the data layer reports Room v2033 with the `api_request_history` table; the service/common/utility panels carry the `:developtools` and `RepoUpdateConfig` / `AppLog` / `GameInterruptionShield` entries; a full-width `:developtools MODULE` band was appended
+- README "Package Overview", "Key Relationships", and "Project Structure" refreshed to the current tree: the `:developtools` `data/`, `utils/`, `ui/`, and `viewmodel/` file lists are corrected (the non-existent `DeviceContact` is gone; `ChinaPhoneNumber`, `EmailAddress`, `DataUriUtils`, `FilePickerHelper`, and `FormFactorPreviews` are listed), the ViewModel counts are split per module, `DataPrivacyActivity` / `GameInterruptionShield` / `RepoUpdateConfig` are added to the package table, the module tree now shows `app-update.json` and `docs/`, and the Kotlin version note reflects the catalog ref `2.4.21` alongside the root `buildscript` pin `2.4.20`
+- The trailing "Architecture Diagrams" section of this file was rewritten from the v1.2.8 structure to the current 1.5.3 structure (four modules, `:developtools` layers, Room v2033, 21 ViewModels)
+- Version bump `1.5.3` → `1.5.4` (`versionCode` 25 → 26)
+
 ## [1.5.3] - 2026-10-19
 
 ### Added
@@ -422,30 +435,45 @@ All notable changes to this project will be documented in this file.
 - Background reset issue when transitioning between levels
 - Reject button behavior in the privacy-policy acceptance screen
 
-## Architecture Diagrams (v1.2.8)
+## Architecture Diagrams (v1.5.3)
 
-The class and project architecture diagrams ([class_diagram.svg](class_diagram.svg), [project_diagram.svg](project_diagram.svg)) document the following structure as of version 1.2.8:
+The class and project architecture diagrams ([class_diagram.svg](class_diagram.svg), [project_diagram.svg](project_diagram.svg)) document the following structure as of version 1.5.3.
+
+### Modules
+
+| Module | Kind | Contents |
+|--------|------|----------|
+| `:app` | Android application | The game (`ui/`, `data/`, `common/`, `providers/`, `service/`) and the user-facing screens (`gui/`, `viewmodel/`) |
+| `:developtools` | Android library | 14 debug-only tool Activities, their ViewModels, the `DevTools` host bridge, the `ApiHistoryStore` contract, and the `FlashlightService` foreground service |
+| `:richtexteditor` | Android library (AAR) | `RichTextEditorView` — a single reusable rich-text editor view |
+| `:supperbanner` | Android library (AAR, `maven-publish`) | `SupperBannerView` plus the banner item/config/color/transition types |
+| `build-logic` | Included build | `aircraft.android.library` / `aircraft.android.compose` / `aircraft.android.application` convention plugins, never shipped in the APK |
+
+`:developtools` never depends on `:app`; the `DevTools` bridge is the only host hook, and `:app` supplies the Room-backed `RoomApiHistoryStore` through `DevTools.historyStoreProvider`.
 
 ### Packages & Layers
 
 | Layer | Package | Key Classes |
 |-------|---------|-------------|
-| Common | `common/` | `AircraftApplication`, `GameStateManager` |
-| Data | `data/` | `PlayerAircraft`, `EnemyState` + `EnemyBullet`, `BossState` + `BossBomb`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `AppDatabase` (Room v2031), `GameState` (enum), `GameMode` (enum), `GameDifficulty` (enum), `ImageDetails`, `BannerDetails` |
-| Game Engine | `ui/` | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable), `GameHudFormatter` |
-| ViewModel | `viewmodel/` | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `DevelopSettingsViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`, `DeviceInfoViewModel`, `QRCodeToolViewModel`, `FlashlightViewModel`, `RichTextEditorViewModel`, `ShowImageDetailsViewModel`, `BannerDetailsViewModel` |
-| Presentation | `gui/` | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity`, `PuzzleActivity`, `HistoryActivity` + `HistoryFragment` + `HistoryAdapter`, `SettingsActivity`, `QRCodeToolActivity`, `FlashlightActivity`, `DeviceInfoActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `RichTextEditorActivity`, `ShowImageDetailsActivity`, `BannerDetailsActivity`, `StarFieldView` |
-| Service | `service/` | `MusicService` + `MusicBinder` |
-| Providers | `providers/` | `DatabaseProvider` |
-| Utilities | `utils/` | `ScreenUtils`, `BitmapUtils`, `FilePickerHelper`, `HallOfHeroesNameUtils` |
+| Common | `common/` (`:app`) | `AircraftApplication`, `AircraftRemoteConfig`, `RepoUpdateConfig` + `RepoUpdateConfigStore`, `LauncherIconManager`, `GameStateManager` |
+| Data | `data/` (`:app`) | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData` (`@Entity`), `PlayerGameDataDao` (`@Dao`), `ApiRequestHistory` (`@Entity`), `ApiRequestHistoryDao` (`@Dao`), `AppDatabase` (Room v2033, six explicit migrations, no destructive fallback), `RoomApiHistoryStore`, `SettingsRepository`, `GameState` / `GameMode` / `GameDifficulty` (enums), `AircraftConstants` |
+| Game Engine | `ui/` (`:app`) | `DrawBaseObject` (abstract), `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `BossFireworksEffect`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView` (SurfaceView + Runnable), `GameHudFormatter`, `WideScreen` |
+| ViewModel | `viewmodel/` | 21 ViewModels total — 9 in `:app` (`GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `PuzzleImageViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel`) and 12 in `:developtools` (`ApiDebugTool`, `BannerDetails`, `CameraScan`, `Contacts`, `DevelopSettings`, `DeviceInfo`, `Flashlight`, `LogSettings`, `Pdf`, `QRCodeTool`, `RichTextEditor`, `ShowImageDetails`) — plus 5 UiState files |
+| Presentation | `gui/` (`:app`) | `PrivacyPolicyAcceptActivity` (LAUNCHER), `OnboardingActivity` (Compose + HorizontalPager), `LaunchActivity`, `MainActivity` (game host), `MandatoryUpdateActivity` (blocking update gate), `PuzzleActivity`, `HistoryActivity`, `SettingsActivity` + `SettingsScreen`, `GameSettingsActivity`, `LanguageSettingsActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DataPrivacyActivity`, `GameHudScreen`, `StarFieldView`, `ThemedMessage`, `gui/dialogs/*` |
+| Presentation | `gui/` (`:developtools`) | `DevelopSettingsActivity`, `AndroidDevAssistantToolsActivity`, `AppListActivity`, `ApiDebugToolActivity`, `ApiRequestHistoryActivity`, `BannerDetailsActivity`, `CameraScanActivity`, `ContactsActivity`, `DeviceInfoActivity`, `FlashlightActivity`, `PdfReaderActivity`, `QRCodeToolActivity`, `RichTextEditorActivity`, `ShowImageDetailsActivity` |
+| Service | `service/` | `MusicService` + `MusicBinder` (`:app`), `FlashlightService` (`:developtools`, foreground camera type) |
+| Providers | `providers/` | `DatabaseProvider` (`:app`) |
+| Utilities | `utils/` | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils`, `AppLog`, `GameInterruptionShield` (`:app`); `DeveloperMode`, `DevLog`, `DevPrefs`, `DevUrls`, `DataUriUtils`, `FilePickerHelper` (`:developtools`) |
+| Libraries | `richtexteditor/`, `supperbanner/` | `RichTextEditorView`; `SupperBannerView`, `SupperBannerItem`, `SupperBannerConfig`, `SupperBannerColors`, `SupperBannerEffect` (11 values), `SupperBannerTransition` |
 
 ### Threading Model
 
 | Thread | Responsibility |
 |--------|---------------|
 | Main | Activity lifecycle, UI dialogs, service binding, Room DB via `lifecycleScope` |
-| Game | Dedicated `SurfaceView` render loop at 30 FPS — Canvas drawing, collision, level timer |
-| Service | `MusicService` with `@Synchronized` playback methods |
+| Game | Dedicated `SurfaceView` render loop at 30 FPS — Canvas drawing, collision, level timer. Engine state is confined to this thread; UI entry points enqueue onto `gameCommands` |
+| Service | `MusicService` with `@Synchronized` playback methods; `FlashlightService` runs as a foreground service with a `PARTIAL_WAKE_LOCK` |
+| Background | `Dispatchers.IO` + `viewModelScope` for the non-game features (network, cache, DataStore) — no shared state with the render thread |
 
 ### First-Launch Gate Chain
 
@@ -456,5 +484,8 @@ PrivacyPolicyAcceptActivity (LAUNCHER)
 
 OnboardingActivity
   ├─→ [skip/launch] → LaunchActivity
-  └─ Compose HorizontalPager: ControlsPage + PowerupsPage
+  └─ Compose HorizontalPager: 4 pages (controls / field equipment / mission brief / puzzle mode)
+
+LaunchActivity → MainActivity (game) · HistoryActivity · SettingsActivity · QRCodeToolActivity
+SettingsActivity → PuzzleActivity (independent 10-level mode, own progress record)
 ```

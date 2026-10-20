@@ -3,7 +3,8 @@
   "diagram_type": "workflow",
   "meta": {
     "title": "Aircraft 启动与首启流程",
-    "quality_profile": "showcase"
+    "quality_profile": "showcase",
+    "viewBox": [1300, 780]
   },
   "lanes": [
     {
@@ -131,7 +132,7 @@
       "col": 0,
       "type": "cloud",
       "label": "拉取配置",
-      "sublabel": "四参数 + 实时监听"
+      "sublabel": "五参数 + 实时监听"
     },
     {
       "id": "version_check",

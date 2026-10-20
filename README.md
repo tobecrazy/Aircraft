@@ -4,13 +4,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Download
 
-Latest published release APK (V1.5.3):
+Latest published release APK (V1.5.4):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.3/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.4/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.5.3` (`versionCode` 25); releases up to `V1.4.9` are on GitHub.
+> The app currently builds as `1.5.4` (`versionCode` 26); releases up to `V1.5.3` are on GitHub.
 
 ## Demo
 
@@ -42,17 +42,17 @@ The demo above walks through the end-to-end player experience on a real device:
 
 | Package | Color | Key Classes | Responsibility |
 |---------|-------|-------------|----------------|
-| `common/` | Green | `AircraftApplication`, `AircraftRemoteConfig`, `LauncherIconManager`, `GameStateManager` | App lifecycle, Firebase Remote Config parameters + minimum-version enforcement and launcher icon selection, game-state broadcasting via SharedFlow |
+| `common/` | Green | `AircraftApplication`, `AircraftRemoteConfig`, `RepoUpdateConfig`, `RepoUpdateConfigStore`, `LauncherIconManager`, `GameStateManager` | App lifecycle, Firebase Remote Config parameters + minimum-version enforcement, repo-JSON update fallback, launcher icon selection, game-state broadcasting via SharedFlow |
 | `data/` | Orange | `PlayerAircraft`, `EnemyState`, `BossState`, `RedEnvelopeState`, `RocketState`, `MedicalKitState`, `ShieldState`, `TimeFreezeState`, `PlayerGameData`, `PlayerGameDataDao`, `AppDatabase`, `ApiRequestHistory`, `ApiRequestHistoryDao`, `SettingsRepository`, `RoomApiHistoryStore`, `GameState`, `GameMode`, `GameDifficulty`, `AircraftConstants` | Data models, Room persistence, SharedPreferences repository, game state enums, HUD constants, Room-backed implementation of the dev-tools history contract |
-| `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `BossFireworksEffect`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter` | 30 FPS rendering, collision detection, level progression, HUD formatting, boss-defeat fireworks |
+| `ui/` (Game Engine) | Blue | `DrawBaseObject`, `Aircraft`, `DrawBackground`, `DrawHeader`, `Enemies`, `BossEnemy`, `BossFireworksEffect`, `RedEnvelopes`, `MedicalKits`, `Shields`, `TimeFreezes`, `ExplosionEffect`, `GameCoreView`, `GameHudFormatter`, `WideScreen`, `theme/AircraftTheme` | 30 FPS rendering, collision detection, level progression, HUD formatting, boss-defeat fireworks |
 | `richtexteditor/` | Blue-gray | `RichTextEditorView` | Reusable AAR library for rich-text input, toolbar formatting, Markdown/HTML helpers, and image-tap URL helpers |
-| `supperbanner/` | Slate | `SupperBannerView`, `SupperBannerItem`, `SupperBannerImage`, `SupperBannerConfig`, `SupperBannerColors`, `SupperBannerIndicatorColors`, `SupperBannerEffect`, `SupperBannerTransition` | Reusable AAR library for the auto-playing banner carousel (ViewPager2 + Coil), with a host-settable color palette, ten configurable page transitions, and `maven-publish` release output |
-| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `PuzzleImageViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel` | MVVM mediation between Views and Repositories/DAOs (tool ViewModels live in `:developtools`) |
-| `gui/` (Presentation) | Purple | `BaseAircraftActivity`, `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `GameHudScreen`, `MandatoryUpdateActivity`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `GameSettingsActivity`, `LanguageSettingsActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `StarFieldView`, `ThemedMessage`, `gui/dialogs/*` (minus `InfoDialogContent`) | Game/user screens, navigation, Compose-only UI (no ViewBinding), themed dialogs/Snackbars, blocking update gate (tool Activities live in `:developtools`) |
+| `supperbanner/` | Slate | `SupperBannerView`, `SupperBannerItem`, `SupperBannerImage`, `SupperBannerConfig`, `SupperBannerColors`, `SupperBannerIndicatorColors`, `SupperBannerEffect`, `SupperBannerTransition` | Reusable AAR library for the auto-playing banner carousel (ViewPager2 + Coil), with a host-settable color palette, eleven configurable page effects, and `maven-publish` release output |
+| `viewmodel/` | Teal | `GameViewModel`, `SettingsViewModel`, `LaunchViewModel`, `HistoryViewModel`, `OnboardingViewModel`, `PrivacyPolicyViewModel`, `PuzzleImageViewModel`, `AboutAircraftViewModel`, `AboutMeViewModel` (9 in `:app`) | MVVM mediation between Views and Repositories/DAOs (12 tool ViewModels + 2 UiState files live in `:developtools`) |
+| `gui/` (Presentation) | Purple | `BaseAircraftActivity`, `PrivacyPolicyAcceptActivity`, `OnboardingActivity`, `LaunchActivity`, `MainActivity`, `GameHudScreen`, `MandatoryUpdateActivity`, `PuzzleActivity`, `HistoryActivity`, `SettingsActivity`, `SettingsScreen`, `GameSettingsActivity`, `LanguageSettingsActivity`, `AboutAircraftActivity`, `AboutMeActivity`, `PrivacyPolicyActivity`, `DataPrivacyActivity`, `StarFieldView`, `ThemedMessage`, `gui/dialogs/*` | Game/user screens, navigation, Compose-only UI (no ViewBinding), themed dialogs/Snackbars, blocking update gate (tool Activities live in `:developtools`) |
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM/SFX bound service (`FlashlightService` lives in `:developtools`) |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
-| `developtools/` | Slate-blue | `gui/` (14 tool Activities), `viewmodel/` (12 tool ViewModels), `data/` (`ImageDetails`, `BannerDetails`, contacts + `LogSettings`), `repository/` (`ApiDebugRepository`, `ApiHistoryStore`), `service/` (`FlashlightService`), `utils/` (`DeveloperMode`, `DebugTools` per-variant, `DevLog`, `DevPrefs`) | All developer/utility screens + gate, logging, history contract; host wiring via `DevTools` |
-| `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils` | Screen metrics, bitmap utilities, name formatting (tool helpers live in `:developtools`) |
+| `developtools/` | Slate-blue | `gui/` (14 tool Activities), `viewmodel/` (12 tool ViewModels + 2 UiState files), `data/` (`ImageDetails`, `BannerDetails`, `ContactsRepository`, `ChinaPhoneNumber`, `EmailAddress`, `LogSettings`), `repository/` (`ApiDebugRepository`, `ApiHistoryStore`, `InMemoryApiHistoryStore`), `service/` (`FlashlightService`), `utils/` (`DeveloperMode`, `DebugTools` per-variant, `DevLog`, `DevPrefs`, `DataUriUtils`, `FilePickerHelper`) | All developer/utility screens + gate, logging, history contract; host wiring via `DevTools` |
+| `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils`, `AppLog`, `GameInterruptionShield` | Screen metrics, bitmap utilities, name formatting, runtime log kill-switch, combat DND shield (tool helpers live in `:developtools`) |
 
 ### Key Relationships
 
@@ -62,9 +62,10 @@ The demo above walks through the end-to-end player experience on a real device:
 - Activities delegate to ViewModels for data access: `MainActivity` → `GameViewModel`, `SettingsActivity` → `SettingsViewModel`, `LaunchActivity` → `LaunchViewModel`, etc.
 - ViewModels mediate access to `SettingsRepository` and `PlayerGameDataDao` — Activities never access repositories or DAOs directly
 - `MainActivity` binds `MusicService` and collects `GameStateManager.gameState` flow
-- `DatabaseProvider` singleton creates `AppDatabase`, which exposes `PlayerGameDataDao` operating on `PlayerGameData` entities
+- `DatabaseProvider` singleton creates `AppDatabase` (v2033), which exposes `PlayerGameDataDao` over `PlayerGameData` and `ApiRequestHistoryDao` over `ApiRequestHistory`; six explicit migrations are registered and there is no destructive fallback
 - `SettingsRepository` maps difficulty strings to `GameDifficulty` enum values with `fireRateMultiplier`
 - `AircraftApplication` owns the Remote Config lifecycle: it initializes `AircraftRemoteConfig`, then enforces the minimum-version gate from `onActivityResumed` and from the real-time config listener, launching or finishing `MandatoryUpdateActivity` as needed
+- `:developtools` never depends on `:app`; the `DevTools` bridge is the only host hook, and `:app` supplies the Room-backed `RoomApiHistoryStore` through `DevTools.historyStoreProvider`
 
 ## Highlights
 
@@ -144,8 +145,10 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 
 ```text
 settings.gradle.kts                  # includeBuild("build-logic"); FAIL_ON_PROJECT_REPOS (new repos only here)
-build.gradle.kts                     # apply-false plugin registry + kotlin-gradle-plugin buildscript pin (single `kotlin` ref)
+build.gradle.kts                     # apply-false plugin registry + kotlin-gradle-plugin buildscript pin (KGP 2.4.20)
 gradle/libs.versions.toml            # Single source of versions (incl. compile/min/target SDK) and the android-gradle library
+app-update.json                      # Generated release fallback (minimum_version/latest_version/update_url/app_icon)
+docs/                                 # Generated architecture artifacts + module usage plans
 
 build-logic/                         # Included build: shared compile setup, never shipped in the APK
 ├── settings.gradle.kts              # Private `libs` catalog wired to ../gradle/libs.versions.toml
@@ -195,7 +198,7 @@ supperbanner/
 
 developtools/
 ├── build.gradle.kts                    # aircraft.android.library + aircraft.android.compose conventions; deps stay in-module
-├── consumer-rules.pro                  # Keeps for the 14 tool Activities, FlashlightService, gate, and DevTools bridge
+├── consumer-rules.pro                  # Class-name-only keeps for the 14 tool Activities, FlashlightService, gate, and DevTools bridge
 ├── src/main/AndroidManifest.xml        # 14 tool Activities + FlashlightService + module permission set (merged into :app)
 ├── src/main/assets/
 │   ├── example.json                    # Rich-text editor JSON sample
@@ -203,12 +206,12 @@ developtools/
 ├── src/main/java/com/young/developtools/
 │   ├── DevTools.kt                     # Host bridge: openActivityMonitor / onInvincibleChanged / historyStoreProvider / onLogEnabledChanged
 │   ├── gui/                            # 14 tool Activities (incl. AppListActivity full-screen installed-app browser; AppListDialog.kt keeps the shared list data/query/filter helpers) + BaseAircraftActivity/ThemedMessage copies + dialogs/
-│   ├── viewmodel/                      # 12 tool ViewModels (history via ApiHistoryStore, never Room directly)
-│   ├── data/                           # ImageDetails, BannerDetails, ContactsRepository, DeviceContact, LogSettings
-│   ├── repository/                     # ApiDebugRepository (OkHttp/Gson) + ApiHistoryStore contract + in-memory fallback
+│   ├── viewmodel/                      # 12 tool ViewModels + 2 UiState files (history via ApiHistoryStore, never Room directly)
+│   ├── data/                           # ImageDetails, BannerDetails, ChinaPhoneNumber, ContactsRepository, EmailAddress, LogSettings
+│   ├── repository/                     # ApiDebugRepository (OkHttp/Gson) + ApiHistoryStore contract + InMemoryApiHistoryStore
 │   ├── service/                        # FlashlightService (foregroundServiceType=camera)
-│   ├── ui/                             # AircraftTheme + maxContentWidth copies (read DevPrefs, same prefs file)
-│   └── utils/                          # DeveloperMode, DevLog, DevPrefs (same aircraft_prefs file/keys), DevUrls, apidebug/
+│   ├── ui/                             # FormFactorPreviews + WideScreen + theme/AircraftTheme copies (read DevPrefs, same prefs file)
+│   └── utils/                          # DeveloperMode, DevLog, DevPrefs (same aircraft_prefs file/keys), DevUrls, DataUriUtils, FilePickerHelper, apidebug/
 ├── src/debug|release/java/com/young/developtools/utils/
 │   └── DebugTools.kt                  # Source-set split gate: debug isEnabled=true, release=false no-op
 ├── src/main/res/                       # Tool strings (4 locales), drawables, DialogAnimation + QrToolBottomSheet styles, Theme.Aircraft.Common fallback
@@ -384,14 +387,14 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.5.3` (`versionCode` 25)
+- **Version**: `1.5.4` (`versionCode` 26)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `31`
 - **Target SDK**: `37`
 - **Java**: `17`
 - **Gradle Wrapper**: `9.8.0`
-- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin and the `buildscript`-pinned `kotlin-gradle-plugin` share the single `kotlin` version ref `2.4.20`)
+- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin follows the catalog `kotlin` ref `2.4.21`, while the root `buildscript` pins `kotlin-gradle-plugin` at `2.4.20` so AGP's compose-group-mapping artifact resolves)
 - **KSP**: `2.3.11`
 - **Build scripts**: Kotlin DSL (`*.gradle.kts`)
 - **Release minification**: R8 code shrinking + resource shrinking enabled (mapping files uploaded to Crashlytics automatically)
