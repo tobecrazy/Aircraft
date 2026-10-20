@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="4010" viewBox="0 0 1800 4010" font-family="'Segoe UI', Arial, sans-serif" font-size="11">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="4580" viewBox="0 0 1800 4580" font-family="'Segoe UI', Arial, sans-serif" font-size="11">
   <defs>
     <marker id="arrow-inherit" markerWidth="12" markerHeight="8" refX="12" refY="4" orient="auto">
       <path d="M0,0 L12,4 L0,8 Z" fill="none" stroke="#555" stroke-width="1.2"/>
@@ -55,7 +55,7 @@
 
   <!-- Title -->
   <text x="900" y="30" text-anchor="middle" font-size="22" font-weight="bold" fill="#333">Aircraft — Class Diagram</text>
-  <text x="900" y="46" text-anchor="middle" font-size="10" fill="#666">Modules: :app + :richtexteditor AAR + :supperbanner AAR · Gradle Kotlin DSL + version catalog · FileProvider paths = Pictures/, Download/, cache</text>
+  <text x="900" y="46" text-anchor="middle" font-size="10" fill="#666">Modules: :app + :developtools + :richtexteditor AAR + :supperbanner AAR + build-logic (convention plugins) · Gradle Kotlin DSL + version catalog · FileProvider paths = Pictures/, Download/, cache</text>
 
   <!-- Legend -->
   <g transform="translate(1380, 45)">
@@ -362,13 +362,14 @@
     <rect width="250" height="22" rx="6" fill="#7986cb"/>
     <rect y="16" width="250" height="6" fill="#7986cb"/>
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«abstract» AppDatabase</text>
-    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2031)</text>
+    <text x="10" y="38" font-size="10" fill="#555">extends RoomDatabase (v2033)</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="57" font-size="10" fill="#333">- MIGRATION_2027_2028 / 2028_2029</text>
-    <text x="10" y="70" font-size="10" fill="#333">- MIGRATION_2029_2030 / 2030_2031</text>
+    <text x="10" y="57" font-size="10" fill="#333">- MIGRATION_2027_2028 … 2032_2033</text>
+    <text x="10" y="70" font-size="10" fill="#333">  (6 explicit steps, no fallback)</text>
     <line x1="5" y1="76" x2="245" y2="76" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="89" font-size="10" fill="#333">+ playerGameDataDao(): Dao</text>
-    <text x="10" y="105" font-size="9" fill="#888">Schema 2031 adds mode-aware progress</text>
+    <text x="10" y="102" font-size="10" fill="#333">+ apiRequestHistoryDao(): Dao</text>
+    <text x="10" y="121" font-size="9" fill="#888">Schema 2033 adds api_request_history</text>
   </g>
 
   <!-- DatabaseProvider -->
@@ -401,7 +402,7 @@
 
   <!-- SettingsRepository -->
   <g transform="translate(810, 470)" filter="url(#shadow)">
-    <rect width="230" height="85" rx="6" fill="url(#grad-vm)" stroke="#00acc1" stroke-width="1.2"/>
+    <rect width="230" height="118" rx="6" fill="url(#grad-vm)" stroke="#00acc1" stroke-width="1.2"/>
     <rect width="230" height="22" rx="6" fill="#00acc1"/>
     <rect y="16" width="230" height="6" fill="#00acc1"/>
     <text x="115" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">SettingsRepository</text>
@@ -409,9 +410,10 @@
     <line x1="5" y1="44" x2="225" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- prefs / legacyPrefs: SharedPreferences</text>
     <line x1="5" y1="64" x2="225" y2="64" stroke="#ccc" stroke-width="0.5"/>
-    <text x="10" y="77" font-size="10" fill="#333">+ 11 keys: theme (5 accents), difficulty,</text>
+    <text x="10" y="77" font-size="10" fill="#333">+ 12 keys: theme (5 accents), difficulty,</text>
     <text x="10" y="90" font-size="10" fill="#333">  sounds, shake, invincible, gates, install-id</text>
-    <text x="10" y="103" font-size="9" fill="#888">Legacy migration from androidx.preference</text>
+    <text x="10" y="103" font-size="9" fill="#888">+ bgm format, puzzle guide, dev unlock</text>
+    <text x="10" y="115" font-size="9" fill="#888">Legacy migration from androidx.preference</text>
   </g>
 
   <!-- AppDatabase -> DAO -->
@@ -860,7 +862,7 @@
     <rect width="320" height="22" rx="6" fill="#e91e63"/>
     <rect y="16" width="320" height="6" fill="#e91e63"/>
     <text x="160" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">FlashlightService</text>
-    <text x="10" y="38" font-size="10" fill="#555">service/ — extends Service (foreground · camera)</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/service/ — Service (foreground · camera)</text>
     <line x1="5" y1="44" x2="315" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- cameraManager: CameraManager</text>
     <text x="10" y="70" font-size="10" fill="#333">- cameraId: String?</text>
@@ -968,7 +970,7 @@
     <rect width="290" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="290" height="6" fill="#9c27b0"/>
     <text x="145" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">QRCodeToolActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — AppCompatActivity</text>
     <line x1="5" y1="44" x2="285" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- generatedBitmap: Bitmap?</text>
     <text x="10" y="70" font-size="10" fill="#333">- createDocumentLauncher / pickMediaLauncher</text>
@@ -1011,7 +1013,7 @@
     <rect width="260" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="260" height="6" fill="#9c27b0"/>
     <text x="130" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">FlashlightActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — AppCompatActivity</text>
     <line x1="5" y1="44" x2="255" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- viewModel: FlashlightViewModel</text>
     <text x="10" y="70" font-size="10" fill="#333">- cameraPermissionLauncher</text>
@@ -1030,7 +1032,7 @@
     <rect width="240" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="240" height="6" fill="#9c27b0"/>
     <text x="120" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">ShowImageDetailsActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — AppCompatActivity</text>
     <line x1="5" y1="44" x2="235" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- viewModel: ShowImageDetailsViewModel</text>
     <line x1="5" y1="63" x2="235" y2="63" stroke="#ccc" stroke-width="0.5"/>
@@ -1058,7 +1060,7 @@
     <rect width="270" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="270" height="6" fill="#9c27b0"/>
     <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DevelopSettingsActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — AppCompatActivity</text>
     <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- viewModel: DevelopSettingsViewModel</text>
     <line x1="5" y1="64" x2="265" y2="64" stroke="#ccc" stroke-width="0.5"/>
@@ -1088,7 +1090,7 @@
     <rect width="250" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="250" height="6" fill="#9c27b0"/>
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">DeviceInfoActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — AppCompatActivity</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <line x1="5" y1="51" x2="245" y2="51" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="64" font-size="10" fill="#333">+ populateStaticInfo()</text>
@@ -1154,10 +1156,10 @@
   <text x="35" y="555" font-size="11" font-weight="bold" fill="#2196f3" opacity="0.8">ui/  (Game Engine)</text>
 
   <rect x="20" y="1680" width="1150" height="920" rx="10" fill="none" stroke="#9c27b0" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
-  <text x="35" y="1695" font-size="11" font-weight="bold" fill="#9c27b0" opacity="0.8">gui/  (Presentation)</text>
+  <text x="35" y="1695" font-size="11" font-weight="bold" fill="#9c27b0" opacity="0.8">gui/  (Presentation — :app + :developtools)</text>
 
   <rect x="850" y="1230" width="490" height="240" rx="10" fill="none" stroke="#e91e63" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
-  <text x="865" y="1245" font-size="11" font-weight="bold" fill="#e91e63" opacity="0.8">service/</text>
+  <text x="865" y="1245" font-size="11" font-weight="bold" fill="#e91e63" opacity="0.8">service/  (:app + :developtools)</text>
 
   <rect x="890" y="1680" width="520" height="110" rx="10" fill="none" stroke="#689f38" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
   <text x="905" y="1695" font-size="11" font-weight="bold" fill="#689f38" opacity="0.8">utils/</text>
@@ -1254,7 +1256,7 @@
     <rect width="280" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="280" height="6" fill="#9c27b0"/>
     <text x="140" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">RichTextEditorActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — AppCompatActivity</text>
     <line x1="5" y1="44" x2="275" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- isEditMode / isMarkdownMode: Boolean</text>
     <line x1="5" y1="63" x2="275" y2="63" stroke="#ccc" stroke-width="0.5"/>
@@ -1577,7 +1579,7 @@
     <rect width="270" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="270" height="6" fill="#9c27b0"/>
     <text x="135" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">CameraScanActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends ComponentActivity (Compose)</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — ComponentActivity (Compose)</text>
     <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- controller: LifecycleCameraController</text>
     <text x="10" y="70" font-size="10" fill="#333">- scanResult state / permission launcher</text>
@@ -1594,7 +1596,7 @@
     <rect width="250" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="250" height="6" fill="#9c27b0"/>
     <text x="125" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">BannerDetailsActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends AppCompatActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — AppCompatActivity</text>
     <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">- viewModel: BannerDetailsViewModel</text>
     <text x="10" y="70" font-size="10" fill="#333">- via BannerDetailsIntentContract extras</text>
@@ -1611,7 +1613,7 @@
     <rect width="280" height="22" rx="6" fill="#9c27b0"/>
     <rect y="16" width="280" height="6" fill="#9c27b0"/>
     <text x="140" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">AndroidDevAssistantToolsActivity</text>
-    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends ComponentActivity (Compose)</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/gui/ — ComponentActivity (Compose)</text>
     <line x1="5" y1="44" x2="275" y2="44" stroke="#ccc" stroke-width="0.5"/>
     <text x="10" y="57" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
     <text x="10" y="73" font-size="9" fill="#888">Debug-only assistant tools hub</text>
@@ -1958,4 +1960,280 @@
   <text x="600" y="3554" font-size="9" fill="#888">MainActivity: AndroidView(coreView) + GameHudOverlay</text>
 
   <!-- 2026-09-29 update: SupperBannerView/SupperBannerItem/SupperBannerConfig extracted from gui/ into the new :supperbanner maven-publish AAR module (the old gui/ copies are gone). Added the Settings split — SettingsActivity is now a navigation hub over SettingsScreen, with preferences moved to GameSettingsActivity and a new per-app LanguageSettingsActivity. MainActivity's Compose HUD is GameHudScreen.kt (GameHudState + GameHudOverlay), which layers over the AndroidView-hosted GameCoreView; DrawHeader remains the in-canvas two-row HUD. -->
+
+  <!-- ==================== 2026-10-20 SYNC BAND ==================== -->
+  <!-- :developtools extracted into its own module (14 tool Activities, 12 ViewModels,
+       repository/ service/ utils/), the host bridge DevTools replaces the old direct :app
+       references, and v1.5.x added the Remote Config / forced-update chain, the Room-backed
+       API-history store and the notification-policy interruption shield. -->
+  <rect x="20" y="4010" width="1760" height="520" rx="10" fill="none" stroke="#00838f" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="35" y="4026" font-size="11" font-weight="bold" fill="#00838f" opacity="0.8">:developtools module + v1.5.x :app additions (2026-10-20 sync)</text>
+
+  <!-- :developtools module map -->
+  <g transform="translate(30, 4040)" filter="url(#shadow)">
+    <rect width="320" height="200" rx="6" fill="#e0f2f1" stroke="#00897b" stroke-width="1.5"/>
+    <rect width="320" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="320" height="6" fill="#00897b"/>
+    <text x="160" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«module» :developtools</text>
+    <text x="10" y="38" font-size="10" fill="#555">com.young.developtools — never depends on :app</text>
+    <line x1="5" y1="44" x2="315" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">gui/ — 14 Activities (2 hubs + 12 tools)</text>
+    <text x="10" y="70" font-size="10" fill="#333">viewmodel/ — 12 VMs + 2 UiState files</text>
+    <text x="10" y="83" font-size="10" fill="#333">data/ — BannerDetails, ChinaPhoneNumber,</text>
+    <text x="10" y="96" font-size="10" fill="#333">  ContactsRepository, EmailAddress,</text>
+    <text x="10" y="109" font-size="10" fill="#333">  ImageDetails, LogSettings</text>
+    <text x="10" y="122" font-size="10" fill="#333">repository/ — ApiDebugRepository,</text>
+    <text x="10" y="135" font-size="10" fill="#333">  ApiHistoryStore, InMemoryApiHistoryStore</text>
+    <text x="10" y="148" font-size="10" fill="#333">service/ — FlashlightService (foreground)</text>
+    <text x="10" y="161" font-size="10" fill="#333">utils/ — DeveloperMode, DebugTools, DevLog,</text>
+    <text x="10" y="174" font-size="10" fill="#333">  DevPrefs, DevUrls, DataUriUtils, FilePickerHelper</text>
+    <line x1="5" y1="180" x2="315" y2="180" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="193" font-size="9" fill="#888">Debug-gated: DebugTools.isEnabled (debug/release</text>
+  </g>
+
+  <!-- DevTools host bridge -->
+  <g transform="translate(370, 4040)" filter="url(#shadow)">
+    <rect width="280" height="200" rx="6" fill="#e0f2f1" stroke="#00897b" stroke-width="1.2"/>
+    <rect width="280" height="22" rx="6" fill="#00897b"/>
+    <rect y="16" width="280" height="6" fill="#00897b"/>
+    <text x="140" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» DevTools</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/DevTools.kt — host bridge</text>
+    <line x1="5" y1="44" x2="275" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ openActivityMonitor: ((Context)-&gt;Unit)?</text>
+    <text x="10" y="70" font-size="10" fill="#333">+ onInvincibleChanged: ((Boolean)-&gt;Unit)?</text>
+    <text x="10" y="83" font-size="10" fill="#333">+ historyStoreProvider: ((Context)-&gt;Store)?</text>
+    <text x="10" y="96" font-size="10" fill="#333">+ onLogEnabledChanged: ((Boolean)-&gt;Unit)?</text>
+    <line x1="5" y1="102" x2="275" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="115" font-size="10" fill="#333">+ resolveHistoryStore(ctx): ApiHistoryStore</text>
+    <text x="10" y="128" font-size="10" fill="#333">+ hostVersionName(ctx): String</text>
+    <text x="10" y="145" font-size="9" fill="#888">The four hooks are wired in</text>
+    <text x="10" y="157" font-size="9" fill="#888">AircraftApplication.onCreate; every hook has a</text>
+    <text x="10" y="169" font-size="9" fill="#888">safe fallback so the module also runs standalone.</text>
+    <text x="10" y="188" font-size="9" fill="#888">Replaces the old direct :app references.</text>
+  </g>
+
+  <!-- Debug gate -->
+  <g transform="translate(670, 4040)" filter="url(#shadow)">
+    <rect width="290" height="200" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
+    <rect width="290" height="22" rx="6" fill="#689f38"/>
+    <rect y="16" width="290" height="6" fill="#689f38"/>
+    <text x="145" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Debug gate</text>
+    <text x="10" y="38" font-size="10" fill="#555">utils/DeveloperMode.kt · DebugTools.kt · DevLog.kt</text>
+    <line x1="5" y1="44" x2="285" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">«object» DeveloperMode</text>
+    <text x="10" y="70" font-size="10" fill="#333">  + isEnabled(ctx) / unlock(ctx)</text>
+    <text x="10" y="83" font-size="10" fill="#333">  + TAPS_TO_UNLOCK = 8 (About badge)</text>
+    <text x="10" y="96" font-size="10" fill="#333">«object» DebugTools — src/debug | src/release</text>
+    <text x="10" y="109" font-size="10" fill="#333">  + isEnabled: var (debug) / val (release)</text>
+    <text x="10" y="122" font-size="10" fill="#333">«object» DevLog — app-wide AppLog switch</text>
+    <line x1="5" y1="128" x2="285" y2="128" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="141" font-size="9" fill="#888">Two gates, both required:</text>
+    <text x="10" y="153" font-size="9" fill="#888">1. SettingsViewModel decides whether the rows</text>
+    <text x="10" y="165" font-size="9" fill="#888">   render at all.</text>
+    <text x="10" y="177" font-size="9" fill="#888">2. Each Activity re-checks DeveloperMode in</text>
+    <text x="10" y="189" font-size="9" fill="#888">   onCreate and calls finish().</text>
+  </g>
+
+  <!-- ApiHistoryStore contract -->
+  <g transform="translate(980, 4040)" filter="url(#shadow)">
+    <rect width="290" height="200" rx="6" fill="url(#grad-abstract)" stroke="#7986cb" stroke-width="1.2"/>
+    <rect width="290" height="22" rx="6" fill="#7986cb"/>
+    <rect y="16" width="290" height="6" fill="#7986cb"/>
+    <text x="145" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«interface» ApiHistoryStore</text>
+    <text x="10" y="38" font-size="10" fill="#555">developtools/repository/ApiHistoryStore.kt</text>
+    <line x1="5" y1="44" x2="285" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ observeAll(): Flow&lt;List&lt;ApiHistoryRecord&gt;&gt;</text>
+    <text x="10" y="70" font-size="10" fill="#333">+ getById(id) / insert(record)</text>
+    <text x="10" y="83" font-size="10" fill="#333">+ deleteById(id) / clear()</text>
+    <line x1="5" y1="89" x2="285" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="10" fill="#333">«data» ApiHistoryRecord — Room-free record</text>
+    <text x="10" y="115" font-size="10" fill="#333">«class» InMemoryApiHistoryStore — fallback</text>
+    <line x1="5" y1="121" x2="285" y2="121" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="134" font-size="9" fill="#888">Room stays in :app, so the module talks to this</text>
+    <text x="10" y="146" font-size="9" fill="#888">interface and :app injects RoomApiHistoryStore</text>
+    <text x="10" y="158" font-size="9" fill="#888">through DevTools.historyStoreProvider.</text>
+    <text x="10" y="177" font-size="9" fill="#888">«class» RoomApiHistoryStore (data/, :app)</text>
+    <text x="10" y="189" font-size="9" fill="#888">maps ApiRequestHistory &lt;-&gt; ApiHistoryRecord</text>
+  </g>
+
+  <!-- ApiRequestHistory entity -->
+  <g transform="translate(1290, 4040)" filter="url(#shadow)">
+    <rect width="250" height="200" rx="6" fill="url(#grad-data)" stroke="#ff9800" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#ff9800"/>
+    <rect y="16" width="250" height="6" fill="#ff9800"/>
+    <text x="125" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">«entity» ApiRequestHistory</text>
+    <text x="10" y="38" font-size="10" fill="#555">data/ApiRequestHistory.kt — api_request_history</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">- id / timestamp / url / method</text>
+    <text x="10" y="70" font-size="10" fill="#333">- requestHeaders / requestBody</text>
+    <text x="10" y="83" font-size="10" fill="#333">- responseCode / responseBody</text>
+    <text x="10" y="96" font-size="10" fill="#333">- responseHeaders / responseTime / error</text>
+    <line x1="5" y1="102" x2="245" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="115" font-size="10" fill="#333">«interface» ApiRequestHistoryDao</text>
+    <text x="10" y="128" font-size="10" fill="#333">  + observeAll() / insert / deleteById</text>
+    <text x="10" y="141" font-size="10" fill="#333">  + deleteAll()</text>
+    <line x1="5" y1="147" x2="245" y2="147" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="160" font-size="9" fill="#888">Migration 2031_2032 creates the table;</text>
+    <text x="10" y="172" font-size="9" fill="#888">2032_2033 adds responseHeaders.</text>
+    <text x="10" y="191" font-size="9" fill="#888">Feeds the API debugger history screen.</text>
+  </g>
+
+  <!-- AppLog / DevLog -->
+  <g transform="translate(1560, 4040)" filter="url(#shadow)">
+    <rect width="210" height="200" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
+    <rect width="210" height="22" rx="6" fill="#689f38"/>
+    <rect y="16" width="210" height="6" fill="#689f38"/>
+    <text x="105" y="15" text-anchor="middle" font-size="12" font-weight="bold" fill="white">«object» AppLog</text>
+    <text x="10" y="38" font-size="10" fill="#555">utils/AppLog.kt — :app</text>
+    <line x1="5" y1="44" x2="205" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ enabled: Boolean</text>
+    <text x="10" y="70" font-size="10" fill="#333">+ i / d / e / w / v</text>
+    <text x="10" y="83" font-size="10" fill="#333">+ d(tag, msg: () -&gt; String)</text>
+    <line x1="5" y1="89" x2="205" y2="89" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="102" font-size="9" fill="#888">A runtime kill-switch for</text>
+    <text x="10" y="114" font-size="9" fill="#888">android.util.Log — no file sink,</text>
+    <text x="10" y="126" font-size="9" fill="#888">no rotation. The lambda form skips</text>
+    <text x="10" y="138" font-size="9" fill="#888">message construction while off.</text>
+    <text x="10" y="157" font-size="9" fill="#888">checkAppLogUsage / checkDevLogUsage</text>
+    <text x="10" y="169" font-size="9" fill="#888">Gradle tasks fail the build on a</text>
+    <text x="10" y="181" font-size="9" fill="#888">direct android.util.Log import.</text>
+  </g>
+
+  <!-- Row 2: v1.5.x :app additions -->
+
+  <!-- BaseAircraftActivity -->
+  <g transform="translate(30, 4290)" filter="url(#shadow)">
+    <rect width="270" height="190" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="270" height="6" fill="#9c27b0"/>
+    <text x="135" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">«abstract» BaseAircraftActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/BaseAircraftActivity.kt — extends AppCompatActivity</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333"># initializeViewModel(savedInstanceState)</text>
+    <text x="10" y="70" font-size="10" fill="#333"># initializeUI()</text>
+    <line x1="5" y1="76" x2="265" y2="76" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="89" font-size="10" fill="#333">+ final override fun onCreate(...)</text>
+    <text x="10" y="102" font-size="10" fill="#333">  initializeViewModel() first</text>
+    <text x="10" y="115" font-size="10" fill="#333">  initializeUI() only if (!isFinishing)</text>
+    <line x1="5" y1="121" x2="265" y2="121" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="134" font-size="9" fill="#888">The isFinishing guard exists because some</text>
+    <text x="10" y="146" font-size="9" fill="#888">initializeViewModel() implementations finish</text>
+    <text x="10" y="158" font-size="9" fill="#888">the Activity (the DebugTools self-gate).</text>
+    <text x="10" y="177" font-size="9" fill="#888">:developtools carries its own same-shaped copy.</text>
+  </g>
+
+  <!-- MandatoryUpdateActivity -->
+  <g transform="translate(320, 4290)" filter="url(#shadow)">
+    <rect width="270" height="190" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="270" height="6" fill="#9c27b0"/>
+    <text x="135" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">MandatoryUpdateActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends ComponentActivity</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ onCreate(savedInstanceState)</text>
+    <text x="10" y="70" font-size="10" fill="#333">+ BackHandler(enabled = true) {}</text>
+    <text x="10" y="83" font-size="10" fill="#333">+ githubReleaseTagUrl(version): String?</text>
+    <text x="10" y="96" font-size="10" fill="#333">+ openUpdatePage(context)</text>
+    <line x1="5" y1="102" x2="265" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="115" font-size="9" fill="#888">Not finishable by the check that launches it;</text>
+    <text x="10" y="127" font-size="9" fill="#888">it re-checks on its own resume and finishes</text>
+    <text x="10" y="139" font-size="9" fill="#888">once the requirement is lifted.</text>
+    <text x="10" y="158" font-size="9" fill="#888">openUpdatePage tries the configured URL, then</text>
+    <text x="10" y="170" font-size="9" fill="#888">the GitHub tag page, then market://, then</text>
+    <text x="10" y="182" font-size="9" fill="#888">play.google.com, and no-ops if none exist.</text>
+  </g>
+
+  <!-- DataPrivacyActivity -->
+  <g transform="translate(610, 4290)" filter="url(#shadow)">
+    <rect width="250" height="190" rx="6" fill="url(#grad-gui)" stroke="#9c27b0" stroke-width="1.2"/>
+    <rect width="250" height="22" rx="6" fill="#9c27b0"/>
+    <rect y="16" width="250" height="6" fill="#9c27b0"/>
+    <text x="125" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">DataPrivacyActivity</text>
+    <text x="10" y="38" font-size="10" fill="#555">gui/ — extends BaseAircraftActivity</text>
+    <line x1="5" y1="44" x2="245" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ initializeViewModel(...) / initializeUI()</text>
+    <text x="10" y="70" font-size="10" fill="#333">- openPolicy()</text>
+    <text x="10" y="83" font-size="10" fill="#333">- confirmWithdrawConsent()</text>
+    <text x="10" y="96" font-size="10" fill="#333">- confirmDeleteData() / deleteAllData()</text>
+    <line x1="5" y1="102" x2="245" y2="102" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="115" font-size="9" fill="#888">Settings → DATA_AND_PRIVACY (always shown).</text>
+    <text x="10" y="127" font-size="9" fill="#888">Withdraws the analytics consent and deletes</text>
+    <text x="10" y="139" font-size="9" fill="#888">the on-device data.</text>
+    <text x="10" y="158" font-size="9" fill="#888">One of only two :app screens that do not</text>
+    <text x="10" y="170" font-size="9" fill="#888">extend BaseAircraftActivity — the other is</text>
+    <text x="10" y="182" font-size="9" fill="#888">MainActivity (it owns the SurfaceView).</text>
+  </g>
+
+  <!-- RepoUpdateConfig -->
+  <g transform="translate(880, 4290)" filter="url(#shadow)">
+    <rect width="290" height="190" rx="6" fill="url(#grad-app)" stroke="#66bb6a" stroke-width="1.2"/>
+    <rect width="290" height="22" rx="6" fill="#66bb6a"/>
+    <rect y="16" width="290" height="6" fill="#66bb6a"/>
+    <text x="145" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">RepoUpdateConfig / Store</text>
+    <text x="10" y="38" font-size="10" fill="#555">common/RepoUpdateConfig.kt — :app</text>
+    <line x1="5" y1="44" x2="285" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">«data» RepoUpdateConfig(minimumVersion,</text>
+    <text x="10" y="70" font-size="10" fill="#333">  latestVersion, updateUrl, appIcon,</text>
+    <text x="10" y="83" font-size="10" fill="#333">  welcomeMessage, showWelcome)</text>
+    <text x="10" y="96" font-size="10" fill="#333">«object» RepoUpdateConfigStore</text>
+    <text x="10" y="109" font-size="10" fill="#333">  + refresh(scope) / refreshNow()</text>
+    <text x="10" y="122" font-size="10" fill="#333">  + getMinimumVersion() / getLatestVersion()</text>
+    <text x="10" y="135" font-size="10" fill="#333">  + getUpdateUrl() / getAppIconVariant()</text>
+    <text x="10" y="148" font-size="10" fill="#333">  + getWelcomeMessage()</text>
+    <line x1="5" y1="154" x2="285" y2="154" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="167" font-size="9" fill="#888">Fetches app-update.json from jsDelivr (raw GitHub</text>
+    <text x="10" y="179" font-size="9" fill="#888">fallback) and wins whenever Firebase holds no</text>
+    <text x="10" y="191" font-size="9" fill="#888">remote value for a key.</text>
+  </g>
+
+  <!-- GameInterruptionShield -->
+  <g transform="translate(1190, 4290)" filter="url(#shadow)">
+    <rect width="270" height="190" rx="6" fill="url(#grad-util)" stroke="#689f38" stroke-width="1.2"/>
+    <rect width="270" height="22" rx="6" fill="#689f38"/>
+    <rect y="16" width="270" height="6" fill="#689f38"/>
+    <text x="135" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">«object» GameInterruptionShield</text>
+    <text x="10" y="38" font-size="10" fill="#555">utils/GameInterruptionShield.kt — :app</text>
+    <line x1="5" y1="44" x2="265" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">+ isSupported(): Boolean (API 23+)</text>
+    <text x="10" y="70" font-size="10" fill="#333">+ isGranted(context): Boolean</text>
+    <text x="10" y="83" font-size="10" fill="#333">+ enter(context): Int?</text>
+    <text x="10" y="96" font-size="10" fill="#333">+ exit(context, previousFilter: Int?)</text>
+    <text x="10" y="109" font-size="10" fill="#333">+ restoreAfterProcessDeath(context)</text>
+    <text x="10" y="122" font-size="10" fill="#333">+ dndSettingsIntent(): Intent</text>
+    <line x1="5" y1="128" x2="265" y2="128" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="141" font-size="9" fill="#888">Mutes the notification interruption filter</text>
+    <text x="10" y="153" font-size="9" fill="#888">while a run is in progress and restores the</text>
+    <text x="10" y="165" font-size="9" fill="#888">previous filter on exit.</text>
+    <text x="10" y="184" font-size="9" fill="#888">shouldRestorePreviousFilter() is unit-tested.</text>
+  </g>
+
+  <!-- BossFireworksEffect + UpdateDialogs -->
+  <g transform="translate(1480, 4290)" filter="url(#shadow)">
+    <rect width="290" height="190" rx="6" fill="url(#grad-ui)" stroke="#2196f3" stroke-width="1.2"/>
+    <rect width="290" height="22" rx="6" fill="#2196f3"/>
+    <rect y="16" width="290" height="6" fill="#2196f3"/>
+    <text x="145" y="15" text-anchor="middle" font-size="11" font-weight="bold" fill="white">v1.5.x effects &amp; dialogs</text>
+    <text x="10" y="38" font-size="10" fill="#555">ui/ + gui/dialogs/ — :app</text>
+    <line x1="5" y1="44" x2="285" y2="44" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="57" font-size="10" fill="#333">«class» BossFireworksEffect — internal</text>
+    <text x="10" y="70" font-size="10" fill="#333">  burst particles painted on the game canvas</text>
+    <text x="10" y="83" font-size="10" fill="#333">  after a boss dies</text>
+    <text x="10" y="96" font-size="10" fill="#333">gui/dialogs/UpdateDialogs.kt</text>
+    <text x="10" y="109" font-size="10" fill="#333">  + showUpdateAvailableDialog(...)</text>
+    <text x="10" y="122" font-size="10" fill="#333">  + showAlreadyLatestVersionDialog()</text>
+    <line x1="5" y1="128" x2="285" y2="128" stroke="#ccc" stroke-width="0.5"/>
+    <text x="10" y="141" font-size="9" fill="#888">The optional-update prompt is de-duplicated</text>
+    <text x="10" y="153" font-size="9" fill="#888">per process by the last-prompted version, so</text>
+    <text x="10" y="165" font-size="9" fill="#888">it appears at most once per version per launch.</text>
+    <text x="10" y="184" font-size="9" fill="#888">Shown through showThemed().</text>
+  </g>
+
+  <!-- band arrows -->
+  <path d="M510,4240 L510,4262 L1120,4262 L1120,4244" fill="none" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="620" y="4256" font-size="9" fill="#888">DevTools.historyStoreProvider supplies the Room-backed store</text>
+  <path d="M1415,4240 L1415,4276 L1160,4276 L1160,4244" fill="none" stroke="#555" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-assoc)"/>
+  <text x="1168" y="4270" font-size="9" fill="#888">RoomApiHistoryStore maps the entity to the record</text>
+
+  <!-- 2026-10-20 update: Synced with the 1.5.3 codebase — the module list is now :app + :developtools + :richtexteditor AAR + :supperbanner AAR + the build-logic convention-plugin included build. The whole developer/utility screen set moved out of :app into :developtools (14 Activities, 13 ViewModels, data/, repository/, service/, utils/), and the module talks to :app only through the DevTools host bridge (openActivityMonitor, onInvincibleChanged, historyStoreProvider, onLogEnabledChanged). Added the debug gate (DeveloperMode / DebugTools source-set split / DevLog), the ApiHistoryStore contract with its in-memory fallback and the :app RoomApiHistoryStore, the ApiRequestHistory entity and DAO (api_request_history table, migrations 2031_2032 and 2032_2033), AppLog, RepoUpdateConfig/RepoUpdateConfigStore, AircraftRemoteConfig, MandatoryUpdateActivity, DataPrivacyActivity, BaseAircraftActivity, GameInterruptionShield, BossFireworksEffect and gui/dialogs/UpdateDialogs.kt. AppDatabase is now v2033 with six explicit migrations and no destructive fallback; SettingsRepository holds 12 keys. The scattered tool Activities and FlashlightService were relabelled with their real package (developtools/gui/, developtools/service/). -->
+
 </svg>

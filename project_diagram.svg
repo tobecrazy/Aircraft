@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1292" viewBox="0 0 1400 1292" font-family="'Segoe UI', system-ui, -apple-system, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1436" viewBox="0 0 1400 1436" font-family="'Segoe UI', system-ui, -apple-system, Arial, sans-serif">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" style="stop-color:#f8f9fc"/>
@@ -54,18 +54,18 @@
   </defs>
 
   <!-- Background -->
-  <rect width="1400" height="1292" fill="url(#bg)" rx="0"/>
+  <rect width="1400" height="1436" fill="url(#bg)" rx="0"/>
 
   <!-- ==================== TITLE ==================== -->
   <rect x="20" y="12" width="1360" height="46" rx="8" fill="url(#g-title)" filter="url(#shadow)"/>
   <text x="700" y="42" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="700" letter-spacing="1">AIRCRAFT — Project Architecture</text>
   <text x="1360" y="42" text-anchor="end" fill="#94a3b8" font-size="11">Android 2D Vertical Shooter · Kotlin · SurfaceView Engine</text>
-  <text x="700" y="60" text-anchor="middle" fill="#64748b" font-size="10">Modules: :app + :richtexteditor AAR + :supperbanner AAR (com.young:supperbanner) · FileProvider paths include Pictures/, Download/, and cache</text>
+  <text x="700" y="60" text-anchor="middle" fill="#64748b" font-size="10">Modules: :app + :developtools + :richtexteditor AAR + :supperbanner AAR (com.young:supperbanner) + build-logic (convention plugins) · FileProvider paths include Pictures/, Download/, and cache</text>
 
   <!-- ==================== PRESENTATION LAYER ==================== -->
   <rect x="20" y="72" width="1360" height="260" rx="10" fill="url(#g-pres)" stroke="#c084fc" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
   <text x="36" y="92" fill="#7c3aed" font-size="13" font-weight="700">PRESENTATION LAYER</text>
-  <text x="220" y="92" fill="#a78bfa" font-size="10">gui/</text>
+  <text x="220" y="92" fill="#a78bfa" font-size="10">gui/ (:app) + developtools/gui/</text>
 
   <!-- ── First-Launch Gate Chain ── -->
   <text x="40" y="112" fill="#6b21a8" font-size="9" font-weight="600">FIRST-LAUNCH GATE CHAIN</text>
@@ -142,9 +142,9 @@
   <rect x="760" y="224" width="180" height="22" rx="8" fill="#9333ea"/>
   <rect x="760" y="238" width="180" height="8" fill="#9333ea"/>
   <text x="850" y="240" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">SettingsActivity</text>
-  <text x="850" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">PREFERENCES</text>
-  <text x="850" y="275" text-anchor="middle" fill="#7c3aed" font-size="9">Difficulty · Sound · Theme · Cache</text>
-  <text x="850" y="290" text-anchor="middle" fill="#7c3aed" font-size="9">Debug row in DEBUG builds</text>
+  <text x="850" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">SETTINGS HUB</text>
+  <text x="850" y="275" text-anchor="middle" fill="#7c3aed" font-size="9">Navigation hub over SettingsScreen</text>
+  <text x="850" y="290" text-anchor="middle" fill="#7c3aed" font-size="9">Develop + Assistant rows (DEBUG)</text>
 
   <!-- PrivacyPolicyActivity -->
   <rect x="1000" y="224" width="180" height="80" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)"/>
@@ -158,7 +158,7 @@
   <rect x="1000" y="300" width="180" height="92" rx="8" fill="#ffffff" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow-sm)" opacity="0.95"/>
   <rect x="1000" y="300" width="180" height="22" rx="8" fill="#c084fc"/>
   <rect x="1000" y="314" width="180" height="8" fill="#c084fc"/>
-  <text x="1090" y="316" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">QRCodeToolActivity</text>
+  <text x="1090" y="316" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">QRCodeToolActivity (:developtools)</text>
   <text x="1090" y="336" text-anchor="middle" fill="#6b21a8" font-size="8.5" font-weight="600">SCAN + GENERATE + SAVE</text>
   <text x="1090" y="351" text-anchor="middle" fill="#7c3aed" font-size="8.5">Camera2 + ZXing + gallery import</text>
   <text x="1090" y="365" text-anchor="middle" fill="#7c3aed" font-size="8.5">Save to device (CreateDocument)</text>
@@ -169,13 +169,13 @@
   <rect x="1190" y="224" width="170" height="22" rx="8" fill="#c084fc"/>
   <rect x="1190" y="238" width="170" height="8" fill="#c084fc"/>
   <text x="1275" y="240" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Utility Screens</text>
-  <text x="1275" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">SETTINGS DESTINATIONS</text>
+  <text x="1275" y="260" text-anchor="middle" fill="#6b21a8" font-size="9" font-weight="600">SETTINGS DESTINATIONS (12)</text>
   <text x="1275" y="275" text-anchor="middle" fill="#7c3aed" font-size="7.8">Game Settings · Language · Puzzle Game</text>
-  <text x="1275" y="289" text-anchor="middle" fill="#7c3aed" font-size="7.8">QR Code Tool · Flashlight (torch/SOS)</text>
-  <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">Image Details · Device Info · About Aircraft</text>
-  <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Me · Privacy Policy · Banner Details</text>
-  <text x="1275" y="331" text-anchor="middle" fill="#7c3aed" font-size="7.8">Develop · Rich Text · Camera Scan (DEBUG)</text>
-  <text x="1275" y="345" text-anchor="middle" fill="#7c3aed" font-size="7.4">5 accents · 4 locales (en, zh-CN/zh-TW/zh-HK)</text>
+  <text x="1275" y="289" text-anchor="middle" fill="#7c3aed" font-size="7.8">QR Code Tool · Flashlight · Device Info</text>
+  <text x="1275" y="303" text-anchor="middle" fill="#7c3aed" font-size="7.8">About Aircraft · About Me · Privacy Policy</text>
+  <text x="1275" y="317" text-anchor="middle" fill="#7c3aed" font-size="7.8">Data &amp; Privacy · Develop · Assistant Tools</text>
+  <text x="1275" y="331" text-anchor="middle" fill="#7c3aed" font-size="7.6">5 accents · 4 locales (en, zh-CN/TW/HK)</text>
+  <text x="1275" y="345" text-anchor="middle" fill="#7c3aed" font-size="7.6">Develop + Assistant rows are DEBUG-gated</text>
 
   <!-- OnboardingActivity → LaunchActivity arrow -->
   <path d="M395,198 L395,208 L130,208 L130,222" stroke="#8b5cf6" stroke-width="1.5" fill="none" marker-end="url(#arr-purple)"/>
@@ -194,9 +194,9 @@
   <text x="953" y="320" fill="#8b5cf6" font-size="7">qr</text>
 
   <!-- ==================== VIEWMODEL LAYER ==================== -->
-  <rect x="20" y="346" width="1360" height="100" rx="10" fill="url(#g-vm)" stroke="#00897b" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <rect x="20" y="346" width="1360" height="104" rx="10" fill="url(#g-vm)" stroke="#00897b" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
   <text x="36" y="366" fill="#00695c" font-size="13" font-weight="700">VIEWMODEL LAYER</text>
-  <text x="220" y="366" fill="#4db6ac" font-size="10">viewmodel/ — MVVM mediation (View → ViewModel → Repository)</text>
+  <text x="220" y="366" fill="#4db6ac" font-size="10">viewmodel/ — MVVM mediation (View → ViewModel → Repository) · :app 9 + :developtools 12</text>
 
   <rect x="40" y="376" width="130" height="56" rx="7" fill="#ffffff" stroke="#00897b" stroke-width="1.2" filter="url(#shadow-sm)"/>
   <rect x="40" y="376" width="130" height="19" rx="7" fill="#00897b"/>
@@ -244,16 +244,17 @@
   <rect x="950" y="376" width="170" height="19" rx="7" fill="#00897b"/>
   <rect x="950" y="388" width="170" height="7" fill="#00897b"/>
   <text x="1035" y="390" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">DevelopSettingsViewModel</text>
-  <text x="1035" y="410" text-anchor="middle" fill="#00695c" font-size="8">SettingsRepository</text>
-  <text x="1035" y="424" text-anchor="middle" fill="#00695c" font-size="8">invincible mode</text>
+  <text x="1035" y="410" text-anchor="middle" fill="#00695c" font-size="8">:developtools module</text>
+  <text x="1035" y="424" text-anchor="middle" fill="#00695c" font-size="8">invincible mode · debug tools</text>
 
-  <rect x="1135" y="376" width="200" height="56" rx="7" fill="#ffffff" stroke="#00897b" stroke-width="1.2" filter="url(#shadow-sm)"/>
-  <rect x="1135" y="376" width="200" height="19" rx="7" fill="#00897b"/>
-  <rect x="1135" y="388" width="200" height="7" fill="#00897b"/>
-  <text x="1235" y="390" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">+10 more VMs (17 total)</text>
-  <text x="1235" y="410" text-anchor="middle" fill="#00695c" font-size="7.6">AboutAircraft, AboutMe, BannerDetails, DeviceInfo,</text>
-  <text x="1235" y="424" text-anchor="middle" fill="#00695c" font-size="7.6">QRCode, Flashlight, CameraScan, RichTextEditor,</text>
-  <text x="1235" y="436" text-anchor="middle" fill="#00695c" font-size="7.6">ShowImageDetails, PuzzleImage (拼图图片/缓存)</text>
+  <rect x="1135" y="376" width="225" height="72" rx="7" fill="#ffffff" stroke="#00897b" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="1135" y="376" width="225" height="19" rx="7" fill="#00897b"/>
+  <rect x="1135" y="388" width="225" height="7" fill="#00897b"/>
+  <text x="1247" y="390" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">+14 more VMs (21 total)</text>
+  <text x="1247" y="408" text-anchor="middle" fill="#00695c" font-size="7.4">:app 9 · :developtools 12 · 5 UiState files</text>
+  <text x="1247" y="421" text-anchor="middle" fill="#00695c" font-size="7.2">AboutAircraft, AboutMe, PuzzleImage, RichTextEditor,</text>
+  <text x="1247" y="433" text-anchor="middle" fill="#00695c" font-size="7.2">ShowImageDetails, BannerDetails, ApiDebugTool, CameraScan,</text>
+  <text x="1247" y="445" text-anchor="middle" fill="#00695c" font-size="7.2">Contacts, DeviceInfo, Flashlight, LogSettings, Pdf, QRCode</text>
 
   <!-- ==================== GAME ENGINE LAYER ==================== -->
   <rect x="20" y="460" width="1360" height="430" rx="10" fill="url(#g-engine)" stroke="#38bdf8" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
@@ -471,8 +472,8 @@
   <rect x="36" y="884" width="200" height="19" rx="7" fill="#f97316"/>
   <rect x="36" y="896" width="200" height="7" fill="#f97316"/>
   <text x="136" y="898" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">AppDatabase (Room)</text>
-  <text x="136" y="919" text-anchor="middle" fill="#c2410c" font-size="8.5">v2031 · RoomDatabase</text>
-  <text x="136" y="932" text-anchor="middle" fill="#c2410c" font-size="8.5">2027→2031 migrations applied</text>
+  <text x="136" y="919" text-anchor="middle" fill="#c2410c" font-size="8.5">v2033 · RoomDatabase</text>
+  <text x="136" y="932" text-anchor="middle" fill="#c2410c" font-size="8.5">2027→2033 migrations applied</text>
 
   <!-- PlayerGameDataDao -->
   <rect x="256" y="884" width="206" height="56" rx="7" fill="#ffffff" stroke="#fb923c" stroke-width="1.2" filter="url(#shadow-sm)"/>
@@ -505,8 +506,8 @@
   <text x="136" y="1030" text-anchor="middle" fill="#ea580c" font-size="7.5">HudLabels · HudColors · Urls · Intents</text>
 
   <rect x="256" y="1000" width="206" height="38" rx="6" fill="#ffffff" stroke="#fdba74" stroke-width="1" filter="url(#shadow-sm)"/>
-  <text x="359" y="1018" text-anchor="middle" fill="#c2410c" font-size="8.5" font-weight="600">Image/Banner Details</text>
-  <text x="359" y="1030" text-anchor="middle" fill="#ea580c" font-size="7.5">local/network source contracts</text>
+  <text x="359" y="1018" text-anchor="middle" fill="#c2410c" font-size="8.5" font-weight="600">Image/Banner Details + History</text>
+  <text x="359" y="1030" text-anchor="middle" fill="#ea580c" font-size="7.2">BannerDetails · ImageDetails · ApiRequestHistory</text>
 
   <!-- Arrow from AppDatabase to DAO -->
   <line x1="236" y1="912" x2="254" y2="912" stroke="#ea580c" stroke-width="1.2" marker-end="url(#arr)"/>
@@ -514,7 +515,7 @@
   <!-- Service Layer -->
   <rect x="500" y="852" width="340" height="170" rx="10" fill="url(#g-svc)" stroke="#f9a8d4" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
   <text x="516" y="872" fill="#be185d" font-size="13" font-weight="700">SERVICE LAYER</text>
-  <text x="650" y="872" fill="#f9a8d4" font-size="10">service/</text>
+  <text x="650" y="872" fill="#f9a8d4" font-size="10">service/ (:app + :developtools)</text>
 
   <rect x="516" y="884" width="306" height="50" rx="7" fill="#ffffff" stroke="#f9a8d4" stroke-width="1.2" filter="url(#shadow-sm)"/>
   <rect x="516" y="884" width="306" height="19" rx="7" fill="#ec4899"/>
@@ -527,7 +528,7 @@
   <rect x="516" y="940" width="306" height="19" rx="7" fill="#db2777"/>
   <rect x="516" y="952" width="306" height="7" fill="#db2777"/>
   <text x="669" y="954" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">FlashlightService (Foreground · camera)</text>
-  <text x="669" y="972" text-anchor="middle" fill="#be185d" font-size="8.3">START_STICKY · persistent notification + Off action</text>
+  <text x="669" y="972" text-anchor="middle" fill="#be185d" font-size="8.3">:developtools · START_STICKY · notification + Off action</text>
   <text x="669" y="984" text-anchor="middle" fill="#be185d" font-size="8.3">PARTIAL_WAKE_LOCK while SOS · isSosRunning StateFlow</text>
 
   <rect x="516" y="996" width="306" height="22" rx="6" fill="#ffffff" stroke="#f9a8d4" stroke-width="1" filter="url(#shadow-sm)"/>
@@ -538,10 +539,11 @@
   <text x="876" y="872" fill="#0e7490" font-size="13" font-weight="700">COMMON / PROVIDERS</text>
   <text x="995" y="872" fill="#67e8f9" font-size="10">common/ + providers/</text>
 
-  <rect x="876" y="884" width="226" height="50" rx="7" fill="#ffffff" stroke="#22d3ee" stroke-width="1.2" filter="url(#shadow-sm)"/>
+  <rect x="876" y="884" width="226" height="56" rx="7" fill="#ffffff" stroke="#22d3ee" stroke-width="1.2" filter="url(#shadow-sm)"/>
   <text x="989" y="899" text-anchor="middle" fill="#0e7490" font-size="8.7" font-weight="600">SettingsRepository · DatabaseProvider</text>
   <text x="989" y="911" text-anchor="middle" fill="#0e7490" font-size="8.4" font-weight="600">GameStateManager · AircraftApplication</text>
   <text x="989" y="923" text-anchor="middle" fill="#0e7490" font-size="8.4" font-weight="600">AircraftRemoteConfig · LauncherIconManager</text>
+  <text x="989" y="935" text-anchor="middle" fill="#0e7490" font-size="8.4" font-weight="600">RepoUpdateConfig · RepoUpdateConfigStore</text>
 
   <!-- Utils Layer -->
   <rect x="860" y="948" width="260" height="74" rx="10" fill="url(#g-util)" stroke="#86efac" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
@@ -549,7 +551,8 @@
   <text x="970" y="968" fill="#86efac" font-size="10">utils/</text>
 
   <text x="876" y="988" fill="#166534" font-size="9">ScreenUtils · BitmapUtils · FilePickerHelper</text>
-  <text x="876" y="1003" fill="#166534" font-size="9">HallOfHeroesNameUtils · DataUriUtils</text>
+  <text x="876" y="1002" fill="#166534" font-size="9">HallOfHeroesNameUtils · DataUriUtils</text>
+  <text x="876" y="1016" fill="#166534" font-size="9">AppLog · GameInterruptionShield</text>
 
   <!-- AAR Library Modules -->
   <rect x="1140" y="852" width="220" height="170" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
@@ -601,7 +604,7 @@
   <text x="378" y="327" fill="#64748b" font-size="8">delegates</text>
 
   <!-- ViewModel → Game Engine -->
-  <line x1="370" y1="446" x2="370" y2="458" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="370" y1="452" x2="370" y2="458" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- Presentation → Data Layer (via ViewModel) -->
   <path d="M610,304 L610,320 L250,320 L250,850" stroke="#64748b" stroke-width="1" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
@@ -611,7 +614,7 @@
   <text x="420" y="786" fill="#64748b" font-size="8">audio playback</text>
 
   <!-- ViewModel → Common / Providers -->
-  <path d="M460,446 L460,460 L460,800 L989,800 L989,850" stroke="#64748b" stroke-width="1" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
+  <path d="M460,452 L460,460 L460,800 L989,800 L989,850" stroke="#64748b" stroke-width="1" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
   <text x="824" y="796" fill="#64748b" font-size="8">prefs + app state</text>
 
   <!-- ==================== GAME ASSETS ==================== -->
@@ -643,7 +646,7 @@
   <text x="950" y="1173" text-anchor="middle" fill="#1e40af" font-size="8.5" font-weight="600">5 backgrounds</text>
 
   <rect x="1010" y="1172" width="110" height="18" rx="4" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="0.6"/>
-  <text x="1065" y="1173" text-anchor="middle" fill="#5b21b6" font-size="8.5" font-weight="600">EN + ZH locale</text>
+  <text x="1065" y="1173" text-anchor="middle" fill="#5b21b6" font-size="8.5" font-weight="600">4 locales (en, zh-CN/TW/HK)</text>
 
   <!-- ==================== LEGEND ==================== -->
   <rect x="20" y="1210" width="1360" height="40" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
@@ -698,4 +701,67 @@
   <rect x="20" y="1260" width="1360" height="24" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="0.8"/>
   <text x="40" y="1276" fill="#5b21b6" font-size="9" font-weight="700">THEME &amp; TRANSIENT UI</text>
   <text x="200" y="1264" fill="#6b21a8" font-size="8">5 accents · AircraftTheme / aircraftColorScheme · gui/dialogs: GameDialogContent, showThemed · ThemedMessage Snackbar · richtexteditor onMessage (Toast fallback)</text>
+
+  <!-- ==================== :developtools MODULE ==================== -->
+  <rect x="20" y="1296" width="1360" height="126" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="1" filter="url(#shadow)" opacity="0.95"/>
+  <rect x="20" y="1296" width="1360" height="24" rx="10" fill="#334155"/>
+  <rect x="20" y="1310" width="1360" height="10" fill="#334155"/>
+  <text x="36" y="1313" fill="#ffffff" font-size="12" font-weight="700">:developtools MODULE</text>
+  <text x="1364" y="1313" text-anchor="end" fill="#cbd5e1" font-size="9">com.young.developtools · never depends on :app · every screen is debug-gated</text>
+
+  <!-- gui/ -->
+  <rect x="36" y="1330" width="250" height="66" rx="6" fill="#ffffff" stroke="#a78bfa" stroke-width="1.2"/>
+  <rect x="36" y="1330" width="250" height="15" rx="6" fill="#8b5cf6"/>
+  <rect x="36" y="1338" width="250" height="7" fill="#8b5cf6"/>
+  <text x="161" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">gui/ — 14 Activities</text>
+  <text x="48" y="1357" fill="#6b21a8" font-size="7.2">2 hubs: DevelopSettings · AssistantTools</text>
+  <text x="48" y="1368" fill="#7c3aed" font-size="7.2">Tools: QR · Flashlight · DeviceInfo · Pdf ·</text>
+  <text x="48" y="1379" fill="#7c3aed" font-size="7.2">Contacts · AppList · ApiDebug · CameraScan ·</text>
+  <text x="48" y="1390" fill="#7c3aed" font-size="7.2">RichText · ShowImageDetails · History</text>
+
+  <!-- viewmodel/ -->
+  <rect x="300" y="1330" width="250" height="66" rx="6" fill="#ffffff" stroke="#00897b" stroke-width="1.2"/>
+  <rect x="300" y="1330" width="250" height="15" rx="6" fill="#00897b"/>
+  <rect x="300" y="1338" width="250" height="7" fill="#00897b"/>
+  <text x="425" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">viewmodel/ — 12 VMs + 2 UiState</text>
+  <text x="312" y="1357" fill="#00695c" font-size="7.2">DevelopSettings · DeviceInfo · Flashlight ·</text>
+  <text x="312" y="1368" fill="#0f766e" font-size="7.2">QrCode · Pdf · Contacts · LogSettings ·</text>
+  <text x="312" y="1379" fill="#0f766e" font-size="7.2">ApiDebugTool · CameraScan · RichTextEditor ·</text>
+  <text x="312" y="1390" fill="#0f766e" font-size="7.2">BannerDetails · ShowImageDetails</text>
+
+  <!-- data/ -->
+  <rect x="564" y="1330" width="250" height="66" rx="6" fill="#ffffff" stroke="#fb923c" stroke-width="1.2"/>
+  <rect x="564" y="1330" width="250" height="15" rx="6" fill="#f97316"/>
+  <rect x="564" y="1338" width="250" height="7" fill="#f97316"/>
+  <text x="689" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">data/ — 6 models &amp; helpers</text>
+  <text x="576" y="1357" fill="#c2410c" font-size="7.2">BannerDetails · ImageDetails</text>
+  <text x="576" y="1368" fill="#ea580c" font-size="7.2">ChinaPhoneNumber · EmailAddress</text>
+  <text x="576" y="1379" fill="#ea580c" font-size="7.2">ContactsRepository · LogSettings</text>
+  <text x="576" y="1390" fill="#ea580c" font-size="7.2">(DataStore Preferences for the log switch)</text>
+
+  <!-- repository/ -->
+  <rect x="828" y="1330" width="250" height="66" rx="6" fill="#ffffff" stroke="#38bdf8" stroke-width="1.2"/>
+  <rect x="828" y="1330" width="250" height="15" rx="6" fill="#0284c7"/>
+  <rect x="828" y="1338" width="250" height="7" fill="#0284c7"/>
+  <text x="953" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">repository/ — no Room here</text>
+  <text x="840" y="1357" fill="#0369a1" font-size="7.2">ApiDebugRepository (direct OkHttp)</text>
+  <text x="840" y="1368" fill="#0284c7" font-size="7.2">«interface» ApiHistoryStore</text>
+  <text x="840" y="1379" fill="#0284c7" font-size="7.2">«class» InMemoryApiHistoryStore</text>
+  <text x="840" y="1390" fill="#0284c7" font-size="7.2">Room lives in :app · injected via DevTools</text>
+
+  <!-- utils/ + service/ + bridge -->
+  <rect x="1092" y="1330" width="244" height="66" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+  <rect x="1092" y="1330" width="244" height="15" rx="6" fill="#16a34a"/>
+  <rect x="1092" y="1338" width="244" height="7" fill="#16a34a"/>
+  <text x="1214" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">utils/ · service/ · DevTools bridge</text>
+  <text x="1104" y="1357" fill="#166534" font-size="7.2">DeveloperMode · DebugTools · DevLog · DevPrefs</text>
+  <text x="1104" y="1368" fill="#16a34a" font-size="7.2">service/ FlashlightService (foreground)</text>
+  <text x="1104" y="1379" fill="#16a34a" font-size="7.2">«object» DevTools — 4 host hooks</text>
+  <text x="1104" y="1390" fill="#16a34a" font-size="7.2">wired by AircraftApplication</text>
+
+  <!-- debug gate note -->
+  <text x="36" y="1412" fill="#475569" font-size="8">Debug gate — two checks, both required: (1) SettingsViewModel decides whether the Develop / Assistant rows render at all; (2) every gated Activity re-checks DeveloperMode.isEnabled(this) in onCreate and calls finish().</text>
+  <text x="36" y="1424" fill="#64748b" font-size="7.6">DeveloperMode.isEnabled = DebugTools.isEnabled (src/debug | src/release source-set split) || repository.isDeveloperOptionsUnlocked() — the unlock flag persists after 8 taps on the About Aircraft version badge.</text>
+
+  <!-- 2026-10-20 update: Synced with the 1.5.3 codebase — the module list is now :app + :developtools + :richtexteditor AAR + :supperbanner AAR + the build-logic convention-plugin included build. All developer/utility screens moved out of :app into :developtools (14 Activities, 12 ViewModels, data/, repository/, service/, utils/), which reaches :app only through the DevTools host bridge. ViewModel count 17 → 21 (:app 9 + :developtools 12) plus 5 UiState files. Room is v2033 with six explicit migrations and an api_request_history table added by 2031_2032 / 2032_2033. SettingsActivity is a navigation hub over SettingsScreen with 12 destinations; FlashlightService belongs to :developtools. Added the :developtools module band, RepoUpdateConfig / RepoUpdateConfigStore, AppLog and GameInterruptionShield. -->
 </svg>
