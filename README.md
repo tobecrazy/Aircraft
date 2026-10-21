@@ -4,13 +4,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Download
 
-Latest published release APK (V1.5.4):
+Latest published release APK (V1.5.5):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.4/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.5/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.5.4` (`versionCode` 26); `V1.5.4` is tagged on GitHub.
+> The app currently builds as `1.5.5` (`versionCode` 27); `V1.5.5` is the current release.
 
 ## Demo
 
@@ -146,7 +146,7 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 
 ```text
 settings.gradle.kts                  # includeBuild("build-logic"); FAIL_ON_PROJECT_REPOS (new repos only here)
-build.gradle.kts                     # apply-false plugin registry + kotlin-gradle-plugin buildscript pin (KGP 2.4.20)
+build.gradle.kts                     # apply-false plugin registry + kotlin-gradle-plugin buildscript pin (KGP 2.4.21)
 gradle/libs.versions.toml            # Single source of versions (incl. compile/min/target SDK) and the android-gradle library
 app-update.json                      # Generated release fallback (minimum_version/latest_version/update_url/app_icon)
 docs/                                 # Generated architecture artifacts + module usage plans
@@ -388,15 +388,15 @@ app/
 
 ## Requirements
 
-- **Version**: `1.5.4` (`versionCode` 26)
+- **Version**: `1.5.5` (`versionCode` 27)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `33`
 - **Target SDK**: `37`
 - **Java**: `17`
-- **Gradle Wrapper**: `9.8.0`
-- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin follows the catalog `kotlin` ref `2.4.21`, while the root `buildscript` pins `kotlin-gradle-plugin` at `2.4.20` so AGP's compose-group-mapping artifact resolves)
-- **KSP**: `2.3.11`
+- **Gradle Wrapper**: `9.8.2`
+- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin and the root `buildscript` `kotlin-gradle-plugin` pin both track the catalog `kotlin` ref `2.4.21`)
+- **KSP**: `2.3.12`
 - **Build scripts**: Kotlin DSL (`*.gradle.kts`)
 - **Release minification**: R8 code shrinking + resource shrinking enabled (mapping files uploaded to Crashlytics automatically)
 - **Dependency versions**: `gradle/libs.versions.toml` Gradle version catalog
