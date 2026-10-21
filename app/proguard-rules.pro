@@ -24,24 +24,11 @@
 # Enums (GameMode/GameDifficulty are persisted by name and
 # restored via valueOf; GameState is state-machine data)
 # ============================================================
-# The AGP default `-keepclassmembers enum *` rule already covers
-# values()/valueOf() for every enum, so nothing would be needed
-# here; the explicit lines narrow the previous `{ *; }` member
-# keeps (which blocked obfuscation/optimization of every
-# constant and member) to exactly what state restoration
-# requires.
--keepclassmembers enum com.young.aircraft.data.GameMode {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
-}
--keepclassmembers enum com.young.aircraft.data.GameDifficulty {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
-}
--keepclassmembers enum com.young.aircraft.data.GameState {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
-}
+# No enum keeps are declared here: the AGP default
+# `-keepclassmembers enum *` rule already retains values()/valueOf()
+# for every enum, and the R8 config analyzer confirms the former
+# per-enum duplicates (GameMode, GameDifficulty, GameState) were
+# subsumed by it, so they kept nothing extra.
 
 # ============================================================
 # Kotlin singletons (object declarations) — INSTANCE field

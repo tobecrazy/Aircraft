@@ -29,8 +29,8 @@ android {
 
     defaultConfig {
         applicationId = "com.young.aircraft"
-        versionCode = 26
-        versionName = "1.5.4"
+        versionCode = 27
+        versionName = "1.5.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -86,7 +86,7 @@ val generateRepoUpdateConfig = tasks.register("generateRepoUpdateConfig") {
     description = "Generates app-update.json from versionName for the Remote Config fallback."
     val outputFile = rootProject.file("app-update.json")
     val appVersionName = android.defaultConfig.versionName as String
-    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.4.1"
+    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.5.0"
     val appIcon = (findProperty("appIcon") as String?) ?: "2"
     val welcomeMessage = (findProperty("welcomeMessage") as String?)
         ?: "Aircraft 是一款 Kotlin Android 纵版飞行射击游戏，含十关空战与拼图模式、排行榜，以及可发布的富文本与轮播图库模块。"

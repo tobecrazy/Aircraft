@@ -1,5 +1,7 @@
 # API Debug Tool 实现总结
 
+> **Note (2026-10-21):** this summary was written when the tool lived in `:app`. It now lives in `:developtools` (`developtools/src/main/java/com/young/developtools/{gui,viewmodel,repository,data}/`) and Gson is `2.14.0`; the paths and version below are historical.
+
 ## 概述
 成功实现了一个功能完整的 API 调试工具，集成到 DevelopSettingsActivity 中。该工具允许开发者测试和调试 HTTP API 请求。
 

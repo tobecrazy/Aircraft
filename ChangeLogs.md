@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.5] - 2026-10-21
+
+### Added
+- Release APK for `V1.5.5` built (`versionCode` 27); `app-update.json` regenerated with `latest_version` `1.5.5`
+
+### Changed
+- Toolchain: Gradle wrapper `9.8.0` → `9.8.2`, KSP `2.3.11` → `2.3.12`, `firebase-bom` `35.0.0` → `35.0.2`; the root `buildscript` `kotlin-gradle-plugin` pin now matches the catalog `kotlin` ref (`2.4.20` → `2.4.21`)
+- `minSdk` raised `31` → `33` for all four modules
+- Forced-update floor raised to `1.5.0`: `app-update.json` `minimum_version` and the `generateRepoUpdateConfig` default both move up from `1.4.1`
+- Documentation corrected against the code:
+  - README — six themes (including Dynamic), History screen background, `connectedAndroidTest` is scaffold-only, `V1.5.4` tag note, toolchain versions
+  - DOCUMENT — current toolchain table, Room v2033 with six explicit migrations and no destructive fallback, boss-gated level completion, `replaceForPlayer` saves, `gameCommands` enqueue for `advanceToNextLevel()`, four locales, `FIRE_INTERVAL` 4
+  - CLAUDE — `FlashlightService` lives in `:developtools`, `drawHeader` delegation, `MainActivity` line refs, `build-logic` test options, `:supperbanner` type count, `aircraft-arch.json` source name
+  - AGENTS — rewritten in English with a docs map, global structure, and the full command set
+- Version bump `1.5.4` → `1.5.5` (`versionCode` 26 → 27)
+
 ## [1.5.4] - 2026-10-20
 
 ### Added

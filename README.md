@@ -4,13 +4,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Download
 
-Latest published release APK (V1.5.4):
+Latest published release APK (V1.5.5):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.4/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.5/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.5.4` (`versionCode` 26); releases up to `V1.5.3` are on GitHub.
+> The app currently builds as `1.5.5` (`versionCode` 27); `V1.5.5` is the current release.
 
 ## Demo
 
@@ -82,7 +82,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Difficulty presets that adjust fire rate: Easy (`1.2x`), Normal (`1.0x`), Hard (`0.8x`)
 - Room persistence for leaderboard data and saved progress, including jet selection and difficulty
 - Leaderboard top record highlighting with a medal/star badge and gold first-place styling
-- History screen with Chinese ink-painting background (`launch_background.jpeg`)
+- History screen with a themed flat background (no bitmap artwork)
 - Compose-powered About Me, Onboarding, Flashlight, and Device Info screens with localized copy and smooth transition animations
 - Coil-based network image loading with crossfade animations (`AsyncImage` for Compose, `ImageView.load()` for Views)
 - Image details viewer (`ShowImageDetailsActivity`) supporting both local drawables and network URLs with download capability
@@ -98,7 +98,7 @@ The demo above walks through the end-to-end player experience on a real device:
 
 ## Color Themes
 
-Open **Settings → Color theme**, above **Other settings**, to choose Green, Blue, Purple, Yellow, or Red. The selection is saved locally and applied live without restarting; dark backgrounds are retained.
+Open **Settings → Color theme**, above **Other settings**, to choose Green, Blue, Purple, Yellow, Red, or Dynamic (Material You primary). The selection is saved locally and applied live without restarting; dark backgrounds are retained.
 
 | Theme | Accent | Starfield particle |
 |-------|--------|--------------------|
@@ -107,6 +107,7 @@ Open **Settings → Color theme**, above **Other settings**, to choose Green, Bl
 | Purple | `#C4A0FF` | Purple ♦ |
 | Yellow | `#FFD54F` | ⭐ |
 | Red | `#FF5252` | 🌹 |
+| Dynamic | Material You primary | Theme-accent ❉ |
 
 `StarFieldView` uses larger, slower-moving particles on the launch hub and first-launch screens. Emoji appearance depends on the device's emoji font. This does **not** replace the scrolling combat backgrounds or alter game rendering.
 
@@ -145,7 +146,7 @@ Shared Compose screens, game/clear-cache dialogs, native confirmation dialogs, a
 
 ```text
 settings.gradle.kts                  # includeBuild("build-logic"); FAIL_ON_PROJECT_REPOS (new repos only here)
-build.gradle.kts                     # apply-false plugin registry + kotlin-gradle-plugin buildscript pin (KGP 2.4.20)
+build.gradle.kts                     # apply-false plugin registry + kotlin-gradle-plugin buildscript pin (KGP 2.4.21)
 gradle/libs.versions.toml            # Single source of versions (incl. compile/min/target SDK) and the android-gradle library
 app-update.json                      # Generated release fallback (minimum_version/latest_version/update_url/app_icon)
 docs/                                 # Generated architecture artifacts + module usage plans
@@ -244,7 +245,7 @@ app/
 │   ├── GameMode.kt                     # AIR_BATTLE / PUZZLE mode enum for persisted progress
 │   ├── GameDifficulty.kt               # EASY/NORMAL/HARD enum with fireRateMultiplier
 │   ├── AircraftConstants.kt            # HUD labels/colors, intent extras, URLs, privacy asset paths
-│   ├── SettingsRepository.kt           # SharedPreferences store: privacy, onboarding, difficulty, audio, five-color theme, puzzle guide, install ID
+│   ├── SettingsRepository.kt           # SharedPreferences store: privacy, onboarding, difficulty, audio, six-theme palette, puzzle guide, install ID
 │   ├── RoomApiHistoryStore.kt           # ApiHistoryStore backed by the api_request_history table (wired via DevTools)
 │   ├── GameState.kt                    # PLAYING / PAUSED / GAME_OVER / LEVEL_COMPLETE / GAME_WON / LOW_MEMORY
 ├── gui/
@@ -351,7 +352,7 @@ app/
 
 `developtools/src/test` holds every tool screen suite, mirrored from the app: `DevelopSettingsActivityTest` (version-badge toggle, crash dialog, QR notification), `AndroidDevAssistantToolsActivityTest` (module grid, toggles, log switch, and app-browser navigation), `AppListActivityTest` (user/system/all filters, search, empty state, details intent, rememberSaveable persistence across recreation, and back navigation over Robolectric's PackageManager shadow), `ApiDebugToolActivityTest` / `ApiDebugToolViewModelTest` / `ApiDebugRepositoryTest` (validation gate, history load-back over a fake store), `QRCodeToolActivityTest`, `RichTextEditorActivityTest`, `RichTextMarkdownTest`, `ShowImageDetailsActivityTest`, `DeviceInfoActivityTest` (unavailable/estimate rendering, layout, and navigation) plus `DeviceInfoViewModelTest` (source-unavailable retention, CPU estimate labeling, sampling lifecycle), `FlashlightTorchHeroTest`, `FlashlightViewModelTest` (SOS timing, brightness mapping), `PdfViewModelTest`, `DominantPageIndexTest`, `DeviceResourceCalculatorsTest`, `ContactsRepositoryTest` / `ContactsValidationTest` / `ContactsViewModelTest`, `LogSettingsTest` / `LogSettingsViewModelTest` (now driving `DevLog`), `DataUriUtilsTest`, `BannerDetailsIntentContractTest`, `ImageDetailsIntentContractTest`, the `apidebug` pure-function tests, `ThemedMessageTest`, and a module `StringResourceTest` (locale parity + usage coverage). `build-logic`'s `:convention:test` runs `LogCheckTest` (9 cases over the shared AppLog/DevLog matching core behind `checkAppLogUsage` / `checkDevLogUsage`).
 
-Instrumented tests belong in `app/src/androidTest`.
+`app/src/androidTest` holds only the generated `ExampleInstrumentedTest` scaffold; there is no usable instrumented suite.
 
 ## Game Assets
 
@@ -387,15 +388,15 @@ Instrumented tests belong in `app/src/androidTest`.
 
 ## Requirements
 
-- **Version**: `1.5.4` (`versionCode` 26)
+- **Version**: `1.5.5` (`versionCode` 27)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
-- **Min SDK**: `31`
+- **Min SDK**: `33`
 - **Target SDK**: `37`
 - **Java**: `17`
-- **Gradle Wrapper**: `9.8.0`
-- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin follows the catalog `kotlin` ref `2.4.21`, while the root `buildscript` pins `kotlin-gradle-plugin` at `2.4.20` so AGP's compose-group-mapping artifact resolves)
-- **KSP**: `2.3.11`
+- **Gradle Wrapper**: `9.8.2`
+- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin and the root `buildscript` `kotlin-gradle-plugin` pin both track the catalog `kotlin` ref `2.4.21`)
+- **KSP**: `2.3.12`
 - **Build scripts**: Kotlin DSL (`*.gradle.kts`)
 - **Release minification**: R8 code shrinking + resource shrinking enabled (mapping files uploaded to Crashlytics automatically)
 - **Dependency versions**: `gradle/libs.versions.toml` Gradle version catalog
@@ -407,7 +408,7 @@ Instrumented tests belong in `app/src/androidTest`.
 ./gradlew assembleDebug          # Build debug APK
 ./gradlew assembleRelease        # Build release APK
 ./gradlew test                   # Run unit and Robolectric tests
-./gradlew connectedAndroidTest   # Run instrumented tests (device/emulator required)
+./gradlew connectedAndroidTest   # Scaffold only (ExampleInstrumentedTest); not a usable suite
 ./gradlew lint                   # Run Android lint
 ./gradlew clean                  # Clean build outputs
 ```

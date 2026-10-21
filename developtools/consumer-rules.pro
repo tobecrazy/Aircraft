@@ -1,13 +1,13 @@
 # Consumer rules for :developtools.
 #
 # Manifest-merged components (all dev-tool activities + FlashlightService) are
-# entry points: AGP generates class-name + constructor keeps for them
-# automatically. The rules below are a small belt-and-braces, CLASS-NAME-ONLY
-# fallback so a future AGP/R8 behavior change cannot strip the entry points;
-# the previous full member keeps (`{ *; }`) had blocked optimization of ~595
-# members that are reached only through direct references (see the R8 config
-# analyzer report).
--keep public class com.young.developtools.gui.*Activity
+# entry points: AAPT2 emits `-keep class <component> { <init>(); }` for each of
+# them into aapt_rules.txt, so their class names and constructors are already
+# retained. No wildcard activity keep is declared here: the former
+# `-keep public class com.young.developtools.gui.*Activity` also pinned
+# BaseAircraftActivity, which is never launched, and the previous full member
+# keeps (`{ *; }`) had blocked optimization of ~595 members that are reached
+# only through direct references (see the R8 config analyzer report).
 -keep public class com.young.developtools.service.FlashlightService
 
 # The cross-module hook boundary (DevTools, DebugTools, DeveloperMode,
