@@ -13,7 +13,7 @@
 
 ## Build Configuration
 
-- JDK 17 plus the checked-in Gradle wrapper (never a system Gradle); `compileSdk 37 / minSdk 31`; versions are centralized in `gradle/libs.versions.toml`. Do **not** add `org.jetbrains.kotlin.android` (AGP ships built-in Kotlin), but `:app` still needs `org.jetbrains.kotlin.plugin.compose`. Shared compile setup lives in the `build-logic` included build (the three `aircraft.android.*` convention plugins, see `docs/build-logic-extraction-plan.md`); signing, R8, publishing, and `generateRepoUpdateConfig` stay in the individual modules.
+- JDK 17 plus the checked-in Gradle wrapper (never a system Gradle); `compileSdk 37 / minSdk 33`; versions are centralized in `gradle/libs.versions.toml`. Do **not** add `org.jetbrains.kotlin.android` (AGP ships built-in Kotlin), but `:app` still needs `org.jetbrains.kotlin.plugin.compose`. Shared compile setup lives in the `build-logic` included build (the three `aircraft.android.*` convention plugins, see `docs/build-logic-extraction-plan.md`); signing, R8, publishing, and `generateRepoUpdateConfig` stay in the individual modules.
 - `settings.gradle.kts` sets `FAIL_ON_PROJECT_REPOS`: a new repository must go in the settings file, never in a module. View Binding is deleted and Data Binding is unused; there is no DI framework.
 
 ## Commands (repository root)

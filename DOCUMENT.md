@@ -8,7 +8,7 @@
 |-------------------|-----------------------------|
 | Platform          | Android                     |
 | Language          | Kotlin 2.4.21 (bundled with AGP) |
-| Min SDK           | 31 (Android 12)             |
+| Min SDK           | 33 (Android 13)             |
 | Target SDK        | 37                          |
 | Compile SDK       | 37                          |
 | Java Compatibility| 17                          |

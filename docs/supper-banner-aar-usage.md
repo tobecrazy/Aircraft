@@ -74,7 +74,7 @@ dependencies {
 The library is built with:
 
 - `compileSdk 37`
-- `minSdk 31`
+- `minSdk 33`
 - Kotlin JVM target `17`
 
 ## XML Usage

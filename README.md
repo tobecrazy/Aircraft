@@ -391,7 +391,7 @@ app/
 - **Version**: `1.5.4` (`versionCode` 26)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
-- **Min SDK**: `31`
+- **Min SDK**: `33`
 - **Target SDK**: `37`
 - **Java**: `17`
 - **Gradle Wrapper**: `9.8.0`
