@@ -1,43 +1,66 @@
 # AGENTS.md
 
 - **中文回复**：所有解释用中文。
-- 详情见 `CLAUDE.md`（完整手册）；`docs/puzzle-game-redesign-plan.md` 必读后再改拼图计分；`docs/*-aar-usage.md` 有库集成说明。`.github/copilot-instructions.md` 部分声明已过时，以代码为准。
+- Full handbook: `CLAUDE.md`. Read `docs/puzzle-game-redesign-plan.md` before touching puzzle scoring; `docs/*-aar-usage.md` cover library integration. Parts of `.github/copilot-instructions.md` are stale — the code is authoritative.
+- **Docs map**: `README.md` has the annotated source tree and feature list; `DOCUMENT.md` holds gameplay formulas and the long-form development guide; `ChangeLogs.md` is the release history; `docs/diagrams/` holds the code map and the supperbanner module diagrams. Every diagram is a `.json` source plus generated `.html` / `.visual-check.*` sidecars.
 
-## 项目结构
+## Project Structure
 
-- `app/` 是游戏本体及设置、关于、隐私等用户屏；`developtools/` 是开发设置、助手、API 调试、扫码、联系人、PDF、富文本、二维码、图片详情、手电筒和设备信息等工具屏。两者的 Kotlin 代码在 `src/main/java`，测试在 `src/test`；`app/src/androidTest` 是仪器测试，`src/debug`/`src/release` 放构建变体专属代码。资源和本地化字符串在 `src/main/res`，静态文件在 `src/main/assets`。
-- `richtexteditor/` 只提供 `RichTextEditorView`；`supperbanner/` 提供 `SupperBannerView` 及 config/colors/effect/transition 类型。它们是无游戏依赖的 View 库；`supperbanner` 无字符串，`richtexteditor` 自带 4 套 locale 编辑器字符串。
-- `developtools` 自带字符串（4 套 locale）与主题/基类拷贝，依赖 `supperbanner` 和 `richtexteditor`，禁止反向依赖 `app`；跨模块由 `DevTools` 的 4 个 hook 对接。模块拆分计划见 `docs/develop-settings-module-plan.md`。
-- `build-logic/` 存放共享 Gradle convention plugins；`gradle/` 管理 wrapper 和版本目录；`docs/` 存放架构、模块计划及 AAR 集成说明。图表 HTML 和 visual-check 文件是生成物，只编辑对应 JSON 源文件。
+- `app/` is the game plus user-facing screens (settings, about, privacy); `developtools/` holds the developer and utility screens (develop settings, assistant tools, API debugger, scanner, contacts, PDF, rich text, QR, image details, flashlight, device info). Both keep Kotlin in `src/main/java` and tests in `src/test`; `app/src/androidTest` holds only the generated instrumented-test scaffold, `src/debug`/`src/release` hold variant-only code. Resources and localized strings live in `src/main/res`, static files in `src/main/assets`.
+- `richtexteditor/` provides only `RichTextEditorView`; `supperbanner/` provides `SupperBannerView` plus the config/colors/effect/transition types. Both are game-independent View libraries; `supperbanner` has no strings, `richtexteditor` ships its own 4-locale editor strings.
+- `developtools` ships its own strings (4 locales) and copies of the theme/base classes, depends on `supperbanner` and `richtexteditor`, and must never depend on `app`; cross-module wiring goes through the four `DevTools` hooks. Extraction record: `docs/develop-settings-module-plan.md`.
+- `build-logic/` holds the shared Gradle convention plugins; `gradle/` manages the wrapper and version catalog; `docs/` holds architecture notes, module plans, and AAR integration docs. Diagram `.html` and `visual-check` files are generated — edit the matching `.json` source only.
 
-- JDK 17 + 签入的 Gradle wrapper；`compileSdk 37 / minSdk 31`；版本集中在 `gradle/libs.versions.toml`。勿加 `org.jetbrains.kotlin.android`（AGP 内置 Kotlin），app 仍需 `org.jetbrains.kotlin.plugin.compose`。公共编译配置收敛在 `build-logic`（`aircraft.android.*` 三插件，见 `docs/build-logic-extraction-plan.md`），签名/R8/发布/`generateRepoUpdateConfig` 留在各模块。
-- `settings.gradle.kts` 为 `FAIL_ON_PROJECT_REPOS`：新仓库只能加在 settings，不能加在模块。ViewBinding 已删除、DataBinding 未用；无 DI 框架。
+## Build Configuration
 
-## 命令（仓库根）
+- JDK 17 plus the checked-in Gradle wrapper (never a system Gradle); `compileSdk 37 / minSdk 31`; versions are centralized in `gradle/libs.versions.toml`. Do **not** add `org.jetbrains.kotlin.android` (AGP ships built-in Kotlin), but `:app` still needs `org.jetbrains.kotlin.plugin.compose`. Shared compile setup lives in the `build-logic` included build (the three `aircraft.android.*` convention plugins, see `docs/build-logic-extraction-plan.md`); signing, R8, publishing, and `generateRepoUpdateConfig` stay in the individual modules.
+- `settings.gradle.kts` sets `FAIL_ON_PROJECT_REPOS`: a new repository must go in the settings file, never in a module. View Binding is deleted and Data Binding is unused; there is no DI framework.
+
+## Commands (repository root)
 
 ```bash
-./gradlew assembleDebug lintDebug testDebugUnitTest   # CI 等价（CI 只跑这三个）
-./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ui.GameCoreViewFormulaTest"  # 单测必须挂模块 task，根 task 加 --tests 匹配不到
-./gradlew :app:checkAppLogUsage                       # AppLog 专用检查，也是所有 lint* 的依赖
-./gradlew :supperbanner:publishReleasePublicationToBuildRepoRepository  # 发布 com.young:supperbanner 到 build/repo
+./gradlew assembleDebug lintDebug testDebugUnitTest   # CI-equivalent verification
+./gradlew :app:testDebugUnitTest --tests "com.young.aircraft.ui.GameCoreViewFormulaTest"  # scope --tests to a module task; the root task matches nothing
+./gradlew :developtools:testDebugUnitTest             # tool-screen tests, separate from :app
+./gradlew :app:checkAppLogUsage                       # AppLog-only check, also a dependency of every lint* task
+./gradlew assembleRelease                             # needs root keystore.properties; rewrites app-update.json first
+./gradlew :richtexteditor:assembleRelease             # library AAR under build/outputs/aar/
+./gradlew :supperbanner:assembleRelease               # library AAR under build/outputs/aar/
+./gradlew :supperbanner:publishReleasePublicationToBuildRepoRepository  # publishes com.young:supperbanner to build/repo
+./gradlew test lint                                   # all test variants / all lint variants
 ```
 
-- Release 需要根目录 `keystore.properties`（未跟踪）；`assembleRelease`/`bundleRelease` 前自动重写根目录 `app-update.json`（Remote Config 回落源，`latest=versionName`，`minimum` 可用 `-PminimumVersion=` 抬高），release 后记得把它合到 `main`；`connectedAndroidTest` 已死（仅脚手架），勿依赖。
-- **版本号按十进制递增**（`versionName`）：正常发版 patch +1（1.4.3→1.4.4）；patch 到 9 后进位到 minor（1.4.9→1.5.0）；minor 进位到 9 后再进位到 major（1.9.9→2.0.0），以此类推。`versionCode` 每次发版固定 +1。
+- CI is `.github/workflows/android.yml` (Temurin JDK 17): `assembleDebug lintDebug` in one step, `testDebugUnitTest` in another. Do not infer success from the exit code of a downstream command in a shell pipeline.
+- Release requires the untracked root `keystore.properties`. `assembleRelease`/`bundleRelease` automatically rewrite the root `app-update.json` (the Remote Config fallback source: `latest=versionName`, `minimum` raised via `-PminimumVersion=`); merge the regenerated file into `main` after releasing. `connectedAndroidTest` is dead (scaffold only) — do not rely on it.
+- **Version numbers are decimal with segment rollover** (`versionName`): a normal release bumps patch (1.4.3 → 1.4.4); past 9 the patch rolls into minor (1.4.9 → 1.5.0); past 9 there it rolls into major (1.9.9 → 2.0.0), and so on. `versionCode` increments by exactly 1 per release.
 
-## 架构红线
+## Global Structure
 
-- 游戏引擎是渲染线程封闭，不是 MVVM：`ui/GameCoreView`（SurfaceView + 30 FPS 循环）拥有组合、碰撞、计时、Boss/升级。UI 线程**必须经 `gameCommands.enqueue` 提交**（pause/resume/advanceToNextLevel 皆如此），`post {}` 只是回 UI 线程的回调，不是进游戏线程的队列。`pendingPlayerTouch` 只保留最新一帧。
-- 非游戏屏是普通 Compose + Material3：`gui/` Activity 全 `setContent`；新屏继承 `gui/BaseAircraftActivity`（先 `initializeViewModel`、仅 `if (!isFinishing)` 才 `initializeUI`），`MainActivity` 与 `MandatoryUpdateActivity` 是例外；工具屏用 `:developtools` 内同名同形拷贝。
-- 全部进度写入走 `PlayerGameDataDao.replaceForPlayer()`（跨模式合并的 `@Transaction`），勿改回读-删-插；`finish()` 必须放在 suspend 保存**之后**（参考 `MainActivity`/`PuzzleActivity`），否则 Room 写被取消。Room 无 destructive fallback，缺 migration 直接崩。
-- `GameStateManager` 当前只承载 LOW_MEMORY，其余完成流走 `GameCoreView` 直连回调。网络直接 OkHttp（Retrofit 依赖虽在但无人用），拼图 Bing 源用正则解析。
-- `DebugTools.kt`（在 `:developtools` 内）是 debug/release 双源集（非运行时开关）：加调试屏要同时改两份 + `showDevelopSettings` 门 + 各 Activity 自查 `finish()`；debug 的 `isEnabled` 是 `var`、release 是 `val`，main 里赋值会在 release 编译失败。
+- Startup chain: `PrivacyPolicyAcceptActivity` → `OnboardingActivity` → `LaunchActivity` → `MainActivity`; stored privacy/onboarding flags skip completed gates.
+- `MainActivity` is a deliberate hybrid: the Compose `GameHudOverlay` (pause/resume/quit) is stacked over `AndroidView(factory = { coreView })`, while `GameCoreView.onDraw` still paints the Canvas `drawHeader`. Both HUDs coexist on purpose — never delete either. New game-*surface* work goes in the View; new *chrome* goes in Compose.
+- Combat is ten timed levels with rising kill targets and a boss after each target; the timer pauses during boss fights. "Continue" is a level checkpoint, not a scene snapshot: it restores the saved level, cumulative kills, and jet only — never health, remaining time, or on-screen objects.
+- Services: `MusicService` is a **bound** service (MediaPlayer BGM + SoundPool SFX, not a foreground service); `FlashlightService` lives in `:developtools` as a foreground service and holds a `PARTIAL_WAKE_LOCK` during SOS.
+- Themes: `SettingsRepository` persists six theme ids (green/blue/purple/yellow/red plus `THEME_DYNAMIC`); Compose reads `AircraftTheme`, native UI resolves the shared scheme from the repository.
+- Update chain: `AircraftRemoteConfig` (Firebase, also carrying `AppIcon` and the welcome gating) → `RepoUpdateConfig` reads the root `app-update.json` through jsDelivr `@main` with a raw.githubusercontent fallback → `AircraftApplication`'s `ActivityLifecycleCallbacks` calls `enforceMinimumVersion` from `onActivityResumed` → `MandatoryUpdateActivity`. A malformed version string fails open (treated as "no update needed").
+- Room: `AppDatabase` is at version 2033 and `DatabaseProvider` registers six explicit migrations (2027 → 2033).
+- A new Settings entry needs three edits: the `SettingsDestination` enum, the `navigateTo` `when`, and the row in `SettingsScreen`.
 
-## 易错约定
+## Architecture Red Lines
 
-- 注释与文档一律英文（回复仍用中文）：新增/修改的代码注释、KDoc、Markdown 文档全部用英文，勿写中文注释或中文文档。
-- 日志只用 `AppLog`（`android.util.Log` 仅允许在 `utils/AppLog.kt` 内，`:developtools` 内对应为 `DevLog`/`utils/DevLog.kt`）；lambda 消息用尾随形式，勿写成 `AppLog.d(tag, { … })`。
-- 字符串 4 套 locale（`values/values-zh/values-zh-rTW/values-zh-rHK`）必须齐；`StringResourceTest` 还会 fail 未被引用的默认串（Firebase 白名单 8 个除外），删最后引用即破构建。
-- Robolectric 屏测用 `createAndroidComposeRule` + `@GraphicsMode(NATIVE)`；长列表用高视口（`w420dp-h2000dp`，屏外点击静默无操作）；有转圈指示器的屏**禁 `waitForIdle()`**（会 60s hang）；碰 `AppLog`/`LogSettings`/`DevLog` 的测试固定 `@Config(sdk=[34], application=Application::class)`。
-- 勿用 `!!`；游戏 sprite 保留 `bitmap.density = screenDensity`；QR 解码保留 ZXing 反色 fallback（生成码是亮底暗字）；分享走 `${applicationId}.fileprovider` + `FLAG_GRANT_READ_URI_PERMISSION`。
-- `SupperBannerEffect` 11 个值，加 effect 要同步 enum、`SupperBannerTransformers`、DevelopSettings 映射、4 套 locale。`docs/` 下 `*.html`/`visual-check` 是生成物，只改 `.json`。archify 等图表技能的产物（`.json`/`.html`/`.visual-check.*`）一律存到 `docs/`，勿留仓库根目录。
+- The game engine is render-thread confined, not MVVM: `ui/GameCoreView` (SurfaceView + 30 FPS loop) owns composition, collision, timing, and boss/level progression. The UI thread **must** submit through `gameCommands.enqueue` (pause/resume/advanceToNextLevel all do); `post {}` is only a callback back to the UI thread, not a queue onto the game thread. `pendingPlayerTouch` keeps the newest frame only.
+- Non-game screens are plain Compose + Material3: every `gui/` Activity calls `setContent`; new screens extend `gui/BaseAircraftActivity` (`initializeViewModel` first, then `initializeUI` only `if (!isFinishing)`), with `MainActivity` and `MandatoryUpdateActivity` as the exceptions; tool screens use the same-shaped copy inside `:developtools`.
+- All progress writes go through `PlayerGameDataDao.replaceForPlayer()` (a cross-mode merging `@Transaction`) — do not revert to read-delete-insert; `finish()` must come **after** the suspend save (see `MainActivity`/`PuzzleActivity`), otherwise the Room write is cancelled. Room has no destructive fallback, so a missing migration crashes.
+- `GameStateManager` carries LOW_MEMORY only today; every other completion flow uses direct `GameCoreView` callbacks. Networking is plain OkHttp (Retrofit is declared but unused); the puzzle Bing feed is parsed by regex.
+- `DebugTools.kt` (inside `:developtools`) is a debug/release source-set split, not a runtime flag: adding a debug screen means editing both copies plus the `showDevelopSettings` gate plus each Activity's own `finish()` check. `isEnabled` is a `var` in debug and a `val` in release, so assigning it from `main` compiles in debug and fails in release.
+
+## Conventions and Traps
+
+- Comments and documents are always English (replies stay Chinese): new or modified code comments, KDoc, and Markdown must be English.
+- Log through `AppLog` only (`android.util.Log` is allowed solely inside `utils/AppLog.kt`; `:developtools` mirrors this with `DevLog` in `utils/DevLog.kt`). Keep lambda messages in trailing position — never `AppLog.d(tag, { … })`.
+- The log checks scan `src/main` only (not the debug/release source sets); `:developtools` uses its own `checkDevLogUsage` task.
+- Four locales are mandatory: `values/values-zh/values-zh-rTW/values-zh-rHK`. `StringResourceTest` also fails on default strings that nothing references (minus the 8-entry Firebase whitelist), so deleting the last usage breaks the build.
+- Robolectric screen tests use `createAndroidComposeRule` + `@GraphicsMode(NATIVE)`; long lists need a tall viewport (`w420dp-h2000dp` — off-window clicks silently do nothing); **never call `waitForIdle()`** on a screen with an indeterminate spinner (it hangs for 60s); tests touching `AppLog`/`LogSettings`/`DevLog` must pin `@Config(sdk=[34], application=Application::class)`.
+- No `!!`; keep `bitmap.density = screenDensity` for game sprites; keep ZXing's inverted-source fallback in QR decoding (generated codes are light-on-dark); share files through `${applicationId}.fileprovider` with `FLAG_GRANT_READ_URI_PERMISSION`.
+- `AircraftApplication` applies two app-wide policies through `ActivityLifecycleCallbacks`, so a new Activity inherits them: portrait lock when `smallestScreenWidthDp < 600` (using `SCREEN_ORIENTATION_UNSPECIFIED` on large screens so the user's rotation lock wins), and `FLAG_SECURE` in **release builds only** (debug builds can be screenshotted).
+- Wide-screen content columns use `Modifier.maxContentWidth()` (`ui/WideScreen.kt`, 640dp) — do not invent another width cap.
+- `SupperBannerEffect` has 11 values; adding one means updating the enum, `SupperBannerTransformers`, the DevelopSettings mapping, and all four locales together. Files under `docs/` ending in `.html`/`visual-check` are generated — edit the `.json` only. Archify and similar diagram skills must write their artifacts (`.json`/`.html`/`.visual-check.*`) into `docs/`, never the repository root.

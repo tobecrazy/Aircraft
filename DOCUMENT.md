@@ -7,33 +7,33 @@
 | Category          | Technology                  |
 |-------------------|-----------------------------|
 | Platform          | Android                     |
-| Language          | Kotlin 2.1.20 (bundled with AGP) |
+| Language          | Kotlin 2.4.21 (bundled with AGP) |
 | Min SDK           | 31 (Android 12)             |
-| Target SDK        | 35 (Android 15)             |
-| Compile SDK       | 36                          |
+| Target SDK        | 37                          |
+| Compile SDK       | 37                          |
 | Java Compatibility| 17                          |
 
 ### Build System
 
 | Component              | Version        |
 |------------------------|----------------|
-| Gradle                 | 9.3.1          |
-| Android Gradle Plugin  | 9.1.0          |
-| KSP (Annotation Proc.) | 2.1.20-1.0.32 |
-| Build Tools            | 34.0.0         |
+| Gradle                 | 9.8.0          |
+| Android Gradle Plugin  | 9.4.1          |
+| KSP (Annotation Proc.) | 2.3.11         |
+| Build Tools            | 37.0.0         |
 
 ### Core Libraries
 
 | Library                        | Version  | Purpose                            |
 |--------------------------------|----------|------------------------------------|
-| AndroidX Core KTX              | 1.17.0   | Kotlin extensions for Android APIs |
-| AndroidX AppCompat             | 1.7.1    | Backward-compatible UI components  |
-| Material Components            | 1.13.0   | Material Design UI widgets         |
-| ConstraintLayout               | 2.2.1    | Flexible layout system             |
-| Room (runtime + ktx + compiler)| 2.7.1    | Local SQLite database via ORM      |
-| Lifecycle ViewModel KTX        | 2.10.0   | Lifecycle-aware ViewModel          |
+| AndroidX Core KTX              | 1.19.1   | Kotlin extensions for Android APIs |
+| AndroidX AppCompat             | 1.8.0    | Backward-compatible UI components  |
+| Material Components            | 1.14.0   | Material Design UI widgets         |
+| ConstraintLayout               | 2.2.2    | Flexible layout system             |
+| Room (runtime + ktx + compiler)| 2.8.5    | Local SQLite database via ORM      |
+| Lifecycle ViewModel KTX        | 2.11.0   | Lifecycle-aware ViewModel          |
 | Preference KTX                 | 1.2.1    | Settings/preferences framework     |
-| AndroidX Media                 | 1.7.1    | Media playback support             |
+| AndroidX Media                 | 1.8.0    | Media playback support             |
 
 ### Testing
 
@@ -45,9 +45,9 @@
 
 ### Build Features
 
-- **View Binding** — Type-safe view references
-- **Data Binding** — Declarative layout binding
 - **BuildConfig** — Generated build constants
+
+View Binding is disabled (no XML layouts exist) and Data Binding is unused.
 
 ### Game Engine
 
@@ -87,16 +87,14 @@ Open in Android Studio, sync Gradle, and run on a device/emulator.
 
 ## 3. Key Gotchas
 
-**AGP 9.1 bundles Kotlin.** Do NOT add `org.jetbrains.kotlin.android` as a plugin — it will cause `Cannot add extension with name 'kotlin'` at build time. Only KSP is declared as a separate plugin.
+**AGP 9.x bundles Kotlin.** Do NOT add `org.jetbrains.kotlin.android` as a plugin — it will cause `Cannot add extension with name 'kotlin'` at build time. Only KSP is declared as a separate plugin.
 
 **Two files named `Aircraft.kt` exist.** `data/PlayerAircraft.kt` is the player stats data class (renamed from Aircraft); `ui/Aircraft.kt` is the rendering class. Code disambiguates with:
 ```kotlin
 import com.young.aircraft.data.PlayerAircraft as AircraftData
 ```
 
-**KSP + built-in Kotlin requires a compat flag.** `gradle.properties` must include `android.disallowKotlinSourceSets=false` or KSP source sets will fail to register.
-
-**Room database uses destructive migration.** `AppDatabase` uses `fallbackToDestructiveMigration()`, so schema changes wipe existing data. Version is currently `2028` (chosen as the project year — simply increment when changing the schema).
+**Room has no destructive fallback.** `AppDatabase` is at version `2033` and `DatabaseProvider` registers six explicit migrations (`2027_2028` … `2032_2033`). A schema change without a matching migration crashes on upgrade instead of wiping saves.
 
 **Bullet density must be set.** Both player and enemy bullet bitmaps must have `bitmap.density = screenDensity` or they render at wrong sizes. Both use 25dp bitmaps.
 
@@ -110,7 +108,7 @@ app/src/main/java/com/young/aircraft/
 │   └── AircraftApplication.kt          # Application entry point
 │
 ├── data/                                # ── Data Layer ──
-│   ├── AppDatabase.kt                   # Room database singleton (v2028)
+│   ├── AppDatabase.kt                   # Room database singleton (v2033)
 │   ├── PlayerGameData.kt               # Entity: player_game_data table
 │   ├── PlayerGameDataDao.kt            # DAO: CRUD for game records
 │   ├── Aircraft.kt                      # Data model: player HP & stats
@@ -233,8 +231,10 @@ The entire game runs inside `GameCoreView.run()` on a dedicated thread at 30 FPS
 
 **Callbacks to the Activity (run on main thread via `post {}`):**
 - `onGameOver` — time expired or HP reached 0
-- `onLevelComplete(level)` — kill target met, level < 10
-- `onGameWon` — kill target met on level 10
+- `onLevelComplete(level)` — boss defeated, level < 10
+- `onGameWon` — boss defeated on level 10
+
+Reaching the kill target only spawns the boss; the level ends when the boss is destroyed, and the level timer is paused for the whole boss fight.
 
 ---
 
@@ -314,12 +314,12 @@ Table `player_game_data` (Room entity `PlayerGameData`):
 | level       | Int    | Level reached when game ended    |
 | score       | Long   | `totalKills * 100`               |
 | jet_plane_res | Int  | Selected jet plane sprite        |
-| difficulty  | String | Game difficulty (1.2/1.0/0.8)    |
+| difficulty  | String | Difficulty preset (fire-rate multiplier 1.2/1.0/0.8) |
 | timestamp   | Long   | `System.currentTimeMillis()`     |
 
 ### Behavior
 
-- **One record per player:** `saveGameData()` in `MainActivity` calls `deleteByPlayerId()` before `insert()`, so new records overwrite old ones.
+- **One record per player:** saves go through `PlayerGameDataDao.replaceForPlayer()`, a `@Transaction` that merges the other game mode's fields and replaces the row, so each player keeps a single merged record.
 - **Player ID:** Retrieved via `Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)`.
 - **Saved on:** Both game over (HP = 0 or time expired) and game won (all 10 levels cleared).
 
@@ -333,8 +333,9 @@ Table `player_game_data` (Room entity `PlayerGameData`):
 | `getAllByScoreDesc()`  | All records sorted by score (leaderboard)       |
 | `getTotalScore(id)`   | Sum of all scores for a player                  |
 | `deleteByPlayerId(id)`| Delete all records for a player                 |
+| `replaceForPlayer(data)`| Merge the other mode's fields and replace the row (`@Transaction`, the only save path) |
 
-> **Note:** Because `saveGameData()` always calls `deleteByPlayerId()` before `insert()`, most of these methods only ever operate on a single row per player. The multi-row capabilities (`getByPlayerId`, `getTotalScore`) exist for potential future use but are effectively single-record today.
+> **Note:** Because every save goes through `replaceForPlayer()`, a player only ever has a single row, so the multi-row capabilities (`getByPlayerId`, `getTotalScore`) are effectively single-record today.
 
 ---
 
@@ -352,7 +353,7 @@ lifecycleScope (Room DB)     Level timer checks
 ### Rules
 
 - **Never touch game objects from the main thread.** `GameCoreView` properties like `level`, `enemies`, `drawAircraft` are read/written on the game thread. The main thread communicates via callbacks (`onGameOver`, `onLevelComplete`, `onGameWon`) which use `post {}` to dispatch to the main thread.
-- **`advanceToNextLevel()` is called from the main thread** (from the dialog button click), but it only sets simple flags and clears lists — this is the one intentional cross-thread write.
+- **`advanceToNextLevel()` is called from the main thread** (from the dialog button click) but only enqueues `advanceToNextLevelOnGameThread` onto `gameCommands`; the render loop applies it under the surface lock. Never assign engine state directly from the UI thread.
 - **Room DAO methods are `suspend` functions.** Always call them from a coroutine scope (`lifecycleScope`), never from the game thread.
 - **`MusicService` playback methods are `@Synchronized`.** Safe to call from the game thread (collision handlers) or the main thread.
 - **`SurfaceHolder` is synchronized** in the game loop: `synchronized(surfaceHolder) { onUpdateGameDraw(canvas) }`.
@@ -399,7 +400,7 @@ lifecycleScope (Room DB)     Level timer checks
 2. Copy all string entries from `res/values/strings.xml` and translate them
 3. Android auto-selects the correct file based on device locale. No code changes needed.
 
-Currently supported: English (default `values/`) and Chinese (`values-zh/`).
+Currently supported: English (default `values/`), Simplified Chinese (`values-zh/`), Traditional Chinese — Taiwan (`values-zh-rTW/`), and Traditional Chinese — Hong Kong (`values-zh-rHK/`).
 
 ---
 
@@ -408,7 +409,7 @@ Currently supported: English (default `values/`) and Chinese (`values-zh/`).
 ### Controls
 
 - **Move**: Touch and drag anywhere on the screen to move the player jet.
-- **Fire**: Bullets fire **automatically** every 2 frames — no button needed.
+- **Fire**: Bullets fire **automatically** every 4 frames (`FIRE_INTERVAL`) — no button needed.
 
 ### Objective
 
@@ -462,8 +463,8 @@ The top of the screen shows:
 
 - **Level Failed**: Timer runs out before reaching the kill target → **Game Over**
 - **Player Destroyed**: HP drops to 0 → death explosion → **Game Over**
-- **Level Complete**: Reach the kill target before time runs out → proceed to next level
-- **Victory**: Clear all 10 levels → a name prompt appears (name is logged but not yet saved to the database)
+- **Level Complete**: Reach the kill target before time runs out, then destroy the boss → proceed to next level
+- **Victory**: Clear all 10 levels → a name prompt appears; the chosen name is saved with the score via `saveCurrentProgress(playerName = …)`
 
 ### Game History
 

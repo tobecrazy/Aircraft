@@ -9,28 +9,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project and Documentation
 
-Aircraft is a Kotlin Android vertical-scrolling shooter. Four Gradle modules: `:app` holds the game and the user-facing screens (settings/about/privacy/history/puzzle); `:developtools` holds every developer/utility screen (Develop hub, assistant tools, API debugger, scanner, contacts, PDF, rich-text, QR, image details, flashlight, device info, plus the DeveloperMode/DebugTools gate, DevLog/LogSettings, and the ApiHistoryStore contract); `:richtexteditor` (one class, `RichTextEditorView.kt`) and `:supperbanner` (six classes) are reusable plain-Android-View libraries consumed by the app and `:developtools`, and distributable as AARs. `:developtools` never depends on `:app` — the host bridge is `DevTools` (four hooks wired in `AircraftApplication`). See [docs/develop-settings-module-plan.md](docs/develop-settings-module-plan.md) for the extraction record.
+Aircraft is a Kotlin Android vertical-scrolling shooter. Four Gradle modules: `:app` holds the game and the user-facing screens (settings/about/privacy/history/puzzle); `:developtools` holds every developer/utility screen (Develop hub, assistant tools, API debugger, scanner, contacts, PDF, rich-text, QR, image details, flashlight, device info, plus the DeveloperMode/DebugTools gate, DevLog/LogSettings, and the ApiHistoryStore contract); `:richtexteditor` (one class, `RichTextEditorView.kt`) and `:supperbanner` (eight public types across six files) are reusable plain-Android-View libraries consumed by the app and `:developtools`, and distributable as AARs. `:developtools` never depends on `:app` — the host bridge is `DevTools` (four hooks wired in `AircraftApplication`). See [docs/develop-settings-module-plan.md](docs/develop-settings-module-plan.md) for the extraction record.
 
 - [README.md](README.md): project overview, features, downloads, and a full annotated source tree.
 - [DOCUMENT.md](DOCUMENT.md): detailed gameplay formulas and development documentation.
 - [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md): editor integration and AAR usage.
 - [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md): banner carousel integration and AAR publishing.
 - [docs/puzzle-game-redesign-plan.md](docs/puzzle-game-redesign-plan.md): working plan explaining *why* the puzzle scoring code looks the way it does. Read it before changing that area.
-- `docs/` also holds generated architecture artifacts: `aircraft-architecture.*`, `boss-combat-workflow.*`, `pdf-reader-dataflow.*`, `startup-flow.*`, `release-process.*`, `remote-update-chain.*`, `remote-update-enforcement.*`, and `about-manual-update-check.*` at the top level, plus `aircraft-code-map.*` and `supperbanner-module.*` under `docs/diagrams/`. Each is a `.json` source plus a rendered `.html` and `.visual-check.*` screenshots. They are committed but machine-generated; edit the `.json`, not the `.html`.
+- `docs/` also holds generated architecture artifacts: `aircraft-arch.json` (rendered to `aircraft-architecture.*`), `boss-combat-workflow.*`, `pdf-reader-dataflow.*`, `startup-flow.*`, `release-process.*`, `remote-update-chain.*`, `remote-update-enforcement.*`, and `about-manual-update-check.*` at the top level, plus `aircraft-code-map.*` and `supperbanner-module.*` under `docs/diagrams/`. Each is a `.json` source plus a rendered `.html` and `.visual-check.*` screenshots. They are committed but machine-generated; edit the `.json`, not the `.html`.
 - **Archify (and any diagram-generation skill) output must be written into `docs/`** — set `meta.output` to a `docs/…` path (or pass it on the command line) and keep the `.json` source, rendered `.html`, and `.visual-check.*` sidecars together there. Never leave generated diagrams at the repository root.
-- [.github/copilot-instructions.md](.github/copilot-instructions.md): additional repository guidance, **several claims of which are wrong** — see the stale-documentation list below. No Cursor rules exist.
+- [.github/copilot-instructions.md](.github/copilot-instructions.md): condensed repository guidance, re-checked against the code on 2026-10-21. No Cursor rules exist.
 - `AGENTS.md` 是面向 OpenCode 的精简版（本文件是完整手册）；改精简规则只改 `AGENTS.md`，改完整事实同步两份。
 
-### Documentation that contradicts the code
+### Architecture facts that older docs got wrong
 
-Verify against code before propagating any of these:
+These were corrected in `README.md` and `.github/copilot-instructions.md` on 2026-10-21; re-check the code before trusting an older copy of either:
 
-- Copilot says the repo has two modules; there are **four** (`:supperbanner` and `:developtools` were extracted).
-- README/Copilot describe puzzle gates interleaved between combat levels; `MainActivity.onLevelComplete` saves the next level then calls `coreView.advanceToNextLevel()` directly (`MainActivity.kt:201`). `PuzzleActivity` is a separate Settings entry with its own ten-level progression.
-- Copilot says Room uses `fallbackToDestructiveMigration(true)`; `DatabaseProvider` registers six explicit migrations and **no** fallback, so a missing migration crashes rather than wiping saves.
-- Copilot says many screens use ViewBinding/XML and lists only `values/` + `values-zh/` locales. Both are false — see Conventions below.
-- Copilot frames `GameStateManager` as *the* cross-screen bus carrying pause/game-over/win; in practice only low-memory arrives through that flow. Pause, game-over, level-complete, and win use direct `GameCoreView` callbacks.
-- `gui/GameHudScreen.kt` holds the **live** Compose HUD: `MainActivity.setContent` stacks `GameHudOverlay(state = hudState, …)` in a `Box` over `AndroidView(factory = { coreView })` (`MainActivity.kt:153`). It owns pause/resume/quit — do not delete or bypass it. The Canvas HUD is **not** replaced: `GameCoreView.onDraw` still calls `drawHeader(canvas)` (`ui/DrawHeader.kt` via `ui/GameHudFormatter.kt`), so the two coexist deliberately.
+- Four modules, not two — `:supperbanner` and `:developtools` were extracted.
+- Combat progression is linear: `MainActivity.onLevelComplete` saves the next level then calls `coreView.advanceToNextLevel()` directly (`MainActivity.kt:206`). `PuzzleActivity` is a separate Settings entry with its own ten-level progression; no puzzle gate sits between combat levels.
+- `DatabaseProvider` registers six explicit migrations and **no** destructive fallback, so a missing migration crashes rather than wiping saves.
+- No XML layouts and no ViewBinding; there are four locales, not two.
+- `GameStateManager` carries low-memory only. Pause, game-over, level-complete, and win use direct `GameCoreView` callbacks.
+- `gui/GameHudScreen.kt` holds the **live** Compose HUD: `MainActivity.setContent` stacks `GameHudOverlay(state = hudState, …)` in a `Box` over `AndroidView(factory = { coreView })` (`MainActivity.kt:155-156`). It owns pause/resume/quit — do not delete or bypass it. The Canvas HUD is **not** replaced: `GameCoreView.onDraw` still calls the private `drawHeader(canvas)`, which delegates to the `DrawHeader` field (`ui/DrawHeader.kt`, formatted through `ui/GameHudFormatter.kt`), so the two coexist deliberately.
 - `SupperBannerEffect` has **11** values (NONE, FADE, ZOOM_OUT, DEPTH, CUBE, ROTATION_GATE, COVERFLOW, STACK, PARALLAX, ACCORDION, SHADER — `supperbanner/.../SupperBannerTransition.kt`), each backed by one `develop_settings_supper_banner_effect_*` string (11 per locale × 4 locales). Adding an effect means touching the enum, `SupperBannerTransformers`, the DevelopSettings `when` mapping, and all four locales together.
 
 ## Build, Lint, and Tests
@@ -56,14 +56,14 @@ Run from the repository root:
 ./gradlew assembleDebug lintDebug testDebugUnitTest  # CI-equivalent verification
 ```
 
-Scope `--tests` to a **module** task (`:app:testDebugUnitTest`), not the root `testDebugUnitTest`: the root task does not contain the app test classes, so scoping there matches nothing. Unit tests live in `app/src/test` (game/user screens) and `developtools/src/test` (all tool screens, run with `:developtools:testDebugUnitTest`), plus 1 in `:richtexteditor` and 3 in `:supperbanner`. `connectedAndroidTest` is effectively dead — `app/src/androidTest` holds only the generated `ExampleInstrumentedTest` scaffold, though the `espresso-core` dependency is still declared. Unit tests use JUnit, Robolectric, Mockito, and Compose UI testing; `testOptions.unitTests.isIncludeAndroidResources = true` is set per module.
+Scope `--tests` to a **module** task (`:app:testDebugUnitTest`), not the root `testDebugUnitTest`: the root task does not contain the app test classes, so scoping there matches nothing. Unit tests live in `app/src/test` (game/user screens) and `developtools/src/test` (all tool screens, run with `:developtools:testDebugUnitTest`), plus 1 in `:richtexteditor` and 3 in `:supperbanner`. `connectedAndroidTest` is effectively dead — `app/src/androidTest` holds only the generated `ExampleInstrumentedTest` scaffold, though the `espresso-core` dependency is still declared. Unit tests use JUnit, Robolectric, Mockito, and Compose UI testing; `testOptions.unitTests.isIncludeAndroidResources = true` is set by the `build-logic` convention plugins for every module.
 
 `.github/workflows/android.yml` runs debug assembly, lint, and unit tests on pushes/PRs to `main`, with Temurin JDK 17. Do not infer Gradle success from the exit code of a downstream command in a shell pipeline — grep for `BUILD SUCCESSFUL` or check `${PIPESTATUS[0]}`.
 
 ### Build Configuration and Prerequisites
 
 - JDK 17; use the checked-in Gradle wrapper, not a system Gradle. Configure the Android SDK via `local.properties` or the environment.
-- Kotlin DSL; dependency and plugin versions are centralized in `gradle/libs.versions.toml`. AGP uses built-in Kotlin: do **not** add `org.jetbrains.kotlin.android`; Compose entry points apply `org.jetbrains.kotlin.plugin.compose` through the `aircraft.android.compose` / `aircraft.android.application` convention plugins. The single `kotlin` catalog ref backs both the `kotlin-compose` plugin alias and the root `build.gradle.kts` `kotlin-gradle-plugin` buildscript pin (unified from a `2.4.20` vs `2.4.10` split; resolution already picked `2.4.20`). Shared compile setup (SDK levels, Java 17, `unitTests.isIncludeAndroidResources`, Compose switch + BOM platform, AppLog/DevLog usage checks) lives in the `build-logic` included build — see `docs/build-logic-extraction-plan.md`. Signing, R8, `supperbanner` publishing, and `generateRepoUpdateConfig` stay in their modules.
+- Kotlin DSL; dependency and plugin versions are centralized in `gradle/libs.versions.toml`. AGP uses built-in Kotlin: do **not** add `org.jetbrains.kotlin.android`; Compose entry points apply `org.jetbrains.kotlin.plugin.compose` through the `aircraft.android.compose` / `aircraft.android.application` convention plugins. The `kotlin` catalog ref (`2.4.21`) backs the `kotlin-compose` plugin alias, while the root `build.gradle.kts` still hard-codes `kotlin-gradle-plugin:2.4.20` on the buildscript classpath — the two pins are not unified; keep them in step when bumping Kotlin. Shared compile setup (SDK levels, Java 17, `unitTests.isIncludeAndroidResources`, Compose switch + BOM platform, AppLog/DevLog usage checks) lives in the `build-logic` included build — see `docs/build-logic-extraction-plan.md`. Signing, R8, `supperbanner` publishing, and `generateRepoUpdateConfig` stay in their modules.
 - All four modules: compileSdk 37, minSdk 31. The app targets 37 and pins `buildToolsVersion = "37.0.0"`; the libraries rely on the AGP default.
 - App ID/namespace `com.young.aircraft`; library namespace `com.young.richtext`.
 - The app enables Compose and BuildConfig. **View Binding is disabled** (removed in `a6c3b6b`; no binding classes exist) and Data Binding is not used.
@@ -100,10 +100,10 @@ Engine state is confined to the render thread; other threads never mutate game o
 
 ### Services
 
-`service/` holds two unrelated components, both of which must outlive the screen that starts them:
+Two unrelated service components must outlive the screen that starts them; they live in different modules:
 
-- `MusicService` is a **bound** service (`MediaPlayer` for BGM, `SoundPool` for SFX) with synchronized playback methods. It is not a foreground service.
-- `FlashlightService` owns the camera torch as a foreground service with `FOREGROUND_SERVICE_TYPE_CAMERA`, and holds a `PARTIAL_WAKE_LOCK` (`Aircraft::FlashlightSos`) during SOS so blink pacing stays accurate with the screen off. It promotes to foreground *before* touching the torch — required within 5s of `startForegroundService`, and it needs the `FOREGROUND_SERVICE_CAMERA` + `WAKE_LOCK` + `POST_NOTIFICATIONS` permissions, declared in both the app and the `:developtools` manifests (merger dedupes them).
+- `MusicService` (`app/.../service/`) is a **bound** service (`MediaPlayer` for BGM, `SoundPool` for SFX) with synchronized playback methods. It is not a foreground service.
+- `FlashlightService` (`developtools/.../service/`) owns the camera torch as a foreground service with `FOREGROUND_SERVICE_TYPE_CAMERA`, and holds a `PARTIAL_WAKE_LOCK` (`Aircraft::FlashlightSos`) during SOS so blink pacing stays accurate with the screen off. It promotes to foreground *before* touching the torch — required within 5s of `startForegroundService`, and it needs the `FOREGROUND_SERVICE_CAMERA` + `WAKE_LOCK` + `POST_NOTIFICATIONS` permissions, declared in both the app and the `:developtools` manifests (merger dedupes them).
 
 ### Theme and Transient UI
 
@@ -235,5 +235,5 @@ Page transitions are `ViewPager2.PageTransformer` instances built by the interna
 - Distinguish `data/PlayerAircraft.kt` (usually imported as `AircraftData`) from the rendered `ui/Aircraft.kt`.
 - Preserve `bitmap.density = screenDensity` for game sprites, or Canvas scaling will be wrong.
 - Generated QR codes are light-on-dark. Keep ZXing's inverted-source fallback when decoding them (`decodeQrFromBitmap` in `QRCodeToolActivity`). Picked images decode via ZXing; live scanning is `CameraScanActivity` (CameraX `MlKitAnalyzer`), a debug-only entry from `DevelopSettingsActivity`.
-- File sharing uses the existing `${applicationId}.fileprovider`, `res/xml/file_paths.xml`, and `FilePickerHelper`; share content URIs with `FLAG_GRANT_READ_URI_PERMISSION`.
+- File sharing uses the existing `${applicationId}.fileprovider` and `res/xml/file_paths.xml` in `:app`, plus `FilePickerHelper` in `:developtools/utils/`; share content URIs with `FLAG_GRANT_READ_URI_PERMISSION`.
 - `common/AircraftApplication` applies two app-wide policies in `ActivityLifecycleCallbacks`, so a new Activity inherits them for free. **Portrait lock** when `smallestScreenWidthDp < 600`, using `SCREEN_ORIENTATION_UNSPECIFIED` (not `FULL_USER`) on large screens so the user's rotation lock wins. **`FLAG_SECURE` in release builds only** — it is inside an `if (!BuildConfig.DEBUG)` block, so debug builds *can* be screenshotted; the reverse of what you may assume when a screenshot test mysteriously works. It also turns `onLowMemory` into `GameStateManager.emit(GameState.LOW_MEMORY)`.
