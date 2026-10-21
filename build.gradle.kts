@@ -11,10 +11,11 @@ plugins {
 // libs.versions.toml; Kotlin 2.0+ ships the Compose compiler with Kotlin itself).
 // The pin below puts that KGP on the buildscript classpath so AGP's compose
 // mapping tasks can resolve a matching compose-group-mapping artifact.
+// It must track the `kotlin` version in libs.versions.toml — bump both together.
 buildscript {
     dependencies {
         //noinspection UseTomlInstead
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.20")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.21")
     }
 }
 
