@@ -52,6 +52,9 @@
 # ============================================================
 # OkHttp / Firebase (both ship their own consumer rules)
 # ============================================================
--dontwarn okhttp3.**
--dontwarn okio.**
--dontwarn com.google.firebase.**
+# No -dontwarn rules are declared here: the former
+# `-dontwarn okhttp3.**` / `-dontwarn okio.**` /
+# `-dontwarn com.google.firebase.**` lines were redundant. With them
+# removed the release R8 run reports no missing classes at all (no
+# missing_rules.txt is produced), and the dependencies already
+# contribute their own -dontwarn entries.
