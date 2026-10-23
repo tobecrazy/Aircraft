@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Welcome dialog text is now localized: the `{{welcome_message}}` placeholder (Firebase Remote Config `welcome_message` parameter default and the generated `app-update.json` `welcomeMessage`) resolves to the new `welcome_message` string resource in all four locales, so the remote config no longer needs per-language text
+
 ## [1.5.5] - 2026-10-21
 
 ### Added

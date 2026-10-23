@@ -8,6 +8,7 @@
     <string name="theme_dynamic">Dynamic (system)</string>
     <string name="app_name">Aircraft</string>
     <string name="remote_welcome_title">Information</string>
+    <string name="welcome_message">Aircraft is a Kotlin-based Android vertical-scrolling airplane shooter featuring ten aerial combat levels, a puzzle mode, a leaderboard, and publishable rich-text and carousel gallery modules.</string>
     <string name="exit_warning_msg">Press again to save and exit</string>
     <string name="pause_title">GAME PAUSED</string>
     <string name="pause_resume">RESUME</string>

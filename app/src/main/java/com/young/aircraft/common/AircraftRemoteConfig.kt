@@ -36,14 +36,23 @@ object AircraftRemoteConfig {
     const val LATEST_VERSION_PARAMETER = "latest_version"
     const val UPDATE_URL_PARAMETER = "update_url"
     const val APP_ICON_PARAMETER = "AppIcon"
-    private const val DEFAULT_MINIMUM_VERSION = "1.4.1"
+    const val WELCOME_MESSAGE_PARAMETER = "welcome_message"
+    private const val DEFAULT_MINIMUM_VERSION = "1.5.0"
+
+    /**
+     * Placeholder accepted in Firebase Remote Config and app-update.json.
+     * It means "use the bundled, localized [com.young.aircraft.R.string.welcome_message]",
+     * so a single remote value renders correctly in every language.
+     */
+    const val WELCOME_MESSAGE_PLACEHOLDER = "{{welcome_message}}"
 
     private val defaults: Map<String, Any> = mapOf(
         TOKEN_CONFIG_PARAMETER to """{"id":0,"name":"","createdAt":"1970-01-01T00:00:00Z","expiringAt":"1970-01-01T00:00:00Z","enable":false}""",
         MINIMUM_VERSION_PARAMETER to DEFAULT_MINIMUM_VERSION,
         LATEST_VERSION_PARAMETER to "",
         UPDATE_URL_PARAMETER to "",
-        APP_ICON_PARAMETER to DEFAULT_APP_ICON_VARIANT.toString()
+        APP_ICON_PARAMETER to DEFAULT_APP_ICON_VARIANT.toString(),
+        WELCOME_MESSAGE_PARAMETER to ""
     )
     private var updateRegistration: ConfigUpdateListenerRegistration? = null
     private var initializationStarted = false
@@ -165,6 +174,18 @@ object AircraftRemoteConfig {
 
     fun getUpdateUrl(): String = getString(UPDATE_URL_PARAMETER)
 
+    /**
+     * Welcome text: the dedicated `welcome_message` parameter wins, then the
+     * token JSON field for configs that still embed the text there. The result
+     * may be [WELCOME_MESSAGE_PLACEHOLDER]; callers resolve it with
+     * [resolveWelcomeMessage] against the localized bundled string.
+     */
+    fun getWelcomeMessage(): String {
+        val parameter = getString(WELCOME_MESSAGE_PARAMETER)
+        if (parameter.isNotBlank()) return parameter
+        return getTokenConfig()?.welcomeMessage.orEmpty()
+    }
+
     /** Launcher icon variant from Remote Config; invalid values use the bundled default icon. */
     fun getAppIconVariant(): Int = parseAppIconVariant(getString(APP_ICON_PARAMETER))
 
@@ -226,6 +247,20 @@ object AircraftRemoteConfig {
 
 internal fun parseAppIconVariant(value: String): Int = value.trim().toIntOrNull()
     ?.takeIf { it in 1..5 } ?: DEFAULT_APP_ICON_VARIANT
+
+/**
+ * Resolves the configured welcome text: a blank value or
+ * [AircraftRemoteConfig.WELCOME_MESSAGE_PLACEHOLDER] falls back to the
+ * localized [localMessage] bundle entry, anything else is shown verbatim.
+ */
+internal fun resolveWelcomeMessage(configured: String, localMessage: String): String {
+    val trimmed = configured.trim()
+    return if (trimmed.isEmpty() || trimmed == AircraftRemoteConfig.WELCOME_MESSAGE_PLACEHOLDER) {
+        localMessage
+    } else {
+        configured
+    }
+}
 
 internal fun parseRemoteTokenConfig(json: String): RemoteTokenConfig? = try {
     val value = JSONObject(json)

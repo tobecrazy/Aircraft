@@ -3,6 +3,6 @@
   "latest_version": "1.5.5",
   "update_url": "https://github.com/tobecrazy/Aircraft/releases/tag/V1.5.5",
   "app_icon": 2,
-  "welcomeMessage": "Aircraft 是一款 Kotlin Android 纵版飞行射击游戏，含十关空战与拼图模式、排行榜，以及可发布的富文本与轮播图库模块。",
+  "welcomeMessage": "{{welcome_message}}",
   "showWelcome": true
 }

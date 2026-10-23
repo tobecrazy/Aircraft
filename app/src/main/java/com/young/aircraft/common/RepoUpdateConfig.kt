@@ -32,8 +32,9 @@ data class RepoUpdateConfig(
     // Mirrors the Firebase `AppIcon` parameter (1..5, invalid falls back to 1
     // via parseAppIconVariant, same as the Remote Config logic).
     val appIcon: String = "",
-    // Mirrors the token-config welcome gating (showWelcome && non-blank
-    // welcomeMessage, same as AircraftApplication.showWelcomeDialog).
+    // Mirrors the token-config welcome gating (showWelcome only; the message
+    // may be blank or the {{welcome_message}} placeholder so the dialog can
+    // fall back to the localized bundled string).
     val welcomeMessage: String = "",
     val showWelcome: Boolean = false
 )
@@ -126,16 +127,20 @@ object RepoUpdateConfigStore {
         return AircraftRemoteConfig.getAppIconVariant()
     }
 
-    /** Welcome message: Firebase token config wins when it enables the
-     * welcome dialog, otherwise the repo JSON fallback applies with the same
-     * gating (showWelcome && non-blank message). */
+    /**
+     * Welcome message: Firebase (the dedicated `welcome_message` parameter or
+     * the token config) wins when it enables the welcome dialog, otherwise the
+     * repo JSON fallback applies with the same `showWelcome` gating. The text
+     * may be [AircraftRemoteConfig.WELCOME_MESSAGE_PLACEHOLDER]; the dialog
+     * resolves it to the localized bundled string via `resolveWelcomeMessage`.
+     */
     fun getWelcomeMessage(): String {
         val tokenConfig = AircraftRemoteConfig.getTokenConfig()
-        if (tokenConfig != null && tokenConfig.showWelcome && tokenConfig.welcomeMessage.isNotBlank()) {
-            return tokenConfig.welcomeMessage
+        if (tokenConfig != null && tokenConfig.showWelcome) {
+            return AircraftRemoteConfig.getWelcomeMessage()
         }
         val repo = cached
-        if (repo != null && repo.showWelcome && repo.welcomeMessage.isNotBlank()) {
+        if (repo != null && repo.showWelcome) {
             return repo.welcomeMessage
         }
         return ""

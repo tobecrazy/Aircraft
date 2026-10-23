@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Welcome Message Resolution",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "happy-path", "label": "Resume to dialog", "focus": ["resume", "gate", "firebase", "resolve", "dialog"], "note": "The welcome dialog opens only after the update gate clears." },
+      { "id": "localized", "label": "Placeholder to bundled string", "focus": ["firebase", "resolve", "dialog"], "note": "Blank or {{welcome_message}} renders the four-locale bundled string." },
+      { "id": "forced-update", "label": "Forced update branch", "focus": ["gate", "mandatory"], "note": "A build below the minimum version defers the welcome dialog." }
+    ]
+  },
+  "lanes": [
+    { "id": "app", "label": "App + Update Gate" },
+    { "id": "welcome", "label": "Remote Config + Welcome" }
+  ],
+  "phases": [
+    { "id": "trigger", "label": "Foreground entry", "fromCol": 0, "toCol": 1 },
+    { "id": "lookup", "label": "Config lookup", "fromCol": 2, "toCol": 2, "variant": "emphasis" },
+    { "id": "resolve", "label": "Resolve text", "fromCol": 3, "toCol": 3 },
+    { "id": "show", "label": "Show once", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["resume", "gate", "firebase", "resolve", "dialog"],
+  "nodes": [
+    { "id": "resume", "lane": "app", "col": 0, "type": "frontend", "label": "App Resume", "sublabel": "non-combat activity", "tag": "resumed" },
+    { "id": "gate", "lane": "app", "col": 1, "type": "security", "label": "Update Gate", "sublabel": "minimum + optional", "tag": "blocks" },
+    { "id": "mandatory", "lane": "app", "col": 3, "type": "security", "label": "Force Update", "sublabel": "MandatoryUpdateActivity", "tag": "deferred" },
+    { "id": "firebase", "lane": "welcome", "col": 2, "type": "cloud", "label": "Remote Config", "sublabel": "welcome_message", "tag": "showWelcome" },
+    { "id": "resolve", "lane": "welcome", "col": 3, "type": "backend", "label": "Resolve Text", "sublabel": "placeholder to local", "tag": "resolver" },
+    { "id": "dialog", "lane": "welcome", "col": 5, "type": "frontend", "label": "Themed Dialog", "sublabel": "shown once per process", "tag": "alert" }
+  ],
+  "edges": [
+    { "from": "resume", "to": "gate" },
+    { "from": "gate", "to": "firebase", "label": "update cleared", "route": "drop", "fromSide": "bottom", "toSide": "top", "labelDy": 12 },
+    { "from": "gate", "to": "mandatory", "label": "below minimum", "variant": "security", "role": "error" },
+    { "from": "firebase", "to": "resolve", "label": "showWelcome", "variant": "emphasis", "labelDy": -28 },
+    { "from": "resolve", "to": "dialog", "label": "localized text", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Localized by Default", "items": ["Blank values and the {{welcome_message}} placeholder render R.string.welcome_message", "English, Simplified, Taiwan and Hong Kong Traditional ship together"] },
+    { "dot": "cyan", "title": "Remote Override", "items": ["A literal remote value is still shown verbatim", "app-update.json mirrors the placeholder when Firebase is unreachable"] },
+    { "dot": "amber", "title": "Show-Once Gating", "items": ["Token messages dedupe by config id, repo messages by resolved text", "Combat and forced-update screens defer the dialog to the next resume"] }
+  ]
+}

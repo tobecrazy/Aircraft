@@ -50,6 +50,25 @@ class AircraftRemoteConfigTest {
     }
 
     @Test
+    fun `parses optional welcome fields from token JSON`() {
+        val config = parseRemoteTokenConfig(
+            """{"id":7,"name":"tokenName","createdAt":"2026-10-05T14:31:11Z","expiringAt":"2029-10-05T14:31:11Z","enable":true,"welcomeMessage":"{{welcome_message}}","showWelcome":true}"""
+        )
+
+        assertEquals("{{welcome_message}}", config?.welcomeMessage)
+        assertTrue(config?.showWelcome == true)
+    }
+
+    @Test
+    fun `welcome placeholder and blank values fall back to the localized message`() {
+        assertEquals("localized", resolveWelcomeMessage("", "localized"))
+        assertEquals("localized", resolveWelcomeMessage("   ", "localized"))
+        assertEquals("localized", resolveWelcomeMessage("{{welcome_message}}", "localized"))
+        assertEquals("localized", resolveWelcomeMessage(" {{welcome_message}} ", "localized"))
+        assertEquals("Remote text", resolveWelcomeMessage("Remote text", "localized"))
+    }
+
+    @Test
     fun `compares numeric version components instead of strings`() {
         assertTrue(compareAppVersions("1.10.0", "1.2.0")!! > 0)
         assertTrue(compareAppVersions("1.3.5", "1.3.6")!! < 0)

@@ -1,5 +1,6 @@
 package com.young.aircraft
 
+import com.young.aircraft.common.AircraftRemoteConfig
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -29,6 +30,20 @@ class StringResourceTest {
                     )
                 }
             }
+    }
+
+    @Test
+    fun testWelcomePlaceholderReferencesABundledString() {
+        val projectDir = findProjectRoot()
+        val resDir = File(projectDir, "app/src/main/res")
+        val defaultStrings = loadStringsFromXml(File(resDir, "values/strings.xml"))
+
+        val placeholder = AircraftRemoteConfig.WELCOME_MESSAGE_PLACEHOLDER
+        val referencedKey = placeholder.removePrefix("{{").removeSuffix("}}")
+        assertTrue(
+            "Welcome placeholder $placeholder does not match a bundled string",
+            referencedKey in defaultStrings
+        )
     }
 
     @Test

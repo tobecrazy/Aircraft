@@ -8,6 +8,7 @@
     <string name="theme_dynamic">动态（跟随系统）</string>
     <string name="app_name">飞机大战</string>
     <string name="remote_welcome_title">消息通知</string>
+    <string name="welcome_message">Aircraft 是一款使用 Kotlin 编写的 Android 纵版飞行射击游戏，包含十关空战、拼图模式、排行榜，以及可发布的富文本与轮播图库模块。</string>
     <string name="exit_warning_msg">再按一次保存进度并退出</string>
     <string name="pause_title">游戏暂停</string>
     <string name="pause_resume">继续</string>

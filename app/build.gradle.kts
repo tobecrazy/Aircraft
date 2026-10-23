@@ -87,9 +87,11 @@ val generateRepoUpdateConfig = tasks.register("generateRepoUpdateConfig") {
     val outputFile = rootProject.file("app-update.json")
     val appVersionName = android.defaultConfig.versionName as String
     val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.5.0"
-    val appIcon = (findProperty("appIcon") as String?) ?: "2"
+    val appIcon = (findProperty("appIcon") as String?) ?: "1"
+    // The {{welcome_message}} placeholder keeps app-update.json language-neutral:
+    // clients resolve it to the localized R.string.welcome_message at runtime.
     val welcomeMessage = (findProperty("welcomeMessage") as String?)
-        ?: "Aircraft 是一款 Kotlin Android 纵版飞行射击游戏，含十关空战与拼图模式、排行榜，以及可发布的富文本与轮播图库模块。"
+        ?: "{{welcome_message}}"
     val showWelcome = ((findProperty("showWelcome") as String?) ?: "true").toBooleanStrictOrNull() ?: true
     inputs.property("versionName", appVersionName)
     inputs.property("minimumVersion", floorVersion)
