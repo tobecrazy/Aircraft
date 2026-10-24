@@ -162,6 +162,11 @@ UA：%5$s
     <string name="camera_scan_open_settings">打开设置</string>
     <string name="camera_scan_retry">重试</string>
     <string name="camera_scan_rescan">重新扫描</string>
+    <string name="camera_scan_front">前置</string>
+    <string name="camera_scan_rear">后置</string>
+    <string name="camera_scan_switch_to_front">切换到前置摄像头</string>
+    <string name="camera_scan_switch_to_rear">切换到后置摄像头</string>
+    <string name="camera_scan_front_unavailable">此设备没有可用的前置摄像头。</string>
     <string name="develop_settings_notification_dialog_title">创建通知？</string>
     <string name="develop_settings_notification_dialog_message">创建一条点击后打开 QR Code Tool 的通知。</string>
     <string name="develop_settings_notification_dialog_ok">OK</string>

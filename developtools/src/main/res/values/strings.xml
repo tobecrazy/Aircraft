@@ -162,6 +162,11 @@ Installed browsers:
     <string name="camera_scan_open_settings">Open Settings</string>
     <string name="camera_scan_retry">Retry</string>
     <string name="camera_scan_rescan">Rescan</string>
+    <string name="camera_scan_front">Front</string>
+    <string name="camera_scan_rear">Rear</string>
+    <string name="camera_scan_switch_to_front">Switch to front camera</string>
+    <string name="camera_scan_switch_to_rear">Switch to rear camera</string>
+    <string name="camera_scan_front_unavailable">No front camera available on this device.</string>
     <string name="develop_settings_notification_dialog_title">Create notification?</string>
     <string name="develop_settings_notification_dialog_message">Create a notification that opens the QR Code Tool.</string>
     <string name="develop_settings_notification_dialog_ok">OK</string>
