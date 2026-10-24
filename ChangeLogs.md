@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Debug tool: `CameraScanActivity` gains a bank-card mode alongside the QR scanner. It runs bundled ML Kit text recognition on CameraX analysis frames, sends only OCR text to the ML Kit GenAI Prompt API (Gemini Nano, structured output), and accepts a PAN only after local 12–19-digit, OCR-source, and Luhn validation. The masked PAN is shown by default; copying the full number marks the clipboard entry sensitive. Model availability, download, scanning, failure, and rescan states are localized in all four locales, and the GenAI client is closed with its ViewModel. A header button switches between the rear and front cameras and falls back to the rear camera when no front camera exists. When AICore, Gemini Nano, or structured output is unavailable, card mode falls back to local OCR extraction with the same 12–19-digit, OCR-source, and Luhn checks, so it also works on emulators and unsupported devices
+
 ### Changed
 - Welcome dialog text is now localized: the `{{welcome_message}}` placeholder (Firebase Remote Config `welcome_message` parameter default and the generated `app-update.json` `welcomeMessage`) resolves to the new `welcome_message` string resource in all four locales, so the remote config no longer needs per-language text
 

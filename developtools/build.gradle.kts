@@ -3,6 +3,7 @@ import aircraft.buildlogic.registerLogCheck
 plugins {
     id("aircraft.android.library")
     id("aircraft.android.compose")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -45,6 +46,11 @@ dependencies {
     implementation(libs.camera.view)
     implementation(libs.camera.mlkit.vision)
     implementation(libs.mlkit.barcode.scanning)
+    implementation(libs.mlkit.text.recognition)
+    implementation(libs.mlkit.genai.prompt)
+    // Structured output parses the @Generable card result class at runtime; KSP
+    // emits the schema provider that the Prompt API looks up.
+    ksp(libs.mlkit.genai.schema.compiler)
 
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)

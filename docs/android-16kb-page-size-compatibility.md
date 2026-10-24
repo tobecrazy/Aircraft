@@ -12,6 +12,7 @@ The pre-fix release merge report at `app/build/intermediates/merged_native_libs_
 | `libsurface_util_jni.so` | `androidx.camera:camera-core` | 1.6.2 |
 | `libimage_processing_util_jni.so` | `androidx.camera:camera-core` | 1.6.2 |
 | `libbarhopper_v3.so` | `com.google.mlkit:barcode-scanning` | 17.3.0 |
+| `libmlkit_google_ocr_pipeline.so` | `com.google.mlkit:text-recognition` | 16.0.1 |
 | `libandroidx.graphics.path.so` | `androidx.graphics:graphics-path` | 1.0.1 |
 
 These are prebuilt third-party native libraries. The app does not compile its own C/C++ library. `app/build.gradle.kts` has no `ndkVersion` or native linker configuration, so changing the app's NDK settings alone cannot relink these binaries.
@@ -24,7 +25,7 @@ Therefore the root cause is incompatible or incompletely 16 KB-compatible upstre
 
 1. **DataStore 1.2.0 → 1.2.1** (`gradle/libs.versions.toml`: `datastore = "1.2.1"`). The 1.2.1 AAR's arm64 `libdatastore_shared_counter.so` keeps `PT_LOAD p_align = 0x4000` and fixes RELRO: `VirtAddr 0x9440 + MemSiz 0x2bc0 = 0xc000`, `(0xc000) % 0x4000 == 0`. DataStore stays in release because `LogSettings`/`AircraftApplication` use it at runtime.
 2. **graphics-path forced to 1.1.0** (new `graphics-path` entry in `gradle/libs.versions.toml` plus `implementation(libs.graphics.path)` in `app/build.gradle.kts`, overriding the 1.0.1 copy pulled transitively by Compose UI). Latest stable; all `PT_LOAD` segments are `0x4000`. See the residual note below for its RELRO status.
-3. **Debug-only native payload stripped from the release variant only** (`androidComponents { onVariants(selector().withBuildType("release")) }` in `app/build.gradle.kts` excludes `**/libbarhopper_v3.so`, `**/libsurface_util_jni.so`, `**/libimage_processing_util_jni.so`). `CameraScanActivity` is a developer tool: release `DebugTools.isEnabled = false` makes it `finish()` before any CameraX/ML Kit call, so the release APK never needs these binaries. Debug keeps all five libraries and the scanner stays functional there.
+3. **Debug-only native payload stripped from the release variant only** (`androidComponents { onVariants(selector().withBuildType("release")) }` in `app/build.gradle.kts` excludes `**/libbarhopper_v3.so`, `**/libsurface_util_jni.so`, `**/libimage_processing_util_jni.so`). `CameraScanActivity` is a developer tool: release `DebugTools.isEnabled = false` makes it `finish()` before any CameraX/ML Kit call, so the release APK never needs these binaries. Debug keeps all five libraries and the scanner stays functional there. **This exclusion was reverted in v1.4.2** (see "Card-scan payload" below) because release builds can unlock the developer tools and then use the scanner.
    - `debugImplementation` was rejected: `CameraScanActivity` (main source set, referenced by `DevelopSettingsActivity`) imports CameraX/ML Kit classes, so release compilation requires those dependencies present.
    - A `buildTypes.release { packaging { … } }` block was tried first and reverted: on AGP 9.4.1 it also stripped the libraries from the debug APK (verified via `unzip -l app-debug.apk`). The `androidComponents` variant selector is correctly scoped (verified the same way).
 
@@ -38,5 +39,11 @@ Therefore the root cause is incompatible or incompletely 16 KB-compatible upstre
 ## Residual risk
 
 - `libandroidx.graphics.path.so` 1.1.0 (latest stable, May 2026; identical in 1.0.1) still has a RELRO remainder of `0x2000` (`0x5b40 + 0x4c0 = 0x6000`) on both 64-bit ABIs. Per the official guide this can segfault at runtime on a 16 KB device *if the library is loaded there*. It is intentionally kept: `PathIteratorImpl` loads it lazily on the pre-API-34 path that Compose can reach on this app's supported API 31–33 range, so excluding it risks `UnsatisfiedLinkError`. `LOAD` alignment passes, so Play does not flag it; the fix must come from upstream `androidx.graphics`.
-- CameraX has no newer stable than the flagged 1.6.2 (its `libsurface_util_jni.so` RELRO remainder is `0x1000`), and bundled ML Kit `barcode-scanning` has no newer release than the flagged 17.3.0 — both are debug-only here, hence excluded from release rather than upgraded.
+- CameraX has no newer stable than the flagged 1.6.2 (its `libsurface_util_jni.so` RELRO remainder is `0x1000`), and bundled ML Kit `barcode-scanning` has no newer release than the flagged 17.3.0. Both ship in release again since v1.4.2 because developer tools can be unlocked there, so their RELRO remainders stay a residual upstream risk.
+
+## Card-scan payload
+
+The on-device bank-card tool adds bundled `com.google.mlkit:text-recognition:16.0.1`, which contributes `libmlkit_google_ocr_pipeline.so` (~41 MB uncompressed across the four ABIs, ~10 MB per ABI) to both variants. The release exclusion described in "Fix applied" item 3 no longer exists: release builds can unlock developer tools with 8 taps on the About version badge, so `CameraScanActivity` must keep every ML Kit native library present.
+
+ELF check on the 16.0.1 arm64 copy: every `PT_LOAD` segment is `0x4000`-aligned, but `PT_GNU_RELRO` has a remainder (`0x9cc000 + 0x8b000 = 0xa57000`; `0xa57000 % 0x4000 = 0x3000`). The library loads only after the card scanner starts and only when the on-device model is available, so it is not a startup risk. Re-run `zipalign -c -P 16 -v 4` and `llvm-readelf -Wl` on the release APK after any ML Kit bump; the durable fix is an upstream release.
 - The exact APK from the device was not available for direct comparison. Re-run the ELF checks on that artifact if its version differs from this release, and install the rebuilt release on a 16 KB emulator/device (plus a standard 4 KB device) to confirm the dialog is gone and the QR scanner still works in debug.

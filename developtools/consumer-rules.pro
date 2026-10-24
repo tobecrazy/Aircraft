@@ -1,6 +1,12 @@
 # Consumer rules for :developtools.
 #
-# No keep rules are required:
+# ML Kit GenAI structured output parses the @Generable result class through the
+# KSP-generated provider (looked up via META-INF/services) at runtime, so both
+# classes must survive R8 in the consuming app.
+-keep class com.young.developtools.viewmodel.CardNumberExtraction { *; }
+-keep class com.young.developtools.viewmodel.CardNumberExtraction_GeneratedProvider { *; }
+#
+# No other keep rules are required:
 #
 # - Manifest-merged components (all dev-tool activities + FlashlightService) are
 #   entry points: AAPT2 emits `-keep class <component> { <init>(); }` for each of
