@@ -93,7 +93,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Firebase Analytics and Crashlytics integration, with Crashlytics collection remote-gated behind a Remote Config token flag
 - Firebase Remote Config–driven update gate: a blocking "update required" screen when the build falls below `minimum_version`, a once-per-launch optional-update prompt when `latest_version` is higher, and real-time config updates applied on the next Activity resume
 - Remote Config can select one of five adaptive launcher icon variants with the `AppIcon` parameter; the default icon is restored for invalid values, and real-time config changes are applied without restarting the app
-- Optional Remote Config welcome message in the `Aircraft2026` token config, shown once per config ID and after the optional-update prompt when one is shown
+- Optional welcome dialog driven by the `welcome_message` Remote Config parameter (or the legacy `welcomeMessage` field in the `Aircraft2026` token config), shown once per config ID and after the optional-update prompt when one is shown; the `{{welcome_message}}` placeholder renders the localized bundled string instead of remote text
 - English and Chinese localization (Simplified, Taiwan Traditional, Hong Kong Traditional), switchable in-app via Settings → Language
 
 ## Color Themes

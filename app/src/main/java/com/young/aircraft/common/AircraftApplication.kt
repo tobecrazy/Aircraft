@@ -152,21 +152,28 @@ class AircraftApplication : Application() {
     private fun showWelcomeDialog(activity: Activity) {
         if (activity is MandatoryUpdateActivity || activity is MainActivity || activity.isFinishing) return
         if (foregroundActivity.get() !== activity) return
+        val localMessage = activity.getString(R.string.welcome_message)
         val tokenConfig = AircraftRemoteConfig.getTokenConfig()
-        if (tokenConfig != null && tokenConfig.showWelcome && tokenConfig.welcomeMessage.isNotBlank()) {
+        if (tokenConfig != null && tokenConfig.showWelcome) {
             if (welcomedConfigId == tokenConfig.id) return
             welcomedConfigId = tokenConfig.id
-            showWelcomeMessage(activity, tokenConfig.welcomeMessage)
+            val message = resolveWelcomeMessage(
+                AircraftRemoteConfig.getWelcomeMessage(),
+                localMessage
+            )
+            showWelcomeMessage(activity, message)
             return
         }
         // Firebase token absent or welcome disabled: repo JSON fallback with
-        // the same gating (showWelcome && non-blank message), shown once per
-        // message per process.
+        // the same gating (showWelcome), shown once per message per process.
+        // A blank message or the {{welcome_message}} placeholder renders the
+        // localized bundled string instead of remote text.
         val repo = RepoUpdateConfigStore.cached
-        if (repo == null || !repo.showWelcome || repo.welcomeMessage.isBlank()) return
-        if (welcomedRepoMessage == repo.welcomeMessage) return
-        welcomedRepoMessage = repo.welcomeMessage
-        showWelcomeMessage(activity, repo.welcomeMessage)
+        if (repo == null || !repo.showWelcome) return
+        val message = resolveWelcomeMessage(repo.welcomeMessage, localMessage)
+        if (welcomedRepoMessage == message) return
+        welcomedRepoMessage = message
+        showWelcomeMessage(activity, message)
     }
 
     private fun showWelcomeMessage(activity: Activity, message: String) {

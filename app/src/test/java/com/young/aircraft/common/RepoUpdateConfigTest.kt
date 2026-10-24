@@ -53,6 +53,20 @@ class RepoUpdateConfigTest {
     }
 
     @Test
+    fun `parses localized welcome placeholder`() {
+        val config = parseRepoUpdateConfig(
+            """{"latest_version":"1.5.5","welcomeMessage":"{{welcome_message}}","showWelcome":true}"""
+        )
+
+        assertEquals("{{welcome_message}}", config?.welcomeMessage)
+        assertTrue(config?.showWelcome == true)
+        assertEquals(
+            "Aircraft is localized",
+            resolveWelcomeMessage(config?.welcomeMessage.orEmpty(), "Aircraft is localized")
+        )
+    }
+
+    @Test
     fun `invalid JSON returns null`() {
         assertNull(parseRepoUpdateConfig("not-json"))
     }

@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -474,7 +476,13 @@ internal fun DifficultyCard(state: SettingsUiState, onSelected: (GameDifficulty)
             lineHeight = 17.sp,
             modifier = Modifier.padding(top = 6.dp)
         )
-        Row(modifier = Modifier.padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier
+                .padding(top = 14.dp)
+                .height(IntrinsicSize.Max),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // Each card stretches to the tallest one so all three keep a consistent height.
             DifficultyOption(
                 difficulty = GameDifficulty.EASY,
                 selected = state.difficulty == GameDifficulty.EASY,
@@ -483,7 +491,9 @@ internal fun DifficultyCard(state: SettingsUiState, onSelected: (GameDifficulty)
                 badgeBg = Color(0x3300FF88),
                 descRes = R.string.difficulty_easy_desc,
                 onClick = onSelected,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
             )
             DifficultyOption(
                 difficulty = GameDifficulty.NORMAL,
@@ -493,7 +503,9 @@ internal fun DifficultyCard(state: SettingsUiState, onSelected: (GameDifficulty)
                 badgeBg = Color(0x33FFFF00),
                 descRes = R.string.difficulty_normal_desc,
                 onClick = onSelected,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
             )
             DifficultyOption(
                 difficulty = GameDifficulty.HARD,
@@ -503,7 +515,9 @@ internal fun DifficultyCard(state: SettingsUiState, onSelected: (GameDifficulty)
                 badgeBg = Color(0x33FF4444),
                 descRes = R.string.difficulty_hard_desc,
                 onClick = onSelected,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
             )
         }
         val (dotColor, labelRes) = when (state.difficulty) {

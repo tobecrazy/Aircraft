@@ -20,6 +20,7 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -52,6 +54,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -70,10 +73,12 @@ import com.young.developtools.ui.theme.TextSubtle
 import com.young.developtools.utils.DeveloperMode
 import com.young.developtools.viewmodel.CameraScanUiState
 import com.young.developtools.viewmodel.CameraScanViewModel
+import com.young.developtools.viewmodel.ScanLens
 
 /**
  * Debug-only live QR scanner: CameraX preview + MlKitAnalyzer (QR only).
  * The first detected code locks the result; "rescan" clears it and resumes.
+ * A header toggle switches between the rear and front lens.
  */
 class CameraScanActivity : BaseAircraftActivity() {
 
@@ -112,6 +117,15 @@ class CameraScanActivity : BaseAircraftActivity() {
                     hasCameraPermission = hasCameraPermission,
                     onBarcodeDetected = viewModel::onBarcodeDetected,
                     onCameraError = { viewModel.setError(R.string.qr_code_tool_camera_error) },
+                    onSwitchLens = viewModel::toggleLens,
+                    onLensUnavailable = {
+                        viewModel.useRearLens()
+                        ThemedMessage.makeText(
+                            this,
+                            R.string.camera_scan_front_unavailable,
+                            ThemedMessage.LENGTH_SHORT
+                        ).show()
+                    },
                     onGrantPermission = {
                         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     },
@@ -143,6 +157,8 @@ private fun CameraScanScreen(
     hasCameraPermission: Boolean,
     onBarcodeDetected: (String) -> Unit,
     onCameraError: () -> Unit,
+    onSwitchLens: () -> Unit,
+    onLensUnavailable: () -> Unit,
     onGrantPermission: () -> Unit,
     onOpenAppSettings: () -> Unit,
     onCopy: (String) -> Unit,
@@ -153,7 +169,9 @@ private fun CameraScanScreen(
         if (hasCameraPermission && uiState.errorRes == null) {
             LivePreview(
                 locked = uiState.result != null,
+                lens = uiState.lens,
                 onBarcode = onBarcodeDetected,
+                onLensUnavailable = onLensUnavailable,
                 onCameraError = onCameraError,
                 modifier = Modifier.fillMaxSize()
             )
@@ -161,6 +179,11 @@ private fun CameraScanScreen(
 
         CameraScanHeader(
             onBack = onBack,
+            showLensSwitch = hasCameraPermission &&
+                uiState.errorRes == null &&
+                uiState.result == null,
+            lens = uiState.lens,
+            onSwitchLens = onSwitchLens,
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
@@ -218,13 +241,19 @@ private fun CameraScanScreen(
 }
 
 @Composable
-private fun CameraScanHeader(onBack: () -> Unit, modifier: Modifier = Modifier) {
+private fun CameraScanHeader(
+    onBack: () -> Unit,
+    showLensSwitch: Boolean,
+    lens: ScanLens,
+    onSwitchLens: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val backDescription = stringResource(R.string.camera_scan_back)
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(BackgroundDark.copy(alpha = 0.72f))
-            .padding(horizontal = 8.dp, vertical = 6.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBack) {
@@ -243,15 +272,63 @@ private fun CameraScanHeader(onBack: () -> Unit, modifier: Modifier = Modifier) 
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
-            modifier = Modifier.padding(start = 4.dp)
+            modifier = Modifier
+                .padding(start = 2.dp)
+                .weight(1.0f)
+                .maxContentWidth(),
+            maxLines = 1
         )
+        if (showLensSwitch) {
+            val switchLabel = if (lens == ScanLens.BACK) {
+                stringResource(R.string.camera_scan_front)
+            } else {
+                stringResource(R.string.camera_scan_rear)
+            }
+            val switchDescription = if (lens == ScanLens.BACK) {
+                stringResource(R.string.camera_scan_switch_to_front)
+            } else {
+                stringResource(R.string.camera_scan_switch_to_rear)
+            }
+            // Use a content-sized clickable Row rather than IconButton: IconButton
+            // forces a 48dp box that is too narrow for the glyph plus the label, which
+            // wraps the two-character label onto a second line. Row wraps content and
+            // keeps the label on a single line.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier
+                    .testTag("btn_switch_camera")
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = onSwitchLens)
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    // Announce "switch to front/rear camera" as one unit instead of
+                    // reading the glyph and the label separately.
+                    .clearAndSetSemantics {
+                        contentDescription = switchDescription
+                    }
+            ) {
+                Text(text = "⇄", color = AccentGreen, fontSize = 14.sp)
+                Text(
+                    text = switchLabel,
+                    color = AccentGreen,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1,
+                    softWrap = false,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
 @Composable
 private fun LivePreview(
     locked: Boolean,
+    lens: ScanLens,
     onBarcode: (String) -> Unit,
+    onLensUnavailable: () -> Unit,
     onCameraError: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -267,16 +344,21 @@ private fun LivePreview(
     }
     var controller by remember { mutableStateOf<LifecycleCameraController?>(null) }
 
-    DisposableEffect(locked) {
+    DisposableEffect(locked, lens) {
         if (locked) {
             controller?.unbind()
             previewView.controller = null
         } else {
             val activity = context as? ComponentActivity
             if (activity != null) {
+                val selector = if (lens == ScanLens.FRONT) {
+                    CameraSelector.DEFAULT_FRONT_CAMERA
+                } else {
+                    CameraSelector.DEFAULT_BACK_CAMERA
+                }
                 val newController = LifecycleCameraController(context).apply {
                     setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
-                    cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                    cameraSelector = selector
                     setImageAnalysisAnalyzer(
                         ContextCompat.getMainExecutor(context),
                         MlKitAnalyzer(
@@ -290,12 +372,17 @@ private fun LivePreview(
                         }
                     )
                 }
-                // CameraX resolves an available lens for DEFAULT_BACK_CAMERA itself;
-                // a bind failure here means the camera is unusable, not missing.
+                // CameraX resolves an available lens for the selector itself; a bind
+                // failure on the front lens usually means the device has none, so fall
+                // back to the rear lens instead of tearing the preview down.
                 runCatching { newController.bindToLifecycle(lifecycleOwner) }
-                    .onFailure { onCameraError() }
-                controller = newController
-                previewView.controller = newController
+                    .onSuccess {
+                        controller = newController
+                        previewView.controller = newController
+                    }
+                    .onFailure {
+                        if (lens == ScanLens.FRONT) onLensUnavailable() else onCameraError()
+                    }
             }
         }
         onDispose {
