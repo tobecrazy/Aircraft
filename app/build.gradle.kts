@@ -29,8 +29,8 @@ android {
 
     defaultConfig {
         applicationId = "com.young.aircraft"
-        versionCode = 27
-        versionName = "1.5.5"
+        versionCode = 28
+        versionName = "1.5.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -86,7 +86,7 @@ val generateRepoUpdateConfig = tasks.register("generateRepoUpdateConfig") {
     description = "Generates app-update.json from versionName for the Remote Config fallback."
     val outputFile = rootProject.file("app-update.json")
     val appVersionName = android.defaultConfig.versionName as String
-    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.5.0"
+    val floorVersion = (findProperty("minimumVersion") as String?) ?: "1.5.6"
     val appIcon = (findProperty("appIcon") as String?) ?: "1"
     // The {{welcome_message}} placeholder keeps app-update.json language-neutral:
     // clients resolve it to the localized R.string.welcome_message at runtime.

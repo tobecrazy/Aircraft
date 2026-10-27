@@ -37,7 +37,7 @@ object AircraftRemoteConfig {
     const val UPDATE_URL_PARAMETER = "update_url"
     const val APP_ICON_PARAMETER = "AppIcon"
     const val WELCOME_MESSAGE_PARAMETER = "welcome_message"
-    private const val DEFAULT_MINIMUM_VERSION = "1.5.0"
+    private const val DEFAULT_MINIMUM_VERSION = "1.5.6"
 
     /**
      * Placeholder accepted in Firebase Remote Config and app-update.json.
@@ -248,18 +248,45 @@ object AircraftRemoteConfig {
 internal fun parseAppIconVariant(value: String): Int = value.trim().toIntOrNull()
     ?.takeIf { it in 1..5 } ?: DEFAULT_APP_ICON_VARIANT
 
+/** Invisible characters that [Char.isWhitespace] does not report but which
+ * commonly ride along when a placeholder is pasted into the Firebase console
+ * or an editor: non-breaking space, narrow non-breaking space, zero-width
+ * space, and the byte-order mark. */
+private val welcomeInvisibleChars = charArrayOf(
+    '\u00A0', // non-breaking space
+    '\u202F', // narrow non-breaking space
+    '\u200B', // zero-width space
+    '\uFEFF'  // byte-order mark
+)
+
 /**
  * Resolves the configured welcome text: a blank value or
  * [AircraftRemoteConfig.WELCOME_MESSAGE_PLACEHOLDER] falls back to the
  * localized [localMessage] bundle entry, anything else is shown verbatim.
+ *
+ * Matching is tolerant of the ways a placeholder can be mangled before it
+ * reaches the client: surrounding whitespace, invisible characters, letter
+ * case, and occurrences embedded inside longer remote text (those are
+ * substituted in place so partial templates still localize).
  */
 internal fun resolveWelcomeMessage(configured: String, localMessage: String): String {
-    val trimmed = configured.trim()
-    return if (trimmed.isEmpty() || trimmed == AircraftRemoteConfig.WELCOME_MESSAGE_PLACEHOLDER) {
-        localMessage
-    } else {
-        configured
+    val placeholder = AircraftRemoteConfig.WELCOME_MESSAGE_PLACEHOLDER
+    val normalized = configured.filterNot { it in welcomeInvisibleChars }
+    if (normalized.isBlank()) return localMessage
+    if (normalized.trim().equals(placeholder, ignoreCase = true)) return localMessage
+    if (!normalized.contains(placeholder, ignoreCase = true)) return configured
+    return replaceIgnoreCase(normalized, placeholder, localMessage)
+}
+
+/** Case-insensitive literal replacement of [oldValue] with [newValue]. */
+private fun replaceIgnoreCase(text: String, oldValue: String, newValue: String): String {
+    var result = text
+    var index = result.indexOf(oldValue, ignoreCase = true)
+    while (index >= 0) {
+        result = result.substring(0, index) + newValue + result.substring(index + oldValue.length)
+        index = result.indexOf(oldValue, ignoreCase = true, startIndex = index + newValue.length)
     }
+    return result
 }
 
 internal fun parseRemoteTokenConfig(json: String): RemoteTokenConfig? = try {
