@@ -2,10 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.5.6] - 2026-10-27
+
+### Added
+- Release APK for `V1.5.6` built (`versionCode` 28); `app-update.json` regenerated with `latest_version` `1.5.6`
 
 ### Changed
 - Welcome dialog text is now localized: the `{{welcome_message}}` placeholder (Firebase Remote Config `welcome_message` parameter default and the generated `app-update.json` `welcomeMessage`) resolves to the new `welcome_message` string resource in all four locales, so the remote config no longer needs per-language text
+- Placeholder resolution hardened: `resolveWelcomeMessage` now matches the `{{welcome_message}}` placeholder case-insensitively, strips invisible characters (non-breaking/zero-width space, byte-order mark) that defeat exact matching, and substitutes the placeholder when it is embedded inside longer remote text; devices on `V1.5.5` and earlier still show the raw placeholder until this build ships
 
 ## [1.5.5] - 2026-10-21
 

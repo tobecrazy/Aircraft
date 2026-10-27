@@ -69,6 +69,36 @@ class AircraftRemoteConfigTest {
     }
 
     @Test
+    fun `welcome placeholder matches case-insensitively and ignores invisible characters`() {
+        assertEquals("localized", resolveWelcomeMessage("{{WELCOME_MESSAGE}}", "localized"))
+        assertEquals("localized", resolveWelcomeMessage("{{Welcome_Message}}", "localized"))
+        assertEquals(
+            "localized",
+            resolveWelcomeMessage("\u00A0{{welcome_message}}\u00A0", "localized")
+        )
+        assertEquals(
+            "localized",
+            resolveWelcomeMessage("\u00A0{{welcome_message}}\u200B", "localized")
+        )
+        assertEquals(
+            "localized",
+            resolveWelcomeMessage("\uFEFF{{welcome_message}}", "localized")
+        )
+    }
+
+    @Test
+    fun `welcome placeholder embedded in remote text is substituted`() {
+        assertEquals(
+            "Aircraft — localized — enjoy!",
+            resolveWelcomeMessage("Aircraft — {{welcome_message}} — enjoy!", "localized")
+        )
+        assertEquals(
+            "localized twice: localized",
+            resolveWelcomeMessage("{{welcome_message}} twice: {{WELCOME_MESSAGE}}", "localized")
+        )
+    }
+
+    @Test
     fun `compares numeric version components instead of strings`() {
         assertTrue(compareAppVersions("1.10.0", "1.2.0")!! > 0)
         assertTrue(compareAppVersions("1.3.5", "1.3.6")!! < 0)
