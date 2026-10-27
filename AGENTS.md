@@ -31,7 +31,7 @@
 ```
 
 - CI is `.github/workflows/android.yml` (Temurin JDK 17, triggered by pushes/PRs to `main` only): `assembleDebug lintDebug` in one step, `testDebugUnitTest` in another. Do not infer success from the exit code of a downstream command in a shell pipeline.
-- Release requires the untracked root `keystore.properties`. `assembleRelease`/`bundleRelease` automatically rewrite the root `app-update.json` (the Remote Config fallback source: `latest=versionName`, `minimum` defaults to `1.5.0` and is raised with `-PminimumVersion=`); merge the regenerated file into `main` after releasing. `connectedAndroidTest` is dead (scaffold only) — do not rely on it.
+- Release requires the untracked root `keystore.properties`. `assembleRelease`/`bundleRelease` automatically rewrite the root `app-update.json` (the Remote Config fallback source: `latest=versionName`, `minimum` defaults to `1.5.6` and is raised with `-PminimumVersion=`); merge the regenerated file into `main` after releasing. `connectedAndroidTest` is dead (scaffold only) — do not rely on it.
 - **Version numbers are decimal with segment rollover** (`versionName`): a normal release bumps patch (1.4.3 → 1.4.4); past 9 the patch rolls into minor (1.4.9 → 1.5.0); past 9 there it rolls into major (1.9.9 → 2.0.0), and so on. `versionCode` increments by exactly 1 per release.
 
 ## Global Structure
