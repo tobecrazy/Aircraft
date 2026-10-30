@@ -1,6 +1,7 @@
 package com.young.aircraft.common
 
 import android.app.Application
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -26,6 +27,33 @@ class AircraftRemoteConfigTest {
         assertEquals(Instant.parse("2026-10-05T14:31:11.360Z"), config?.createdAt)
         assertEquals(Instant.parse("2029-10-05T14:31:11.360Z"), config?.expiringAt)
         assertTrue(config?.enable == true)
+    }
+
+    @Test
+    fun `crashlytics collection stays enabled without a fetched remote value`() {
+        val config = parseRemoteTokenConfig(
+            """{"id":0,"name":"","createdAt":"1970-01-01T00:00:00Z","expiringAt":"1970-01-01T00:00:00Z","enable":false}"""
+        )
+
+        assertTrue(crashlyticsCollectionEnabled(FirebaseRemoteConfig.VALUE_SOURCE_DEFAULT, config))
+        assertTrue(crashlyticsCollectionEnabled(FirebaseRemoteConfig.VALUE_SOURCE_STATIC, null))
+        assertTrue(crashlyticsCollectionEnabled(99, config))
+    }
+
+    @Test
+    fun `remote value is trusted to enable or disable crashlytics collection`() {
+        val enabledConfig = parseRemoteTokenConfig(
+            """{"id":1,"name":"token","createdAt":"2026-10-05T14:31:11Z","expiringAt":"2029-10-05T14:31:11Z","enable":true}"""
+        )
+        val disabledConfig = parseRemoteTokenConfig(
+            """{"id":1,"name":"token","createdAt":"2026-10-05T14:31:11Z","expiringAt":"2029-10-05T14:31:11Z","enable":false}"""
+        )
+
+        assertTrue(crashlyticsCollectionEnabled(FirebaseRemoteConfig.VALUE_SOURCE_REMOTE, enabledConfig))
+        assertFalse(crashlyticsCollectionEnabled(FirebaseRemoteConfig.VALUE_SOURCE_REMOTE, disabledConfig))
+        // An unparsable REMOTE value is a console-side mistake, not an explicit
+        // revoke, so it fails open like a missing value.
+        assertTrue(crashlyticsCollectionEnabled(FirebaseRemoteConfig.VALUE_SOURCE_REMOTE, null))
     }
 
     @Test

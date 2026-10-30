@@ -56,6 +56,8 @@ object AircraftRemoteConfig {
     )
     private var updateRegistration: ConfigUpdateListenerRegistration? = null
     private var initializationStarted = false
+    /** Collection state seen by the previous [updateCrashlyticsCollection] call. */
+    private var previousCollectionEnabled: Boolean? = null
     @Volatile
     var onConfigActivated: (() -> Unit)? = null
 
@@ -74,6 +76,7 @@ object AircraftRemoteConfig {
             return
         }
         FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = false
+        previousCollectionEnabled = false
         AppLog.d(TAG) { "Crashlytics collection disabled until token config is loaded" }
 
         remoteConfig.setConfigSettingsAsync(
@@ -226,15 +229,26 @@ object AircraftRemoteConfig {
     }
 
     private fun updateCrashlyticsCollection() {
-        val source = valueSource(instance.getValue(TOKEN_CONFIG_PARAMETER).source)
+        val value = instance.getValue(TOKEN_CONFIG_PARAMETER)
+        val source = valueSource(value.source)
         val tokenConfig = getTokenConfig()
-        val enabled = tokenConfig?.enable == true
+        val enabled = crashlyticsCollectionEnabled(value.source, tokenConfig)
         FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = enabled
         val reason = when {
             tokenConfig == null -> "'$TOKEN_CONFIG_PARAMETER' is missing or invalid"
             else -> "'$TOKEN_CONFIG_PARAMETER'.enable=${tokenConfig.enable}"
         }
         AppLog.d(TAG) { "Crashlytics collection enabled=$enabled ($reason, source=$source)" }
+        // While collection is disabled the SDK persists a crash to disk but parks
+        // it behind "Waiting for send/deleteUnsentReports to be called", so a
+        // session that crashes inside the disabled window (for example an
+        // offline cold start) would never reach Firebase on its own. Flush the
+        // parked reports as soon as collection turns back on.
+        val wasEnabled = previousCollectionEnabled
+        previousCollectionEnabled = enabled
+        if (enabled && wasEnabled == false) {
+            FirebaseCrashlytics.getInstance().sendUnsentReports()
+        }
     }
 
     private fun valueSource(source: Int): String = when (source) {
@@ -247,6 +261,25 @@ object AircraftRemoteConfig {
 
 internal fun parseAppIconVariant(value: String): Int = value.trim().toIntOrNull()
     ?.takeIf { it in 1..5 } ?: DEFAULT_APP_ICON_VARIANT
+
+/**
+ * Decides the Crashlytics collection flag for the current Remote Config view.
+ *
+ * Fail-open policy: only a fetched REMOTE value that parses into a token
+ * config is trusted to disable crash reporting. Bundled defaults (offline cold
+ * start, blocked network, key absent from the console), unknown sources, and
+ * unparsable remote JSON (a console-side mistake, not an explicit revoke) all
+ * keep collection ON, so crash reports are never silently swallowed when
+ * connectivity to Firebase is unavailable. Reports persisted while the flag
+ * was disabled are flushed later through `sendUnsentReports()`.
+ */
+internal fun crashlyticsCollectionEnabled(
+    valueSource: Int,
+    tokenConfig: RemoteTokenConfig?
+): Boolean = when {
+    valueSource == FirebaseRemoteConfig.VALUE_SOURCE_REMOTE && tokenConfig != null -> tokenConfig.enable
+    else -> true
+}
 
 /** Invisible characters that [Char.isWhitespace] does not report but which
  * commonly ride along when a placeholder is pasted into the Firebase console
