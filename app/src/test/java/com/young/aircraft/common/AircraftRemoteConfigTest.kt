@@ -51,8 +51,13 @@ class AircraftRemoteConfigTest {
 
         assertTrue(crashlyticsCollectionEnabled(FirebaseRemoteConfig.VALUE_SOURCE_REMOTE, enabledConfig))
         assertFalse(crashlyticsCollectionEnabled(FirebaseRemoteConfig.VALUE_SOURCE_REMOTE, disabledConfig))
-        // An unparsable REMOTE value is a console-side mistake, not an explicit
-        // revoke, so it fails open like a missing value.
+    }
+
+    @Test
+    fun `unparsable remote value fails open for crashlytics collection`() {
+        // A console-side typo is not an explicit revoke, so it keeps collection
+        // on instead of silently disabling crash reporting.
+        assertNull(parseRemoteTokenConfig("""{"id":1,"enable":false}"""))
         assertTrue(crashlyticsCollectionEnabled(FirebaseRemoteConfig.VALUE_SOURCE_REMOTE, null))
     }
 

@@ -339,9 +339,9 @@ app/
 - `GameHudFormatterTest` and `RedEnvelopesTest` for HUD formatting and the rocket power-up
 - `OnboardingActivityTest` and `PrivacyPolicyAcceptActivityTest` for first-run flow behavior, including walking the carousel to the last page and the time-freeze power-up entry
 - `LaunchActivityTest` for saved-game detection, continue/new-game dialog, and jet selection
-- - `BossFireworksEffectTest` for the boss-defeat fireworks frame window (nothing before the first burst, ink while alive, hard stop at the declared duration, in-bounds clamping)
+- `BossFireworksEffectTest` for the boss-defeat fireworks frame window (nothing before the first burst, ink while alive, hard stop at the declared duration, in-bounds clamping)
 - `AppLogTest` for the runtime log kill-switch (silences every level, skips building a `d` message)
-- `AircraftRemoteConfigTest` for the Remote Config update gate: token JSON parsing (including offset timestamps), dotted version comparison, and the optional-update predicate
+- `AircraftRemoteConfigTest` for the Remote Config update gate: token JSON parsing (including offset timestamps), dotted version comparison, the optional-update predicate, and the Crashlytics collection gate (remote values decide, every other source fails open)
 - `DevelopSettingsViewModelTest`, `PrivacyPolicyViewModelTest`, `OnboardingViewModelTest`, `LaunchViewModelTest`, `GameViewModelTest`, `HistoryViewModelTest`, `SettingsViewModelTest`, `ShowImageDetailsViewModelTest` for ViewModel unit coverage
 - `QRChineseRoundtripTest` and `RichTextMarkdownTest` for QR text round-tripping and editor Markdown output
 - `PlayerGameDataTest` for timestamp-aware data-class behavior
