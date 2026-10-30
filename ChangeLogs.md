@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.7] - 2026-10-30
+
+### Added
+- Release APK for `V1.5.7` built (`versionCode` 29); `app-update.json` regenerated with `latest_version` `1.5.7`
+- `crashlyticsCollectionEnabled(valueSource, tokenConfig)` — an internal pure decision function so the Crashlytics gating policy is covered by unit tests instead of only by the Firebase call site
+
+### Changed
+- Crashlytics collection is now fail-open: only a fetched `VALUE_SOURCE_REMOTE` token config is trusted to disable it, while bundled defaults, unknown sources, and unparsable remote JSON keep collection on — an offline cold start or a console-side typo can no longer silently swallow crash reports
+- Parked reports are flushed: `updateCrashlyticsCollection()` remembers the previous flag and calls `sendUnsentReports()` when collection flips back on, so a crash captured inside a disabled window still reaches Firebase
+- Tests: three `AircraftRemoteConfigTest` cases cover the fail-open sources and the remote enable/disable paths
+- Docs: `AGENTS.md` and `CLAUDE.md` restate the remote-gating rule as fail-open with the `sendUnsentReports()` flush, and `AGENTS.md` picks up the `build-logic` source location, the `bundleRelease` / `generateRepoUpdateConfig` / `clean` commands, the `ConfigureCompose` note, and the additional test constraints
+- Forced-update floor stays at `1.5.6`: `app-update.json` `minimum_version` and the `generateRepoUpdateConfig` default are unchanged, because this patch only affects crash reporting
+- Version bump `1.5.6` → `1.5.7` (`versionCode` 28 → 29)
+
 ## [1.5.6] - 2026-10-27
 
 ### Added
@@ -12,9 +26,6 @@ All notable changes to this project will be documented in this file.
 - Placeholder resolution hardened: `resolveWelcomeMessage` now matches the `{{welcome_message}}` placeholder case-insensitively, strips invisible characters (non-breaking/zero-width space, byte-order mark) that defeat exact matching, and substitutes the placeholder when it is embedded inside longer remote text; devices on `V1.5.5` and earlier still show the raw placeholder until this build ships
 - Forced-update floor raised to `1.5.6`: `app-update.json` `minimum_version` and the `generateRepoUpdateConfig` default both move up from `1.5.0`
 - `generateRepoUpdateConfig` `appIcon` default `2` → `1` (bundled default variant); the regenerated `app-update.json` now emits `app_icon` `1`
-
-### Changed
-- Welcome dialog text is now localized: the `{{welcome_message}}` placeholder (Firebase Remote Config `welcome_message` parameter default and the generated `app-update.json` `welcomeMessage`) resolves to the new `welcome_message` string resource in all four locales, so the remote config no longer needs per-language text
 
 ## [1.5.5] - 2026-10-21
 

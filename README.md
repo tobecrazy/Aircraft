@@ -4,13 +4,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Download
 
-Latest published release APK (V1.5.6):
+Latest published release APK (V1.5.7):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.6/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.7/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.5.6` (`versionCode` 28); `V1.5.6` is the current release.
+> The app currently builds as `1.5.7` (`versionCode` 29); `V1.5.7` is the current release.
 
 ## Demo
 
@@ -90,7 +90,7 @@ The demo above walks through the end-to-end player experience on a real device:
 - Rich-text editor AAR module (`:richtexteditor`) consumed by `:developtools` (editor + QR screens), with JSON sample loading from the module `assets/example.json` and preview image tap support that opens `ShowImageDetailsActivity`; usage is documented in [docs/rich-text-editor-aar-usage.md](docs/rich-text-editor-aar-usage.md)
 - Banner carousel AAR module (`:supperbanner`) consumed by the app's About screen and by `:developtools` (banner-details, rich-text editor, debug settings lab); it carries no theme or string resources, publishes as `com.young:supperbanner`, and is documented in [docs/supper-banner-aar-usage.md](docs/supper-banner-aar-usage.md)
 - Utility screens for history, QR code scanning/generation/save-to-device, flashlight/SOS/brightness control, image details, device info, PDF reader (debug-only), about-aircraft, about-me, privacy policy, and debug-only developer settings including a device-contacts browser/editor
-- Firebase Analytics and Crashlytics integration, with Crashlytics collection remote-gated behind a Remote Config token flag
+- Firebase Analytics and Crashlytics integration, with Crashlytics collection remote-gated behind a Remote Config token flag that fails open (only a fetched remote value can disable collection, and parked reports are flushed when it re-enables)
 - Firebase Remote Config–driven update gate: a blocking "update required" screen when the build falls below `minimum_version`, a once-per-launch optional-update prompt when `latest_version` is higher, and real-time config updates applied on the next Activity resume
 - Remote Config can select one of five adaptive launcher icon variants with the `AppIcon` parameter; the default icon is restored for invalid values, and real-time config changes are applied without restarting the app
 - Optional welcome dialog driven by the `welcome_message` Remote Config parameter (or the legacy `welcomeMessage` field in the `Aircraft2026` token config), shown once per config ID and after the optional-update prompt when one is shown; the `{{welcome_message}}` placeholder renders the localized bundled string instead of remote text
@@ -388,7 +388,7 @@ app/
 
 ## Requirements
 
-- **Version**: `1.5.6` (`versionCode` 28)
+- **Version**: `1.5.7` (`versionCode` 29)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `33`

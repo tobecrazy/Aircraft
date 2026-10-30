@@ -1,7 +1,7 @@
 {
   "minimum_version": "1.5.6",
-  "latest_version": "1.5.6",
-  "update_url": "https://github.com/tobecrazy/Aircraft/releases/tag/V1.5.6",
+  "latest_version": "1.5.7",
+  "update_url": "https://github.com/tobecrazy/Aircraft/releases/tag/V1.5.7",
   "app_icon": 1,
   "welcomeMessage": "{{welcome_message}}",
   "showWelcome": true
