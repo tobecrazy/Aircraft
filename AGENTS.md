@@ -60,6 +60,7 @@
 ## Conventions and Traps
 
 - Log through `AppLog` only (`android.util.Log` is allowed solely inside `utils/AppLog.kt`; `:developtools` mirrors this with `DevLog` in `utils/DevLog.kt`). Keep lambda messages in trailing position — never `AppLog.d(tag, { … })`.
+- Error handling reports through `utils/CrashReporter` (`log` breadcrumbs, `record(error, keys)` non-fatals) rather than calling `FirebaseCrashlytics` directly; the facade fails safe when Firebase is absent, expected control-flow exceptions only log a breadcrumb, and the render loop reports one failure per surface.
 - The log checks scan `src/main` only (not the debug/release source sets); `:developtools` uses its own `checkDevLogUsage` task.
 - Four locales are mandatory: `values/values-zh/values-zh-rTW/values-zh-rHK`. Both `:app` and `:developtools` have a `StringResourceTest` that enforces parity and fails on unreferenced default strings (the `:app` test exempts an 8-entry Firebase whitelist), so deleting the last usage breaks the build.
 - Robolectric screen tests use `createAndroidComposeRule` + `@GraphicsMode(NATIVE)`; long lists need a tall viewport (`w420dp-h2000dp` — off-window clicks silently do nothing); **never call `waitForIdle()`** on a screen with an indeterminate spinner (it hangs for 60s); tests touching `AppLog`/`LogSettings`/`DevLog` must pin `@Config(sdk=[34], application=Application::class)`; screen tests must stub `SettingsViewModel`.

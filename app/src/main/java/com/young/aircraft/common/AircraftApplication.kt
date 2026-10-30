@@ -24,6 +24,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AlertDialog
 import com.young.aircraft.gui.dialogs.showThemed
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.CrashReporter
 import com.young.aircraft.utils.GameInterruptionShield
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -186,8 +187,9 @@ class AircraftApplication : Application() {
                 .setPositiveButton(android.R.string.ok, null)
                 .setCancelable(true)
                 .showThemed()
-        } catch (_: IllegalArgumentException) {
+        } catch (error: IllegalArgumentException) {
             AppLog.w("AircraftApplication", "Host theme cannot show welcome message; skipping")
+            CrashReporter.record(error, "dialog" to "welcome_message")
         }
     }
 

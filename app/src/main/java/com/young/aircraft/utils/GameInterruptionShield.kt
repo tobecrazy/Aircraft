@@ -27,6 +27,7 @@ object GameInterruptionShield {
         return try {
             manager.isNotificationPolicyAccessGranted
         } catch (_: SecurityException) {
+            CrashReporter.log("DND access check was rejected by the platform")
             false
         }
     }
@@ -49,9 +50,11 @@ object GameInterruptionShield {
             previous
         } catch (_: SecurityException) {
             AppLog.w("GameInterruptionShield", "DND access revoked, skip shielding")
+            CrashReporter.log("DND shielding skipped: access revoked")
             null
-        } catch (_: Exception) {
+        } catch (error: Exception) {
             AppLog.w("GameInterruptionShield", "Failed to enable DND shielding")
+            CrashReporter.record(error, "shield_step" to "enter")
             null
         }
     }
@@ -70,8 +73,10 @@ object GameInterruptionShield {
             clearSavedFilter(context)
         } catch (_: SecurityException) {
             AppLog.w("GameInterruptionShield", "DND access revoked, skip restoring")
-        } catch (_: Exception) {
+            CrashReporter.log("DND restore skipped: access revoked")
+        } catch (error: Exception) {
             AppLog.w("GameInterruptionShield", "Failed to restore interruption filter")
+            CrashReporter.record(error, "shield_step" to "exit")
         }
     }
 
@@ -91,8 +96,10 @@ object GameInterruptionShield {
             clearSavedFilter(context)
         } catch (_: SecurityException) {
             AppLog.w("GameInterruptionShield", "DND access revoked, skip recovery")
-        } catch (_: Exception) {
+            CrashReporter.log("DND recovery skipped: access revoked")
+        } catch (error: Exception) {
             AppLog.w("GameInterruptionShield", "Failed to recover interruption filter")
+            CrashReporter.record(error, "shield_step" to "recover")
         }
     }
 

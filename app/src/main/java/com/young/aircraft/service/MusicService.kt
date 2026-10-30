@@ -15,6 +15,7 @@ import androidx.annotation.RawRes
 import com.young.aircraft.R
 import com.young.aircraft.data.SettingsRepository
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.CrashReporter
 /**
  * Create by Young
  * 2026/3/10
@@ -210,6 +211,7 @@ class MusicService : Service() {
             if (soundId != 0) soundMap[sound] = soundId
         } catch (exception: Resources.NotFoundException) {
             AppLog.e(TAG, "Failed to load combat sound: $name", exception)
+            CrashReporter.record(exception, "sound" to name, "resource_id" to resourceId)
         }
     }
 

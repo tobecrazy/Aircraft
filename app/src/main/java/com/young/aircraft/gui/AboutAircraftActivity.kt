@@ -68,6 +68,7 @@ import com.young.aircraft.gui.MandatoryUpdateActivity
 import com.young.aircraft.viewmodel.AboutAircraftViewModel
 import com.young.aircraft.viewmodel.AboutAircraftUiState
 import com.young.aircraft.viewmodel.ImageLoadState
+import com.young.aircraft.utils.CrashReporter
 import com.young.developtools.gui.ShowImageDetailsActivity
 import com.young.developtools.utils.DeveloperMode
 import com.young.supperbanner.SupperBannerImage
@@ -161,8 +162,10 @@ class AboutAircraftActivity : BaseAircraftActivity() {
             RepoUpdateConfigStore.refreshNow()
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
+        } catch (error: Exception) {
             // Unreachable fallback sources leave the startup values in place.
+            CrashReporter.log("Manual update check could not refresh repo config")
+            CrashReporter.record(error, "screen" to "about")
         }
     }
 

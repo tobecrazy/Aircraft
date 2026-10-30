@@ -2,6 +2,7 @@ package com.young.aircraft.common
 
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.CrashReporter
 import java.util.concurrent.TimeUnit
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import kotlinx.coroutines.CoroutineScope
@@ -80,7 +81,12 @@ object RepoUpdateConfigStore {
 
     private fun fetchFirstSuccess(): RepoUpdateConfig? {
         for (url in listOf(REPO_UPDATE_JSON_JSDELIVR_URL, REPO_UPDATE_JSON_RAW_URL)) {
-            val config = runCatching { fetch(url) }.getOrNull()
+            val config = runCatching { fetch(url) }
+                .onFailure { error ->
+                    CrashReporter.log("Repo update config fetch failed: $url")
+                    CrashReporter.record(error, "repo_update_url" to url)
+                }
+                .getOrNull()
             if (config != null) return config
             AppLog.w(TAG, "Repo update config fetch failed for $url")
         }
@@ -92,8 +98,14 @@ object RepoUpdateConfigStore {
         httpClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) return null
             val body = response.body.string()
-            if (body.isBlank()) return null
-            return parseRepoUpdateConfig(body)
+            if (body.isBlank()) {
+                CrashReporter.log("Repo update config body is blank: $url")
+                return null
+            }
+            return parseRepoUpdateConfig(body) ?: run {
+                CrashReporter.log("Repo update config is malformed: $url")
+                null
+            }
         }
     }
 

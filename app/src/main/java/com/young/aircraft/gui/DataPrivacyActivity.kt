@@ -43,6 +43,7 @@ import com.young.aircraft.ui.theme.AircraftTheme
 import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.TextBody
 import com.young.aircraft.utils.BitmapUtils
+import com.young.aircraft.utils.CrashReporter
 import kotlinx.coroutines.launch
 
 /**
@@ -113,6 +114,8 @@ class DataPrivacyActivity : BaseAircraftActivity() {
                     .deleteAll()
                 repository.clearCachedGameData()
                 BitmapUtils.clearCaches()
+            }.onFailure {
+                CrashReporter.record(it, "privacy_step" to "delete_all")
             }
             val messageRes = if (result.isSuccess) {
                 R.string.privacy_delete_data_done

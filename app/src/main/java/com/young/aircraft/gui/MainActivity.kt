@@ -6,6 +6,7 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.CrashReporter
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -402,6 +403,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }.onFailure {
                 AppLog.e("MainActivity", logMessage, it)
+                CrashReporter.record(it, "main_step" to "auto_save_exit")
             }
             finish()
         }

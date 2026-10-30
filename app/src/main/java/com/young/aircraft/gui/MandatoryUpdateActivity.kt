@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.common.RepoUpdateConfigStore
+import com.young.aircraft.utils.CrashReporter
 import com.young.aircraft.ui.maxContentWidth
 import com.young.aircraft.ui.theme.AccentGreen
 import com.young.aircraft.ui.theme.AircraftTheme
@@ -116,6 +117,7 @@ internal fun openUpdatePage(context: Context) {
             return
         } catch (_: ActivityNotFoundException) {
             // Try the next candidate.
+            CrashReporter.log("No handler for update URL: $url")
         }
     }
     // Keep the update prompt visible when the device has no store or browser.

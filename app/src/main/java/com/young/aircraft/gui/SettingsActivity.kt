@@ -21,6 +21,7 @@ import com.young.developtools.gui.DevelopSettingsActivity
 import com.young.developtools.gui.FlashlightActivity
 import com.young.developtools.gui.QRCodeToolActivity
 import com.young.aircraft.utils.BitmapUtils
+import com.young.aircraft.utils.CrashReporter
 import com.young.aircraft.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
@@ -76,6 +77,8 @@ class SettingsActivity : BaseAircraftActivity() {
         lifecycleScope.launch {
             val cacheSizeBytes = runCatching {
                 viewModel.getCachedGameDataSizeBytes()
+            }.onFailure {
+                CrashReporter.record(it, "settings_step" to "cache_size")
             }.getOrDefault(0L)
             showClearCacheDialog(formatCacheSize(cacheSizeBytes))
         }
@@ -124,6 +127,8 @@ class SettingsActivity : BaseAircraftActivity() {
             val result = runCatching {
                 viewModel.clearCachedGameData()
                 BitmapUtils.clearCaches()
+            }.onFailure {
+                CrashReporter.record(it, "settings_step" to "clear_cache")
             }
             val messageRes = if (result.isSuccess) {
                 R.string.clear_cache_success
