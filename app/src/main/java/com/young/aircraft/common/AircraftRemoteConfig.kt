@@ -262,6 +262,17 @@ object AircraftRemoteConfig {
 internal fun parseAppIconVariant(value: String): Int = value.trim().toIntOrNull()
     ?.takeIf { it in 1..5 } ?: DEFAULT_APP_ICON_VARIANT
 
+/** Invisible characters that [Char.isWhitespace] does not report but which
+ * commonly ride along when a placeholder is pasted into the Firebase console
+ * or an editor: non-breaking space, narrow non-breaking space, zero-width
+ * space, and the byte-order mark. */
+private val welcomeInvisibleChars = charArrayOf(
+    '\u00A0', // non-breaking space
+    '\u202F', // narrow non-breaking space
+    '\u200B', // zero-width space
+    '\uFEFF'  // byte-order mark
+)
+
 /**
  * Decides the Crashlytics collection flag for the current Remote Config view.
  *
