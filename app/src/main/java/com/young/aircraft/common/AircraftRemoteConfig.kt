@@ -292,17 +292,6 @@ internal fun crashlyticsCollectionEnabled(
     else -> true
 }
 
-/** Invisible characters that [Char.isWhitespace] does not report but which
- * commonly ride along when a placeholder is pasted into the Firebase console
- * or an editor: non-breaking space, narrow non-breaking space, zero-width
- * space, and the byte-order mark. */
-private val welcomeInvisibleChars = charArrayOf(
-    '\u00A0', // non-breaking space
-    '\u202F', // narrow non-breaking space
-    '\u200B', // zero-width space
-    '\uFEFF'  // byte-order mark
-)
-
 /**
  * Resolves the configured welcome text: a blank value or
  * [AircraftRemoteConfig.WELCOME_MESSAGE_PLACEHOLDER] falls back to the
