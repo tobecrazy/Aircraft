@@ -17,6 +17,7 @@ internal const val REPO_UPDATE_JSON_JSDELIVR_URL =
     "https://cdn.jsdelivr.net/gh/tobecrazy/Aircraft@main/app-update.json"
 internal const val REPO_UPDATE_JSON_RAW_URL =
     "https://raw.githubusercontent.com/tobecrazy/Aircraft/main/app-update.json"
+internal val REPO_UPDATE_JSON_URLS = listOf(REPO_UPDATE_JSON_JSDELIVR_URL, REPO_UPDATE_JSON_RAW_URL)
 
 /**
  * Version fallback served from this repository's own `app-update.json`.
@@ -79,18 +80,31 @@ object RepoUpdateConfigStore {
         config
     }
 
-    private fun fetchFirstSuccess(): RepoUpdateConfig? {
-        for (url in listOf(REPO_UPDATE_JSON_JSDELIVR_URL, REPO_UPDATE_JSON_RAW_URL)) {
-            val config = runCatching { fetch(url) }
+    /**
+     * Fetches every source instead of stopping at the first success: a stale
+     * CDN cache still returns HTTP 200 with valid JSON (just an older
+     * `latest_version`), which would otherwise preempt the fallback URL.
+     * [selectFreshestRepoUpdateConfig] then keeps the newest copy.
+     */
+    private fun fetchFirstSuccess(): RepoUpdateConfig? = fetchFirstSuccess(::fetch)
+
+    /** Injectable variant of [fetchFirstSuccess] so unit tests can replay
+     * candidate responses per URL without network access; production passes
+     * [fetch]. */
+    internal fun fetchFirstSuccess(fetch: (String) -> RepoUpdateConfig?): RepoUpdateConfig? {
+        val configs = REPO_UPDATE_JSON_URLS.mapNotNull { url ->
+            runCatching { fetch(url) }
                 .onFailure { error ->
                     CrashReporter.log("Repo update config fetch failed: $url")
                     CrashReporter.record(error, "repo_update_url" to url)
                 }
                 .getOrNull()
-            if (config != null) return config
-            AppLog.w(TAG, "Repo update config fetch failed for $url")
+                ?: run {
+                    AppLog.w(TAG, "Repo update config fetch failed for $url")
+                    null
+                }
         }
-        return null
+        return selectFreshestRepoUpdateConfig(configs)
     }
 
     private fun fetch(url: String): RepoUpdateConfig? {
@@ -209,3 +223,24 @@ internal fun parseRepoUpdateConfig(json: String): RepoUpdateConfig? = try {
 } catch (_: Exception) {
     null
 }
+
+/**
+ * Picks the candidate whose `latest_version` compares highest, so a stale CDN
+ * cache (valid JSON carrying an older version) cannot preempt a fresher copy
+ * fetched from the fallback URL. Blank or unparsable versions lose against
+ * any parsable one; copies that are both unparsable (for example both blank)
+ * tie and keep the first fetched.
+ */
+internal fun selectFreshestRepoUpdateConfig(configs: List<RepoUpdateConfig>): RepoUpdateConfig? =
+    configs.maxWithOrNull { left, right ->
+        val comparison = compareAppVersions(left.latestVersion, right.latestVersion)
+        when {
+            comparison != null -> comparison
+            // Self-comparison is null only for an unparsable/blank version,
+            // which lets us rank the parsable side higher without a
+            // dedicated rank type.
+            compareAppVersions(right.latestVersion, right.latestVersion) != null -> -1
+            compareAppVersions(left.latestVersion, left.latestVersion) != null -> 1
+            else -> 0
+        }
+    }
