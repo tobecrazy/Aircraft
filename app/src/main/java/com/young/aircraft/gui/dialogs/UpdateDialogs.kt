@@ -7,6 +7,7 @@ import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.gui.openUpdatePage
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.CrashReporter
 
 private const val TAG = "UpdateDialogs"
 
@@ -40,8 +41,9 @@ fun Activity.showUpdateAvailableDialog(
             .setNegativeButton(R.string.remote_update_later_action, null)
             .setCancelable(true)
             .showThemed(onDismiss)
-    } catch (_: IllegalArgumentException) {
+    } catch (error: IllegalArgumentException) {
         AppLog.w(TAG, "Host theme cannot show update prompt; skipping")
+        CrashReporter.record(error, "dialog" to "update_available")
         null
     }
     return dialog
@@ -60,8 +62,9 @@ fun Activity.showAlreadyLatestVersionDialog(): AlertDialog? {
             .setPositiveButton(android.R.string.ok, null)
             .setCancelable(true)
             .showThemed()
-    } catch (_: IllegalArgumentException) {
+    } catch (error: IllegalArgumentException) {
         AppLog.w(TAG, "Host theme cannot show already-latest dialog; skipping")
+        CrashReporter.record(error, "dialog" to "already_latest")
         null
     }
     return dialog

@@ -157,10 +157,13 @@ object BitmapUtils {
                 Bitmap.createBitmap(bitmap, 0, 0, sourceWidth, sourceHeight, matrix, true)
             }
         } catch (_: IllegalArgumentException) {
+            CrashReporter.log("Bitmap transform skipped: invalid transform arguments")
             null
-        } catch (_: RuntimeException) {
+        } catch (error: RuntimeException) {
+            CrashReporter.record(error, "bitmap_step" to "transform")
             null
-        } catch (_: OutOfMemoryError) {
+        } catch (error: OutOfMemoryError) {
+            CrashReporter.record(error, "bitmap_step" to "transform")
             null
         }
     }
@@ -176,11 +179,14 @@ object BitmapUtils {
                     inPreferredConfig = Bitmap.Config.ARGB_8888
                 }
             )
-        } catch (_: Resources.NotFoundException) {
+        } catch (error: Resources.NotFoundException) {
+            CrashReporter.record(error, "bitmap_step" to "decode", "resource_id" to resId)
             null
-        } catch (_: RuntimeException) {
+        } catch (error: RuntimeException) {
+            CrashReporter.record(error, "bitmap_step" to "decode", "resource_id" to resId)
             null
-        } catch (_: OutOfMemoryError) {
+        } catch (error: OutOfMemoryError) {
+            CrashReporter.record(error, "bitmap_step" to "decode", "resource_id" to resId)
             null
         }
     }

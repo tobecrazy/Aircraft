@@ -71,6 +71,102 @@ class RepoUpdateConfigTest {
         assertNull(parseRepoUpdateConfig("not-json"))
     }
 
+    /** Stands in for the URL-dependent HTTP response bodies in tests. */
+    private fun repoJson(minimum: String, latest: String): String =
+        """{"minimum_version":"$minimum","latest_version":"$latest","update_url":"https://example.com/app.apk"}"""
+
+    @Test
+    fun `stale CDN copy does not preempt the fresh raw fallback`() {
+        val requests = mutableListOf<String>()
+        val applied = RepoUpdateConfigStore.fetchFirstSuccess { url ->
+            requests += url
+            when (url) {
+                REPO_UPDATE_JSON_JSDELIVR_URL -> parseRepoUpdateConfig(repoJson("1.5.6", "1.5.6"))
+                REPO_UPDATE_JSON_RAW_URL -> parseRepoUpdateConfig(repoJson("1.5.6", "1.5.7"))
+                else -> null
+            }
+        }
+
+        // Both sources must be attempted before the freshest copy is chosen.
+        assertEquals(
+            listOf(REPO_UPDATE_JSON_JSDELIVR_URL, REPO_UPDATE_JSON_RAW_URL),
+            requests
+        )
+        assertEquals("1.5.7", applied?.latestVersion)
+    }
+
+    @Test
+    fun `fresh CDN copy wins over a stale raw one`() {
+        val applied = RepoUpdateConfigStore.fetchFirstSuccess { url ->
+            when (url) {
+                REPO_UPDATE_JSON_JSDELIVR_URL -> parseRepoUpdateConfig(repoJson("1.5.6", "1.5.7"))
+                REPO_UPDATE_JSON_RAW_URL -> parseRepoUpdateConfig(repoJson("1.5.6", "1.5.6"))
+                else -> null
+            }
+        }
+
+        assertEquals("1.5.7", applied?.latestVersion)
+    }
+
+    @Test
+    fun `failed CDN fetch falls back to the raw one`() {
+        val applied = RepoUpdateConfigStore.fetchFirstSuccess { url ->
+            if (url == REPO_UPDATE_JSON_JSDELIVR_URL) error("CDN unreachable")
+            parseRepoUpdateConfig(repoJson("1.5.6", "1.5.7"))
+        }
+
+        assertEquals("1.5.7", applied?.latestVersion)
+    }
+
+    @Test
+    fun `both sources failing yields no config`() {
+        val applied = RepoUpdateConfigStore.fetchFirstSuccess { url ->
+            if (url == REPO_UPDATE_JSON_JSDELIVR_URL || url == REPO_UPDATE_JSON_RAW_URL) {
+                error("offline")
+            }
+            throw AssertionError("unexpected url $url")
+        }
+
+        assertNull(applied)
+    }
+
+    @Test
+    fun `selects the copy with the highest latest version`() {
+        val stale = RepoUpdateConfig(
+            minimumVersion = "1.5.6",
+            latestVersion = "1.5.6",
+            updateUrl = "https://example.com/V1.5.6"
+        )
+        val fresh = RepoUpdateConfig(
+            minimumVersion = "1.5.6",
+            latestVersion = "1.5.7",
+            updateUrl = "https://example.com/V1.5.7"
+        )
+
+        assertEquals(fresh, selectFreshestRepoUpdateConfig(listOf(stale, fresh)))
+        assertEquals(fresh, selectFreshestRepoUpdateConfig(listOf(fresh, stale)))
+        assertEquals(fresh, selectFreshestRepoUpdateConfig(listOf(fresh)))
+    }
+
+    @Test
+    fun `unparsable latest version loses against a parsable one`() {
+        val unparsable = RepoUpdateConfig(latestVersion = "not-a-version")
+        val fresh = RepoUpdateConfig(latestVersion = "1.5.7")
+
+        assertEquals(fresh, selectFreshestRepoUpdateConfig(listOf(unparsable, fresh)))
+        assertEquals(fresh, selectFreshestRepoUpdateConfig(listOf(fresh, unparsable)))
+        // Both unparsable (blank included): the first fetched copy wins.
+        assertEquals(
+            unparsable,
+            selectFreshestRepoUpdateConfig(listOf(unparsable, RepoUpdateConfig()))
+        )
+    }
+
+    @Test
+    fun `selecting from an empty source list returns null`() {
+        assertNull(selectFreshestRepoUpdateConfig(emptyList()))
+    }
+
     @Test
     fun `repo JSON urls point at app-update json on main`() {
         assertEquals(

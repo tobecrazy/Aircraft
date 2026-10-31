@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.CrashReporter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -192,6 +193,7 @@ class PuzzleImageViewModel internal constructor(
                 null
             } catch (failure: Throwable) {
                 AppLog.w(TAG, "Puzzle image load failed", failure)
+                CrashReporter.record(failure, "puzzle_level" to level, "refresh" to isRefresh)
                 ImageOutcome.Failed(PuzzleImageFailure.DOWNLOAD_FAILED)
             }
 
@@ -242,6 +244,7 @@ class PuzzleImageViewModel internal constructor(
             feedLoader()
         } catch (feedFailure: Throwable) {
             AppLog.w(TAG, "Puzzle image feed request failed", feedFailure)
+            CrashReporter.record(feedFailure, "puzzle_level" to level, "puzzle_step" to "feed")
             return ImageOutcome.Failed(PuzzleImageFailure.NETWORK)
         }
 
@@ -260,6 +263,7 @@ class PuzzleImageViewModel internal constructor(
                 imageDownloader(candidate)
             } catch (downloadFailure: Throwable) {
                 AppLog.w(TAG, "Failed to fetch $candidate", downloadFailure)
+                CrashReporter.record(downloadFailure, "puzzle_step" to "download", "puzzle_url" to candidate)
                 null
             }
             if (download == null || download.bytes.isEmpty()) continue
@@ -301,6 +305,7 @@ class PuzzleImageViewModel internal constructor(
             }
         }.onFailure { failure ->
             AppLog.w(TAG, "Failed to cache puzzle image from $source", failure)
+            CrashReporter.record(failure, "puzzle_step" to "cache", "puzzle_url" to source)
             tempFile.delete()
         }.getOrNull()
     }
@@ -372,7 +377,10 @@ private suspend fun peapixFeedLoader(): String = withContext(Dispatchers.IO) {
         .header("Accept", "application/json")
         .build()
     PuzzleHttpClientHolder.client.newCall(request).execute().use { response ->
-        if (!response.isSuccessful) throw IOException("Feed HTTP ${response.code}")
+        if (!response.isSuccessful) {
+            CrashReporter.log("Puzzle feed responded HTTP ${response.code}")
+            throw IOException("Feed HTTP ${response.code}")
+        }
         response.body.string().orEmpty()
     }
 }
@@ -388,10 +396,14 @@ private suspend fun puzzleImageDownloader(url: String): PuzzleImageDownload = wi
         .header("Accept", "image/jpeg,image/*;q=0.8")
         .build()
     PuzzleHttpClientHolder.client.newCall(request).execute().use { response ->
-        if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+        if (!response.isSuccessful) {
+            CrashReporter.log("Puzzle image responded HTTP ${response.code}: $url")
+            throw IOException("HTTP ${response.code}")
+        }
         val body = response.body
         val contentLength = body.contentLength()
         if (contentLength > PuzzleImageViewModel.MAX_IMAGE_BYTES) {
+            CrashReporter.log("Puzzle image exceeds size limit: $contentLength bytes from $url")
             throw IOException("Image exceeds size limit: $contentLength bytes")
         }
         val buffer = ByteArrayOutputStream()
@@ -403,6 +415,7 @@ private suspend fun puzzleImageDownloader(url: String): PuzzleImageDownload = wi
                 if (read < 0) break
                 total += read
                 if (total > PuzzleImageViewModel.MAX_IMAGE_BYTES) {
+                    CrashReporter.log("Puzzle image stream exceeds size limit: $total bytes from $url")
                     throw IOException("Image exceeds size limit: $total bytes read")
                 }
                 buffer.write(chunk, 0, read)

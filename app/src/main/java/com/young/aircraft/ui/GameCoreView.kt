@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.VibratorManager
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.CrashReporter
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
@@ -135,6 +136,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
             }
         }
         isRunning = true
+        frameFailureReported = false
         gameThread = Thread(this)
         gameThread.start()
     }
@@ -660,6 +662,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 gameThread.join()
             } catch (e: Exception) {
                 e.printStackTrace()
+                CrashReporter.record(e, "game_step" to "surface_destroyed")
             }
             isRetry = false
         }
@@ -851,6 +854,9 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
     }
 
     private var droppedFrameCount: Int = 0
+    /** Render-loop failures repeat every tick; report only the first one per surface. */
+    @Volatile
+    private var frameFailureReported = false
     @Volatile
     private var isRunning = true
     var canvas: Canvas? = null
@@ -898,6 +904,13 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
         }
     }
 
+    /** A broken frame fails on every tick, so only the first failure is reported. */
+    private fun reportFrameFailure(error: Exception, step: String) {
+        if (frameFailureReported) return
+        frameFailureReported = true
+        CrashReporter.record(error, "game_step" to step)
+    }
+
     override fun run() {
         var startTime: Long
         var timeMillis: Long
@@ -930,6 +943,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportFrameFailure(e, "frame")
             } finally {
                 try {
                     canvas?.let {
@@ -937,6 +951,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    reportFrameFailure(e, "unlock_canvas")
                 }
             }
             timeMillis = (System.nanoTime() - startTime) / 1000000
@@ -949,6 +964,7 @@ class GameCoreView(context: Context) : SurfaceView(context), SurfaceHolder.Callb
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportFrameFailure(e, "frame_sleep")
             }
             totalTime += System.nanoTime() - startTime
             frameCount++

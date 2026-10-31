@@ -9,6 +9,7 @@ import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.utils.AppLog
+import com.young.aircraft.utils.CrashReporter
 import org.json.JSONObject
 import java.math.BigInteger
 import java.time.Instant
@@ -91,10 +92,16 @@ object AircraftRemoteConfig {
         ).addOnCompleteListener { settingsTask ->
             if (!settingsTask.isSuccessful) {
                 AppLog.w(TAG, "Failed to apply Remote Config settings", settingsTask.exception)
+                settingsTask.exception?.let { error ->
+                    CrashReporter.record(error, "remote_config_step" to "settings")
+                }
             }
             remoteConfig.setDefaultsAsync(defaults).addOnCompleteListener { defaultsTask ->
                 if (!defaultsTask.isSuccessful) {
                     AppLog.w(TAG, "Failed to apply Remote Config defaults", defaultsTask.exception)
+                    defaultsTask.exception?.let { error ->
+                        CrashReporter.record(error, "remote_config_step" to "defaults")
+                    }
                 }
                 updateCrashlyticsCollection()
                 listenForUpdates(remoteConfig)
@@ -117,6 +124,7 @@ object AircraftRemoteConfig {
                         }
                         .addOnFailureListener { error ->
                             AppLog.w(TAG, "Failed to activate real-time config", error)
+                            CrashReporter.record(error, "remote_config_step" to "activate")
                         }
                 }
 
@@ -142,6 +150,7 @@ object AircraftRemoteConfig {
             }
             .addOnFailureListener { error ->
                 AppLog.w(TAG, "Remote config fetch failed; using cached/default values", error)
+                CrashReporter.record(error, "remote_config_step" to "fetch")
             }
     }
 

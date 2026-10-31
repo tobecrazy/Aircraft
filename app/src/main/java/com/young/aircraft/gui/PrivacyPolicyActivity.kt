@@ -59,6 +59,7 @@ import com.young.aircraft.ui.theme.HeaderBackground
 import com.young.aircraft.ui.theme.NeonDivider
 import com.young.aircraft.ui.theme.TextBody
 import com.young.aircraft.ui.theme.TextBright
+import com.young.aircraft.utils.CrashReporter
 import com.young.developtools.utils.DebugTools
 import java.util.Locale
 
@@ -197,6 +198,8 @@ class PrivacyPolicyActivity : BaseAircraftActivity() {
     private fun launchExternalIntent(action: String, url: String) {
         runCatching {
             startActivity(Intent(action, url.toUri()))
+        }.onFailure {
+            CrashReporter.log("No handler for policy link: $url")
         }
     }
 

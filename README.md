@@ -52,7 +52,7 @@ The demo above walks through the end-to-end player experience on a real device:
 | `service/` | Pink | `MusicService`, `MusicBinder` | BGM/SFX bound service (`FlashlightService` lives in `:developtools`) |
 | `providers/` | Gray | `DatabaseProvider` | Singleton DB provider |
 | `developtools/` | Slate-blue | `gui/` (14 tool Activities), `viewmodel/` (12 tool ViewModels + 2 UiState files), `data/` (`ImageDetails`, `BannerDetails`, `ContactsRepository`, `ChinaPhoneNumber`, `EmailAddress`, `LogSettings`), `repository/` (`ApiDebugRepository`, `ApiHistoryStore`, `InMemoryApiHistoryStore`), `service/` (`FlashlightService`), `utils/` (`DeveloperMode`, `DebugTools` per-variant, `DevLog`, `DevPrefs`, `DataUriUtils`, `FilePickerHelper`) | All developer/utility screens + gate, logging, history contract; host wiring via `DevTools` |
-| `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils`, `AppLog`, `GameInterruptionShield` | Screen metrics, bitmap utilities, name formatting, runtime log kill-switch, combat DND shield (tool helpers live in `:developtools`) |
+| `utils/` | Light green | `ScreenUtils`, `BitmapUtils`, `HallOfHeroesNameUtils`, `AppLog`, `CrashReporter`, `GameInterruptionShield` | Screen metrics, bitmap utilities, name formatting, runtime log kill-switch, fail-safe Crashlytics facade (breadcrumbs + non-fatal records, no-ops when Firebase is absent), combat DND shield (tool helpers live in `:developtools`) |
 
 ### Key Relationships
 
@@ -226,7 +226,7 @@ app/
 │   ├── AircraftApplication.kt          # Application entry point; emits LOW_MEMORY events, refreshes the repo-update fallback JSON at startup, and enforces the minimum-version / optional-update prompts on every resume
 │   ├── AircraftRemoteConfig.kt         # Firebase Remote Config singleton: typed parameters, token JSON, version compare, Crashlytics collection toggle
 │   ├── LauncherIconManager.kt          # internal object switching the enabled launcher activity-alias for the Remote Config `AppIcon` variant (1..5, invalid → 1); debug builds pin LauncherIcon1 so the IDE launch target stays valid
-│   ├── RepoUpdateConfig.kt             # Repo `app-update.json` fallback: data class + RepoUpdateConfigStore (Firebase REMOTE wins; jsDelivr → raw fetch at startup and via the About manual check)
+│   ├── RepoUpdateConfig.kt             # Repo `app-update.json` fallback: data class + RepoUpdateConfigStore (Firebase REMOTE wins; jsDelivr + raw fetched together, freshest `latest_version` kept)
 │   └── GameStateManager.kt             # SharedFlow game-state broadcaster + debug invincible flag
 ├── data/
 │   ├── AppDatabase.kt                  # Room database (v2033) + explicit migrations 2027→2033
@@ -298,6 +298,7 @@ app/
 ├── utils/
 │   ├── AppLog.kt                       # Runtime kill-switch wrapper over android.util.Log; d() takes a lambda so disabled messages are never built
 │   ├── BitmapUtils.kt                  # Bitmap loading, scaling, mirroring, rotation
+│   ├── CrashReporter.kt                # Firebase Crashlytics facade: breadcrumb logging + non-fatal record(log(key, value) pairs); fails safe when Firebase is absent, expected control-flow exceptions only log a breadcrumb
 │   ├── GameInterruptionShield.kt       # Combat Do-Not-Disturb shield: requests DND full-suppression during dogfights; null when unauthorized (callers fall back to auto-pause)
 │   ├── HallOfHeroesNameUtils.kt        # Hero-name formatting and anonymous fallback logic
 │   ├── ScreenUtils.kt                  # Screen metrics and dp/sp conversions
@@ -342,6 +343,7 @@ app/
 - `BossFireworksEffectTest` for the boss-defeat fireworks frame window (nothing before the first burst, ink while alive, hard stop at the declared duration, in-bounds clamping)
 - `AppLogTest` for the runtime log kill-switch (silences every level, skips building a `d` message)
 - `AircraftRemoteConfigTest` for the Remote Config update gate: token JSON parsing (including offset timestamps), dotted version comparison, the optional-update predicate, and the Crashlytics collection gate (remote values decide, every other source fails open)
+- `RepoUpdateConfigTest` for the repo-JSON fallback: `app-update.json` field parsing (incl. the Firebase-canonical `AppIcon` key), version-URL selection, and the multi-source fetch (CDN + raw are always both fetched; the freshest `latest_version` wins, so a stale CDN cache cannot preempt the raw fallback)
 - `DevelopSettingsViewModelTest`, `PrivacyPolicyViewModelTest`, `OnboardingViewModelTest`, `LaunchViewModelTest`, `GameViewModelTest`, `HistoryViewModelTest`, `SettingsViewModelTest`, `ShowImageDetailsViewModelTest` for ViewModel unit coverage
 - `QRChineseRoundtripTest` and `RichTextMarkdownTest` for QR text round-tripping and editor Markdown output
 - `PlayerGameDataTest` for timestamp-aware data-class behavior

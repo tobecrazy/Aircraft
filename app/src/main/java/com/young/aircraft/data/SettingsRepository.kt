@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import com.young.aircraft.utils.CrashReporter
 import java.io.File
 import java.util.UUID
 
@@ -117,6 +118,7 @@ class SettingsRepository(context: Context) {
 
         appContext.cacheDir.listFiles()?.forEach { file ->
             runCatching { file.deleteRecursively() }
+                .onFailure { CrashReporter.record(it, "settings_step" to "delete_cache_file") }
         }
     }
 
