@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.8] - 2026-10-31
+
+### Added
+- Release APK for `V1.5.8` built (`versionCode` 30); `app-update.json` regenerated with `latest_version` `1.5.8`
+- `selectFreshestRepoUpdateConfig` — internal pure comparator picking the repo-JSON copy with the highest parsable `latest_version`, so a stale CDN cache cannot preempt a fresher copy from the fallback URL
+- Tests: seven new `RepoUpdateConfigTest` cases — freshest-version selection in both fetch orders, unparsable/blank versions losing against parsable ones, empty source lists, and four injected-fetcher cases replaying the stale-CDN-preempts-raw scenario (both URLs attempted, reverse ordering, CDN failure, total failure)
+
+### Changed
+- Repo `app-update.json` fetch no longer short-circuits on the first successful response: a stale jsDelivr `@main` cache (valid JSON carrying an older `latest_version`) blocked the raw.githubusercontent fallback and suppressed the 1.5.6→1.5.7 update prompt; both CDN and raw sources are now always fetched and the freshest copy wins
+- Version bump `1.5.7` → `1.5.8` (`versionCode` 29 → 30)
+- Docs: `AGENTS.md`, `CLAUDE.md`, and the README update chain describe the both-sources/freshest-wins fetch (plus the `purge.jsdelivr.net` manual cache-clear endpoint), and the README Project Structure gains the missing `utils/CrashReporter.kt` row and a `RepoUpdateConfigTest` test suite entry
+- Forced-update floor stays at `1.5.6`; the Firebase console `minimum_version`/`latest_version` parameters remain the responsibility of each release
+
 ## [1.5.7] - 2026-10-30
 
 ### Added
