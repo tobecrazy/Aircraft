@@ -85,9 +85,15 @@ class GateAndPolicyScreensTest {
         // finishes immediately when the installed build is current, so the test
         // forces a required version for the duration of this case.
         withForcedUpdate("99.0.0") {
-            withScreen(MandatoryUpdateActivity::class.java) { screen ->
+            // A refresh that lands between the forced write and the activity's
+            // resume still flips the gate, so reopen until the screen sticks.
+            val screen = openStickyScreen(MandatoryUpdateActivity::class.java)
+                ?: error("MandatoryUpdateActivity finished before it could be asserted")
+            try {
                 assertTrue("update title", screen.waitForText(R.string.remote_update_required_title))
                 assertTrue("current version row", screen.waitForText(R.string.remote_update_current_version))
+            } finally {
+                screen.closeScreen()
             }
         }
     }

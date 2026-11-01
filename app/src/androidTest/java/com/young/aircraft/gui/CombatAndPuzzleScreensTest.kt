@@ -23,6 +23,7 @@ class CombatAndPuzzleScreensTest {
             // be live — that coexistence is deliberate in MainActivity.
             assertTrue("pause action", game.waitForText(R.string.game_hud_pause))
             assertTrue("GameCoreView must be attached to the window", game.hasGameCoreView())
+            game.parkBeforeClose()
         }
     }
 
@@ -34,6 +35,7 @@ class CombatAndPuzzleScreensTest {
 
             assertTrue("pause panel badge", game.waitForText(R.string.game_hud_pause_badge))
             assertTrue("resume action", game.waitForText(R.string.pause_resume))
+            game.parkBeforeClose()
         }
     }
 
@@ -47,7 +49,19 @@ class CombatAndPuzzleScreensTest {
             assertTrue("resume action must be clickable", game.clickText(R.string.pause_resume))
             // Resuming must tear the panel down again, not just flip a label.
             assertTrue("resume hides the panel", game.waitForNoText(R.string.game_hud_pause_badge))
+            game.parkBeforeClose()
         }
+    }
+
+    /**
+     * Parks the game before the window is torn down. The emulator's software EGL
+     * driver can crash while destroying a surface that still has a frame in
+     * flight, and a process crash aborts the whole instrumentation run; a paused
+     * loop leaves nothing to tear down.
+     */
+    private fun MainActivity.parkBeforeClose() {
+        clickText(R.string.game_hud_pause)
+        Thread.sleep(300)
     }
 
     @Test
