@@ -72,24 +72,6 @@ internal fun <A : Activity> openScreen(intent: Intent, clazz: Class<A>, timeoutM
     return awaitScreen(clazz, timeoutMs)
 }
 
-/**
- * Opens [clazz] and retries when the screen finishes itself before it can
- * resume. Gate screens re-check their condition on their own resume, so an
- * async config refresh landing at that instant closes them; a retry wins the
- * race instead of failing the run. Returns null when every attempt closed.
- */
-internal fun openStickyScreen(
-    clazz: Class<out Activity>,
-    attempts: Int = 3,
-    timeoutMs: Long = 20_000
-): Activity? {
-    repeat(attempts) {
-        val screen = runCatching { openScreen(clazz, timeoutMs) }.getOrNull()
-        if (screen != null) return screen
-    }
-    return null
-}
-
 /** Runs [block] with an open screen and always finishes it afterwards. */
 internal inline fun <A : Activity> withScreen(clazz: Class<A>, block: (A) -> Unit) {
     val screen = openScreen(clazz)

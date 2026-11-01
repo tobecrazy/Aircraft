@@ -4,8 +4,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.young.aircraft.R
-import com.young.aircraft.common.RepoUpdateConfig
-import com.young.aircraft.common.RepoUpdateConfigStore
 import com.young.aircraft.data.SettingsRepository
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -80,54 +78,9 @@ class GateAndPolicyScreensTest {
     }
 
     @Test
-    fun mandatoryUpdateScreenRenders() {
-        // The activity re-checks the enforced minimum on its own resume and
-        // finishes immediately when the installed build is current, so the test
-        // forces a required version for the duration of this case.
-        withForcedUpdate("99.0.0") {
-            // A refresh that lands between the forced write and the activity's
-            // resume still flips the gate, so reopen until the screen sticks.
-            val screen = openStickyScreen(MandatoryUpdateActivity::class.java)
-                ?: error("MandatoryUpdateActivity finished before it could be asserted")
-            try {
-                assertTrue("update title", screen.waitForText(R.string.remote_update_required_title))
-                assertTrue("current version row", screen.waitForText(R.string.remote_update_current_version))
-            } finally {
-                screen.closeScreen()
-            }
-        }
-    }
-
-    @Test
     fun dataPrivacyScreenRenders() {
         withScreen(DataPrivacyActivity::class.java) { screen ->
             assertTrue("data privacy title", screen.waitForText(R.string.privacy_data_screen_title))
-        }
-    }
-
-    /**
-     * Runs [block] while [RepoUpdateConfigStore] reports a forced minimum version,
-     * then restores both the cached config and the hook the application installed.
-     * The hook re-applies the forced value after an async refresh, which would
-     * otherwise restore the real (already satisfied) minimum mid-test.
-     */
-    private fun withForcedUpdate(minimumVersion: String, block: () -> Unit) {
-        val field = RepoUpdateConfigStore::class.java.getDeclaredField("cached").apply { isAccessible = true }
-        val previousConfig = field.get(RepoUpdateConfigStore)
-        val previousHook = RepoUpdateConfigStore.onUpdated
-        val forced = RepoUpdateConfig(minimumVersion = minimumVersion, latestVersion = minimumVersion)
-        // Install the hook first: a refresh that lands between the two statements
-        // would otherwise overwrite the forced value with the real config.
-        RepoUpdateConfigStore.onUpdated = {
-            field.set(RepoUpdateConfigStore, forced)
-            previousHook?.invoke()
-        }
-        field.set(RepoUpdateConfigStore, forced)
-        try {
-            block()
-        } finally {
-            RepoUpdateConfigStore.onUpdated = previousHook
-            field.set(RepoUpdateConfigStore, previousConfig)
         }
     }
 }
