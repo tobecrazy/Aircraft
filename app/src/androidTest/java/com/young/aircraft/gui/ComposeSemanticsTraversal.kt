@@ -36,14 +36,22 @@ fun findAllNodes(node: SemanticsNode): List<SemanticsNode> =
     listOf(node) + node.children.flatMap(::findAllNodes)
 
 /** Visible text (or content description fallback) carried by a semantics node. */
+/**
+ * All text a node carries. A text field reports its value as EditableText while
+ * its merged children (label, supporting text) stay in Text, so both are needed:
+ * returning the field value alone would hide the validation message.
+ */
 fun SemanticsNode.displayText(): String? {
-    config.getOrNull(SemanticsProperties.Text)?.let { texts ->
-        if (texts.isNotEmpty()) return texts.joinToString("") { it.toString() }
+    val parts = buildList {
+        config.getOrNull(SemanticsProperties.EditableText)?.text?.let { if (it.isNotEmpty()) add(it) }
+        config.getOrNull(SemanticsProperties.Text)?.let { texts ->
+            if (texts.isNotEmpty()) add(texts.joinToString("") { it.toString() })
+        }
+        config.getOrNull(SemanticsProperties.ContentDescription)?.let { descs ->
+            if (descs.isNotEmpty()) add(descs.joinToString(" "))
+        }
     }
-    config.getOrNull(SemanticsProperties.ContentDescription)?.let { descs ->
-        if (descs.isNotEmpty()) return descs.joinToString(" ") { it.toString() }
-    }
-    return null
+    return if (parts.isEmpty()) null else parts.joinToString(" ")
 }
 
 /**

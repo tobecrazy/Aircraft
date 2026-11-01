@@ -71,6 +71,29 @@ class SettingsAndAboutScreensTest {
     }
 
     @Test
+    fun historyBackFinishesScreen() {
+        withScreen(HistoryActivity::class.java) { screen ->
+            assertTrue("back action must be clickable", screen.clickTag("btn_back"))
+            assertTrue("back must finish the screen", screen.waitForFinish())
+        }
+    }
+
+    @Test
+    fun aboutVersionBadgeGatesDeveloperMode() {
+        withScreen(AboutAircraftActivity::class.java) { screen ->
+            // Eight taps is the unlock threshold; debug builds already count as enabled,
+            // so the eighth tap reports that state instead of unlocking again.
+            repeat(8) {
+                assertTrue("version badge must be clickable", screen.clickTag("version_badge"))
+            }
+            assertTrue(
+                "eighth tap reports the developer-mode state",
+                screen.waitForViewText(R.string.develop_settings_already_enabled)
+            )
+        }
+    }
+
+    @Test
     fun aboutMeScreenRenders() {
         withScreen(AboutMeActivity::class.java) { screen ->
             assertTrue("about me title", screen.waitForText(R.string.about_me_title))

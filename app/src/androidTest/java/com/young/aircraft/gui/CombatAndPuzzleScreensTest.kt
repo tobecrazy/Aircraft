@@ -38,6 +38,19 @@ class CombatAndPuzzleScreensTest {
     }
 
     @Test
+    fun resumeActionHidesPausePanel() {
+        withScreen(MainActivity::class.java) { game ->
+            assertTrue("pause action", game.waitForText(R.string.game_hud_pause))
+            assertTrue("pause action must be clickable", game.clickText(R.string.game_hud_pause))
+            assertTrue("pause panel badge", game.waitForText(R.string.game_hud_pause_badge))
+
+            assertTrue("resume action must be clickable", game.clickText(R.string.pause_resume))
+            // Resuming must tear the panel down again, not just flip a label.
+            assertTrue("resume hides the panel", game.waitForNoText(R.string.game_hud_pause_badge))
+        }
+    }
+
+    @Test
     fun puzzleScreenShowsTopBar() {
         withScreen(PuzzleActivity::class.java) { puzzle ->
             assertTrue("puzzle title", puzzle.waitForText(R.string.puzzle_top_bar_title))

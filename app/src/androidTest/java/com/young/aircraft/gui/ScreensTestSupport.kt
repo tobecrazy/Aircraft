@@ -134,6 +134,66 @@ internal fun Activity.waitForText(text: String, timeoutMs: Long = 30_000): Boole
 internal fun Activity.waitForText(res: Int, timeoutMs: Long = 30_000): Boolean =
     waitForText(scenarioString(res), timeoutMs)
 
+/** Polls until [text] is gone from this window; false if it is still there. */
+internal fun Activity.waitForNoText(text: String, timeoutMs: Long = 10_000): Boolean {
+    val deadline = SystemClock.elapsedRealtime() + timeoutMs
+    while (SystemClock.elapsedRealtime() < deadline) {
+        if (!hasTextNow(text)) return true
+        Thread.sleep(200)
+    }
+    return false
+}
+
+internal fun Activity.waitForNoText(res: Int, timeoutMs: Long = 10_000): Boolean =
+    waitForNoText(scenarioString(res), timeoutMs)
+
+/** True once this screen has left the resumed set, i.e. it finished itself. */
+internal fun Activity.waitForFinish(timeoutMs: Long = 15_000): Boolean {
+    val deadline = SystemClock.elapsedRealtime() + timeoutMs
+    while (SystemClock.elapsedRealtime() < deadline) {
+        if (ScreenTracker.find(javaClass) !== this) return true
+        Thread.sleep(100)
+    }
+    return false
+}
+
+/**
+ * Polls for [text] in the plain View hierarchy. Snackbars and other non-Compose
+ * chrome are invisible to the semantics traversal, so feedback assertions need
+ * this instead of [waitForText].
+ */
+internal fun Activity.waitForViewText(text: String, timeoutMs: Long = 10_000): Boolean {
+    val deadline = SystemClock.elapsedRealtime() + timeoutMs
+    while (SystemClock.elapsedRealtime() < deadline) {
+        if (hasViewTextNow(text)) return true
+        Thread.sleep(200)
+    }
+    return false
+}
+
+internal fun Activity.waitForViewText(res: Int, timeoutMs: Long = 10_000): Boolean =
+    waitForViewText(scenarioString(res), timeoutMs)
+
+private fun Activity.hasViewTextNow(text: String): Boolean {
+    var found = false
+    runCatching {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            found = window.decorView.containsText(text)
+        }
+    }
+    return found
+}
+
+private fun View.containsText(text: String): Boolean {
+    if (this is android.widget.TextView && this.text?.contains(text) == true) return true
+    if (this is ViewGroup) {
+        for (i in 0 until childCount) {
+            if (getChildAt(i).containsText(text)) return true
+        }
+    }
+    return false
+}
+
 internal fun Activity.hasTagNow(tag: String): Boolean {
     var found = false
     runCatching {

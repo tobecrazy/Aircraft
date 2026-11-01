@@ -100,6 +100,32 @@ internal inline fun <A : Activity> withScreen(intent: Intent, clazz: Class<A>, b
     }
 }
 
+/**
+ * Waits for a screen that the test did not start itself (a row click, for
+ * example) to resume; throws after [timeoutMs] so a failed navigation fails the
+ * test instead of silently returning null.
+ */
+internal fun <A : Activity> awaitResumed(clazz: Class<A>, timeoutMs: Long = 30_000): A {
+    ScreenTracker.install()
+    ScreenTracker.forget(clazz)
+    val deadline = SystemClock.elapsedRealtime() + timeoutMs
+    while (SystemClock.elapsedRealtime() < deadline) {
+        ScreenTracker.find(clazz)?.let { return it as A }
+        Thread.sleep(100)
+    }
+    error("${clazz.simpleName} did not resume within ${timeoutMs}ms")
+}
+
+/** True once this screen has left the resumed set, i.e. it finished itself. */
+internal fun Activity.waitForFinish(timeoutMs: Long = 15_000): Boolean {
+    val deadline = SystemClock.elapsedRealtime() + timeoutMs
+    while (SystemClock.elapsedRealtime() < deadline) {
+        if (ScreenTracker.find(javaClass) !== this) return true
+        Thread.sleep(100)
+    }
+    return false
+}
+
 internal fun Activity.closeScreen(timeoutMs: Long = 15_000) {
     val instrumentation = InstrumentationRegistry.getInstrumentation()
     runCatching { instrumentation.runOnMainSync { if (!isFinishing) finish() } }
@@ -122,6 +148,19 @@ internal fun Activity.waitForText(text: String, timeoutMs: Long = 30_000): Boole
 
 internal fun Activity.waitForText(res: Int, timeoutMs: Long = 30_000): Boolean =
     waitForText(scenarioString(res), timeoutMs)
+
+/** Polls until [text] is gone from this window; false if it is still there. */
+internal fun Activity.waitForNoText(text: String, timeoutMs: Long = 10_000): Boolean {
+    val deadline = SystemClock.elapsedRealtime() + timeoutMs
+    while (SystemClock.elapsedRealtime() < deadline) {
+        if (!hasTextNow(text)) return true
+        Thread.sleep(200)
+    }
+    return false
+}
+
+internal fun Activity.waitForNoText(res: Int, timeoutMs: Long = 10_000): Boolean =
+    waitForNoText(scenarioString(res), timeoutMs)
 
 /** Clicks the first node carrying [tag]; false when absent. */
 internal fun Activity.clickTag(tag: String): Boolean {
@@ -175,6 +214,72 @@ internal fun Activity.setText(tag: String, value: String): Boolean {
     return typed
 }
 
+/**
+ * Clicks [tag] after scrolling the page towards it when the node is not composed
+ * yet; false when it never appears. Long tool pages only compose what is on
+ * screen, so a plain [clickTag] would miss rows below the fold.
+ */
+internal fun Activity.clickTagScrolling(tag: String, attempts: Int = 10): Boolean {
+    repeat(attempts) {
+        if (clickTag(tag)) return true
+        if (!scrollForward()) return false
+        SystemClock.sleep(300)
+    }
+    return false
+}
+
+/** Scrolls the first scrollable node down one screenful; false when none exists. */
+private fun Activity.scrollForward(): Boolean {
+    var scrolled = false
+    runCatching {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val root = window.decorView.findSemanticsOwner()?.rootSemanticsNode ?: return@runOnMainSync
+            val scrollable = findAllNodes(root).firstOrNull {
+                it.config.getOrNull(SemanticsActions.ScrollBy) != null
+            } ?: return@runOnMainSync
+            scrollable.config.getOrNull(SemanticsActions.ScrollBy)?.action?.invoke(0f, 900f)
+            scrolled = true
+        }
+    }
+    return scrolled
+}
+
+/**
+ * Polls for [text] in a plain View hierarchy (Snackbars and other non-Compose
+ * chrome are invisible to the semantics traversal); false after [timeoutMs].
+ */
+internal fun Activity.waitForViewText(text: String, timeoutMs: Long = 10_000): Boolean {
+    val deadline = SystemClock.elapsedRealtime() + timeoutMs
+    while (SystemClock.elapsedRealtime() < deadline) {
+        if (hasViewTextNow(text)) return true
+        Thread.sleep(200)
+    }
+    return false
+}
+
+internal fun Activity.waitForViewText(res: Int, timeoutMs: Long = 10_000): Boolean =
+    waitForViewText(scenarioString(res), timeoutMs)
+
+private fun Activity.hasViewTextNow(text: String): Boolean {
+    var found = false
+    runCatching {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            found = window.decorView.containsText(text)
+        }
+    }
+    return found
+}
+
+private fun View.containsText(text: String): Boolean {
+    if (this is android.widget.TextView && this.text?.contains(text) == true) return true
+    if (this is ViewGroup) {
+        for (i in 0 until childCount) {
+            if (getChildAt(i).containsText(text)) return true
+        }
+    }
+    return false
+}
+
 private fun Activity.hasTextNow(text: String): Boolean {
     var found = false
     runCatching {
@@ -208,12 +313,20 @@ private fun View.findSemanticsOwner(): SemanticsOwner? {
 private fun findAllNodes(node: SemanticsNode): List<SemanticsNode> =
     listOf(node) + node.children.flatMap(::findAllNodes)
 
+/**
+ * All text a node carries. A text field reports its value as EditableText while
+ * its merged children (label, supporting text) stay in Text, so both are needed:
+ * returning the field value alone would hide the validation message.
+ */
 private fun SemanticsNode.displayText(): String? {
-    config.getOrNull(SemanticsProperties.Text)?.let { texts ->
-        if (texts.isNotEmpty()) return texts.joinToString("") { it.toString() }
+    val parts = buildList {
+        config.getOrNull(SemanticsProperties.EditableText)?.text?.let { if (it.isNotEmpty()) add(it) }
+        config.getOrNull(SemanticsProperties.Text)?.let { texts ->
+            if (texts.isNotEmpty()) add(texts.joinToString("") { it.toString() })
+        }
+        config.getOrNull(SemanticsProperties.ContentDescription)?.let { descriptions ->
+            if (descriptions.isNotEmpty()) add(descriptions.joinToString(" "))
+        }
     }
-    config.getOrNull(SemanticsProperties.ContentDescription)?.let { descriptions ->
-        if (descriptions.isNotEmpty()) return descriptions.joinToString(" ") { it.toString() }
-    }
-    return null
+    return if (parts.isEmpty()) null else parts.joinToString(" ")
 }

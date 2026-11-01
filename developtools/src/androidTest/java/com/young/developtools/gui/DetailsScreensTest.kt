@@ -51,6 +51,20 @@ class DetailsScreensTest {
     }
 
     @Test
+    fun imageDetailsRendersIntentPayload() {
+        val intent = Intent(targetContext, ShowImageDetailsActivity::class.java).apply {
+            putExtra(ImageDetailsIntentContract.EXTRA_NAME, "test_image")
+            putExtra(ImageDetailsIntentContract.EXTRA_DESCRIPTION, "Instrumented test image")
+            putExtra(ImageDetailsIntentContract.EXTRA_SOURCE_TYPE, ImageDetailsIntentContract.SOURCE_LOCAL)
+            putExtra(ImageDetailsIntentContract.EXTRA_RES_ID, R.drawable.background_1)
+        }
+        withScreen(intent, ShowImageDetailsActivity::class.java) { screen ->
+            assertTrue("file name row", screen.waitForText(R.string.banner_details_filename_label))
+            assertTrue("payload name", screen.waitForText("test_image"))
+        }
+    }
+
+    @Test
     fun imageDetailsScreenRenders() {
         val intent = Intent(targetContext, ShowImageDetailsActivity::class.java).apply {
             putExtra(ImageDetailsIntentContract.EXTRA_NAME, "test_image")

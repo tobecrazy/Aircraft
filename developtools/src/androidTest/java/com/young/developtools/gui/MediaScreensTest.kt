@@ -64,9 +64,26 @@ class MediaScreensTest {
     }
 
     @Test
+    fun deviceInfoShowsSystemSection() {
+        withScreen(DeviceInfoActivity::class.java) { screen ->
+            assertTrue("system section", screen.waitForText(R.string.device_info_section_system))
+            assertTrue("battery row", screen.waitForText(R.string.device_info_battery))
+        }
+    }
+
+    @Test
     fun richTextEditorScreenRenders() {
         withScreen(RichTextEditorActivity::class.java) { screen ->
             assertTrue("rich text title", screen.waitForText(R.string.rich_text_editor_title))
+        }
+    }
+
+    @Test
+    fun richTextEditorLoadsExampleJson() {
+        withScreen(RichTextEditorActivity::class.java) { screen ->
+            assertTrue("example action must be clickable", screen.clickTag("btn_load_example_json"))
+            // The confirmation is a Snackbar, i.e. plain View chrome rather than Compose.
+            assertTrue("example load confirmation", screen.waitForViewText(R.string.rich_text_example_json_loaded))
         }
     }
 
