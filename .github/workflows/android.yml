@@ -71,6 +71,31 @@ jobs:
         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
         script: ./gradlew :app:connectedDebugAndroidTest :developtools:connectedDebugAndroidTest
 
+    # The Gradle task summary never names the failing tests, and the XML artifact
+    # is only reachable after downloading it. Print them into the job log so a
+    # red run is diagnosable from the transcript alone.
+    - name: Report failing instrumented tests
+      if: failure()
+      run: |
+        python3 - <<'PY'
+        import glob, re
+        reports = glob.glob('*/build/outputs/androidTest-results/connected/debug/TEST-*.xml')
+        for path in reports:
+            with open(path) as handle:
+                xml = handle.read()
+            for case in re.finditer(
+                r'<testcase name="([^"]+)" classname="([^"]+)"[^>]*?(/>|>(.*?)</testcase>)',
+                xml,
+                re.S,
+            ):
+                body = case.group(4) or ''
+                if 'failure' in body or 'error' in body:
+                    print(f'FAILED {case.group(2)}#{case.group(1)}')
+                    print(body[:2000])
+        if not reports:
+            print('No TEST-*.xml produced: the instrumentation never reported (process crash or install failure).')
+        PY
+
     - name: Upload instrumented test reports
       if: failure()
       uses: actions/upload-artifact@v4

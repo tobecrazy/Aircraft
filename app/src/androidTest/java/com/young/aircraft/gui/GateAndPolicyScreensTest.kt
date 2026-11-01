@@ -110,11 +110,13 @@ class GateAndPolicyScreensTest {
         val previousConfig = field.get(RepoUpdateConfigStore)
         val previousHook = RepoUpdateConfigStore.onUpdated
         val forced = RepoUpdateConfig(minimumVersion = minimumVersion, latestVersion = minimumVersion)
-        field.set(RepoUpdateConfigStore, forced)
+        // Install the hook first: a refresh that lands between the two statements
+        // would otherwise overwrite the forced value with the real config.
         RepoUpdateConfigStore.onUpdated = {
             field.set(RepoUpdateConfigStore, forced)
             previousHook?.invoke()
         }
+        field.set(RepoUpdateConfigStore, forced)
         try {
             block()
         } finally {
