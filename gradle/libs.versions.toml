@@ -40,6 +40,7 @@ graphics-path = "1.1.0"
 compile-sdk = "37"
 min-sdk = "33"
 target-sdk = "37"
+runner = "1.7.0"
 
 [libraries]
 zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
@@ -97,6 +98,7 @@ camera-mlkit-vision = { group = "androidx.camera", name = "camera-mlkit-vision",
 mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit-barcode" }
 graphics-path = { module = "androidx.graphics:graphics-path", version.ref = "graphics-path" }
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

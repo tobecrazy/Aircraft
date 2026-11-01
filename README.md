@@ -354,7 +354,7 @@ app/
 
 `developtools/src/test` holds every tool screen suite, mirrored from the app: `DevelopSettingsActivityTest` (version-badge toggle, crash dialog, QR notification), `AndroidDevAssistantToolsActivityTest` (module grid, toggles, log switch, and app-browser navigation), `AppListActivityTest` (user/system/all filters, search, empty state, details intent, rememberSaveable persistence across recreation, and back navigation over Robolectric's PackageManager shadow), `ApiDebugToolActivityTest` / `ApiDebugToolViewModelTest` / `ApiDebugRepositoryTest` (validation gate, history load-back over a fake store), `QRCodeToolActivityTest`, `RichTextEditorActivityTest`, `RichTextMarkdownTest`, `ShowImageDetailsActivityTest`, `DeviceInfoActivityTest` (unavailable/estimate rendering, layout, and navigation) plus `DeviceInfoViewModelTest` (source-unavailable retention, CPU estimate labeling, sampling lifecycle), `FlashlightTorchHeroTest`, `FlashlightViewModelTest` (SOS timing, brightness mapping), `PdfViewModelTest`, `DominantPageIndexTest`, `DeviceResourceCalculatorsTest`, `ContactsRepositoryTest` / `ContactsValidationTest` / `ContactsViewModelTest`, `LogSettingsTest` / `LogSettingsViewModelTest` (now driving `DevLog`), `DataUriUtilsTest`, `BannerDetailsIntentContractTest`, `ImageDetailsIntentContractTest`, the `apidebug` pure-function tests, `ThemedMessageTest`, and a module `StringResourceTest` (locale parity + usage coverage). `build-logic`'s `:convention:test` runs `LogCheckTest` (9 cases over the shared AppLog/DevLog matching core behind `checkAppLogUsage` / `checkDevLogUsage`).
 
-`app/src/androidTest` holds only the generated `ExampleInstrumentedTest` scaffold; there is no usable instrumented suite.
+`app/src/androidTest` and `developtools/src/androidTest` hold connected screen tests — one per page — that need a device/emulator. `ScreensTestSupport` in each module launches the activity without `ActivityScenario` (which idles the main thread and blocks on continuously animating screens), tracks it through `ActivityLifecycleCallbacks`, and polls the live semantics tree. `:app` covers the launch hub, combat, puzzle, settings, about, history, language, privacy and onboarding gates; `:developtools` covers the developer hub, API debugger/history, app browser, contacts, camera scan, QR tool, flashlight, PDF reader, rich text editor, device info and both detail viewers.
 
 ## Game Assets
 
@@ -410,7 +410,8 @@ app/
 ./gradlew assembleDebug          # Build debug APK
 ./gradlew assembleRelease        # Build release APK
 ./gradlew test                   # Run unit and Robolectric tests
-./gradlew connectedAndroidTest   # Scaffold only (ExampleInstrumentedTest); not a usable suite
+./gradlew :app:connectedDebugAndroidTest          # Connected screen tests (device required)
+./gradlew :developtools:connectedDebugAndroidTest # Tool-screen tests (device required)
 ./gradlew lint                   # Run Android lint
 ./gradlew clean                  # Clean build outputs
 ```

@@ -63,3 +63,7 @@ fun SemanticsNode.clickOnTag(tag: String): Boolean {
     click()
     return true
 }
+
+/** True when any node in this subtree carries [tag]. */
+fun SemanticsNode.hasTag(tag: String): Boolean =
+    findAllNodes(this).any { it.config.getOrNull(SemanticsProperties.TestTag) == tag }
