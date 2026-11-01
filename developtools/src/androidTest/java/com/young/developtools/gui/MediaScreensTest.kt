@@ -46,6 +46,24 @@ class MediaScreensTest {
     }
 
     @Test
+    fun pdfReaderShowsOpenAction() {
+        withScreen(PdfReaderActivity::class.java) { screen ->
+            assertTrue("pdf empty hint", screen.waitForText(R.string.pdf_reader_empty_hint))
+            // The empty state must still offer the picker instead of dead-ending.
+            assertTrue("pdf picker action", screen.waitForText(R.string.pdf_reader_choose_file))
+        }
+    }
+
+    @Test
+    fun deviceInfoShowsCpuAndMemorySections() {
+        withScreen(DeviceInfoActivity::class.java) { screen ->
+            assertTrue("device info title", screen.waitForText(R.string.title_activity_device_info))
+            assertTrue("cpu section", screen.waitForText(R.string.device_info_cpu))
+            assertTrue("memory section", screen.waitForText(R.string.device_info_memory))
+        }
+    }
+
+    @Test
     fun richTextEditorScreenRenders() {
         withScreen(RichTextEditorActivity::class.java) { screen ->
             assertTrue("rich text title", screen.waitForText(R.string.rich_text_editor_title))

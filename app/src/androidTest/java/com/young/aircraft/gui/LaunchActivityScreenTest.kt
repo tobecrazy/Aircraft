@@ -30,6 +30,18 @@ class LaunchActivityScreenTest {
     }
 
     @Test
+    fun hubSettingsActionOpensSettings() {
+        withScreen(LaunchActivity::class.java) { hub ->
+            assertTrue("settings action must render", hub.waitForText(R.string.launch_jet_hint))
+            assertTrue("settings action must be clickable", hub.clickTag("btn_settings"))
+
+            val settings = awaitResumed(SettingsActivity::class.java, timeoutMs = 60_000)
+            assertNotNull("SettingsActivity must resume after the hub action", settings)
+            settings?.closeScreen()
+        }
+    }
+
+    @Test
     fun startMissionNavigatesToCombatScreen() {
         withScreen(LaunchActivity::class.java) { hub ->
             assertTrue("start action must render", hub.waitForText(R.string.launch_start_mission))

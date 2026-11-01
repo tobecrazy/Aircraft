@@ -3,6 +3,7 @@ package com.young.aircraft.gui
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.young.aircraft.R
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,6 +21,18 @@ class SettingsAndAboutScreensTest {
         withScreen(SettingsActivity::class.java) { screen ->
             assertTrue("settings title", screen.waitForText(R.string.title_activity_settings))
             assertTrue("game settings entry", screen.waitForText(R.string.game_settings_title))
+        }
+    }
+
+    @Test
+    fun settingsRowOpensGameSettings() {
+        withScreen(SettingsActivity::class.java) { screen ->
+            assertTrue("game settings entry", screen.waitForText(R.string.game_settings_title))
+            assertTrue("entry must be clickable", screen.clickText(R.string.game_settings_title))
+
+            val next = awaitResumed(GameSettingsActivity::class.java, timeoutMs = 60_000)
+            assertNotNull("GameSettingsActivity must resume after the row tap", next)
+            next?.closeScreen()
         }
     }
 

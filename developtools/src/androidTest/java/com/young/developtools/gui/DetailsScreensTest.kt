@@ -36,6 +36,21 @@ class DetailsScreensTest {
     }
 
     @Test
+    fun bannerDetailsRendersIntentPayload() {
+        val intent = Intent(targetContext, BannerDetailsActivity::class.java).apply {
+            putExtra(BannerDetailsIntentContract.EXTRA_NAME, "test_banner")
+            putExtra(BannerDetailsIntentContract.EXTRA_DESCRIPTION, "Instrumented test banner")
+            putExtra(BannerDetailsIntentContract.EXTRA_SOURCE_TYPE, BannerDetailsIntentContract.SOURCE_LOCAL)
+            putExtra(BannerDetailsIntentContract.EXTRA_RES_ID, R.drawable.background_1)
+        }
+        withScreen(intent, BannerDetailsActivity::class.java) { screen ->
+            // The metadata panel must reflect the extras, not just render its chrome.
+            assertTrue("file name row", screen.waitForText(R.string.banner_details_filename_label))
+            assertTrue("payload name", screen.waitForText("test_banner"))
+        }
+    }
+
+    @Test
     fun imageDetailsScreenRenders() {
         val intent = Intent(targetContext, ShowImageDetailsActivity::class.java).apply {
             putExtra(ImageDetailsIntentContract.EXTRA_NAME, "test_image")

@@ -7,10 +7,12 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsOwner
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.text.AnnotatedString
 import androidx.test.platform.app.InstrumentationRegistry
 
 /**
@@ -120,6 +122,58 @@ internal fun Activity.waitForText(text: String, timeoutMs: Long = 30_000): Boole
 
 internal fun Activity.waitForText(res: Int, timeoutMs: Long = 30_000): Boolean =
     waitForText(scenarioString(res), timeoutMs)
+
+/** Clicks the first node carrying [tag]; false when absent. */
+internal fun Activity.clickTag(tag: String): Boolean {
+    var clicked = false
+    runCatching {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val root = window.decorView.findSemanticsOwner()?.rootSemanticsNode ?: return@runOnMainSync
+            val target = findAllNodes(root).firstOrNull {
+                it.config.getOrNull(SemanticsProperties.TestTag) == tag
+            } ?: return@runOnMainSync
+            target.config.getOrNull(SemanticsActions.OnClick)?.action?.invoke()
+            clicked = true
+        }
+    }
+    return clicked
+}
+
+/** Clicks the first clickable node whose text contains [res]; false when absent. */
+internal fun Activity.clickText(res: Int): Boolean = clickText(scenarioString(res))
+
+internal fun Activity.clickText(text: String): Boolean {
+    var clicked = false
+    runCatching {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val root = window.decorView.findSemanticsOwner()?.rootSemanticsNode ?: return@runOnMainSync
+            val target = findAllNodes(root)
+                .filter { it.displayText()?.contains(text) == true }
+                .firstOrNull { it.config.getOrNull(SemanticsActions.OnClick) != null }
+                ?: return@runOnMainSync
+            target.config.getOrNull(SemanticsActions.OnClick)?.action?.invoke()
+            clicked = true
+        }
+    }
+    return clicked
+}
+
+/** Types [value] into the field carrying [tag]; false when absent or read-only. */
+internal fun Activity.setText(tag: String, value: String): Boolean {
+    var typed = false
+    runCatching {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val root = window.decorView.findSemanticsOwner()?.rootSemanticsNode ?: return@runOnMainSync
+            val target = findAllNodes(root).firstOrNull {
+                it.config.getOrNull(SemanticsProperties.TestTag) == tag
+            } ?: return@runOnMainSync
+            val action = target.config.getOrNull(SemanticsActions.SetText)?.action ?: return@runOnMainSync
+            action(AnnotatedString(value))
+            typed = true
+        }
+    }
+    return typed
+}
 
 private fun Activity.hasTextNow(text: String): Boolean {
     var found = false

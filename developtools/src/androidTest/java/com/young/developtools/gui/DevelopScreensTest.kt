@@ -64,6 +64,16 @@ class DevelopScreensTest {
     }
 
     @Test
+    fun apiDebugRejectsEmptyUrl() {
+        withScreen(ApiDebugToolActivity::class.java) { screen ->
+            assertTrue("send action", screen.waitForText(R.string.api_debug_send_button))
+            assertTrue("send action must be clickable", screen.clickTag("btn_send"))
+            // The validation gate answers without touching the network.
+            assertTrue("empty-url error", screen.waitForText(R.string.api_debug_error_empty_url))
+        }
+    }
+
+    @Test
     fun apiRequestHistoryScreenRenders() {
         withScreen(ApiRequestHistoryActivity::class.java) { screen ->
             assertTrue("request history title", screen.waitForText(R.string.api_debug_history_page_title))
@@ -74,6 +84,16 @@ class DevelopScreensTest {
     fun contactsScreenRenders() {
         withScreen(ContactsActivity::class.java) { screen ->
             assertTrue("contacts title", screen.waitForText(R.string.develop_settings_assistant_module_contacts))
+        }
+    }
+
+    @Test
+    fun apiDebugRejectsInvalidUrl() {
+        withScreen(ApiDebugToolActivity::class.java) { screen ->
+            assertTrue("url field must be editable", screen.setText("input_url", "not-a-url"))
+            assertTrue("send action must be clickable", screen.clickTag("btn_send"))
+            // Rejected before any request leaves the device.
+            assertTrue("invalid-url error", screen.waitForText(R.string.api_debug_error_invalid_url))
         }
     }
 }

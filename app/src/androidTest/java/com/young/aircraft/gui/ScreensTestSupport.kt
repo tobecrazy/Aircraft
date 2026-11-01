@@ -157,6 +157,20 @@ internal fun Activity.clickTag(tag: String): Boolean {
     return clicked
 }
 
+/** Clicks the first clickable node whose text contains [res]; false when absent. */
+internal fun Activity.clickText(res: Int): Boolean = clickText(scenarioString(res))
+
+internal fun Activity.clickText(text: String): Boolean {
+    var clicked = false
+    runCatching {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val root = window.decorView.findSemanticsOwner()?.rootSemanticsNode
+            clicked = root?.clickOnText(text) ?: false
+        }
+    }
+    return clicked
+}
+
 private fun Activity.hasTextNow(text: String): Boolean {
     var found = false
     runCatching {

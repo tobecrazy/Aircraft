@@ -46,11 +46,16 @@ fun SemanticsNode.displayText(): String? {
     return null
 }
 
-/** Invokes the click action of the first node matching [text]; returns false when absent. */
+/**
+ * Invokes the click action of the first node whose text contains [text]; returns
+ * false when absent. Clickable rows merge their children's text, so an exact
+ * match would miss the row that actually carries the click action.
+ */
 fun SemanticsNode.clickOnText(text: String): Boolean {
-    val target = findAllNodes(this).firstOrNull { it.displayText() == text } ?: return false
-    val click = target.config.getOrNull(SemanticsActions.OnClick)?.action ?: return false
-    click()
+    val target = findAllNodes(this)
+        .filter { it.displayText()?.contains(text) == true }
+        .firstOrNull { it.config.getOrNull(SemanticsActions.OnClick) != null } ?: return false
+    target.config.getOrNull(SemanticsActions.OnClick)?.action?.invoke()
     return true
 }
 

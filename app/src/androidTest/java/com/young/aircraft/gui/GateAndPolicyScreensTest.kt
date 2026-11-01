@@ -7,6 +7,7 @@ import com.young.aircraft.R
 import com.young.aircraft.common.RepoUpdateConfig
 import com.young.aircraft.common.RepoUpdateConfigStore
 import com.young.aircraft.data.SettingsRepository
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -47,6 +48,27 @@ class GateAndPolicyScreensTest {
             // header and is therefore present on every page.
             assertTrue("onboarding first page", screen.waitForText(R.string.onboarding_controls_title))
             assertTrue("onboarding skip action", screen.waitForText(R.string.onboarding_skip))
+        }
+    }
+
+    @Test
+    fun onboardingNextAdvancesToSecondPage() {
+        withScreen(OnboardingActivity::class.java) { screen ->
+            assertTrue("first page", screen.waitForText(R.string.onboarding_controls_title))
+            assertTrue("next action must be clickable", screen.clickTag("btn_next"))
+            assertTrue("second page", screen.waitForText(R.string.onboarding_powerups_title))
+        }
+    }
+
+    @Test
+    fun onboardingSkipOpensLaunchHub() {
+        withScreen(OnboardingActivity::class.java) { screen ->
+            assertTrue("skip action", screen.waitForText(R.string.onboarding_skip))
+            assertTrue("skip action must be clickable", screen.clickTag("btn_skip"))
+
+            val hub = awaitResumed(LaunchActivity::class.java, timeoutMs = 60_000)
+            assertNotNull("LaunchActivity must resume after SKIP", hub)
+            hub?.closeScreen()
         }
     }
 

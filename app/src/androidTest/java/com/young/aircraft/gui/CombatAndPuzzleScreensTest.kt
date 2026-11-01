@@ -27,6 +27,17 @@ class CombatAndPuzzleScreensTest {
     }
 
     @Test
+    fun pauseActionShowsPausePanel() {
+        withScreen(MainActivity::class.java) { game ->
+            assertTrue("pause action", game.waitForText(R.string.game_hud_pause))
+            assertTrue("pause action must be clickable", game.clickText(R.string.game_hud_pause))
+
+            assertTrue("pause panel badge", game.waitForText(R.string.game_hud_pause_badge))
+            assertTrue("resume action", game.waitForText(R.string.pause_resume))
+        }
+    }
+
+    @Test
     fun puzzleScreenShowsTopBar() {
         withScreen(PuzzleActivity::class.java) { puzzle ->
             assertTrue("puzzle title", puzzle.waitForText(R.string.puzzle_top_bar_title))
