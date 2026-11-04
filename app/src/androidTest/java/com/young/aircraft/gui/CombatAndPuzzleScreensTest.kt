@@ -45,10 +45,19 @@ class CombatAndPuzzleScreensTest {
             assertTrue("pause action", game.waitForText(R.string.game_hud_pause))
             assertTrue("pause action must be clickable", game.clickText(R.string.game_hud_pause))
             assertTrue("pause panel badge", game.waitForText(R.string.game_hud_pause_badge))
+            // Let the panel's fade-in settle before resuming. Invoking the click
+            // while the enter transition is still running overlaps enter/exit
+            // transitions, and on the SwiftShader CI emulator (single frames up
+            // to ~4s) the interrupted exit can keep the badge node in the
+            // semantics tree far longer than the default window.
+            Thread.sleep(500)
 
             assertTrue("resume action must be clickable", game.clickText(R.string.pause_resume))
             // Resuming must tear the panel down again, not just flip a label.
-            assertTrue("resume hides the panel", game.waitForNoText(R.string.game_hud_pause_badge))
+            // The badge leaves the semantics tree only after the exit animation
+            // finishes, so the wait must tolerate starved Compose frames.
+            assertTrue("resume hides the panel",
+                game.waitForNoText(R.string.game_hud_pause_badge, timeoutMs = 30_000))
             game.parkBeforeClose()
         }
     }
