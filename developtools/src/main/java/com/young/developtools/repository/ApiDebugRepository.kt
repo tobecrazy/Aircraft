@@ -70,7 +70,7 @@ class ApiDebugRepository(
             val response = client.newCall(okHttpRequest).execute()
 
             responseCode = response.code
-            responseBody = response.body?.string() ?: ""
+            responseBody = response.body.string() ?: ""
             responseHeaders = response.headers.toMultimap()
             responseTime = System.currentTimeMillis() - startTime
 

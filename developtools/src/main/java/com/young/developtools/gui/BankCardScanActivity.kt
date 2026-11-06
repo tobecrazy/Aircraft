@@ -82,6 +82,7 @@ import com.young.developtools.utils.DeveloperMode
 import com.young.developtools.viewmodel.BankCardScanUiState
 import com.young.developtools.viewmodel.BankCardScanViewModel
 import com.young.developtools.viewmodel.ScanLens
+import kotlin.math.max
 
 /**
  * Debug-only live bank card scanner: CameraX preview + ML Kit Text Recognition
