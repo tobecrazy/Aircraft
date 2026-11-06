@@ -28,6 +28,11 @@
             android:label="@string/camera_scan_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
+            android:name=".gui.BankCardScanActivity"
+            android:exported="false"
+            android:label="@string/bank_card_scan_title"
+            android:theme="@style/Theme.Aircraft.Common" />
+        <activity
             android:name=".gui.ApiDebugToolActivity"
             android:exported="false"
             android:label="@string/api_debug_tool_title"
