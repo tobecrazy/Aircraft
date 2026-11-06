@@ -1,370 +1,99 @@
 {
- "schema_version": 1,
- "diagram_type": "architecture",
- "meta": {
-  "title": "Aircraft Combat Game App Architecture",
-  "output": "aircraft-architecture.html",
-  "quality_profile": "showcase",
-  "viewBox": [
-   1600,
-   618
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Aircraft Combat Game App Architecture",
+    "output": "docs/aircraft-architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [1600, 618],
+    "views": [
+      {
+        "id": "combat-rail",
+        "label": "Combat rail and persistence",
+        "focus": ["launch", "main", "game", "vm", "data", "room"],
+        "note": "Launch enters the combat host, the render thread owns game state, levels and kills persist via ViewModel and Data layers."
+      },
+      {
+        "id": "render-thread",
+        "label": "Render thread and services",
+        "focus": ["main", "game", "services", "vm", "data"],
+        "note": "UI thread only enqueues commands and touch coordinates; the frame loop drains them under the SurfaceHolder lock."
+      },
+      {
+        "id": "combat-shield",
+        "label": "Combat interruption shield",
+        "focus": ["main", "shield", "game"],
+        "note": "DND suppresses heads-up on resume; focus loss auto-pauses and needs a manual resume; app-owned dialogs exempt."
+      },
+      {
+        "id": "modules",
+        "label": "Tool module and view libraries",
+        "focus": ["tools", "settings", "viewlibs"],
+        "note": "Tool screens live in :developtools and bridge the host via DevTools; the two View libraries stay game-free."
+      }
+    ]
+  },
+  "components": [
+    { "id": "launch", "type": "frontend", "label": "LaunchActivity", "sublabel": "First-launch gate, continue, tool entry", "pos": [70, 40], "size": [200, 70] },
+    { "id": "main", "type": "frontend", "label": "MainActivity", "sublabel": "Combat host, 10 timed levels", "pos": [70, 180], "size": [200, 70] },
+    { "id": "shield", "type": "security", "label": "GameInterruptionShield", "sublabel": "DND suppress, auto-pause fallback", "pos": [70, 320], "size": [200, 70], "tag": "DND" },
+    { "id": "game", "type": "frontend", "label": "GameCoreView", "sublabel": "SurfaceView, 30 FPS render thread", "pos": [70, 460], "size": [200, 70] },
+    { "id": "vm", "type": "backend", "label": "ViewModel layer", "sublabel": "22 VMs (9 app + 13 developtools), StateFlow", "pos": [420, 180], "size": [200, 70], "tag": "MVVM" },
+    { "id": "data", "type": "backend", "label": "Data layer", "sublabel": "SettingsRepository, DAO", "pos": [420, 320], "size": [200, 70] },
+    { "id": "services", "type": "backend", "label": "Resident services", "sublabel": "MusicService, FlashlightService", "pos": [420, 460], "size": [200, 70] },
+    { "id": "tools", "type": "frontend", "label": ":developtools", "sublabel": "15 activities: BankCardScan, ApiHistory, gate, logs", "pos": [770, 40], "size": [240, 70] },
+    { "id": "settings", "type": "frontend", "label": "SettingsActivity", "sublabel": "Settings, theme, language", "pos": [770, 180], "size": [240, 70] },
+    { "id": "puzzle", "type": "frontend", "label": "PuzzleActivity", "sublabel": "Puzzle, 10 levels, own progress", "pos": [770, 320], "size": [240, 70] },
+    { "id": "room", "type": "database", "label": "Room", "sublabel": "AppDatabase v2033, migrations", "pos": [770, 460], "size": [240, 70] },
+    { "id": "viewlibs", "type": "external", "label": "View libraries", "sublabel": ":richtexteditor, :supperbanner", "pos": [1120, 40], "size": [230, 70] }
   ],
-  "views": [
-   {
-    "id": "combat-rail",
-    "label": "Combat rail and persistence",
-    "focus": [
-     "launch",
-     "main",
-     "game",
-     "vm",
-     "data",
-     "room"
-    ],
-    "note": "Launch enters the combat host, the render thread owns game state, levels and kills persist via ViewModel and Data layers."
-   },
-   {
-    "id": "render-thread",
-    "label": "Render thread and services",
-    "focus": [
-     "main",
-     "game",
-     "services",
-     "vm",
-     "data"
-    ],
-    "note": "UI thread only enqueues commands and touch coordinates; the frame loop drains them under the SurfaceHolder lock."
-   },
-   {
-    "id": "combat-shield",
-    "label": "Combat interruption shield",
-    "focus": [
-     "main",
-     "shield",
-     "game"
-    ],
-    "note": "DND suppresses heads-up on resume; focus loss auto-pauses and needs a manual resume; app-owned result dialogs excluded."
-   },
-   {
-    "id": "modules",
-    "label": "Tool module and view libraries",
-    "focus": [
-     "tools",
-     "settings",
-     "viewlibs"
-    ],
-    "note": "Tool screens live in :developtools and bridge the host via DevTools; the two View libraries stay game-free."
-   }
+  "boundaries": [
+    { "kind": "region", "label": "Android App (com.young.aircraft)", "wraps": ["launch", "main", "shield", "game", "services", "vm", "data", "room", "settings", "puzzle"] },
+    { "kind": "region", "label": "Standalone Gradle library modules", "wraps": ["tools", "viewlibs"] }
+  ],
+  "connections": [
+    { "id": "launch-main", "from": "launch", "to": "main", "label": "start / continue combat", "variant": "emphasis", "labelDy": 24 },
+    { "id": "main-shield", "from": "main", "to": "shield", "label": "DND enter on resume, exit on pause", "variant": "security", "labelDy": 24 },
+    { "id": "shield-game", "from": "shield", "to": "game", "label": "enqueue commands, pause fallback", "variant": "emphasis", "labelDy": 24 },
+    { "id": "game-services", "from": "game", "to": "services", "label": "bind BGM / SFX" },
+    { "id": "main-vm", "from": "main", "to": "vm", "label": "level, kills, score" },
+    { "id": "vm-data", "from": "vm", "to": "data", "label": "read / write", "labelDy": 24 },
+    { "id": "data-room", "from": "data", "to": "room", "label": "SQL" },
+    { "id": "launch-tools", "from": "launch", "to": "tools", "label": "tool entry" },
+    { "id": "launch-settings", "from": "launch", "to": "settings", "label": "settings entry" },
+    { "id": "settings-puzzle", "from": "settings", "to": "puzzle", "label": "open puzzle", "labelDy": 24 },
+    { "id": "settings-tools", "from": "settings", "to": "tools", "label": "dev tool entry" },
+    { "id": "tools-viewlibs", "from": "tools", "to": "viewlibs", "label": "editor + banner" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Two state models",
+      "items": [
+        "Combat is a SurfaceView 30 FPS loop, not a Compose screen",
+        "MainActivity is a hybrid: Compose chrome hosts GameCoreView via AndroidView",
+        "Other screens use Compose setContent; View Binding is off"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Thread boundary and interruption shield",
+      "items": [
+        "Render thread owns game state; UI thread only enqueues lambdas to gameCommands",
+        "Touch coordinates ride a pendingPlayerTouch atomic, latest wins per frame",
+        "Resume engages DND filter NONE; pause and stop restore the previous filter",
+        "Focus loss auto-pauses combat; app-owned dialogs exempt, tap to resume"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Persistence and module boundary",
+      "items": [
+        "Room v2033 registers explicit migrations only, no destructive fallback",
+        "All progress goes through the replaceForPlayer transaction",
+        ":developtools depends on both View libraries; the libraries avoid game and theme imports",
+        "1.5.9 (AGP 9.5.1): BankCardScan caps decode at 2048px, clears sensitive clipboard after 60s"
+      ]
+    }
   ]
- },
- "components": [
-  {
-   "id": "launch",
-   "type": "frontend",
-   "label": "LaunchActivity",
-   "sublabel": "First-launch gate, continue, tool entry",
-   "pos": [
-    70,
-    40
-   ],
-   "size": [
-    200,
-    70
-   ]
-  },
-  {
-   "id": "main",
-   "type": "frontend",
-   "label": "MainActivity",
-   "sublabel": "Combat host, 10 timed levels",
-   "pos": [
-    70,
-    180
-   ],
-   "size": [
-    200,
-    70
-   ]
-  },
-  {
-   "id": "shield",
-   "type": "security",
-   "label": "GameInterruptionShield",
-   "sublabel": "DND suppress, auto-pause fallback",
-   "pos": [
-    70,
-    320
-   ],
-   "size": [
-    200,
-    70
-   ],
-   "tag": "DND"
-  },
-  {
-   "id": "game",
-   "type": "frontend",
-   "label": "GameCoreView",
-   "sublabel": "SurfaceView, 30 FPS render thread",
-   "pos": [
-    70,
-    460
-   ],
-   "size": [
-    200,
-    70
-   ]
-  },
-  {
-   "id": "vm",
-   "type": "backend",
-   "label": "ViewModel layer",
-   "sublabel": "9 view models, StateFlow",
-   "pos": [
-    420,
-    180
-   ],
-   "size": [
-    200,
-    70
-   ],
-   "tag": "MVVM"
-  },
-  {
-   "id": "data",
-   "type": "backend",
-   "label": "Data layer",
-   "sublabel": "SettingsRepository, DAO",
-   "pos": [
-    420,
-    320
-   ],
-   "size": [
-    200,
-    70
-   ]
-  },
-  {
-   "id": "services",
-   "type": "backend",
-   "label": "Resident services",
-   "sublabel": "MusicService, FlashlightService",
-   "pos": [
-    420,
-    460
-   ],
-   "size": [
-    200,
-    70
-   ]
-  },
-  {
-   "id": "tools",
-   "type": "frontend",
-   "label": ":developtools",
-   "sublabel": "14 tool activities, gate, logs",
-   "pos": [
-    770,
-    40
-   ],
-   "size": [
-    240,
-    70
-   ]
-  },
-  {
-   "id": "settings",
-   "type": "frontend",
-   "label": "SettingsActivity",
-   "sublabel": "Settings, theme, language",
-   "pos": [
-    770,
-    180
-   ],
-   "size": [
-    240,
-    70
-   ]
-  },
-  {
-   "id": "puzzle",
-   "type": "frontend",
-   "label": "PuzzleActivity",
-   "sublabel": "Puzzle, 10 levels, own progress",
-   "pos": [
-    770,
-    320
-   ],
-   "size": [
-    240,
-    70
-   ]
-  },
-  {
-   "id": "room",
-   "type": "database",
-   "label": "Room",
-   "sublabel": "AppDatabase v2033, migrations",
-   "pos": [
-    770,
-    460
-   ],
-   "size": [
-    240,
-    70
-   ]
-  },
-  {
-   "id": "viewlibs",
-   "type": "external",
-   "label": "View libraries",
-   "sublabel": ":richtexteditor, :supperbanner",
-   "pos": [
-    1120,
-    40
-   ],
-   "size": [
-    230,
-    70
-   ]
-  }
- ],
- "boundaries": [
-  {
-   "kind": "region",
-   "label": "Android App (com.young.aircraft)",
-   "wraps": [
-    "launch",
-    "main",
-    "shield",
-    "game",
-    "services",
-    "vm",
-    "data",
-    "room",
-    "settings",
-    "puzzle"
-   ]
-  },
-  {
-   "kind": "region",
-   "label": "Standalone Gradle library modules",
-   "wraps": [
-    "tools",
-    "viewlibs"
-   ]
-  }
- ],
- "connections": [
-  {
-   "id": "launch-main",
-   "from": "launch",
-   "to": "main",
-   "label": "start / continue combat",
-   "variant": "emphasis",
-   "labelDy": 24
-  },
-  {
-   "id": "main-shield",
-   "from": "main",
-   "to": "shield",
-   "label": "DND enter on resume, exit on pause",
-   "variant": "security",
-   "labelDy": 24
-  },
-  {
-   "id": "shield-game",
-   "from": "shield",
-   "to": "game",
-   "label": "enqueue commands, pause fallback",
-   "variant": "emphasis",
-   "labelDy": 24
-  },
-  {
-   "id": "game-services",
-   "from": "game",
-   "to": "services",
-   "label": "bind BGM / SFX"
-  },
-  {
-   "id": "main-vm",
-   "from": "main",
-   "to": "vm",
-   "label": "level, kills, score"
-  },
-  {
-   "id": "vm-data",
-   "from": "vm",
-   "to": "data",
-   "label": "read / write",
-   "labelDy": 24
-  },
-  {
-   "id": "data-room",
-   "from": "data",
-   "to": "room",
-   "label": "SQL"
-  },
-  {
-   "id": "launch-tools",
-   "from": "launch",
-   "to": "tools",
-   "label": "tool entry"
-  },
-  {
-   "id": "launch-settings",
-   "from": "launch",
-   "to": "settings",
-   "label": "settings entry"
-  },
-  {
-   "id": "settings-puzzle",
-   "from": "settings",
-   "to": "puzzle",
-   "label": "open puzzle",
-   "labelDy": 24
-  },
-  {
-   "id": "settings-tools",
-   "from": "settings",
-   "to": "tools",
-   "label": "dev tool entry"
-  },
-  {
-   "id": "tools-viewlibs",
-   "from": "tools",
-   "to": "viewlibs",
-   "label": "editor + banner"
-  }
- ],
- "cards": [
-  {
-   "dot": "cyan",
-   "title": "Two state models",
-   "items": [
-    "Combat is a SurfaceView 30 FPS loop, not a Compose screen",
-    "MainActivity is a hybrid: Compose chrome hosts GameCoreView via AndroidView",
-    "Other screens use Compose setContent; View Binding is off"
-   ]
-  },
-  {
-   "dot": "violet",
-   "title": "Thread boundary and interruption shield",
-   "items": [
-    "Render thread owns game state; UI thread only enqueues lambdas to gameCommands",
-    "Touch coordinates ride a pendingPlayerTouch atomic, latest wins per frame",
-    "Resume engages DND filter NONE; pause and stop restore the previous filter",
-    "Focus loss auto-pauses combat; app-owned dialogs exempt, tap to resume"
-   ]
-  },
-  {
-   "dot": "amber",
-   "title": "Persistence and module boundary",
-   "items": [
-    "Room v2033 registers explicit migrations only, no destructive fallback",
-    "All progress goes through the replaceForPlayer transaction",
-    ":developtools depends on both View libraries; the libraries avoid game and theme imports"
-   ]
-  }
- ]
 }
