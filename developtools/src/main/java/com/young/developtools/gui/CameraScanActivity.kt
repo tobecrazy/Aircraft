@@ -217,7 +217,9 @@ private fun CameraScanScreen(
                     } else {
                         stringResource(R.string.camera_scan_open_settings)
                     },
-                    onPrimary = if (hasCameraPermission) onGrantPermission else onOpenAppSettings
+                    // Retry clears the error so the preview rebinds; it must not
+                    // re-request the camera permission the user already granted.
+                    onPrimary = if (hasCameraPermission) onRescan else onOpenAppSettings
                 )
             }
 

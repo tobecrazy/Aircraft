@@ -2,6 +2,7 @@ package com.young.developtools.gui
 
 import android.Manifest
 import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,6 +10,10 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -87,6 +92,7 @@ import com.young.developtools.viewmodel.ScanLens
 class BankCardScanActivity : BaseAircraftActivity() {
 
     private lateinit var viewModel: BankCardScanViewModel
+    private var clearClipboardJob: Job? = null
     private var hasCameraPermission by mutableStateOf(false)
 
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -105,13 +111,34 @@ class BankCardScanActivity : BaseAircraftActivity() {
     ) { uri: Uri? ->
         if (uri == null) return@registerForActivityResult
         runCatching {
+            // Cap long side at 2048 px: uncapped decode of a 48 MP photo needs ~400 MB.
+            // Two-pass sample-size mirrors QRCodeToolActivity's downscale guard.
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+            val options = BitmapFactory.Options().apply {
+                inSampleSize = calculateInSampleSize(bounds.outWidth, bounds.outHeight, 2048)
+            }
             val bitmap = contentResolver.openInputStream(uri)?.use { input ->
-                BitmapFactory.decodeStream(input)
+                BitmapFactory.decodeStream(input, null, options)
             } ?: return@registerForActivityResult
-            viewModel.recognizeImage(InputImage.fromBitmap(bitmap, 0))
+            try {
+                viewModel.recognizeImage(InputImage.fromBitmap(bitmap, 0))
+            } finally {
+                bitmap.recycle()
+            }
         }.onFailure {
             viewModel.setError(R.string.bank_card_scan_error)
         }
+    }
+
+    private fun calculateInSampleSize(width: Int, height: Int, maxDimension: Int): Int {
+        var sampleSize = 1
+        var longSide = max(width, height)
+        while (longSide > maxDimension * 2 && sampleSize < 32) {
+            longSide /= 2
+            sampleSize *= 2
+        }
+        return sampleSize
     }
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
@@ -169,7 +196,17 @@ class BankCardScanActivity : BaseAircraftActivity() {
 
     private fun copyCardNumber(card: BankCard) {
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("Card number", card.number))
+        // Mark sensitive so keyboard / synced clipboard clients hide it; clear after 60 s.
+        clipboard.setPrimaryClip(
+            ClipData.newPlainText("Card number", card.number).apply {
+                description.extras?.putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+            }
+        )
+        clearClipboardJob?.cancel()
+        clearClipboardJob = lifecycleScope.launch {
+            delay(60_000)
+            clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
+        }
         ThemedMessage.makeText(this, R.string.qr_code_tool_copied, ThemedMessage.LENGTH_SHORT).show()
     }
 }
@@ -251,7 +288,9 @@ private fun BankCardScanScreen(
                     } else {
                         stringResource(R.string.camera_scan_open_settings)
                     },
-                    onPrimary = if (hasCameraPermission) onGrantPermission else onOpenAppSettings
+                    // Retry clears the error so the preview rebinds; it must not
+                    // re-request the camera permission the user already granted.
+                    onPrimary = if (hasCameraPermission) onRescan else onOpenAppSettings
                 )
             }
 

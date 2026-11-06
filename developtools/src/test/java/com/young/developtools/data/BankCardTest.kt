@@ -70,4 +70,13 @@ class BankCardTest {
         val cards = parseBankCards("4242 4242 4242 4242 and 4242424242424242 again")
         assertEquals(1, cards.size)
     }
+
+    @Test
+    fun `parse does not glue nearby numbers onto the card`() {
+        // Joined digit stream would be 19 digits "4242424242424242121", which
+        // Luhn-passes and would sort ahead of the real 16-digit card.
+        val cards = parseBankCards("CARD 4242 4242 4242 4242 CVV 121")
+        assertEquals(1, cards.size)
+        assertEquals("4242424242424242", cards[0].number)
+    }
 }

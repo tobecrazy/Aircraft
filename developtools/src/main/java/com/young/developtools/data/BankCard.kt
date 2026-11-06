@@ -63,14 +63,16 @@ private val digitRun = Regex("""\d[\d\s-]{10,}\d""")
 
 /**
  * Extracts every Luhn-valid 12–19 digit candidate from [text]. OCR often
- * splits the number across lines/blocks, so the full text is also tried
- * joined as one digit stream. Longest-first, de-duplicated.
+ * splits the number across lines, so a candidate may span spaces, dashes and
+ * newlines within one digit run. The whole text must NOT be joined into one
+ * digit stream: digits elsewhere (e.g. a CVV) would be glued onto the card
+ * and, when that 12–19 digit blob Luhn-passes, sort longest-first ahead of
+ * the real card and lock the wrong number. Longest-first, de-duplicated.
  */
 fun parseBankCards(text: String): List<BankCard> {
     if (text.isBlank()) return emptyList()
     val candidates = mutableListOf<String>()
     digitRun.findAll(text).forEach { candidates += it.value.filter(Char::isDigit) }
-    candidates += text.filter(Char::isDigit)
 
     return candidates
         .filter { it.length in 12..19 && isLuhnValid(it) }
