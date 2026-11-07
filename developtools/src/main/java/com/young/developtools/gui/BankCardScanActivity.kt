@@ -86,6 +86,7 @@ import com.young.developtools.ui.theme.AircraftTheme
 import com.young.developtools.ui.theme.BackgroundDark
 import com.young.developtools.ui.theme.TextSubtle
 import com.young.developtools.utils.DeveloperMode
+import com.young.developtools.utils.ImagePreprocessor
 import com.young.developtools.viewmodel.BankCardScanUiState
 import com.young.developtools.viewmodel.BankCardScanViewModel
 import com.young.developtools.viewmodel.ScanLens
@@ -130,13 +131,17 @@ class BankCardScanActivity : BaseAircraftActivity() {
                 BitmapFactory.decodeStream(input, null, options)
             } ?: return@registerForActivityResult
             // ML Kit does not apply EXIF orientation for bitmap input — a sideways photo
-            // yields no digits. Read the orientation first, feed it to InputImage, and
-            // let the recognizer rotate internally rather than re-encoding bitmap pixels.
+            // yields no digits. Rotate the pixels to landscape ourselves (the card
+            // is wider than tall) so OCR lines read correctly.
             val rotationDegrees = readExifRotationDegrees(uri)
+            val landscape = ImagePreprocessor.rotateToLandscape(bitmap, rotationDegrees)
+            // Metallic/embossed faces: boost digit outlines before recognition.
+            val enhanced = ImagePreprocessor.enhanceForOcr(landscape)
             try {
-                viewModel.recognizeImage(InputImage.fromBitmap(bitmap, rotationDegrees))
+                viewModel.recognizeImage(InputImage.fromBitmap(enhanced, 0))
             } finally {
-                bitmap.recycle()
+                enhanced.recycle()
+                landscape.recycle()
             }
         }.onFailure {
             viewModel.setError(R.string.bank_card_scan_error)

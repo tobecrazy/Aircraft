@@ -107,6 +107,13 @@ class BankCardScanViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Recognition helper exposed for the rotated-card path: rotate via the
+     * caller-provided preprocessor, then parse the OCR text. Returns the
+     * first Luhn-valid card, or null.
+     */
+    fun parseOcrText(text: String) = parseBankCards(text)
+
     fun resetScan() {
         recentFrameTexts.clear()
         candidateCounts.clear()
