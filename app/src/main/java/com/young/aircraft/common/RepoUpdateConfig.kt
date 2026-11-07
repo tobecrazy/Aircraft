@@ -48,6 +48,16 @@ object RepoUpdateConfigStore {
     var cached: RepoUpdateConfig? = null
         private set
 
+    /**
+     * Instrumentation tests pin the version gates to force a screen state (the
+     * forced-update page). Both the startup fetch and Firebase Remote Config
+     * settle asynchronously and would otherwise replace the pinned value
+     * mid-test, letting `AircraftApplication` finish that screen. Production
+     * never assigns this.
+     */
+    @Volatile
+    internal var testOverride: RepoUpdateConfig? = null
+
     @Volatile
     var onUpdated: (() -> Unit)? = null
 
@@ -69,6 +79,7 @@ object RepoUpdateConfigStore {
      * reachable (Firebase REMOTE values still take precedence either way).
      */
     suspend fun refreshNow(): RepoUpdateConfig? = withContext(Dispatchers.IO) {
+        testOverride?.let { return@withContext it }
         val config = fetchFirstSuccess()
         if (config != null) {
             cached = config
@@ -125,19 +136,19 @@ object RepoUpdateConfigStore {
 
     /** Effective values: Firebase REMOTE wins, repo JSON is the fallback. */
     fun getMinimumVersion(): String =
-        firebaseOrRepo(
+        testOverride?.minimumVersion ?: firebaseOrRepo(
             AircraftRemoteConfig.MINIMUM_VERSION_PARAMETER,
             AircraftRemoteConfig::getMinimumVersion
         ) { cached?.minimumVersion }
 
     fun getLatestVersion(): String =
-        firebaseOrRepo(
+        testOverride?.latestVersion ?: firebaseOrRepo(
             AircraftRemoteConfig.LATEST_VERSION_PARAMETER,
             AircraftRemoteConfig::getLatestVersion
         ) { cached?.latestVersion }
 
     fun getUpdateUrl(): String =
-        firebaseOrRepo(
+        testOverride?.updateUrl ?: firebaseOrRepo(
             AircraftRemoteConfig.UPDATE_URL_PARAMETER,
             AircraftRemoteConfig::getUpdateUrl
         ) { cached?.updateUrl }

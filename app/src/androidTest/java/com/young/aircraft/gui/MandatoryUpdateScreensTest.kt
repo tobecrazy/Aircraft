@@ -2,11 +2,11 @@ package com.young.aircraft.gui
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import androidx.test.platform.app.InstrumentationRegistry
 import com.young.aircraft.BuildConfig
 import com.young.aircraft.R
 import com.young.aircraft.common.RepoUpdateConfig
 import com.young.aircraft.common.RepoUpdateConfigStore
+import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -17,18 +17,25 @@ import org.junit.runner.RunWith
  *
  * Directly launching [MandatoryUpdateActivity] makes AircraftApplication
  * finish it again on resume when the current version is no longer below the
- * minimum. Seeding the cached repo fallback above the installed version
- * keeps the gate reachable for render assertions without touching Firebase.
+ * minimum. Pinning the store above the installed version keeps the gate
+ * reachable for render assertions without touching Firebase: the startup
+ * fetch of app-update.json and Remote Config both settle asynchronously, and
+ * on a networked device they would replace any seeded value within seconds.
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class MandatoryUpdateScreensTest {
 
     @Before
-    fun resetRepoFallback() {
-        // Keep the activity alive: minimum above the installed version makes
-        // it "below minimum", so the lifecycle gate deliberately shows it.
-        setCached(RepoUpdateConfig(minimumVersion = "99.0.0", latestVersion = "99.0.0"))
+    fun pinMinimumAboveInstalledVersion() {
+        RepoUpdateConfigStore.testOverride =
+            RepoUpdateConfig(minimumVersion = "99.0.0", latestVersion = "99.0.0")
+    }
+
+    @After
+    fun clearPin() {
+        // The whole suite shares one app process; leave the real gate intact.
+        RepoUpdateConfigStore.testOverride = null
     }
 
     @Test
@@ -39,17 +46,9 @@ class MandatoryUpdateScreensTest {
             assertTrue("update action", screen.waitForText(R.string.remote_update_required_action))
             assertTrue("current version row", screen.waitForText(R.string.remote_update_current_version))
             assertTrue("minimum version row", screen.waitForText(R.string.remote_update_minimum_version))
+            // Proves the screen read the pinned value, not app-update.json.
+            assertTrue("pinned minimum shown", screen.waitForText("99.0.0"))
             assertTrue("current version shown", screen.waitForText(BuildConfig.VERSION_NAME))
-        }
-    }
-
-    // cached has a private setter and androidTest is a separate APK, so
-    // reflection is the only way to seed the store without changing production.
-    private fun setCached(config: RepoUpdateConfig) {
-        InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            val field = RepoUpdateConfigStore::class.java.getDeclaredField("cached")
-            field.isAccessible = true
-            field.set(RepoUpdateConfigStore, config)
         }
     }
 }
