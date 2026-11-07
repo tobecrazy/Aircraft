@@ -21,27 +21,30 @@ internal object ImagePreprocessor {
     private const val TILE = 8
     private const val CLIP_RATIO = 0.025f
 
-    /** Rotate so the card's long edge is horizontal; caller owns recycling. */
+    /**
+     * Rotate so the card's long edge is horizontal. Returns a NEW bitmap;
+     * [source] is untouched — the caller keeps owning it and recycles it.
+     * When [rotationDegrees] is 0 the source is returned as-is.
+     */
     internal fun rotateToLandscape(source: Bitmap, rotationDegrees: Int): Bitmap {
         if (rotationDegrees == 0) return source
         val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
-        val rotated = Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
-        if (rotated !== source) source.recycle()
-        return rotated
+        return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
     }
 
-    /** Downscale so the long side is at most [maxLongSide], keeping aspect. */
+    /**
+     * Downscale so the long side is at most [maxLongSide], keeping aspect.
+     * Does NOT recycle [bitmap]; the caller keeps owning it.
+     */
     internal fun enforceMaxLongSide(bitmap: Bitmap, maxLongSide: Int): Bitmap {
         val w = bitmap.width
         val h = bitmap.height
         val longest = maxOf(w, h)
         if (longest <= maxLongSide) return bitmap
         val scale = maxLongSide.toFloat() / longest
-        val scaled = Bitmap.createScaledBitmap(
+        return Bitmap.createScaledBitmap(
             bitmap, (w * scale).roundToInt(), (h * scale).roundToInt(), true
         )
-        if (scaled !== bitmap) bitmap.recycle()
-        return scaled
     }
 
     /**
@@ -109,6 +112,7 @@ internal object ImagePreprocessor {
         }
         val result = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         result.setPixels(out, 0, w, 0, 0, w, h)
+        // enforceMaxLongSide no longer recycles, so we own the scaled copy.
         if (input !== source) input.recycle()
         return result
     }

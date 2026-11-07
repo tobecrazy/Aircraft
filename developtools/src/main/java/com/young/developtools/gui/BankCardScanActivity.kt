@@ -136,13 +136,12 @@ class BankCardScanActivity : BaseAircraftActivity() {
             val rotationDegrees = readExifRotationDegrees(uri)
             val landscape = ImagePreprocessor.rotateToLandscape(bitmap, rotationDegrees)
             // Metallic/embossed faces: boost digit outlines before recognition.
+            // Ownership of the enhanced bitmap transfers to the ViewModel, which
+            // recycles it after recognition — recycling here would race the async
+            // ML Kit call and the native pipeline would fail to lock pixels.
             val enhanced = ImagePreprocessor.enhanceForOcr(landscape)
-            try {
-                viewModel.recognizeImage(InputImage.fromBitmap(enhanced, 0))
-            } finally {
-                enhanced.recycle()
-                landscape.recycle()
-            }
+            if (landscape !== bitmap) landscape.recycle()
+            viewModel.recognizeImage(InputImage.fromBitmap(enhanced, 0), enhanced)
         }.onFailure {
             viewModel.setError(R.string.bank_card_scan_error)
         }
@@ -333,17 +332,6 @@ private fun BankCardScanScreen(
                 )
             }
 
-            Button(
-                onClick = onPickImage,
-                modifier = Modifier.fillMaxWidth().height(48.dp).testTag("btn_pick_card_image"),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen.copy(alpha = 0.18f),
-                    contentColor = AccentGreen
-                )
-            ) {
-                Text(stringResource(R.string.bank_card_scan_pick_image), fontSize = 13.sp)
-            }
-
             uiState.card?.let { card ->
                 ResultCard(
                     card = card,
@@ -369,6 +357,19 @@ private fun BankCardScanScreen(
                         fontFamily = FontFamily.Monospace
                     )
                 }
+            }
+
+            // Pinned last so the button stays at the bottom regardless of
+            // result/error/full-text content above it.
+            Button(
+                onClick = onPickImage,
+                modifier = Modifier.fillMaxWidth().height(48.dp).testTag("btn_pick_card_image"),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AccentGreen.copy(alpha = 0.18f),
+                    contentColor = AccentGreen
+                )
+            ) {
+                Text(stringResource(R.string.bank_card_scan_pick_image), fontSize = 13.sp)
             }
         }
     }

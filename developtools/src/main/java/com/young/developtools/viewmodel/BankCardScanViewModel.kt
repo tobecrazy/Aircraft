@@ -83,8 +83,14 @@ class BankCardScanViewModel : ViewModel() {
         const val STABLE_CONFIRM_COUNT = 3
     }
 
-    /** Gallery path: recognize text from an image, then parse all cards. */
-    fun recognizeImage(image: InputImage) {
+    /**
+     * Gallery path: recognize text from an image, then parse all cards.
+     * Takes ownership of [ownedBitmap] when non-null — it is recycled in the
+     * `finally` AFTER recognition completes, because `InputImage` holds a
+     * reference (no copy) and the caller must not recycle it early or ML Kit's
+     * native pipeline gets "Failed to lock pixels for bitmap".
+     */
+    fun recognizeImage(image: InputImage, ownedBitmap: android.graphics.Bitmap? = null) {
         viewModelScope.launch {
             try {
                 val visionText = recognizer.process(image).await()
@@ -103,6 +109,8 @@ class BankCardScanViewModel : ViewModel() {
                 }
             } catch (_: Exception) {
                 _uiState.update { it.copy(errorRes = R.string.bank_card_scan_error) }
+            } finally {
+                if (ownedBitmap?.isRecycled == false) ownedBitmap.recycle()
             }
         }
     }
