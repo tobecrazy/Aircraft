@@ -41,6 +41,7 @@ compile-sdk = "37"
 min-sdk = "33"
 target-sdk = "37"
 runner = "1.7.0"
+junit-ktx = "1.3.0"
 
 [libraries]
 zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
@@ -100,6 +101,7 @@ mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition"
 graphics-path = { module = "androidx.graphics:graphics-path", version.ref = "graphics-path" }
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junit-ktx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

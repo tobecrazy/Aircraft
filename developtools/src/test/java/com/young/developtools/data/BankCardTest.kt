@@ -73,10 +73,15 @@ class BankCardTest {
 
     @Test
     fun `parse recovers a number with an o-or-l confusion inside the run`() {
-        // ML Kit reads one 0 of the embossed number as "o" and a 1 as "l".
-        val cards = parseBankCards("4242 4242 4242 42l2")
-        assertEquals(1, cards.size)
-        assertEquals("4242424242424242", cards[0].number)
+        // ML Kit reads an embossed 1 as "l" and an embossed 0 as "O". The card
+        // must contain those digits, otherwise the confusion cannot be undone.
+        val lConfusion = parseBankCards("4111 1111 1111 11l1")
+        assertEquals(1, lConfusion.size)
+        assertEquals("4111111111111111", lConfusion[0].number)
+
+        val oConfusion = parseBankCards("4O00 0000 0000 0002")
+        assertEquals(1, oConfusion.size)
+        assertEquals("4000000000000002", oConfusion[0].number)
     }
 
     @Test

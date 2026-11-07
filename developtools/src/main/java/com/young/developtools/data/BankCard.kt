@@ -76,6 +76,47 @@ private fun String.normalizeOcrDigitConfusions(): String =
 private val CONFUSION_CHARS = digitConfusions.keys.joinToString("")
 private val digitRunWithConfusions = Regex("""[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS\s-]{10,}[\d$CONFUSION_CHARS]""")
 
+/** Lengths a scheme actually issues; used to reject windows inside a long blob. */
+private val canonicalLengths = mapOf(
+    BankCardScheme.VISA to setOf(13, 16, 19),
+    BankCardScheme.MASTERCARD to setOf(16),
+    BankCardScheme.AMEX to setOf(15),
+    BankCardScheme.DISCOVER to setOf(16, 19),
+    BankCardScheme.UNIONPAY to setOf(16, 17, 18, 19),
+)
+
+/** A window of a long blob that both has a known IIN prefix and a real length. */
+private fun looksLikeCard(number: String): Boolean {
+    val scheme = schemeFor(number)
+    return scheme != BankCardScheme.UNKNOWN && number.length in canonicalLengths.getValue(scheme)
+}
+
+/**
+ * Window helper so a long digit run doesn't have to be sliced to exactly one
+ * length: e.g. a 20-digit OCR blob may contain the real 16-digit card plus
+ * trailing expiry digits; sliding windows of every valid length surface it.
+ *
+ * Every window length is Luhn-validated, but Luhn alone is far too weak here:
+ * a 20-digit blob yields many passing windows (12, 14, 16 and 19 digits all
+ * passed on "42424242424242429999"), and longest-first then ranks a bogus
+ * 19-digit window above the real card. So windows are additionally required to
+ * carry a known scheme prefix at a length that scheme issues; the plain Luhn
+ * list is only a fallback for cards outside the known IIN ranges.
+ */
+private fun blobCandidates(digits: String): List<String> {
+    if (digits.length < 12) return emptyList()
+    val luhnValid = mutableListOf<String>()
+    for (len in 12..19) {
+        if (digits.length < len) continue
+        for (start in 0..digits.length - len) {
+            val window = digits.substring(start, start + len)
+            if (isLuhnValid(window)) luhnValid += window
+        }
+    }
+    val plausible = luhnValid.filter(::looksLikeCard)
+    return plausible.ifEmpty { luhnValid }
+}
+
 /**
  * Extracts every Luhn-valid 12–19 digit candidate from [text]. OCR often
  * splits the number across lines, so a candidate may span spaces, dashes and
@@ -84,23 +125,6 @@ private val digitRunWithConfusions = Regex("""[\d$CONFUSION_CHARS][\d$CONFUSION_
  * and, when that 12–19 digit blob Luhn-passes, sort longest-first ahead of
  * the real card and lock the wrong number. Longest-first, de-duplicated.
  */
-/**
- * Window helper so a long digit run doesn't have to be sliced to exactly one
- * length: e.g. a 20-digit OCR blob may contain the real 16-digit card plus
- * one trailing expiry-digit; sliding windows of every valid length surface it.
- */
-private fun slidingWindowCandidates(digits: String): List<String> {
-    if (digits.length < 12) return emptyList()
-    val out = mutableListOf<String>()
-    for (len in 12..19) {
-        if (digits.length < len) continue
-        for (start in 0..digits.length - len) {
-            out += digits.substring(start, start + len)
-        }
-    }
-    return out
-}
-
 fun parseBankCards(text: String): List<BankCard> {
     if (text.isBlank()) return emptyList()
     val rawCandidates = mutableListOf<String>()
@@ -112,7 +136,7 @@ fun parseBankCards(text: String): List<BankCard> {
             if (isLuhnValid(run)) rawValid += run
         } else if (run.length > 19) {
             // Blob longer than a card: window it; the Luhn gate rejects noise.
-            rawValid += slidingWindowCandidates(run).filter(::isLuhnValid)
+            rawValid += blobCandidates(run)
         }
     }
     // Pass 2: the same runs with OCR confusion letters mapped back to digits.
@@ -124,7 +148,7 @@ fun parseBankCards(text: String): List<BankCard> {
         if (normalized.length in 12..19) {
             if (isLuhnValid(normalized)) normalizedCandidates += normalized
         } else if (normalized.length > 19) {
-            normalizedCandidates += slidingWindowCandidates(normalized).filter(::isLuhnValid)
+            normalizedCandidates += blobCandidates(normalized)
         }
     }
     val selected = (rawValid.ifEmpty { normalizedCandidates })
