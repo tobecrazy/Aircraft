@@ -11,7 +11,10 @@ class BankCardScanViewModelTest {
         val viewModel = BankCardScanViewModel()
 
         viewModel.onTextRecognized("4242 4242 4242 4242")
-        viewModel.onTextRecognized("5555 5555 5555 4444")
+        assertNull(viewModel.uiState.value.card)
+        viewModel.onTextRecognized("4242 4242 4242 4242")
+        assertNull(viewModel.uiState.value.card)
+        viewModel.onTextRecognized("4242 4242 4242 4242")
 
         assertEquals("4242424242424242", viewModel.uiState.value.card?.number)
         assertEquals(1, viewModel.uiState.value.cards.size)
@@ -30,12 +33,12 @@ class BankCardScanViewModelTest {
     @Test
     fun `reset clears the locked card`() {
         val viewModel = BankCardScanViewModel()
-        viewModel.onTextRecognized("378282246310005")
+        repeat(3) { viewModel.onTextRecognized("378282246310005") }
 
         viewModel.resetScan()
         assertNull(viewModel.uiState.value.card)
 
-        viewModel.onTextRecognized("4242424242424242")
+        repeat(3) { viewModel.onTextRecognized("4242424242424242") }
         assertEquals("4242424242424242", viewModel.uiState.value.card?.number)
     }
 

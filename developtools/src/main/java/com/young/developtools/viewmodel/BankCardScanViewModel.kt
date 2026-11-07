@@ -36,11 +36,51 @@ class BankCardScanViewModel : ViewModel() {
         TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     }
 
-    /** Live camera path: first Luhn-valid card locks the result. */
+    // Cross-frame confirmation buffer: ML Kit misreads a digit in any single frame
+    // often enough that the raw per-frame parse locks the wrong (or no) card.
+    // Accumulate recent frames and require a candidate to appear repeatedly.
+    private val recentFrameTexts = ArrayDeque<String>()
+    private val candidateCounts = mutableMapOf<String, Int>()
+
+    /**
+     * Live camera path: a candidate locks on its STABLE_CONFIRM_COUNT-th
+     * occurrence within the sliding window. Real cards repeat across frames
+     * while per-frame digit noise does not, so counting is more robust than
+     * requiring identical full-frame text.
+     */
     fun onTextRecognized(text: String) {
         if (_uiState.value.card != null) return
-        val card = firstBankCard(text) ?: return
-        _uiState.update { it.copy(card = card, cards = listOf(card), fullText = text, errorRes = null) }
+        if (text.isNotBlank()) {
+            recentFrameTexts.addLast(text)
+            while (recentFrameTexts.size > RECENT_FRAME_LIMIT) {
+                val expired = recentFrameTexts.removeFirst()
+                for (candidate in parseBankCards(expired)) {
+                    val remaining = (candidateCounts[candidate.number] ?: 1) - 1
+                    if (remaining > 0) candidateCounts[candidate.number] = remaining
+                    else candidateCounts.remove(candidate.number)
+                }
+            }
+        }
+        for (candidate in parseBankCards(text)) {
+            val count = (candidateCounts[candidate.number] ?: 0) + 1
+            candidateCounts[candidate.number] = count
+            if (count >= STABLE_CONFIRM_COUNT) {
+                recentFrameTexts.clear()
+                candidateCounts.clear()
+                _uiState.update {
+                    it.copy(card = candidate, cards = listOf(candidate), fullText = text, errorRes = null)
+                }
+                return
+            }
+        }
+        // Keep the latest OCR text visible so the user can see what the camera is reading,
+        // even while it is still below the confirmation threshold.
+        _uiState.update { it.copy(fullText = text) }
+    }
+
+    private companion object {
+        const val RECENT_FRAME_LIMIT = 30
+        const val STABLE_CONFIRM_COUNT = 3
     }
 
     /** Gallery path: recognize text from an image, then parse all cards. */
@@ -50,12 +90,15 @@ class BankCardScanViewModel : ViewModel() {
                 val visionText = recognizer.process(image).await()
                 val text = visionText.text
                 val cards = parseBankCards(text)
+                // OCR over a single still can drop a digit; a second pass over the
+                // same bitmap catches most of those single-frame failures cheaply.
+                val finalCards = if (cards.isNotEmpty()) cards else parseBankCards(recognizer.process(image).await().text)
                 _uiState.update {
                     it.copy(
-                        card = cards.firstOrNull(),
-                        cards = cards,
+                        card = finalCards.firstOrNull(),
+                        cards = finalCards,
                         fullText = text,
-                        errorRes = if (cards.isEmpty()) R.string.bank_card_scan_no_card else null,
+                        errorRes = if (finalCards.isEmpty()) R.string.bank_card_scan_no_card else null,
                     )
                 }
             } catch (_: Exception) {
@@ -65,6 +108,8 @@ class BankCardScanViewModel : ViewModel() {
     }
 
     fun resetScan() {
+        recentFrameTexts.clear()
+        candidateCounts.clear()
         _uiState.update { it.copy(card = null, cards = emptyList(), fullText = "", errorRes = null) }
     }
 

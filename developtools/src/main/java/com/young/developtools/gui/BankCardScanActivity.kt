@@ -9,6 +9,13 @@ import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.util.Size
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import androidx.exifinterface.media.ExifInterface
+import java.io.InputStream
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import android.provider.Settings
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
@@ -122,8 +129,12 @@ class BankCardScanActivity : BaseAircraftActivity() {
             val bitmap = contentResolver.openInputStream(uri)?.use { input ->
                 BitmapFactory.decodeStream(input, null, options)
             } ?: return@registerForActivityResult
+            // ML Kit does not apply EXIF orientation for bitmap input — a sideways photo
+            // yields no digits. Read the orientation first, feed it to InputImage, and
+            // let the recognizer rotate internally rather than re-encoding bitmap pixels.
+            val rotationDegrees = readExifRotationDegrees(uri)
             try {
-                viewModel.recognizeImage(InputImage.fromBitmap(bitmap, 0))
+                viewModel.recognizeImage(InputImage.fromBitmap(bitmap, rotationDegrees))
             } finally {
                 bitmap.recycle()
             }
@@ -140,6 +151,20 @@ class BankCardScanActivity : BaseAircraftActivity() {
             sampleSize *= 2
         }
         return sampleSize
+    }
+
+    private fun readExifRotationDegrees(uri: Uri): Int {
+        return runCatching {
+            contentResolver.openInputStream(uri)?.use { input ->
+                val exif = ExifInterface(input)
+                when (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                    ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                    ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                    else -> 0
+                }
+            } ?: 0
+        }.getOrDefault(0)
     }
 
     override fun initializeViewModel(savedInstanceState: Bundle?) {
@@ -420,6 +445,16 @@ private fun BankCardScanHeader(
     }
 }
 
+/**
+ * Single shared executor for `MlKitAnalyzer` callbacks. Never shut down: ML Kit
+ * delivers task completions/cancellations asynchronously, potentially after
+ * `TextRecognizer.close()`, and a terminated executor would reject that dispatch
+ * with `RejectedExecutionException` and crash the process.
+ */
+private object BankCardScanAnalyzerExecutor {
+    val instance: ExecutorService = Executors.newSingleThreadExecutor()
+}
+
 @Composable
 private fun LivePreview(
     locked: Boolean,
@@ -435,6 +470,11 @@ private fun LivePreview(
     val recognizer = remember {
         TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     }
+    // Process-wide executor for ML Kit analysis — deliberately never shut down.
+    // ML Kit delivers task completions/cancellations asynchronously, often after
+    // recognizer.close(); dispatching one to a terminated executor crashes with
+    // RejectedExecutionException. One thread for the app's lifetime is fine here.
+    val analyzerExecutor = BankCardScanAnalyzerExecutor.instance
     var controller by remember { mutableStateOf<LifecycleCameraController?>(null) }
 
     DisposableEffect(locked, lens) {
@@ -452,12 +492,22 @@ private fun LivePreview(
                 val newController = LifecycleCameraController(context).apply {
                     setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
                     cameraSelector = selector
+                    // Default CameraX analysis resolution is too low for small card digits:
+                    // pin it to full 1080p so ML Kit sees each stroke of the number.
+                    val analysisSize = Size(1920, 1080)
+                    setImageAnalysisResolutionSelector(
+                        ResolutionSelector.Builder()
+                            .setResolutionStrategy(
+                                ResolutionStrategy(analysisSize, ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER)
+                            )
+                            .build()
+                    )
                     setImageAnalysisAnalyzer(
-                        ContextCompat.getMainExecutor(context),
+                        analyzerExecutor,
                         MlKitAnalyzer(
                             listOf(recognizer),
                             ImageAnalysis.COORDINATE_SYSTEM_VIEW_REFERENCED,
-                            ContextCompat.getMainExecutor(context)
+                            analyzerExecutor
                         ) { result ->
                             val visionText = result?.getValue(recognizer) ?: return@MlKitAnalyzer
                             onText(visionText.text)
@@ -476,6 +526,9 @@ private fun LivePreview(
         }
         onDispose {
             controller?.unbind()
+            // Detaching the analyzer before the lifecycle onDispose closes the recognizer
+            // stops new analysis frames from racing the close; in-flight callbacks still
+            // drain through the executor's shutdown().
             previewView.controller = null
         }
     }
@@ -485,6 +538,8 @@ private fun LivePreview(
     DisposableEffect(lifecycleOwner) {
         onDispose {
             previewView.controller = null
+            // Never shut down the analyzer executor here: ML Kit cancellation
+            // callbacks fire asynchronously after close() and must find it alive.
             recognizer.close()
         }
     }

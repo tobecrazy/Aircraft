@@ -72,6 +72,22 @@ class BankCardTest {
     }
 
     @Test
+    fun `parse recovers a number with an o-or-l confusion inside the run`() {
+        // ML Kit reads one 0 of the embossed number as "o" and a 1 as "l".
+        val cards = parseBankCards("4242 4242 4242 42l2")
+        assertEquals(1, cards.size)
+        assertEquals("4242424242424242", cards[0].number)
+    }
+
+    @Test
+    fun `parse windows a 20-digit blob down to the embedded card`() {
+        // A trailing expiry fragment glued onto the card makes a 20-digit run;
+        // the true 16-digit card must still surface.
+        val cards = parseBankCards("4242424242424242 9999")
+        assertEquals("4242424242424242", cards.firstOrNull()?.number)
+    }
+
+    @Test
     fun `parse does not glue nearby numbers onto the card`() {
         // Joined digit stream would be 19 digits "4242424242424242121", which
         // Luhn-passes and would sort ahead of the real 16-digit card.
