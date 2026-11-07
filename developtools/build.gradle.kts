@@ -45,6 +45,8 @@ dependencies {
     implementation(libs.camera.view)
     implementation(libs.camera.mlkit.vision)
     implementation(libs.mlkit.barcode.scanning)
+    implementation(libs.mlkit.text.recognition)
+    implementation(libs.coroutines.play.services)
 
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
@@ -63,6 +65,7 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.junit)
 
+    androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.runner)

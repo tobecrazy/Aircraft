@@ -682,7 +682,7 @@
   <rect x="1040" y="1222" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#64748b" stroke-width="0.8"/>
   <text x="1062" y="1234" fill="#64748b" font-size="9">AAR Library</text>
 
-  <text x="1350" y="1246" text-anchor="end" fill="#94a3b8" font-size="8.5">Kotlin · Gradle Kotlin DSL + version catalog · Android SDK 37 · AGP 9.4.1</text>
+  <text x="1350" y="1246" text-anchor="end" fill="#94a3b8" font-size="8.5">Kotlin · Gradle Kotlin DSL + version catalog · Android SDK 37 · AGP 9.5.1</text>
   <!-- 2026-05-14 update: Added PuzzleActivity branch and mode-aware save/resume path (AIR_BATTLE/PUZZLE). -->
   <!-- 2026-05-17 update: Puzzle screen now uses the standard tactical 52dp header (PuzzleHeader composable, back saves progress), difficulty grids set to Easy 3×3 / Normal 4×4 / Hard 5×5, and statusBarsPadding restores correct inset behavior under enableEdgeToEdge(). -->
   <!-- 2026-05-31 update: Refreshed Room schema to 2031, utility inventory with FilePickerHelper, Image/Banner detail ViewModels, and five background assets. -->
@@ -713,31 +713,31 @@
   <rect x="36" y="1330" width="250" height="66" rx="6" fill="#ffffff" stroke="#a78bfa" stroke-width="1.2"/>
   <rect x="36" y="1330" width="250" height="15" rx="6" fill="#8b5cf6"/>
   <rect x="36" y="1338" width="250" height="7" fill="#8b5cf6"/>
-  <text x="161" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">gui/ — 14 Activities</text>
+  <text x="161" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">gui/ — 15 Activities</text>
   <text x="48" y="1357" fill="#6b21a8" font-size="7.2">2 hubs: DevelopSettings · AssistantTools</text>
   <text x="48" y="1368" fill="#7c3aed" font-size="7.2">Tools: QR · Flashlight · DeviceInfo · Pdf ·</text>
   <text x="48" y="1379" fill="#7c3aed" font-size="7.2">Contacts · AppList · ApiDebug · CameraScan ·</text>
-  <text x="48" y="1390" fill="#7c3aed" font-size="7.2">RichText · ShowImageDetails · History</text>
+  <text x="48" y="1390" fill="#7c3aed" font-size="7.2">RichText · ShowImageDetails · History · BankCard</text>
 
   <!-- viewmodel/ -->
   <rect x="300" y="1330" width="250" height="66" rx="6" fill="#ffffff" stroke="#00897b" stroke-width="1.2"/>
   <rect x="300" y="1330" width="250" height="15" rx="6" fill="#00897b"/>
   <rect x="300" y="1338" width="250" height="7" fill="#00897b"/>
-  <text x="425" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">viewmodel/ — 12 VMs + 2 UiState</text>
+  <text x="425" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">viewmodel/ — 13 VMs + 2 UiState</text>
   <text x="312" y="1357" fill="#00695c" font-size="7.2">DevelopSettings · DeviceInfo · Flashlight ·</text>
   <text x="312" y="1368" fill="#0f766e" font-size="7.2">QrCode · Pdf · Contacts · LogSettings ·</text>
   <text x="312" y="1379" fill="#0f766e" font-size="7.2">ApiDebugTool · CameraScan · RichTextEditor ·</text>
-  <text x="312" y="1390" fill="#0f766e" font-size="7.2">BannerDetails · ShowImageDetails</text>
+  <text x="312" y="1390" fill="#0f766e" font-size="7.2">BannerDetails · ShowImageDetails · BankCardScan</text>
 
   <!-- data/ -->
   <rect x="564" y="1330" width="250" height="66" rx="6" fill="#ffffff" stroke="#fb923c" stroke-width="1.2"/>
   <rect x="564" y="1330" width="250" height="15" rx="6" fill="#f97316"/>
   <rect x="564" y="1338" width="250" height="7" fill="#f97316"/>
-  <text x="689" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">data/ — 6 models &amp; helpers</text>
-  <text x="576" y="1357" fill="#c2410c" font-size="7.2">BannerDetails · ImageDetails</text>
-  <text x="576" y="1368" fill="#ea580c" font-size="7.2">ChinaPhoneNumber · EmailAddress</text>
-  <text x="576" y="1379" fill="#ea580c" font-size="7.2">ContactsRepository · LogSettings</text>
-  <text x="576" y="1390" fill="#ea580c" font-size="7.2">(DataStore Preferences for the log switch)</text>
+  <text x="689" y="1341" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="600">data/ — 7 files</text>
+  <text x="576" y="1357" fill="#c2410c" font-size="7.2">BankCard (Luhn · ML Kit OCR parse)</text>
+  <text x="576" y="1368" fill="#ea580c" font-size="7.2">BannerDetails · ImageDetails</text>
+  <text x="576" y="1379" fill="#ea580c" font-size="7.2">ChinaPhoneNumber · EmailAddress</text>
+  <text x="576" y="1390" fill="#ea580c" font-size="7.2">ContactsRepository · LogSettings (DataStore)</text>
 
   <!-- repository/ -->
   <rect x="828" y="1330" width="250" height="66" rx="6" fill="#ffffff" stroke="#38bdf8" stroke-width="1.2"/>
@@ -764,4 +764,5 @@
   <text x="36" y="1424" fill="#64748b" font-size="7.6">DeveloperMode.isEnabled = DebugTools.isEnabled (src/debug | src/release source-set split) || repository.isDeveloperOptionsUnlocked() — the unlock flag persists after 8 taps on the About Aircraft version badge.</text>
 
   <!-- 2026-10-20 update: Synced with the 1.5.3 codebase — the module list is now :app + :developtools + :richtexteditor AAR + :supperbanner AAR + the build-logic convention-plugin included build. All developer/utility screens moved out of :app into :developtools (14 Activities, 12 ViewModels, data/, repository/, service/, utils/), which reaches :app only through the DevTools host bridge. ViewModel count 17 → 21 (:app 9 + :developtools 12) plus 5 UiState files. Room is v2033 with six explicit migrations and an api_request_history table added by 2031_2032 / 2032_2033. SettingsActivity is a navigation hub over SettingsScreen with 12 destinations; FlashlightService belongs to :developtools. Added the :developtools module band, RepoUpdateConfig / RepoUpdateConfigStore, AppLog and GameInterruptionShield. -->
+  <!-- 2026-11-06 update: Synced with 1.5.9 (versionCode 31). Added BankCardScanActivity (+ BankCardScanViewModel in :developtools, BankCard Luhn/ML-Kit-OCR parse in data/) and ApiRequestHistoryActivity. :developtools is now 15 Activities / 13 ViewModels / 7 data files; total VMs 9 + 13 = 22 (+5 UiState). AGP 9.4.1 → 9.5.1. Tencent/Huawei maven mirrors added to settings.gradle.kts + build-logic/settings.gradle.kts. BankCardScan caps bitmap decode at 2048px (calculateInSampleSize) and auto-clears sensitive clipboard after 60s; parseBankCards no longer glues whole-text digits (CVV false-positive fix). CameraScan/BankCardScan retry now calls onRescan (clears error, rebinds preview) instead of re-requesting camera permission. -->
 </svg>

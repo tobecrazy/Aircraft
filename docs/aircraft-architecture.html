@@ -4840,7 +4840,7 @@
       </div>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"combat-rail","label":"Combat rail and persistence","focus":["launch","main","game","vm","data","room"],"note":"Launch enters the combat host, the render thread owns game state, levels and kills persist via ViewModel and Data layers."},{"id":"render-thread","label":"Render thread and services","focus":["main","game","services","vm","data"],"note":"UI thread only enqueues commands and touch coordinates; the frame loop drains them under the SurfaceHolder lock."},{"id":"combat-shield","label":"Combat interruption shield","focus":["main","shield","game"],"note":"DND suppresses heads-up on resume; focus loss auto-pauses and needs a manual resume; app-owned result dialogs excluded."},{"id":"modules","label":"Tool module and view libraries","focus":["tools","settings","viewlibs"],"note":"Tool screens live in :developtools and bridge the host via DevTools; the two View libraries stay game-free."}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"combat-rail","label":"Combat rail and persistence","focus":["launch","main","game","vm","data","room"],"note":"Launch enters the combat host, the render thread owns game state, levels and kills persist via ViewModel and Data layers."},{"id":"render-thread","label":"Render thread and services","focus":["main","game","services","vm","data"],"note":"UI thread only enqueues commands and touch coordinates; the frame loop drains them under the SurfaceHolder lock."},{"id":"combat-shield","label":"Combat interruption shield","focus":["main","shield","game"],"note":"DND suppresses heads-up on resume; focus loss auto-pauses and needs a manual resume; app-owned dialogs exempt."},{"id":"modules","label":"Tool module and view libraries","focus":["tools","settings","viewlibs"],"note":"Tool screens live in :developtools and bridge the host via DevTools; the two View libraries stay game-free."}]</script>
 
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
@@ -4985,15 +4985,15 @@
         <text data-detail="context" x="170" y="509" class="t-muted" font-size="9" text-anchor="middle">SurfaceView, 30 FPS render thread</text>
         </g>
 
-        <g id="node-vm" data-node-id="vm" data-node-label="ViewModel layer" tabindex="0" role="button" aria-label="Focus ViewModel layer, 9 view models, StateFlow, Android App (com.young.aircraft)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="9 view models, StateFlow" data-node-tag="MVVM" data-node-context="Android App (com.young.aircraft)">
-          <title>ViewModel layer · 9 view models, StateFlow · Android App (com.young.aircraft) · MVVM</title>
+        <g id="node-vm" data-node-id="vm" data-node-label="ViewModel layer" tabindex="0" role="button" aria-label="Focus ViewModel layer, 22 VMs (9 app + 13 developtools), StateFlow, Android App (com.young.aircraft)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="22 VMs (9 app + 13 developtools), StateFlow" data-node-tag="MVVM" data-node-context="Android App (com.young.aircraft)">
+          <title>ViewModel layer · 22 VMs (9 app + 13 developtools), StateFlow · Android App (com.young.aircraft) · MVVM</title>
           <rect x="420" y="180" width="200" height="70" rx="6" class="c-mask"/>
           <rect x="420" y="180" width="200" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(426 186) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-detail-anchor x="520" y="213" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">ViewModel layer</text>
-        <text data-detail="context" x="520" y="229" class="t-muted" font-size="9" text-anchor="middle">9 view models, StateFlow</text>
+        <text data-detail="context" x="520" y="229" class="t-muted" font-size="7.4" text-anchor="middle">22 VMs (9 app + 13 developtools), StateFlow</text>
         <text data-detail="fine" x="520" y="242" class="t-backend" font-size="7" text-anchor="middle">MVVM</text>
         </g>
 
@@ -5019,8 +5019,8 @@
         <text data-detail="context" x="520" y="509" class="t-muted" font-size="9" text-anchor="middle">MusicService, FlashlightService</text>
         </g>
 
-        <g id="node-tools" data-node-id="tools" data-node-label=":developtools" tabindex="0" role="button" aria-label="Focus :developtools, 14 tool activities, gate, logs, Standalone Gradle library modules" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="14 tool activities, gate, logs" data-node-context="Standalone Gradle library modules">
-          <title>:developtools · 14 tool activities, gate, logs · Standalone Gradle library modules</title>
+        <g id="node-tools" data-node-id="tools" data-node-label=":developtools" tabindex="0" role="button" aria-label="Focus :developtools, 15 activities: BankCardScan, ApiHistory, gate, logs, Standalone Gradle library modules" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="15 activities: BankCardScan, ApiHistory, gate, logs" data-node-context="Standalone Gradle library modules">
+          <title>:developtools · 15 activities: BankCardScan, ApiHistory, gate, logs · Standalone Gradle library modules</title>
           <rect x="770" y="40" width="240" height="70" rx="6" class="c-mask"/>
           <rect x="770" y="40" width="240" height="70" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(776 46) scale(0.6875)">
@@ -5030,7 +5030,7 @@
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-detail-anchor x="890" y="73" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">:developtools</text>
-        <text data-detail="context" x="890" y="89" class="t-muted" font-size="9" text-anchor="middle">14 tool activities, gate, logs</text>
+        <text data-detail="context" x="890" y="89" class="t-muted" font-size="7.5" text-anchor="middle">15 activities: BankCardScan, ApiHistory, gate, logs</text>
         </g>
 
         <g id="node-settings" data-node-id="settings" data-node-label="SettingsActivity" tabindex="0" role="button" aria-label="Focus SettingsActivity, Settings, theme, language, Android App (com.young.aircraft)" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="Settings, theme, language" data-node-context="Android App (com.young.aircraft)">
@@ -5376,6 +5376,7 @@
           <li>&bull; Room v2033 registers explicit migrations only, no destructive fallback</li>
           <li>&bull; All progress goes through the replaceForPlayer transaction</li>
           <li>&bull; :developtools depends on both View libraries; the libraries avoid game and theme imports</li>
+          <li>&bull; 1.5.9 (AGP 9.5.1): BankCardScan caps decode at 2048px, clears sensitive clipboard after 60s</li>
         </ul>
       </div>
     </div>
