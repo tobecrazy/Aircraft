@@ -285,7 +285,9 @@ private fun BankCardScanScreen(
                 .align(Alignment.BottomCenter)
                 .maxContentWidth()
                 .navigationBarsPadding()
-                .padding(16.dp),
+                // Reserve the fixed Pick button's height (48.dp + 16.dp margin
+                // + spacing) so content never slides underneath it.
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 74.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (hasCameraPermission && uiState.errorRes == null && uiState.card == null) {
@@ -359,18 +361,25 @@ private fun BankCardScanScreen(
                 }
             }
 
-            // Pinned last so the button stays at the bottom regardless of
-            // result/error/full-text content above it.
-            Button(
-                onClick = onPickImage,
-                modifier = Modifier.fillMaxWidth().height(48.dp).testTag("btn_pick_card_image"),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen.copy(alpha = 0.18f),
-                    contentColor = AccentGreen
-                )
-            ) {
-                Text(stringResource(R.string.bank_card_scan_pick_image), fontSize = 13.sp)
-            }
+        }
+
+        // Fixed outside the content Column so it never moves with
+        // result/error/full-text changes; stays glued to the bottom.
+        Button(
+            onClick = onPickImage,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .maxContentWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .height(48.dp)
+                .testTag("btn_pick_card_image"),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AccentGreen.copy(alpha = 0.18f),
+                contentColor = AccentGreen
+            )
+        ) {
+            Text(stringResource(R.string.bank_card_scan_pick_image), fontSize = 13.sp)
         }
     }
 }
