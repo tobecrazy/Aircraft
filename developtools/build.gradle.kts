@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.camera.mlkit.vision)
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.mlkit.text.recognition)
+    // Bundled Chinese model: ID cards print Chinese glyphs, which the Latin model cannot read.
+    implementation(libs.mlkit.text.recognition.chinese)
     implementation(libs.coroutines.play.services)
 
     implementation(libs.coil.compose)

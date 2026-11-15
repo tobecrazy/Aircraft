@@ -24,10 +24,10 @@ class MediaScreensTest {
     }
 
     @Test
-    fun bankCardScanScreenRenders() {
-        withScreen(BankCardScanActivity::class.java) { screen ->
-            assertTrue("bank card scan title", screen.waitForText(R.string.bank_card_scan_title))
-            assertTrue("bank card pick image", screen.waitForText(R.string.bank_card_scan_pick_image))
+    fun cardScanScreenRenders() {
+        withScreen(CardScanActivity::class.java) { screen ->
+            assertTrue("card scan title", screen.waitForText(R.string.card_scan_title))
+            assertTrue("card scan pick image", screen.waitForText(R.string.card_scan_pick_image))
         }
     }
 

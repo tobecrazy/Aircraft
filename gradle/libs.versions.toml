@@ -98,6 +98,7 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 camera-mlkit-vision = { group = "androidx.camera", name = "camera-mlkit-vision", version.ref = "camerax" }
 mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit-barcode" }
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkit-text" }
+mlkit-text-recognition-chinese = { group = "com.google.mlkit", name = "text-recognition-chinese", version.ref = "mlkit-text" }
 graphics-path = { module = "androidx.graphics:graphics-path", version.ref = "graphics-path" }
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
