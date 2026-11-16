@@ -4,13 +4,13 @@ Aircraft is a Kotlin Android vertical-scrolling shooter built on a custom `Surfa
 
 ## Download
 
-Latest published release APK (V1.5.9):
+Latest published release APK (V1.6.0):
 
-- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.5.9/app-release.apk)
+- [app-release.apk](https://github.com/tobecrazy/Aircraft/releases/download/V1.6.0/app-release.apk)
 
 All releases: <https://github.com/tobecrazy/Aircraft/releases>
 
-> The app currently builds as `1.5.9` (`versionCode` 31); `V1.5.9` is the current release.
+> The app currently builds as `1.6.0` (`versionCode` 32); `V1.6.0` is the current release.
 
 ## Demo
 
@@ -391,15 +391,15 @@ app/
 
 ## Requirements
 
-- **Version**: `1.5.9` (`versionCode` 31)
+- **Version**: `1.6.0` (`versionCode` 32)
 - **Android Studio**: Meerkat (`2024.3.1`) or later
 - **Compile SDK**: `37`
 - **Min SDK**: `33`
 - **Target SDK**: `37`
 - **Java**: `17`
 - **Gradle Wrapper**: `9.8.2`
-- **Android Gradle Plugin**: `9.4.1` (AGP built-in Kotlin; the Compose compiler plugin and the root `buildscript` `kotlin-gradle-plugin` pin both track the catalog `kotlin` ref `2.4.21`)
-- **KSP**: `2.3.12`
+- **Android Gradle Plugin**: `9.5.1` (AGP built-in Kotlin; the Compose compiler plugin and the root `buildscript` `kotlin-gradle-plugin` pin both track the catalog `kotlin` ref `2.4.21`)
+- **KSP**: `2.3.14`
 - **Build scripts**: Kotlin DSL (`*.gradle.kts`)
 - **Release minification**: R8 code shrinking + resource shrinking enabled (mapping files uploaded to Crashlytics automatically)
 - **Dependency versions**: `gradle/libs.versions.toml` Gradle version catalog
