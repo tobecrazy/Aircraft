@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Card scanner (`CardScanActivity` / `CardScanViewModel`) replacing the bank-card-only screen: bank cards plus mainland ID cards, with a single ID mode that auto-detects the side from the frame content — a checksum-valid number means the portrait side, printed emblem markers (`签发机关` / `有效期限` / `中华人民共和国` / `居民身份证`) mean the national-emblem side — and renders name/gender/ethnicity/birth/address/ID number or issuer/validity accordingly
+- `data/CardScan.kt`: position-aware ID card parsers (`parseIdCardPortrait`, `parseIdCardEmblem`), GB 11643 checksum with embedded-date validation, `birthDateFromIdNumber`, `genderFromIdNumber`, plus the `CardType` / `ScanHint` / `OcrLine` / `IdCardPortrait` / `IdCardEmblem` models
+- `utils/ImageQuality.kt`: advisory blur/dark/bright/glare hints computed on a downscaled grayscale frame; hints never block recognition
+- Bundled Chinese ML Kit recognizer (`com.google.mlkit:text-recognition-chinese`) for ID cards; bank cards keep the Latin model
+- Tests: `IdCardParserTest` (13 cases — checksum cross-checked against ISO 7064 over 5,000 generated prefixes, malformed input, impossible dates, portrait/emblem layout, validity parsing) and `CardScanViewModelTest` (8 cases — bank locking, ID side auto-detection, bad-checksum rejection, reset and type switching)
+
+### Changed
+- Live scanning crops every CameraX frame to a centered card-aspect ROI, throttles to ~5 fps, runs one recognition at a time (frames arriving mid-recognition are dropped), and confirms bank numbers and ID sides across three frames before locking
+- `BankCardScanActivity` → `CardScanActivity`, `BankCardScanViewModel` → `CardScanViewModel`; the Developer Settings entry, manifest label, connected screen test, and string keys follow the rename
+- ID card UI no longer offers front/back choices: the mode selector is Bank card / ID card, and the per-side hint strings collapse into one hint per locale
+- ID card models are named by side (`IdCardPortrait` / `IdCardEmblem`) instead of front/back, avoiding the 正面/反面 ambiguity in the parsers
+- Docs: README gains the scanner in the summary, features, debug flow, `:developtools` `data/` and `utils/` lists, and the unit/connected test coverage
+
 ## [1.5.8] - 2026-10-31
 
 ### Added
