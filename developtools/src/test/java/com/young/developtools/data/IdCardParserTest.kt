@@ -70,6 +70,14 @@ class IdCardParserTest {
 
         val badYearPrefix = "11010518991231002"
         assertFalse(isIdNumberValid(badYearPrefix + iso7064CheckChar(badYearPrefix)))
+
+        // 1990 is not a leap year, so 02-31 must fail even with a correct checksum.
+        val badDayInMonthPrefix = "11010519900231002"
+        assertFalse(isIdNumberValid(badDayInMonthPrefix + iso7064CheckChar(badDayInMonthPrefix)))
+
+        // 2000 is a leap year; 02-29 is a real date and must pass.
+        val leapDayPrefix = "11010520000229002"
+        assertTrue(isIdNumberValid(leapDayPrefix + iso7064CheckChar(leapDayPrefix)))
     }
 
     @Test
@@ -89,7 +97,7 @@ class IdCardParserTest {
 
     @Test
     fun `front side parses every field`() {
-        val front = parseIdCardFront(frontLines())
+        val front = parseIdCardPortrait(frontLines())
         assertEquals(validId, front?.idNumber)
         assertEquals("张三", front?.name)
         assertEquals("女", front?.gender)
@@ -100,19 +108,19 @@ class IdCardParserTest {
 
     @Test
     fun `letter confusions inside the number are corrected`() {
-        val front = parseIdCardFront(frontLines(idLine = "公民身份号码 11O1O519491231OO2X"))
+        val front = parseIdCardPortrait(frontLines(idLine = "公民身份号码 11O1O519491231OO2X"))
         assertEquals(validId, front?.idNumber)
     }
 
     @Test
     fun `invalid checksum yields no front result`() {
-        assertNull(parseIdCardFront(frontLines(idLine = "公民身份号码 110105194912310021")))
+        assertNull(parseIdCardPortrait(frontLines(idLine = "公民身份号码 110105194912310021")))
     }
 
     @Test
     fun `portrait column text never leaks into the address`() {
         val portrait = OcrLine("张三", top = 95, bottom = 115, left = 820, right = 1000)
-        val front = parseIdCardFront(frontLines(extra = listOf(portrait)))
+        val front = parseIdCardPortrait(frontLines(extra = listOf(portrait)))
         assertEquals("北京市朝阳区某某路1号", front?.address)
     }
 
@@ -120,13 +128,13 @@ class IdCardParserTest {
     fun `address stops at the id number label`() {
         val lines = frontLines().toMutableList()
         lines.add(lines.size - 1, OcrLine("朝阳区", top = 112, bottom = 130, right = 600))
-        val front = parseIdCardFront(lines)
+        val front = parseIdCardPortrait(lines)
         assertEquals("北京市朝阳区某某路1号朝阳区", front?.address)
     }
 
     @Test
     fun `back side parses issuer and validity`() {
-        val back = parseIdCardBack(
+        val back = parseIdCardEmblem(
             listOf(
                 OcrLine("签发机关 北京市公安局朝阳分局", top = 0, bottom = 20),
                 OcrLine("有效期限 2013.05.01-2033.05.01", top = 30, bottom = 50),
@@ -139,7 +147,7 @@ class IdCardParserTest {
 
     @Test
     fun `validity tolerates a misread dash and long-term cards`() {
-        val dash = parseIdCardBack(
+        val dash = parseIdCardEmblem(
             listOf(
                 OcrLine("签发机关 上海市公安局", top = 0, bottom = 20),
                 OcrLine("有效期限 2015.06.01一2025.06.01", top = 30, bottom = 50),
@@ -148,7 +156,7 @@ class IdCardParserTest {
         assertEquals("2015.06.01", dash?.validFrom)
         assertEquals("2025.06.01", dash?.validTo)
 
-        val longTerm = parseIdCardBack(
+        val longTerm = parseIdCardEmblem(
             listOf(
                 OcrLine("签发机关 上海市公安局", top = 0, bottom = 20),
                 OcrLine("有效期限 2015.06.01-长期", top = 30, bottom = 50),
@@ -159,6 +167,6 @@ class IdCardParserTest {
 
     @Test
     fun `back side without readable fields yields null`() {
-        assertNull(parseIdCardBack(listOf(OcrLine("随便一些文字"))))
+        assertNull(parseIdCardEmblem(listOf(OcrLine("随便一些文字"))))
     }
 }

@@ -83,8 +83,8 @@ import com.google.mlkit.vision.common.InputImage
 import com.young.developtools.R
 import com.young.developtools.data.BankCard
 import com.young.developtools.data.CardType
-import com.young.developtools.data.IdCardBack
-import com.young.developtools.data.IdCardFront
+import com.young.developtools.data.IdCardEmblem
+import com.young.developtools.data.IdCardPortrait
 import com.young.developtools.data.ScanHint
 import com.young.developtools.data.label
 import com.young.developtools.ui.maxContentWidth
@@ -290,7 +290,6 @@ private fun CardScanScreen(
         if (scanning) {
             LivePreview(
                 lens = uiState.lens,
-                cardType = uiState.cardType,
                 onFrame = onFrame,
                 onHint = onHint,
                 onLensUnavailable = onLensUnavailable,
@@ -395,18 +394,18 @@ private fun CardScanScreen(
                 )
             }
 
-            uiState.idFront?.let { front ->
-                IdFrontResultCard(
-                    front = front,
-                    onCopyId = { onCopy(front.idNumber) },
+            uiState.idPortrait?.let { portrait ->
+                IdPortraitResultCard(
+                    portrait = portrait,
+                    onCopyId = { onCopy(portrait.idNumber) },
                     onRescan = onRescan
                 )
             }
 
-            uiState.idBack?.let { back ->
-                IdBackResultCard(
-                    back = back,
-                    onCopyDetails = { onCopy("${back.issuer}\n${back.validity}".trim()) },
+            uiState.idEmblem?.let { emblem ->
+                IdEmblemResultCard(
+                    emblem = emblem,
+                    onCopyDetails = { onCopy("${emblem.issuer}\n${emblem.validity}".trim()) },
                     onRescan = onRescan
                 )
             }
@@ -454,8 +453,7 @@ private fun CardScanScreen(
 
 private fun CardType.hintRes(): Int = when (this) {
     CardType.BANK_CARD -> R.string.card_scan_hint_bank
-    CardType.ID_FRONT -> R.string.card_scan_hint_id_front
-    CardType.ID_BACK -> R.string.card_scan_hint_id_back
+    CardType.ID_CARD -> R.string.card_scan_hint_id
 }
 
 private fun ScanHint.hintRes(): Int = when (this) {
@@ -485,17 +483,10 @@ private fun ModeSelector(
             modifier = Modifier.weight(1f)
         )
         ModeChip(
-            labelRes = R.string.card_scan_mode_id_front,
-            selected = selected == CardType.ID_FRONT,
-            testTag = "btn_mode_id_front",
-            onClick = { onSelect(CardType.ID_FRONT) },
-            modifier = Modifier.weight(1f)
-        )
-        ModeChip(
-            labelRes = R.string.card_scan_mode_id_back,
-            selected = selected == CardType.ID_BACK,
-            testTag = "btn_mode_id_back",
-            onClick = { onSelect(CardType.ID_BACK) },
+            labelRes = R.string.card_scan_mode_id,
+            selected = selected == CardType.ID_CARD,
+            testTag = "btn_mode_id",
+            onClick = { onSelect(CardType.ID_CARD) },
             modifier = Modifier.weight(1f)
         )
     }
@@ -653,7 +644,6 @@ private object CardScanAnalyzerExecutor {
  * ViewModel independently drops frames while a recognition is running.
  */
 private class CardFrameAnalyzer(
-    private val currentType: () -> CardType,
     private val onFrame: (Bitmap) -> Unit,
     private val onHint: (ScanHint?) -> Unit,
 ) : ImageAnalysis.Analyzer {
@@ -719,7 +709,6 @@ private fun ImageProxy.toCroppedCardBitmap(): Bitmap {
 @Composable
 private fun LivePreview(
     lens: ScanLens,
-    cardType: CardType,
     onFrame: (Bitmap) -> Unit,
     onHint: (ScanHint?) -> Unit,
     onLensUnavailable: () -> Unit,
@@ -729,7 +718,6 @@ private fun LivePreview(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
-    val currentType = rememberUpdatedState(cardType)
     val currentOnFrame = rememberUpdatedState(onFrame)
     val currentOnHint = rememberUpdatedState(onHint)
     var controller by remember { mutableStateOf<LifecycleCameraController?>(null) }
@@ -762,7 +750,6 @@ private fun LivePreview(
                 setImageAnalysisAnalyzer(
                     analyzerExecutor,
                     CardFrameAnalyzer(
-                        currentType = { currentType.value },
                         onFrame = { bitmap -> currentOnFrame.value(bitmap) },
                         onHint = { hint -> currentOnHint.value(hint) }
                     )
@@ -902,8 +889,8 @@ private fun BankResultCard(
 }
 
 @Composable
-private fun IdFrontResultCard(
-    front: IdCardFront,
+private fun IdPortraitResultCard(
+    portrait: IdCardPortrait,
     onCopyId: () -> Unit,
     onRescan: () -> Unit
 ) {
@@ -915,12 +902,12 @@ private fun IdFrontResultCard(
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace
         )
-        ResultField(R.string.card_scan_field_name, front.name)
-        ResultField(R.string.card_scan_field_gender, front.gender)
-        ResultField(R.string.card_scan_field_ethnicity, front.ethnicity)
-        ResultField(R.string.card_scan_field_birth, front.birth)
-        ResultField(R.string.card_scan_field_address, front.address)
-        ResultField(R.string.card_scan_field_id_number, front.idNumber, highlight = true)
+        ResultField(R.string.card_scan_field_name, portrait.name)
+        ResultField(R.string.card_scan_field_gender, portrait.gender)
+        ResultField(R.string.card_scan_field_ethnicity, portrait.ethnicity)
+        ResultField(R.string.card_scan_field_birth, portrait.birth)
+        ResultField(R.string.card_scan_field_address, portrait.address)
+        ResultField(R.string.card_scan_field_id_number, portrait.idNumber, highlight = true)
         ResultButtons(
             primaryText = stringResource(R.string.card_scan_copy_id),
             primaryTag = "btn_copy_id_number",
@@ -931,8 +918,8 @@ private fun IdFrontResultCard(
 }
 
 @Composable
-private fun IdBackResultCard(
-    back: IdCardBack,
+private fun IdEmblemResultCard(
+    emblem: IdCardEmblem,
     onCopyDetails: () -> Unit,
     onRescan: () -> Unit
 ) {
@@ -944,8 +931,8 @@ private fun IdBackResultCard(
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace
         )
-        ResultField(R.string.card_scan_field_issuer, back.issuer)
-        ResultField(R.string.card_scan_field_validity, back.validity)
+        ResultField(R.string.card_scan_field_issuer, emblem.issuer)
+        ResultField(R.string.card_scan_field_validity, emblem.validity)
         ResultButtons(
             primaryText = stringResource(R.string.card_scan_copy_details),
             primaryTag = "btn_copy_id_details",

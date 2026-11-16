@@ -13,14 +13,14 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.young.developtools.R
 import com.young.developtools.data.BankCard
 import com.young.developtools.data.CardType
-import com.young.developtools.data.IdCardBack
-import com.young.developtools.data.IdCardFront
+import com.young.developtools.data.IdCardEmblem
+import com.young.developtools.data.IdCardPortrait
 import com.young.developtools.data.OcrLine
 import com.young.developtools.data.ScanHint
 import com.young.developtools.data.birthDateFromIdNumber
 import com.young.developtools.data.parseBankCards
-import com.young.developtools.data.parseIdCardBack
-import com.young.developtools.data.parseIdCardFront
+import com.young.developtools.data.parseIdCardEmblem
+import com.young.developtools.data.parseIdCardPortrait
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,15 +33,15 @@ import java.util.concurrent.atomic.AtomicBoolean
 data class CardScanUiState(
     val cardType: CardType = CardType.BANK_CARD,
     val bankCard: BankCard? = null,
-    val idFront: IdCardFront? = null,
-    val idBack: IdCardBack? = null,
+    val idPortrait: IdCardPortrait? = null,
+    val idEmblem: IdCardEmblem? = null,
     val fullText: String = "",
     val hint: ScanHint? = null,
     val errorRes: Int? = null,
     val lens: ScanLens = ScanLens.BACK,
 ) {
     val hasResult: Boolean
-        get() = bankCard != null || idFront != null || idBack != null
+        get() = bankCard != null || idPortrait != null || idEmblem != null
 }
 
 /**
@@ -49,8 +49,12 @@ data class CardScanUiState(
  *
  * Live frames never lock on a single reading: ML Kit misreads a glyph often
  * enough that one frame is unreliable, so a candidate must repeat across
- * frames before it is accepted. Bank cards vote on the Luhn-valid number; ID
- * cards vote on the checksum-valid number (front) or the validity pair (back).
+ * frames before it is accepted. Bank cards vote on the Luhn-valid number.
+ *
+ * The ID card mode does not ask the user which side they hold: a frame is
+ * parsed as the portrait side first (it must contain a checksum-valid number)
+ * and as the national-emblem side only when that fails, so the side is
+ * detected from the content itself.
  *
  * The Latin recognizer handles bank cards; ID cards use the bundled Chinese
  * model, which also covers the Latin digits on the number.
@@ -74,8 +78,8 @@ class CardScanViewModel : ViewModel() {
     // Cross-frame confirmation buffers. Only validated frames enter a vote.
     private val recentFrameTexts = ArrayDeque<String>()
     private val bankCandidateCounts = mutableMapOf<String, Int>()
-    private val idFrontFrames = ArrayDeque<IdCardFront>()
-    private val idBackFrames = ArrayDeque<IdCardBack>()
+    private val idPortraitFrames = ArrayDeque<IdCardPortrait>()
+    private val idEmblemFrames = ArrayDeque<IdCardEmblem>()
 
     /** One recognition at a time; frames arriving meanwhile are dropped. */
     private val recognitionBusy = AtomicBoolean(false)
@@ -92,8 +96,7 @@ class CardScanViewModel : ViewModel() {
         if (text.isBlank() && lines.isEmpty()) return
         when (_uiState.value.cardType) {
             CardType.BANK_CARD -> onBankCardText(text)
-            CardType.ID_FRONT -> onIdFrontLines(lines.ifEmpty { text.toOcrLines() })
-            CardType.ID_BACK -> onIdBackLines(lines.ifEmpty { text.toOcrLines() })
+            CardType.ID_CARD -> onIdCardLines(lines.ifEmpty { text.toOcrLines() })
         }
         _uiState.update { it.copy(fullText = text) }
     }
@@ -126,36 +129,42 @@ class CardScanViewModel : ViewModel() {
         }
     }
 
-    private fun onIdFrontLines(lines: List<OcrLine>) {
-        val front = parseIdCardFront(lines) ?: return
-        idFrontFrames.addLast(front)
-        while (idFrontFrames.size > FRAME_WINDOW) idFrontFrames.removeFirst()
-        val sameNumber = idFrontFrames.filter { it.idNumber == front.idNumber }
-        if (sameNumber.size < STABLE_CONFIRM_COUNT) return
-        val merged = mergeFront(sameNumber, front.idNumber)
-        clearVotes()
-        _uiState.update { it.copy(idFront = merged, errorRes = null) }
-    }
+    /**
+     * Side detection lives here rather than in the UI: the portrait side is the
+     * only one that can produce a checksum-valid number, so trying it first is
+     * enough to tell the two sides apart.
+     */
+    private fun onIdCardLines(lines: List<OcrLine>) {
+        val portrait = parseIdCardPortrait(lines)
+        if (portrait != null) {
+            idPortraitFrames.addLast(portrait)
+            while (idPortraitFrames.size > FRAME_WINDOW) idPortraitFrames.removeFirst()
+            val sameNumber = idPortraitFrames.filter { it.idNumber == portrait.idNumber }
+            if (sameNumber.size < STABLE_CONFIRM_COUNT) return
+            val merged = mergePortrait(sameNumber, portrait.idNumber)
+            clearVotes()
+            _uiState.update { it.copy(idPortrait = merged, errorRes = null) }
+            return
+        }
 
-    private fun onIdBackLines(lines: List<OcrLine>) {
-        val back = parseIdCardBack(lines) ?: return
-        idBackFrames.addLast(back)
-        while (idBackFrames.size > FRAME_WINDOW) idBackFrames.removeFirst()
-        val sameValidity = idBackFrames.count {
-            it.validFrom == back.validFrom && it.validTo == back.validTo
+        val emblem = parseIdCardEmblem(lines) ?: return
+        idEmblemFrames.addLast(emblem)
+        while (idEmblemFrames.size > FRAME_WINDOW) idEmblemFrames.removeFirst()
+        val sameValidity = idEmblemFrames.count {
+            it.validFrom == emblem.validFrom && it.validTo == emblem.validTo
         }
         if (sameValidity < STABLE_CONFIRM_COUNT) return
-        val merged = mergeBack(idBackFrames.toList())
+        val merged = mergeEmblem(idEmblemFrames.toList())
         clearVotes()
-        _uiState.update { it.copy(idBack = merged, errorRes = null) }
+        _uiState.update { it.copy(idEmblem = merged, errorRes = null) }
     }
 
     /**
      * Majority vote per field; ties go to the longer reading, which favours the
      * complete address/name over a truncated frame.
      */
-    private fun mergeFront(frames: List<IdCardFront>, idNumber: String): IdCardFront {
-        fun pick(selector: (IdCardFront) -> String): String =
+    private fun mergePortrait(frames: List<IdCardPortrait>, idNumber: String): IdCardPortrait {
+        fun pick(selector: (IdCardPortrait) -> String): String =
             frames.map(selector)
                 .filter { it.isNotBlank() }
                 .groupingBy { it }
@@ -165,7 +174,7 @@ class CardScanViewModel : ViewModel() {
                 ?.key
                 .orEmpty()
 
-        return IdCardFront(
+        return IdCardPortrait(
             name = pick { it.name },
             gender = pick { it.gender },
             ethnicity = pick { it.ethnicity },
@@ -175,7 +184,7 @@ class CardScanViewModel : ViewModel() {
         )
     }
 
-    private fun mergeBack(frames: List<IdCardBack>): IdCardBack {
+    private fun mergeEmblem(frames: List<IdCardEmblem>): IdCardEmblem {
         val issuer = frames.map { it.issuer }
             .filter { it.isNotBlank() }
             .groupingBy { it }
@@ -190,7 +199,7 @@ class CardScanViewModel : ViewModel() {
             .entries
             .maxByOrNull { it.value }
             ?.key
-        return IdCardBack(
+        return IdCardEmblem(
             issuer = issuer,
             validFrom = validity?.first.orEmpty(),
             validTo = validity?.second.orEmpty(),
@@ -257,23 +266,20 @@ class CardScanViewModel : ViewModel() {
                             )
                         }
                     }
-                    CardType.ID_FRONT -> {
-                        val front = parseIdCardFront(lines.ifEmpty { text.toOcrLines() })
+                    CardType.ID_CARD -> {
+                        val parseLines = lines.ifEmpty { text.toOcrLines() }
+                        val portrait = parseIdCardPortrait(parseLines)
+                        val emblem = if (portrait == null) parseIdCardEmblem(parseLines) else null
                         _uiState.update {
                             it.copy(
-                                idFront = front,
+                                idPortrait = portrait,
+                                idEmblem = emblem,
                                 fullText = text,
-                                errorRes = if (front == null) R.string.card_scan_no_id else null,
-                            )
-                        }
-                    }
-                    CardType.ID_BACK -> {
-                        val back = parseIdCardBack(lines.ifEmpty { text.toOcrLines() })
-                        _uiState.update {
-                            it.copy(
-                                idBack = back,
-                                fullText = text,
-                                errorRes = if (back == null) R.string.card_scan_no_id else null,
+                                errorRes = if (portrait == null && emblem == null) {
+                                    R.string.card_scan_no_id
+                                } else {
+                                    null
+                                },
                             )
                         }
                     }
@@ -293,8 +299,8 @@ class CardScanViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 bankCard = null,
-                idFront = null,
-                idBack = null,
+                idPortrait = null,
+                idEmblem = null,
                 fullText = "",
                 hint = null,
                 errorRes = null,
@@ -305,8 +311,8 @@ class CardScanViewModel : ViewModel() {
     private fun clearVotes() {
         recentFrameTexts.clear()
         bankCandidateCounts.clear()
-        idFrontFrames.clear()
-        idBackFrames.clear()
+        idPortraitFrames.clear()
+        idEmblemFrames.clear()
     }
 
     /** Advisory only: a hint never blocks recognition. */

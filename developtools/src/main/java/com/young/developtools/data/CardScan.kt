@@ -1,5 +1,6 @@
 package com.young.developtools.data
 
+import java.time.LocalDate
 import java.util.Locale
 
 /**
@@ -9,7 +10,7 @@ import java.util.Locale
  *
  * On-device only: callers must not persist or upload the result.
  */
-enum class CardType { BANK_CARD, ID_FRONT, ID_BACK }
+enum class CardType { BANK_CARD, ID_CARD }
 
 /** Advisory frame-quality verdict shown while scanning; never blocks recognition. */
 enum class ScanHint { BLUR, DARK, BRIGHT, GLARE }
@@ -29,7 +30,11 @@ data class OcrLine(
     val centerX: Int get() = (left + right) / 2
 }
 
-data class IdCardFront(
+/**
+ * Data printed on the portrait side (the side without the national emblem).
+ * Detected automatically: this side always carries the ID number.
+ */
+data class IdCardPortrait(
     val name: String = "",
     val gender: String = "",
     val ethnicity: String = "",
@@ -38,7 +43,8 @@ data class IdCardFront(
     val idNumber: String = "",
 )
 
-data class IdCardBack(
+/** Data printed on the national-emblem side (issuer and validity). */
+data class IdCardEmblem(
     val issuer: String = "",
     val validFrom: String = "",
     val validTo: String = "",
@@ -79,8 +85,11 @@ fun birthDateFromIdNumber(idNumber: String): String? {
     val year = idNumber.substring(6, 10).toIntOrNull() ?: return null
     val month = idNumber.substring(10, 12).toIntOrNull() ?: return null
     val day = idNumber.substring(12, 14).toIntOrNull() ?: return null
-    if (year !in 1900..2100 || month !in 1..12 || day !in 1..31) return null
-    return String.format(Locale.US, "%04d-%02d-%02d", year, month, day)
+    if (year !in 1900..2100) return null
+    // LocalDate also rejects day-out-of-month (1990-02-31), which a plain
+    // 1..31 range check would let through.
+    val date = runCatching { LocalDate.of(year, month, day) }.getOrNull() ?: return null
+    return date.toString()
 }
 
 /** 17th digit: odd is male, even is female. */
@@ -211,14 +220,14 @@ private const val MAX_ADDRESS_LENGTH = 80
  * Parses the portrait side. Returns null unless a checksum-valid number was
  * read: without it the frame is untrustworthy and must not enter the vote.
  */
-fun parseIdCardFront(lines: List<OcrLine>): IdCardFront? {
+fun parseIdCardPortrait(lines: List<OcrLine>): IdCardPortrait? {
     val ordered = lines
         .filter { it.text.isNotBlank() }
         .sortedWith(compareBy({ it.top }, { it.left }))
     if (ordered.isEmpty()) return null
     val idNumber = extractIdNumber(ordered) ?: return null
     val texts = ordered.map { it.text.stripSpaces() }
-    return IdCardFront(
+    return IdCardPortrait(
         name = extractName(ordered),
         // A checksum-valid number makes its embedded gender digit more reliable
         // than the printed label, which is read from a small line of text.
@@ -275,17 +284,26 @@ private fun extractValidity(joined: String): Pair<String, String>? {
     }
 }
 
-/** Parses the national-emblem side; null when neither issuer nor validity was read. */
-fun parseIdCardBack(lines: List<OcrLine>): IdCardBack? {
+/** Text that only the national-emblem side prints; used for side detection. */
+private val emblemMarkers = listOf("签发机关", "有效期限", "中华人民共和国", "居民身份证")
+
+/**
+ * Parses the national-emblem side; null when no emblem-side marker was read.
+ * The marker guard keeps a portrait-side frame (whose address could contain a
+ * date-like number) from being mistaken for this side.
+ */
+fun parseIdCardEmblem(lines: List<OcrLine>): IdCardEmblem? {
     val ordered = lines
         .filter { it.text.isNotBlank() }
         .sortedBy { it.top }
     if (ordered.isEmpty()) return null
     val texts = ordered.map { it.text.stripSpaces() }
+    val joined = texts.joinToString("")
+    if (emblemMarkers.none { joined.contains(it) }) return null
     val issuer = extractIssuer(texts)
-    val validity = extractValidity(texts.joinToString(""))
+    val validity = extractValidity(joined)
     if (issuer.isBlank() && validity == null) return null
-    return IdCardBack(
+    return IdCardEmblem(
         issuer = issuer,
         validFrom = validity?.first.orEmpty(),
         validTo = validity?.second.orEmpty(),

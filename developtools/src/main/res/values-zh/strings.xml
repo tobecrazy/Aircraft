@@ -160,8 +160,7 @@ UA：%5$s
     <string name="card_scan_title">卡片扫描</string>
     <string name="card_scan_back">返回</string>
     <string name="card_scan_hint_bank">将银行卡放入框内。端侧 ML Kit OCR + Luhn 校验。</string>
-    <string name="card_scan_hint_id_front">将身份证人像面放入框内。</string>
-    <string name="card_scan_hint_id_back">将身份证国徽面放入框内。</string>
+    <string name="card_scan_hint_id">将身份证任意一面放入框内，自动识别正反面。</string>
     <string name="card_scan_permission_hint">实时扫描卡片需要相机权限。</string>
     <string name="card_scan_pick_image">从相册选图</string>
     <string name="card_scan_no_card">未在文本中发现通过 Luhn 校验的卡号。</string>
@@ -176,8 +175,7 @@ UA：%5$s
     <string name="card_scan_full_text_label">识别文本</string>
     <string name="card_scan_privacy_note">仅端侧识别：卡号不会存储或上传。</string>
     <string name="card_scan_mode_bank">银行卡</string>
-    <string name="card_scan_mode_id_front">身份证人像面</string>
-    <string name="card_scan_mode_id_back">身份证国徽面</string>
+    <string name="card_scan_mode_id">身份证</string>
     <string name="card_scan_field_name">姓名</string>
     <string name="card_scan_field_gender">性别</string>
     <string name="card_scan_field_ethnicity">民族</string>

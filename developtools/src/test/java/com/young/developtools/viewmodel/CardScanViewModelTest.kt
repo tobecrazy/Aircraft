@@ -9,7 +9,7 @@ import org.junit.Test
 
 class CardScanViewModelTest {
 
-    private fun frontLines(idNumber: String = "11010519491231002X"): List<OcrLine> = listOf(
+    private fun portraitLines(idNumber: String = "11010519491231002X"): List<OcrLine> = listOf(
         OcrLine("姓名 张三", top = 0, bottom = 20),
         OcrLine("性别 女 民族 汉", top = 30, bottom = 50),
         OcrLine("出生 1949年12月31日", top = 60, bottom = 80),
@@ -17,7 +17,7 @@ class CardScanViewModelTest {
         OcrLine("公民身份号码 $idNumber", top = 120, bottom = 140),
     )
 
-    private fun backLines(validity: String = "2013.05.01-2033.05.01"): List<OcrLine> = listOf(
+    private fun emblemLines(validity: String = "2013.05.01-2033.05.01"): List<OcrLine> = listOf(
         OcrLine("签发机关 北京市公安局朝阳分局", top = 0, bottom = 20),
         OcrLine("有效期限 $validity", top = 30, bottom = 50),
     )
@@ -70,47 +70,51 @@ class CardScanViewModelTest {
     }
 
     @Test
-    fun `id front locks after three agreeing frames`() {
+    fun `id card mode auto-detects the portrait side`() {
         val viewModel = CardScanViewModel()
-        viewModel.selectCardType(CardType.ID_FRONT)
+        viewModel.selectCardType(CardType.ID_CARD)
 
-        repeat(2) { viewModel.onTextRecognized("", frontLines()) }
-        assertNull(viewModel.uiState.value.idFront)
+        repeat(2) { viewModel.onTextRecognized("", portraitLines()) }
+        assertNull(viewModel.uiState.value.idPortrait)
 
-        viewModel.onTextRecognized("", frontLines())
+        viewModel.onTextRecognized("", portraitLines())
 
-        val front = viewModel.uiState.value.idFront
-        assertNotNull(front)
-        assertEquals("11010519491231002X", front?.idNumber)
-        assertEquals("张三", front?.name)
-        assertEquals("女", front?.gender)
-        assertEquals("汉", front?.ethnicity)
-        assertEquals("1949-12-31", front?.birth)
-        assertEquals("北京市朝阳区某某路1号", front?.address)
+        val portrait = viewModel.uiState.value.idPortrait
+        assertNotNull(portrait)
+        assertEquals("11010519491231002X", portrait?.idNumber)
+        assertEquals("张三", portrait?.name)
+        assertEquals("女", portrait?.gender)
+        assertEquals("汉", portrait?.ethnicity)
+        assertEquals("1949-12-31", portrait?.birth)
+        assertEquals("北京市朝阳区某某路1号", portrait?.address)
+        assertNull(viewModel.uiState.value.idEmblem)
     }
 
     @Test
-    fun `id front with a bad checksum never locks`() {
+    fun `id card mode auto-detects the emblem side`() {
         val viewModel = CardScanViewModel()
-        viewModel.selectCardType(CardType.ID_FRONT)
+        viewModel.selectCardType(CardType.ID_CARD)
 
-        repeat(5) { viewModel.onTextRecognized("", frontLines("110105194912310021")) }
+        repeat(3) { viewModel.onTextRecognized("", emblemLines()) }
 
-        assertNull(viewModel.uiState.value.idFront)
+        val emblem = viewModel.uiState.value.idEmblem
+        assertNotNull(emblem)
+        assertEquals("北京市公安局朝阳分局", emblem?.issuer)
+        assertEquals("2013.05.01", emblem?.validFrom)
+        assertEquals("2033.05.01", emblem?.validTo)
+        assertNull(viewModel.uiState.value.idPortrait)
     }
 
     @Test
-    fun `id back locks after three agreeing frames`() {
+    fun `id card portrait with a bad checksum never locks`() {
         val viewModel = CardScanViewModel()
-        viewModel.selectCardType(CardType.ID_BACK)
+        viewModel.selectCardType(CardType.ID_CARD)
 
-        repeat(3) { viewModel.onTextRecognized("", backLines()) }
+        repeat(5) { viewModel.onTextRecognized("", portraitLines("110105194912310021")) }
 
-        val back = viewModel.uiState.value.idBack
-        assertNotNull(back)
-        assertEquals("北京市公安局朝阳分局", back?.issuer)
-        assertEquals("2013.05.01", back?.validFrom)
-        assertEquals("2033.05.01", back?.validTo)
+        assertNull(viewModel.uiState.value.idPortrait)
+        // The unreadable number must not be mistaken for the emblem side either.
+        assertNull(viewModel.uiState.value.idEmblem)
     }
 
     @Test
@@ -119,9 +123,9 @@ class CardScanViewModelTest {
         repeat(3) { viewModel.onTextRecognized("4242424242424242") }
         assertNotNull(viewModel.uiState.value.bankCard)
 
-        viewModel.selectCardType(CardType.ID_FRONT)
+        viewModel.selectCardType(CardType.ID_CARD)
 
         assertNull(viewModel.uiState.value.bankCard)
-        assertEquals(CardType.ID_FRONT, viewModel.uiState.value.cardType)
+        assertEquals(CardType.ID_CARD, viewModel.uiState.value.cardType)
     }
 }
