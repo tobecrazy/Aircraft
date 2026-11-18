@@ -27,9 +27,22 @@ internal object ImagePreprocessor {
      * When [rotationDegrees] is 0 the source is returned as-is.
      */
     internal fun rotateToLandscape(source: Bitmap, rotationDegrees: Int): Bitmap {
-        if (rotationDegrees == 0) return source
-        val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
+        return rotate(source, rotationDegrees.toFloat())
+    }
+
+    /** Rotates by any angle. Returns [source] unchanged when the angle is zero. */
+    internal fun rotate(source: Bitmap, rotationDegrees: Float): Bitmap {
+        if (rotationDegrees % 360f == 0f) return source
+        val matrix = Matrix().apply { postRotate(rotationDegrees) }
         return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+    }
+
+    /** Rotates and bounds the result, recycling only intermediate bitmaps. */
+    internal fun rotateForOcr(source: Bitmap, rotationDegrees: Float, maxLongSide: Int): Bitmap {
+        val rotated = rotate(source, rotationDegrees)
+        val bounded = enforceMaxLongSide(rotated, maxLongSide)
+        if (rotated !== source && bounded !== rotated) rotated.recycle()
+        return bounded
     }
 
     /**

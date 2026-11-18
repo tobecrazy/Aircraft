@@ -5,9 +5,19 @@ import com.young.developtools.data.OcrLine
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CardScanViewModelTest {
+
+    @Test
+    fun `bank card rotation sweep covers arbitrary angles`() {
+        val angles = BANK_CARD_ROTATION_ANGLES.sorted()
+
+        assertEquals(72, angles.size)
+        assertEquals(0f, angles.first())
+        assertTrue(angles.zipWithNext().all { (current, next) -> next - current <= 5f })
+    }
 
     private fun portraitLines(idNumber: String = "11010519491231002X"): List<OcrLine> = listOf(
         OcrLine("姓名 张三", top = 0, bottom = 20),

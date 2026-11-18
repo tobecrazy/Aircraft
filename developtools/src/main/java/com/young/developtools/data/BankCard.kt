@@ -74,7 +74,7 @@ private fun String.normalizeOcrDigitConfusions(): String =
     map { digitConfusions[it] ?: it }.joinToString("")
 
 private val CONFUSION_CHARS = digitConfusions.keys.joinToString("")
-private val digitRunWithConfusions = Regex("""[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS\s-]{10,}[\d$CONFUSION_CHARS]""")
+private val digitRunWithConfusions = Regex("""\d[\d$CONFUSION_CHARS\s-]{10,}\d""")
 
 /** Lengths a scheme actually issues; used to reject windows inside a long blob. */
 private val canonicalLengths = mapOf(
@@ -140,8 +140,7 @@ fun parseBankCards(text: String): List<BankCard> {
         }
     }
     // Pass 2: the same runs with OCR confusion letters mapped back to digits.
-    // Normalized candidates may be shorter (a letter at the run edge maps to a
-    // digit that the length check still counts), and may need windowing too.
+    // Only map confusions inside digit-bounded runs, avoiding adjacent card labels.
     val normalizedCandidates = mutableListOf<String>()
     digitRunWithConfusions.findAll(text).forEach {
         val normalized = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
@@ -151,9 +150,9 @@ fun parseBankCards(text: String): List<BankCard> {
             normalizedCandidates += blobCandidates(normalized)
         }
     }
-    val selected = (rawValid.ifEmpty { normalizedCandidates })
+    val selected = (rawValid + normalizedCandidates)
         .distinct()
-        .sortedByDescending { it.length }
+        .sortedWith(compareByDescending<String> { looksLikeCard(it) }.thenByDescending { it.length })
 
     return selected.map { number ->
             val scheme = schemeFor(number)

@@ -107,10 +107,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 import android.util.Size as CameraSize
 
-/** Card long edge / short edge, shared by the on-screen frame and the ROI crop. */
-private const val CARD_ASPECT = 1.586f
-
-/** Centered share of the frame handed to OCR; the drawn frame is a little wider. */
+/** Centered square share of the frame handed to OCR, preserving either card orientation. */
 private const val ROI_SCALE = 0.92f
 
 /** OCR input width ceiling: enough for digits, cheap on low-end devices. */
@@ -508,32 +505,31 @@ private fun ModeChip(
     )
 }
 
-/** Dim mask plus a card-shaped frame; the analyzer crops the same centered area. */
+/** Dim mask plus an orientation-neutral square frame; the analyzer crops the same area. */
 @Composable
 private fun ScanFrameOverlay(modifier: Modifier = Modifier) {
     val frameColor = AccentGreen
     Canvas(modifier = modifier) {
-        val frameWidth = size.width * 0.86f
-        val frameHeight = frameWidth / CARD_ASPECT
-        val left = (size.width - frameWidth) / 2f
-        val top = (size.height - frameHeight) / 2f
+        val frameSide = minOf(size.width, size.height) * 0.86f
+        val left = (size.width - frameSide) / 2f
+        val top = (size.height - frameSide) / 2f
         val dim = Color.Black.copy(alpha = 0.45f)
         drawRect(dim, size = Size(size.width, top.coerceAtLeast(0f)))
         drawRect(
             dim,
-            topLeft = Offset(0f, top + frameHeight),
-            size = Size(size.width, (size.height - top - frameHeight).coerceAtLeast(0f))
+            topLeft = Offset(0f, top + frameSide),
+            size = Size(size.width, (size.height - top - frameSide).coerceAtLeast(0f))
         )
-        drawRect(dim, topLeft = Offset(0f, top), size = Size(left.coerceAtLeast(0f), frameHeight))
+        drawRect(dim, topLeft = Offset(0f, top), size = Size(left.coerceAtLeast(0f), frameSide))
         drawRect(
             dim,
-            topLeft = Offset(left + frameWidth, top),
-            size = Size((size.width - left - frameWidth).coerceAtLeast(0f), frameHeight)
+            topLeft = Offset(left + frameSide, top),
+            size = Size((size.width - left - frameSide).coerceAtLeast(0f), frameSide)
         )
         drawRoundRect(
             color = frameColor,
             topLeft = Offset(left, top),
-            size = Size(frameWidth, frameHeight),
+            size = Size(frameSide, frameSide),
             cornerRadius = CornerRadius(16.dp.toPx()),
             style = Stroke(width = 2.dp.toPx())
         )
@@ -645,8 +641,8 @@ private object CardScanAnalyzerExecutor {
 }
 
 /**
- * Crops every analyzed frame to the centered card region before OCR, so ML Kit
- * never spends time on the background and the digits occupy more pixels.
+ * Crops every analyzed frame to a centered square before OCR, so horizontal
+ * and vertical cards stay inside the region while background text is reduced.
  *
  * Frames are throttled and only one capture is in flight at a time; the
  * ViewModel independently drops frames while a recognition is running.
@@ -694,18 +690,10 @@ private fun ImageProxy.toCroppedCardBitmap(): Bitmap {
             Matrix().apply { postRotate(rotation.toFloat()) }, true
         ).also { if (it !== source) source.recycle() }
     }
-    val cropWidth: Int
-    val cropHeight: Int
-    if (upright.width / upright.height.toFloat() > CARD_ASPECT) {
-        cropHeight = (upright.height * ROI_SCALE).toInt()
-        cropWidth = (cropHeight * CARD_ASPECT).toInt()
-    } else {
-        cropWidth = (upright.width * ROI_SCALE).toInt()
-        cropHeight = (cropWidth / CARD_ASPECT).toInt()
-    }
-    val left = (upright.width - cropWidth) / 2
-    val top = (upright.height - cropHeight) / 2
-    val cropped = Bitmap.createBitmap(upright, left, top, cropWidth, cropHeight)
+    val cropSide = (minOf(upright.width, upright.height) * ROI_SCALE).toInt().coerceAtLeast(1)
+    val left = (upright.width - cropSide) / 2
+    val top = (upright.height - cropSide) / 2
+    val cropped = Bitmap.createBitmap(upright, left, top, cropSide, cropSide)
     if (cropped !== upright) upright.recycle()
     if (cropped.width <= OCR_MAX_WIDTH) return cropped
     val scaledHeight = (cropped.height * OCR_MAX_WIDTH.toFloat() / cropped.width).toInt()

@@ -58,6 +58,20 @@ class BankCardTest {
     }
 
     @Test
+    fun `parse accepts valid cards across networks and pan lengths`() {
+        val numbers = listOf(
+            "30569309025904",
+            "3530111333300000",
+            "6222021616004849669",
+        )
+
+        numbers.forEach { number ->
+            assertTrue("expected Luhn-valid test number: $number", isLuhnValid(number))
+            assertEquals(number, firstBankCard(number)?.number)
+        }
+    }
+
+    @Test
     fun `parse ignores luhn failures and short digit runs`() {
         assertTrue(parseBankCards("4242 4242 4242 4241").isEmpty())
         assertTrue(parseBankCards("1234567890").isEmpty())
@@ -82,6 +96,16 @@ class BankCardTest {
         val oConfusion = parseBankCards("4O00 0000 0000 0002")
         assertEquals(1, oConfusion.size)
         assertEquals("4000000000000002", oConfusion[0].number)
+    }
+
+    @Test
+    fun `parse keeps repaired candidates when another clean candidate exists`() {
+        val cards = parseBankCards("4242 4242 4242 4242 and 4O00 0000 0000 0002")
+
+        assertEquals(
+            setOf("4242424242424242", "4000000000000002"),
+            cards.map { it.number }.toSet()
+        )
     }
 
     @Test

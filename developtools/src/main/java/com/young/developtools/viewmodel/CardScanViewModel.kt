@@ -21,6 +21,7 @@ import com.young.developtools.data.birthDateFromIdNumber
 import com.young.developtools.data.parseBankCards
 import com.young.developtools.data.parseIdCardEmblem
 import com.young.developtools.data.parseIdCardPortrait
+import com.young.developtools.utils.ImagePreprocessor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.atomic.AtomicBoolean
+
+// shortcut: five-degree sampling can miss a narrow OCR tolerance; reduce the step if field testing shows misses.
+internal val BANK_CARD_ROTATION_ANGLES = (
+    listOf(0f, 90f, 180f, 270f, 45f, 135f, 225f, 315f) +
+        (0 until 360 step 5).map(Int::toFloat)
+    ).distinct()
 
 data class CardScanUiState(
     val cardType: CardType = CardType.BANK_CARD,
@@ -82,6 +89,12 @@ class CardScanViewModel : ViewModel() {
 
     /** One recognition at a time; frames arriving meanwhile are dropped. */
     private val recognitionBusy = AtomicBoolean(false)
+    @Volatile
+    private var nextBankCardRotationIndex = 0
+    @Volatile
+    private var preferredBankCardRotation: Float? = null
+    @Volatile
+    private var missedPreferredRotationFrames = 0
 
     fun selectCardType(cardType: CardType) {
         if (_uiState.value.cardType == cardType) return
@@ -218,9 +231,37 @@ class CardScanViewModel : ViewModel() {
             return
         }
         val cardType = _uiState.value.cardType
+        val rotation = if (cardType == CardType.BANK_CARD) {
+            preferredBankCardRotation ?: BANK_CARD_ROTATION_ANGLES[nextBankCardRotationIndex].also {
+                nextBankCardRotationIndex = (nextBankCardRotationIndex + 1) % BANK_CARD_ROTATION_ANGLES.size
+            }
+        } else {
+            0f
+        }
         viewModelScope.launch {
+            var rotatedBitmap: Bitmap? = null
             try {
-                val text = recognizerFor(cardType).process(InputImage.fromBitmap(bitmap, 0)).await()
+                val recognitionBitmap = if (cardType == CardType.BANK_CARD) {
+                    ImagePreprocessor.rotateForOcr(bitmap, rotation, LIVE_OCR_LONG_SIDE)
+                        .also { rotatedBitmap = it }
+                } else {
+                    bitmap
+                }
+                val text = recognizerFor(cardType)
+                    .process(InputImage.fromBitmap(recognitionBitmap, 0))
+                    .await()
+                if (cardType == CardType.BANK_CARD) {
+                    if (parseBankCards(text.text).isNotEmpty()) {
+                        preferredBankCardRotation = rotation
+                        missedPreferredRotationFrames = 0
+                    } else if (preferredBankCardRotation != null) {
+                        missedPreferredRotationFrames++
+                        if (missedPreferredRotationFrames >= PREFERRED_ROTATION_MISS_LIMIT) {
+                            preferredBankCardRotation = null
+                            missedPreferredRotationFrames = 0
+                        }
+                    }
+                }
                 onTextRecognized(text.text, text.toOcrLines())
             } catch (cancellation: CancellationException) {
                 throw cancellation
@@ -228,6 +269,7 @@ class CardScanViewModel : ViewModel() {
                 _uiState.update { it.copy(errorRes = R.string.card_scan_error) }
             } finally {
                 recognitionBusy.set(false)
+                rotatedBitmap?.takeIf { it !== bitmap && !it.isRecycled }?.recycle()
                 if (!bitmap.isRecycled) bitmap.recycle()
             }
         }
@@ -249,12 +291,32 @@ class CardScanViewModel : ViewModel() {
                 when (cardType) {
                     CardType.BANK_CARD -> {
                         val cards = parseBankCards(text)
-                        // OCR over a single still can drop a digit; a second pass
-                        // over the same bitmap catches most of those cheaply.
-                        val finalCards = if (cards.isNotEmpty()) {
-                            cards
-                        } else {
-                            parseBankCards(recognizerFor(cardType).process(image).await().text)
+                        // Try five-degree increments so arbitrary card angles can be read.
+                        var finalCards = cards
+                        if (finalCards.isEmpty()) {
+                            finalCards = parseBankCards(
+                                recognizerFor(cardType).process(image).await().text
+                            )
+                        }
+                        if (finalCards.isEmpty() && ownedBitmap != null) {
+                            for (rotation in BANK_CARD_ROTATION_ANGLES.drop(1)) {
+                                val rotated = ImagePreprocessor.rotateForOcr(
+                                    ownedBitmap,
+                                    rotation,
+                                    MAX_OCR_LONG_SIDE,
+                                )
+                                finalCards = try {
+                                    parseBankCards(
+                                        recognizerFor(cardType)
+                                            .process(InputImage.fromBitmap(rotated, 0))
+                                            .await()
+                                            .text
+                                    )
+                                } finally {
+                                    if (rotated !== ownedBitmap && !rotated.isRecycled) rotated.recycle()
+                                }
+                                if (finalCards.isNotEmpty()) break
+                            }
                         }
                         _uiState.update {
                             it.copy(
@@ -308,6 +370,9 @@ class CardScanViewModel : ViewModel() {
         bankCandidateCounts.clear()
         idPortraitFrames.clear()
         idEmblemFrames.clear()
+        preferredBankCardRotation = null
+        missedPreferredRotationFrames = 0
+        nextBankCardRotationIndex = 0
     }
 
     /** Advisory only: a hint never blocks recognition. */
@@ -349,6 +414,9 @@ class CardScanViewModel : ViewModel() {
         const val RECENT_FRAME_LIMIT = 30
         const val FRAME_WINDOW = 12
         const val STABLE_CONFIRM_COUNT = 3
+        const val PREFERRED_ROTATION_MISS_LIMIT = 5
+        const val LIVE_OCR_LONG_SIDE = 1600
+        const val MAX_OCR_LONG_SIDE = 2048
     }
 }
 
