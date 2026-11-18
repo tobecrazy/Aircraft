@@ -172,7 +172,6 @@ Installed browsers:
     <string name="card_scan_copy_id">Copy ID number</string>
     <string name="card_scan_copy_details">Copy details</string>
     <string name="card_scan_rescan">Rescan</string>
-    <string name="card_scan_full_text_label">RECOGNIZED TEXT</string>
     <string name="card_scan_privacy_note">On-device only: card numbers are never stored or uploaded.</string>
     <string name="card_scan_mode_bank">Bank</string>
     <string name="card_scan_mode_id">ID card</string>
@@ -188,6 +187,8 @@ Installed browsers:
     <string name="card_scan_hint_dark">Too dark — add more light.</string>
     <string name="card_scan_hint_bright">Too bright — avoid direct light.</string>
     <string name="card_scan_hint_glare">Glare detected — tilt the card slightly.</string>
+    <string name="card_scan_torch_on">Turn flashlight on</string>
+    <string name="card_scan_torch_off">Turn flashlight off</string>
     <string name="camera_scan_back">Back</string>
     <string name="camera_scan_permission_hint">Camera access is required for live QR scanning.</string>
     <string name="camera_scan_grant">Grant Camera Access</string>

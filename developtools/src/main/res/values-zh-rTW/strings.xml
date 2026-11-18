@@ -172,7 +172,6 @@ UA：%5$s
     <string name="card_scan_copy_id">複製身分證號</string>
     <string name="card_scan_copy_details">複製資料</string>
     <string name="card_scan_rescan">重新掃描</string>
-    <string name="card_scan_full_text_label">辨識文字</string>
     <string name="card_scan_privacy_note">僅裝置端辨識：卡號不會儲存或上傳。</string>
     <string name="card_scan_mode_bank">銀行卡</string>
     <string name="card_scan_mode_id">身分證</string>
@@ -188,6 +187,8 @@ UA：%5$s
     <string name="card_scan_hint_dark">光線過暗，請補充光線。</string>
     <string name="card_scan_hint_bright">光線過亮，請避開直射光。</string>
     <string name="card_scan_hint_glare">偵測到反光，請稍微傾斜卡片。</string>
+    <string name="card_scan_torch_on">開啟補光燈</string>
+    <string name="card_scan_torch_off">關閉補光燈</string>
     <string name="camera_scan_back">返回</string>
     <string name="camera_scan_permission_hint">實時掃碼需要相機許可權。</string>
     <string name="camera_scan_grant">授予相機許可權</string>

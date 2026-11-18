@@ -172,7 +172,6 @@ UA：%5$s
     <string name="card_scan_copy_id">复制身份证号</string>
     <string name="card_scan_copy_details">复制信息</string>
     <string name="card_scan_rescan">重新扫描</string>
-    <string name="card_scan_full_text_label">识别文本</string>
     <string name="card_scan_privacy_note">仅端侧识别：卡号不会存储或上传。</string>
     <string name="card_scan_mode_bank">银行卡</string>
     <string name="card_scan_mode_id">身份证</string>
@@ -188,6 +187,8 @@ UA：%5$s
     <string name="card_scan_hint_dark">光线过暗，请补充光线。</string>
     <string name="card_scan_hint_bright">光线过亮，请避开直射光。</string>
     <string name="card_scan_hint_glare">检测到反光，请稍微倾斜卡片。</string>
+    <string name="card_scan_torch_on">打开补光灯</string>
+    <string name="card_scan_torch_off">关闭补光灯</string>
     <string name="camera_scan_back">返回</string>
     <string name="camera_scan_permission_hint">实时扫码需要相机权限。</string>
     <string name="camera_scan_grant">授予相机权限</string>

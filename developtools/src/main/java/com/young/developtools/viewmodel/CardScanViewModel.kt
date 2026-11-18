@@ -35,7 +35,6 @@ data class CardScanUiState(
     val bankCard: BankCard? = null,
     val idPortrait: IdCardPortrait? = null,
     val idEmblem: IdCardEmblem? = null,
-    val fullText: String = "",
     val hint: ScanHint? = null,
     val errorRes: Int? = null,
     val lens: ScanLens = ScanLens.BACK,
@@ -98,7 +97,6 @@ class CardScanViewModel : ViewModel() {
             CardType.BANK_CARD -> onBankCardText(text)
             CardType.ID_CARD -> onIdCardLines(lines.ifEmpty { text.toOcrLines() })
         }
-        _uiState.update { it.copy(fullText = text) }
     }
 
     /**
@@ -261,7 +259,6 @@ class CardScanViewModel : ViewModel() {
                         _uiState.update {
                             it.copy(
                                 bankCard = finalCards.firstOrNull(),
-                                fullText = text,
                                 errorRes = if (finalCards.isEmpty()) R.string.card_scan_no_card else null,
                             )
                         }
@@ -274,7 +271,6 @@ class CardScanViewModel : ViewModel() {
                             it.copy(
                                 idPortrait = portrait,
                                 idEmblem = emblem,
-                                fullText = text,
                                 errorRes = if (portrait == null && emblem == null) {
                                     R.string.card_scan_no_id
                                 } else {
@@ -301,7 +297,6 @@ class CardScanViewModel : ViewModel() {
                 bankCard = null,
                 idPortrait = null,
                 idEmblem = null,
-                fullText = "",
                 hint = null,
                 errorRes = null,
             )

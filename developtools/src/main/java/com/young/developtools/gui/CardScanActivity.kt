@@ -286,12 +286,19 @@ private fun CardScanScreen(
     onBack: () -> Unit
 ) {
     val scanning = hasCameraPermission && uiState.errorRes == null && !uiState.hasResult
+    var hasFlashUnit by remember { mutableStateOf(false) }
+    var torchEnabled by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
         if (scanning) {
             LivePreview(
                 lens = uiState.lens,
+                torchEnabled = torchEnabled,
                 onFrame = onFrame,
                 onHint = onHint,
+                onFlashAvailability = { available ->
+                    hasFlashUnit = available
+                    if (!available) torchEnabled = false
+                },
                 onLensUnavailable = onLensUnavailable,
                 onCameraError = onCameraError,
                 modifier = Modifier.fillMaxSize()
@@ -309,7 +316,10 @@ private fun CardScanScreen(
                 onBack = onBack,
                 showLensSwitch = scanning,
                 lens = uiState.lens,
-                onSwitchLens = onSwitchLens
+                onSwitchLens = onSwitchLens,
+                showTorchSwitch = scanning && hasFlashUnit,
+                torchEnabled = torchEnabled,
+                onToggleTorch = { torchEnabled = !torchEnabled }
             )
             ModeSelector(
                 selected = uiState.cardType,
@@ -325,8 +335,7 @@ private fun CardScanScreen(
                 .align(Alignment.BottomCenter)
                 .maxContentWidth()
                 .navigationBarsPadding()
-                // Reserve the fixed Pick button's height (48.dp + 16.dp margin
-                // + spacing) so content never slides underneath it.
+                // Reserve the fixed Pick button's height so content never slides underneath it.
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 74.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -410,28 +419,9 @@ private fun CardScanScreen(
                 )
             }
 
-            if (uiState.fullText.isNotBlank()) {
-                Text(
-                    text = stringResource(R.string.card_scan_full_text_label),
-                    color = AccentGreen.copy(alpha = 0.6f),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-                SelectionContainer {
-                    Text(
-                        text = uiState.fullText,
-                        color = TextSubtle,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
-            }
         }
 
-        // Fixed outside the content Column so it never moves with
-        // result/error/full-text changes; stays glued to the bottom.
+        // Fixed outside the content Column so it stays glued to the bottom.
         Button(
             onClick = onPickImage,
             modifier = Modifier
@@ -556,6 +546,9 @@ private fun CardScanHeader(
     showLensSwitch: Boolean,
     lens: ScanLens,
     onSwitchLens: () -> Unit,
+    showTorchSwitch: Boolean,
+    torchEnabled: Boolean,
+    onToggleTorch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val backDescription = stringResource(R.string.card_scan_back)
@@ -620,6 +613,21 @@ private fun CardScanHeader(
                     fontFamily = FontFamily.Monospace,
                     maxLines = 1,
                     softWrap = false
+                )
+            }
+        }
+        if (showTorchSwitch) {
+            val torchDescription = stringResource(
+                if (torchEnabled) R.string.card_scan_torch_off else R.string.card_scan_torch_on
+            )
+            IconButton(onClick = onToggleTorch) {
+                Text(
+                    text = if (torchEnabled) "☼" else "⚡",
+                    color = AccentGreen,
+                    fontSize = 18.sp,
+                    modifier = Modifier.clearAndSetSemantics {
+                        contentDescription = torchDescription
+                    }
                 )
             }
         }
@@ -709,8 +717,10 @@ private fun ImageProxy.toCroppedCardBitmap(): Bitmap {
 @Composable
 private fun LivePreview(
     lens: ScanLens,
+    torchEnabled: Boolean,
     onFrame: (Bitmap) -> Unit,
     onHint: (ScanHint?) -> Unit,
+    onFlashAvailability: (Boolean) -> Unit,
     onLensUnavailable: () -> Unit,
     onCameraError: () -> Unit,
     modifier: Modifier = Modifier
@@ -720,6 +730,7 @@ private fun LivePreview(
     val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
     val currentOnFrame = rememberUpdatedState(onFrame)
     val currentOnHint = rememberUpdatedState(onHint)
+    val currentOnFlashAvailability = rememberUpdatedState(onFlashAvailability)
     var controller by remember { mutableStateOf<LifecycleCameraController?>(null) }
     val analyzerExecutor = CardScanAnalyzerExecutor.instance
 
@@ -759,15 +770,22 @@ private fun LivePreview(
                 .onSuccess {
                     controller = newController
                     previewView.controller = newController
+                    currentOnFlashAvailability.value(newController.cameraInfo?.hasFlashUnit() == true)
                 }
                 .onFailure {
                     if (lens == ScanLens.FRONT) onLensUnavailable() else onCameraError()
                 }
         }
         onDispose {
+            controller?.enableTorch(false)
             controller?.unbind()
             previewView.controller = null
         }
+    }
+
+    DisposableEffect(torchEnabled, controller) {
+        controller?.takeIf { it.cameraInfo?.hasFlashUnit() == true }?.enableTorch(torchEnabled)
+        onDispose { }
     }
 
     AndroidView(modifier = modifier, factory = { previewView })
