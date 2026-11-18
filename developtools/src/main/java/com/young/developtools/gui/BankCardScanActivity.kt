@@ -143,7 +143,7 @@ class BankCardScanActivity : BaseAircraftActivity() {
             if (landscape !== bitmap) landscape.recycle()
             viewModel.recognizeImage(InputImage.fromBitmap(enhanced, 0), enhanced)
         }.onFailure {
-            viewModel.setError(R.string.bank_card_scan_error)
+            viewModel.setError(R.string.card_scan_error)
         }
     }
 
@@ -292,7 +292,7 @@ private fun BankCardScanScreen(
         ) {
             if (hasCameraPermission && uiState.errorRes == null && uiState.card == null) {
                 Text(
-                    text = stringResource(R.string.bank_card_scan_hint),
+                    text = stringResource(R.string.card_scan_hint_bank),
                     color = TextSubtle,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
@@ -303,7 +303,7 @@ private fun BankCardScanScreen(
             }
 
             Text(
-                text = stringResource(R.string.bank_card_scan_privacy_note),
+                text = stringResource(R.string.card_scan_privacy_note),
                 color = TextSubtle,
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace,
@@ -328,7 +328,7 @@ private fun BankCardScanScreen(
 
             if (!hasCameraPermission && uiState.errorRes == null) {
                 ErrorCard(
-                    message = stringResource(R.string.bank_card_scan_permission_hint),
+                    message = stringResource(R.string.card_scan_permission_hint),
                     primaryText = stringResource(R.string.camera_scan_grant),
                     onPrimary = onGrantPermission
                 )
@@ -340,25 +340,6 @@ private fun BankCardScanScreen(
                     onCopy = { onCopy(card) },
                     onRescan = onRescan
                 )
-            }
-
-            if (uiState.fullText.isNotBlank()) {
-                Text(
-                    text = stringResource(R.string.bank_card_scan_full_text_label),
-                    color = AccentGreen.copy(alpha = 0.6f),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-                SelectionContainer {
-                    Text(
-                        text = uiState.fullText,
-                        color = TextSubtle,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
             }
 
         }
@@ -379,7 +360,7 @@ private fun BankCardScanScreen(
                 contentColor = AccentGreen
             )
         ) {
-            Text(stringResource(R.string.bank_card_scan_pick_image), fontSize = 13.sp)
+            Text(stringResource(R.string.card_scan_pick_image), fontSize = 13.sp)
         }
     }
 }
@@ -392,7 +373,7 @@ private fun BankCardScanHeader(
     onSwitchLens: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backDescription = stringResource(R.string.bank_card_scan_back)
+    val backDescription = stringResource(R.string.card_scan_back)
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -411,7 +392,7 @@ private fun BankCardScanHeader(
             )
         }
         Text(
-            text = stringResource(R.string.bank_card_scan_title),
+            text = stringResource(R.string.card_scan_title),
             color = AccentGreen,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
@@ -608,7 +589,7 @@ private fun ResultCard(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
-            text = stringResource(R.string.bank_card_scan_result_label),
+            text = stringResource(R.string.card_scan_bank_number_label),
             color = AccentGreen.copy(alpha = 0.6f),
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
@@ -641,7 +622,7 @@ private fun ResultCard(
                     contentColor = BackgroundDark
                 )
             ) {
-                Text(stringResource(R.string.bank_card_scan_copy_number), fontSize = 13.sp)
+                Text(stringResource(R.string.card_scan_copy_number), fontSize = 13.sp)
             }
             Button(
                 onClick = onRescan,
@@ -654,7 +635,7 @@ private fun ResultCard(
                     contentColor = AccentGreen
                 )
             ) {
-                Text(stringResource(R.string.bank_card_scan_rescan), fontSize = 13.sp)
+                Text(stringResource(R.string.card_scan_rescan), fontSize = 13.sp)
             }
         }
     }

@@ -104,11 +104,11 @@ class BankCardScanViewModel : ViewModel() {
                         card = finalCards.firstOrNull(),
                         cards = finalCards,
                         fullText = text,
-                        errorRes = if (finalCards.isEmpty()) R.string.bank_card_scan_no_card else null,
+                        errorRes = if (finalCards.isEmpty()) R.string.card_scan_no_card else null,
                     )
                 }
             } catch (_: Exception) {
-                _uiState.update { it.copy(errorRes = R.string.bank_card_scan_error) }
+                _uiState.update { it.copy(errorRes = R.string.card_scan_error) }
             } finally {
                 if (ownedBitmap?.isRecycled == false) ownedBitmap.recycle()
             }

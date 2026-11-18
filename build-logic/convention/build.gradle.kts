@@ -19,6 +19,7 @@ dependencies {
     // referenced, so it needs no dependency here; at runtime the plugin comes from
     // the main build's root `apply false` classpath (see §4 of the extraction plan).
     compileOnly(libs.android.gradle)
+
     testImplementation(libs.junit)
 }
 
