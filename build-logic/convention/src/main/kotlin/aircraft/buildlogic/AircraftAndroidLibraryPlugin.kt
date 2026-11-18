@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.configure
 
 class AircraftAndroidLibraryPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
+        registerDuplicateDependencyCheck()
         pluginManager.apply("com.android.library")
         extensions.configure<LibraryExtension> { target.configureLibraryCommon(this) }
     }
