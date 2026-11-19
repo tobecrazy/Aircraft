@@ -159,6 +159,7 @@ UA：%5$s
     <string name="develop_settings_card_scan_button">卡片掃描 (ML Kit OCR)</string>
     <string name="card_scan_title">卡片掃描</string>
     <string name="card_scan_back">返回</string>
+    <string name="card_scan_scanning">掃描中，請勿離開掃描內容...</string>
     <string name="card_scan_hint_bank">將銀行卡放入框內。裝置端 ML Kit OCR + Luhn 檢驗。</string>
     <string name="card_scan_hint_id">將身分證任意一面放入框內，自動辨識正反面。</string>
     <string name="card_scan_permission_hint">即時掃描卡片需要相機許可權。</string>

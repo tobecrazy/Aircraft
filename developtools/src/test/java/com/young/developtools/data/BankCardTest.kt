@@ -80,6 +80,14 @@ class BankCardTest {
     }
 
     @Test
+    fun `parse rejects a luhn-valid partial known-network number`() {
+        val partial = "555555555559"
+
+        assertTrue(isLuhnValid(partial))
+        assertTrue(parseBankCards("5555 5555 5555 9").isEmpty())
+    }
+
+    @Test
     fun `parse prefers longest card and de duplicates`() {
         val cards = parseBankCards("4242 4242 4242 4242 and 4242424242424242 again")
         assertEquals(1, cards.size)

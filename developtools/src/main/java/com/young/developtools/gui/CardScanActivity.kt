@@ -9,10 +9,13 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
+import android.view.HapticFeedbackConstants
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -32,22 +35,29 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +73,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -283,9 +294,24 @@ private fun CardScanScreen(
     onBack: () -> Unit
 ) {
     val scanning = hasCameraPermission && uiState.errorRes == null && !uiState.hasResult
+    val view = LocalView.current
+    val successTone = remember { ToneGenerator(AudioManager.STREAM_NOTIFICATION, 80) }
     var hasFlashUnit by remember { mutableStateOf(false) }
     var torchEnabled by remember { mutableStateOf(false) }
-    Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
+
+    DisposableEffect(successTone) {
+        onDispose { successTone.release() }
+    }
+    LaunchedEffect(uiState.hasResult) {
+        if (uiState.hasResult) {
+            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            successTone.startTone(ToneGenerator.TONE_PROP_ACK, SUCCESS_TONE_DURATION_MS)
+        }
+    }
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
+        val scanFrameBottom = maxHeight / 2 + minOf(maxWidth, maxHeight) * 0.43f
+        val footerMaxHeight = (maxHeight - scanFrameBottom).coerceAtLeast(0.dp)
         if (scanning) {
             LivePreview(
                 lens = uiState.lens,
@@ -331,12 +357,42 @@ private fun CardScanScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .maxContentWidth()
+                .then(
+                    if (scanning) {
+                        Modifier
+                            .heightIn(max = footerMaxHeight)
+                            .verticalScroll(rememberScrollState())
+                    } else {
+                        Modifier
+                    }
+                )
                 .navigationBarsPadding()
                 // Reserve the fixed Pick button's height so content never slides underneath it.
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 74.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (scanning) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .background(BackgroundDark.copy(alpha = 0.78f), RoundedCornerShape(10.dp))
+                        .padding(horizontal = 12.dp, vertical = 9.dp)
+                        .testTag("txt_card_scan_status")
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = AccentGreen,
+                        strokeWidth = 2.dp,
+                    )
+                    Text(
+                        text = stringResource(R.string.card_scan_scanning),
+                        color = AccentGreen,
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
                 Text(
                     text = stringResource(uiState.cardType.hintRes()),
                     color = TextSubtle,
@@ -437,6 +493,8 @@ private fun CardScanScreen(
         }
     }
 }
+
+private const val SUCCESS_TONE_DURATION_MS = 180
 
 private fun CardType.hintRes(): Int = when (this) {
     CardType.BANK_CARD -> R.string.card_scan_hint_bank

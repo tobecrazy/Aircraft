@@ -159,6 +159,7 @@ UA：%5$s
     <string name="develop_settings_card_scan_button">卡片扫描 (ML Kit OCR)</string>
     <string name="card_scan_title">卡片扫描</string>
     <string name="card_scan_back">返回</string>
+    <string name="card_scan_scanning">扫描中，请勿离开扫码内容...</string>
     <string name="card_scan_hint_bank">将银行卡放入框内。端侧 ML Kit OCR + Luhn 校验。</string>
     <string name="card_scan_hint_id">将身份证任意一面放入框内，自动识别正反面。</string>
     <string name="card_scan_permission_hint">实时扫描卡片需要相机权限。</string>

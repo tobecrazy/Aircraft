@@ -85,23 +85,29 @@ private val canonicalLengths = mapOf(
     BankCardScheme.UNIONPAY to setOf(16, 17, 18, 19),
 )
 
-/** A window of a long blob that both has a known IIN prefix and a real length. */
+/** A window with a valid known-scheme length, or an unknown IIN and Luhn checksum. */
 private fun looksLikeCard(number: String): Boolean {
     val scheme = schemeFor(number)
     return scheme != BankCardScheme.UNKNOWN && number.length in canonicalLengths.getValue(scheme)
 }
+
+private fun hasAcceptedLength(number: String): Boolean =
+    when (val scheme = schemeFor(number)) {
+        BankCardScheme.UNKNOWN -> number.length in 12..19
+        else -> number.length in canonicalLengths.getValue(scheme)
+    }
 
 /**
  * Window helper so a long digit run doesn't have to be sliced to exactly one
  * length: e.g. a 20-digit OCR blob may contain the real 16-digit card plus
  * trailing expiry digits; sliding windows of every valid length surface it.
  *
- * Every window length is Luhn-validated, but Luhn alone is far too weak here:
+ * Every window is Luhn-validated, but Luhn alone is far too weak here:
  * a 20-digit blob yields many passing windows (12, 14, 16 and 19 digits all
  * passed on "42424242424242429999"), and longest-first then ranks a bogus
  * 19-digit window above the real card. So windows are additionally required to
- * carry a known scheme prefix at a length that scheme issues; the plain Luhn
- * list is only a fallback for cards outside the known IIN ranges.
+ * carry a known scheme prefix at a length that scheme issues. Unknown IINs
+ * retain the 12–19 digit Luhn fallback.
  */
 private fun blobCandidates(digits: String): List<String> {
     if (digits.length < 12) return emptyList()
@@ -113,17 +119,16 @@ private fun blobCandidates(digits: String): List<String> {
             if (isLuhnValid(window)) luhnValid += window
         }
     }
-    val plausible = luhnValid.filter(::looksLikeCard)
-    return plausible.ifEmpty { luhnValid }
+    return luhnValid.filter(::hasAcceptedLength)
 }
 
 /**
- * Extracts every Luhn-valid 12–19 digit candidate from [text]. OCR often
- * splits the number across lines, so a candidate may span spaces, dashes and
- * newlines within one digit run. The whole text must NOT be joined into one
- * digit stream: digits elsewhere (e.g. a CVV) would be glued onto the card
- * and, when that 12–19 digit blob Luhn-passes, sort longest-first ahead of
- * the real card and lock the wrong number. Longest-first, de-duplicated.
+ * Extracts Luhn-valid card candidates from [text], enforcing known scheme lengths
+ * while retaining a 12–19 digit fallback for unknown IINs. OCR often splits the
+ * number across lines, so a candidate may span spaces, dashes and newlines within
+ * one digit run. The whole text must NOT be joined into one digit stream: digits
+ * elsewhere (e.g. a CVV) could be glued onto the card and lock the wrong number.
+ * Longest-first, de-duplicated.
  */
 fun parseBankCards(text: String): List<BankCard> {
     if (text.isBlank()) return emptyList()
@@ -133,7 +138,7 @@ fun parseBankCards(text: String): List<BankCard> {
     val rawValid = mutableListOf<String>()
     rawCandidates.forEach { run ->
         if (run.length in 12..19) {
-            if (isLuhnValid(run)) rawValid += run
+            if (isLuhnValid(run) && hasAcceptedLength(run)) rawValid += run
         } else if (run.length > 19) {
             // Blob longer than a card: window it; the Luhn gate rejects noise.
             rawValid += blobCandidates(run)
@@ -145,7 +150,7 @@ fun parseBankCards(text: String): List<BankCard> {
     digitRunWithConfusions.findAll(text).forEach {
         val normalized = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
         if (normalized.length in 12..19) {
-            if (isLuhnValid(normalized)) normalizedCandidates += normalized
+            if (isLuhnValid(normalized) && hasAcceptedLength(normalized)) normalizedCandidates += normalized
         } else if (normalized.length > 19) {
             normalizedCandidates += blobCandidates(normalized)
         }
