@@ -19,6 +19,18 @@ class CardScanViewModelTest {
         assertTrue(angles.zipWithNext().all { (current, next) -> next - current <= 5f })
     }
 
+    @Test
+    fun `reflective card OCR requires raw and enhanced results to agree`() {
+        assertEquals(
+            "4242424242424242",
+            matchingBankCardText("4242 4242 4242 4242", "4242 4242 4242 4242"),
+        )
+        assertEquals(
+            "",
+            matchingBankCardText("", "4242 4242 4242 4242"),
+        )
+    }
+
     private fun portraitLines(idNumber: String = "11010519491231002X"): List<OcrLine> = listOf(
         OcrLine("姓名 张三", top = 0, bottom = 20),
         OcrLine("性别 女 民族 汉", top = 30, bottom = 50),

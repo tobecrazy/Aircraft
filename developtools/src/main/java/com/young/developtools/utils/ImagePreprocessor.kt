@@ -18,8 +18,42 @@ import kotlin.math.roundToInt
  */
 internal object ImagePreprocessor {
 
-    private const val TILE = 8
+    private const val ANALYSIS_LONG_SIDE = 96
+    private const val CLAHE_TILES = 8
     private const val CLIP_RATIO = 0.025f
+    private const val GOLD_RATIO_THRESHOLD = 0.04f
+    private const val GLARE_RATIO_THRESHOLD = 0.01f
+
+    /** Detects gold-like surfaces and clipped neutral highlights before OCR. */
+    internal fun needsBankCardEnhancement(source: Bitmap): Boolean {
+        val sample = enforceMaxLongSide(source, ANALYSIS_LONG_SIDE)
+        val width = sample.width
+        val height = sample.height
+        val pixels = IntArray(width * height)
+        sample.getPixels(pixels, 0, width, 0, 0, width, height)
+        if (sample !== source) sample.recycle()
+
+        var goldPixels = 0
+        var glarePixels = 0
+        for (pixel in pixels) {
+            val red = Color.red(pixel)
+            val green = Color.green(pixel)
+            val blue = Color.blue(pixel)
+            val spread = maxOf(red, green, blue) - minOf(red, green, blue)
+            if (red >= 145 && green >= 105 && blue <= 175 && red - blue >= 35 && green - blue >= 20) {
+                goldPixels++
+            }
+            val luminance = (0.2126f * red + 0.7152f * green + 0.0722f * blue).toInt()
+            if (luminance >= 220 && spread <= 50) glarePixels++
+        }
+        return goldPixels.toFloat() / pixels.size >= GOLD_RATIO_THRESHOLD ||
+            glarePixels.toFloat() / pixels.size >= GLARE_RATIO_THRESHOLD
+    }
+
+    /** Enhances reflective cards and otherwise only applies the OCR size limit. */
+    internal fun prepareBankCardForOcr(source: Bitmap, maxLongSide: Int): Bitmap =
+        if (needsBankCardEnhancement(source)) enhanceForOcr(source, maxLongSide)
+        else enforceMaxLongSide(source, maxLongSide)
 
     /**
      * Rotate so the card's long edge is horizontal. Returns a NEW bitmap;
@@ -71,33 +105,34 @@ internal object ImagePreprocessor {
         val src = IntArray(w * h)
         input.getPixels(src, 0, w, 0, 0, w, h)
 
-        val gray = FloatArray(w * h)
         for (i in src.indices) {
-            val c = src[i]
-            gray[i] = 0.2126f * Color.red(c) + 0.7152f * Color.green(c) + 0.0722f * Color.blue(c)
+            val color = src[i]
+            src[i] = (0.2126f * Color.red(color) + 0.7152f * Color.green(color) +
+                0.0722f * Color.blue(color)).roundToInt().coerceIn(0, 255)
         }
 
-        val tileW = (w + TILE - 1) / TILE
-        val tileH = (h + TILE - 1) / TILE
+        val tileW = minOf(CLAHE_TILES, w)
+        val tileH = minOf(CLAHE_TILES, h)
         val tileLuts = Array(tileW * tileH) { t ->
             val tx = t % tileW
             val ty = t / tileW
-            val x0 = tx * TILE
-            val y0 = ty * TILE
-            val x1 = minOf(x0 + TILE, w)
-            val y1 = minOf(y0 + TILE, h)
+            val x0 = tx * w / tileW
+            val y0 = ty * h / tileH
+            val x1 = (tx + 1) * w / tileW
+            val y1 = (ty + 1) * h / tileH
             // Clip histogram at CLIP_RATIO to stop one specular highlight dominating.
             val hist = IntArray(256)
-            for (y in y0 until y1) for (x in x0 until x1) hist[gray[y * w + x].toInt().coerceIn(0, 255)]++
+            for (y in y0 until y1) for (x in x0 until x1) hist[src[y * w + x]]++
             val total = (x1 - x0) * (y1 - y0)
             val clip = (total * CLIP_RATIO).toInt().coerceAtLeast(1)
             var excess = 0
             for (i in 0..255) if (hist[i] > clip) { excess += hist[i] - clip; hist[i] = clip }
             val redistribute = excess / 256
+            var remainder = excess % 256
             var cumulative = 0
             val lut = IntArray(256)
             for (v in 0..255) {
-                cumulative += hist[v] + redistribute
+                cumulative += hist[v] + redistribute + if (remainder-- > 0) 1 else 0
                 lut[v] = (cumulative.toFloat() / total * 255f).roundToInt().coerceIn(0, 255)
             }
             lut
@@ -105,14 +140,18 @@ internal object ImagePreprocessor {
 
         val out = IntArray(w * h)
         for (y in 0 until h) {
-            val ty = y / TILE
-            val tyNext = minOf(ty + 1, tileH - 1)
-            val fy = (y % TILE).toFloat() / TILE
+            val gridY = (y + 0.5f) * tileH / h - 0.5f
+            val floorY = kotlin.math.floor(gridY).toInt()
+            val ty = floorY.coerceIn(0, tileH - 1)
+            val tyNext = (floorY + 1).coerceIn(0, tileH - 1)
+            val fy = if (floorY in 0 until tileH - 1) gridY - floorY else 0f
             for (x in 0 until w) {
-                val tx = x / TILE
-                val txNext = minOf(tx + 1, tileW - 1)
-                val fx = (x % TILE).toFloat() / TILE
-                val v = gray[y * w + x].toInt().coerceIn(0, 255)
+                val gridX = (x + 0.5f) * tileW / w - 0.5f
+                val floorX = kotlin.math.floor(gridX).toInt()
+                val tx = floorX.coerceIn(0, tileW - 1)
+                val txNext = (floorX + 1).coerceIn(0, tileW - 1)
+                val fx = if (floorX in 0 until tileW - 1) gridX - floorX else 0f
+                val v = src[y * w + x]
                 val a = tileLuts[ty * tileW + tx][v]
                 val b = tileLuts[ty * tileW + txNext][v]
                 val c = tileLuts[tyNext * tileW + tx][v]

@@ -107,6 +107,11 @@ class BankCardTest {
     }
 
     @Test
+    fun `parse recovers a lowercase b misread for a six`() {
+        assertEquals("6221260000000000", firstBankCard("b221 2600 0000 0000")?.number)
+    }
+
+    @Test
     fun `parse keeps repaired candidates when another clean candidate exists`() {
         val cards = parseBankCards("4242 4242 4242 4242 and 4O00 0000 0000 0002")
 

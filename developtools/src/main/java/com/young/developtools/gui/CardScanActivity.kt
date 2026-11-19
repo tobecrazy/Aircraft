@@ -169,12 +169,17 @@ class CardScanActivity : BaseAircraftActivity() {
             // than tall) so OCR lines read correctly.
             val rotationDegrees = readExifRotationDegrees(uri)
             val landscape = ImagePreprocessor.rotateToLandscape(bitmap, rotationDegrees)
-            // Ownership of the enhanced bitmap transfers to the ViewModel, which
+            val prepared = if (viewModel.uiState.value.cardType == CardType.BANK_CARD) {
+                ImagePreprocessor.enforceMaxLongSide(landscape, maxLongSide = 2048)
+            } else {
+                ImagePreprocessor.enhanceForOcr(landscape)
+            }
+            // Ownership of the prepared bitmap transfers to the ViewModel, which
             // recycles it after recognition — recycling here would race the async
             // ML Kit call and the native pipeline would fail to lock pixels.
-            val enhanced = ImagePreprocessor.enhanceForOcr(landscape)
-            if (landscape !== bitmap) landscape.recycle()
-            viewModel.recognizeImage(InputImage.fromBitmap(enhanced, 0), enhanced)
+            if (prepared !== landscape) landscape.recycle()
+            if (landscape !== bitmap) bitmap.recycle()
+            viewModel.recognizeImage(InputImage.fromBitmap(prepared, 0), prepared)
         }.onFailure {
             viewModel.setError(R.string.card_scan_error)
         }

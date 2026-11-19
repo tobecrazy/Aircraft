@@ -67,14 +67,16 @@ private val digitRun = Regex("""\d[\d\s-]{10,}\d""")
 private val digitConfusions = mapOf(
     'O' to '0', 'o' to '0', 'Q' to '0', 'D' to '0',
     'l' to '1', 'I' to '1', '|' to '1',
-    'Z' to '2', 'S' to '5', 'B' to '8', 'G' to '6',
+    'Z' to '2', 'S' to '5', 'B' to '8', 'b' to '6', 'G' to '6',
 )
 
 private fun String.normalizeOcrDigitConfusions(): String =
     map { digitConfusions[it] ?: it }.joinToString("")
 
 private val CONFUSION_CHARS = digitConfusions.keys.joinToString("")
-private val digitRunWithConfusions = Regex("""\d[\d$CONFUSION_CHARS\s-]{10,}\d""")
+private val digitRunWithConfusions = Regex(
+    """(?<![A-Za-z0-9])[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS\s-]{10,}[\d$CONFUSION_CHARS](?![A-Za-z0-9])"""
+)
 
 /** Lengths a scheme actually issues; used to reject windows inside a long blob. */
 private val canonicalLengths = mapOf(
@@ -145,7 +147,7 @@ fun parseBankCards(text: String): List<BankCard> {
         }
     }
     // Pass 2: the same runs with OCR confusion letters mapped back to digits.
-    // Only map confusions inside digit-bounded runs, avoiding adjacent card labels.
+    // Only map confusions in standalone card-like runs, avoiding adjacent labels.
     val normalizedCandidates = mutableListOf<String>()
     digitRunWithConfusions.findAll(text).forEach {
         val normalized = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
