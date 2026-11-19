@@ -160,6 +160,7 @@ Installed browsers:
     <string name="card_scan_title">Card Scan</string>
     <string name="card_scan_back">Back</string>
     <string name="card_scan_scanning">Scanning. Keep the card in the scan area…</string>
+    <string name="card_scan_recognizing_image">Recognizing image…</string>
     <string name="card_scan_hint_bank">Hold a bank card inside the frame. On-device ML Kit OCR, Luhn-checked.</string>
     <string name="card_scan_hint_id">Hold either side of the ID card inside the frame; the side is detected automatically.</string>
     <string name="card_scan_permission_hint">Camera access is required for live card scanning.</string>

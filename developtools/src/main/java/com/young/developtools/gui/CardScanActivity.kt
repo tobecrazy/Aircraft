@@ -118,7 +118,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 import android.util.Size as CameraSize
 
-/** Centered square share of the frame handed to OCR, preserving either card orientation. */
+/** Keep most of the preview in either dimension so the card number stays inside the OCR crop. */
 private const val ROI_SCALE = 0.92f
 
 /** OCR input width ceiling: enough for digits, cheap on low-end devices. */
@@ -153,6 +153,7 @@ class CardScanActivity : BaseAircraftActivity() {
         ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri == null) return@registerForActivityResult
+        viewModel.setImageRecognitionInProgress(true)
         runCatching {
             // Cap long side at 2048 px: uncapped decode of a 48 MP photo needs ~400 MB.
             // Two-pass sample-size mirrors QRCodeToolActivity's downscale guard.
@@ -163,7 +164,7 @@ class CardScanActivity : BaseAircraftActivity() {
             }
             val bitmap = contentResolver.openInputStream(uri)?.use { input ->
                 BitmapFactory.decodeStream(input, null, options)
-            } ?: return@registerForActivityResult
+            } ?: error("Could not decode selected image")
             // ML Kit does not apply EXIF orientation for bitmap input — a sideways photo
             // yields no text. Rotate the pixels to landscape ourselves (a card is wider
             // than tall) so OCR lines read correctly.
@@ -181,6 +182,7 @@ class CardScanActivity : BaseAircraftActivity() {
             if (landscape !== bitmap) bitmap.recycle()
             viewModel.recognizeImage(InputImage.fromBitmap(prepared, 0), prepared)
         }.onFailure {
+            viewModel.setImageRecognitionInProgress(false)
             viewModel.setError(R.string.card_scan_error)
         }
     }
@@ -482,6 +484,7 @@ private fun CardScanScreen(
         // Fixed outside the content Column so it stays glued to the bottom.
         Button(
             onClick = onPickImage,
+            enabled = !uiState.isImageRecognitionInProgress,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .maxContentWidth()
@@ -495,6 +498,31 @@ private fun CardScanScreen(
             )
         ) {
             Text(stringResource(R.string.card_scan_pick_image), fontSize = 13.sp)
+        }
+
+        if (uiState.isImageRecognitionInProgress) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.48f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(BackgroundDark)
+                        .padding(horizontal = 24.dp, vertical = 20.dp),
+                ) {
+                    CircularProgressIndicator(color = AccentGreen)
+                    Text(
+                        text = stringResource(R.string.card_scan_recognizing_image),
+                        color = Color.White,
+                        fontSize = 14.sp,
+                    )
+                }
+            }
         }
     }
 }
@@ -568,7 +596,7 @@ private fun ModeChip(
     )
 }
 
-/** Dim mask plus an orientation-neutral square frame; the analyzer crops the same area. */
+/** Dim mask plus an orientation-neutral square frame. */
 @Composable
 private fun ScanFrameOverlay(modifier: Modifier = Modifier) {
     val frameColor = AccentGreen
@@ -704,8 +732,8 @@ private object CardScanAnalyzerExecutor {
 }
 
 /**
- * Crops every analyzed frame to a centered square before OCR, so horizontal
- * and vertical cards stay inside the region while background text is reduced.
+ * Crops a small border from every analyzed frame before OCR, preserving both
+ * card orientations without cutting off the ends of the card number.
  *
  * Frames are throttled and only one capture is in flight at a time; the
  * ViewModel independently drops frames while a recognition is running.
@@ -753,10 +781,11 @@ private fun ImageProxy.toCroppedCardBitmap(): Bitmap {
             Matrix().apply { postRotate(rotation.toFloat()) }, true
         ).also { if (it !== source) source.recycle() }
     }
-    val cropSide = (minOf(upright.width, upright.height) * ROI_SCALE).toInt().coerceAtLeast(1)
-    val left = (upright.width - cropSide) / 2
-    val top = (upright.height - cropSide) / 2
-    val cropped = Bitmap.createBitmap(upright, left, top, cropSide, cropSide)
+    val cropWidth = (upright.width * ROI_SCALE).toInt().coerceAtLeast(1)
+    val cropHeight = (upright.height * ROI_SCALE).toInt().coerceAtLeast(1)
+    val left = (upright.width - cropWidth) / 2
+    val top = (upright.height - cropHeight) / 2
+    val cropped = Bitmap.createBitmap(upright, left, top, cropWidth, cropHeight)
     if (cropped !== upright) upright.recycle()
     if (cropped.width <= OCR_MAX_WIDTH) return cropped
     val scaledHeight = (cropped.height * OCR_MAX_WIDTH.toFloat() / cropped.width).toInt()

@@ -50,6 +50,16 @@ class ImagePreprocessorTest {
     }
 
     @Test
+    fun `gold chip on a blue card does not trigger whole image enhancement`() {
+        val blueCard = solidBitmap(Color.rgb(90, 165, 205))
+        for (y in 40..49) for (x in 40..54) blueCard.setPixel(x, y, Color.rgb(220, 180, 80))
+
+        assertFalse(ImagePreprocessor.needsBankCardEnhancement(blueCard))
+
+        blueCard.recycle()
+    }
+
+    @Test
     fun `neutral matte surfaces skip contrast enhancement`() {
         val matte = solidBitmap(Color.rgb(100, 100, 100))
 
@@ -57,6 +67,21 @@ class ImagePreprocessorTest {
         assertSame(matte, ImagePreprocessor.prepareBankCardForOcr(matte, maxLongSide = 96))
 
         matte.recycle()
+    }
+
+    @Test
+    fun `number band binary pass isolates local embossed edges`() {
+        val source = solidBitmap(Color.rgb(100, 100, 100))
+        for (y in 30..70) for (x in 40..43) source.setPixel(x, y, Color.WHITE)
+
+        val binary = ImagePreprocessor.prepareBankCardNumberBandBinaryForOcr(source, maxLongSide = 96)
+
+        assertEquals(96, binary.width)
+        assertEquals(40, binary.height)
+        assertEquals(Color.BLACK, binary.getPixel(41, 20))
+        assertEquals(Color.WHITE, binary.getPixel(10, 20))
+        source.recycle()
+        binary.recycle()
     }
 
     private fun solidBitmap(color: Int): Bitmap =

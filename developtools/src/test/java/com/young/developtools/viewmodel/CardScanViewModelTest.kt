@@ -20,13 +20,41 @@ class CardScanViewModelTest {
     }
 
     @Test
-    fun `reflective card OCR requires raw and enhanced results to agree`() {
+    fun `gallery rotation sweep uses coarse angles`() {
+        val angles = BANK_CARD_GALLERY_ROTATION_ANGLES.sorted()
+
+        assertEquals(24, angles.size)
+        assertTrue(angles.zipWithNext().all { (current, next) -> next - current <= 15f })
+    }
+
+    @Test
+    fun `gallery card candidate needs two angles or independent image passes`() {
+        val confirmer = BankCardRotationConfirmer()
+        val text = "4242424242424242"
+
+        assertTrue(confirmer.observe(text, 0f, BankCardOcrPass.FULL).isEmpty())
+        assertTrue(confirmer.observe(text, 0f, BankCardOcrPass.FULL).isEmpty())
+        assertEquals(
+            "4242424242424242",
+            confirmer.observe(text, 90f, BankCardOcrPass.FULL).single().number,
+        )
+
+        val bandConfirmer = BankCardRotationConfirmer()
+        assertTrue(bandConfirmer.observe(text, 0f, BankCardOcrPass.FULL).isEmpty())
+        assertEquals(
+            "4242424242424242",
+            bandConfirmer.observe(text, 0f, BankCardOcrPass.NUMBER_BAND).single().number,
+        )
+    }
+
+    @Test
+    fun `reflective card OCR accepts a valid result from either pass`() {
         assertEquals(
             "4242424242424242",
             matchingBankCardText("4242 4242 4242 4242", "4242 4242 4242 4242"),
         )
         assertEquals(
-            "",
+            "4242424242424242",
             matchingBankCardText("", "4242 4242 4242 4242"),
         )
     }

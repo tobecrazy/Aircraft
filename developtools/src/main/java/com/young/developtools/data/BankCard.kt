@@ -6,7 +6,7 @@ package com.young.developtools.data
  *
  * On-device only: callers must not persist or upload the result.
  */
-enum class BankCardScheme { VISA, MASTERCARD, AMEX, DISCOVER, UNIONPAY, UNKNOWN }
+enum class BankCardScheme { VISA, MASTERCARD, AMEX, DINERS, DISCOVER, UNIONPAY, UNKNOWN }
 
 data class BankCard(
     val number: String,
@@ -20,6 +20,7 @@ fun BankCardScheme.label(): String = when (this) {
     BankCardScheme.VISA -> "Visa"
     BankCardScheme.MASTERCARD -> "Mastercard"
     BankCardScheme.AMEX -> "American Express"
+    BankCardScheme.DINERS -> "Diners Club"
     BankCardScheme.DISCOVER -> "Discover"
     BankCardScheme.UNIONPAY -> "UnionPay"
     BankCardScheme.UNKNOWN -> "Unknown"
@@ -34,6 +35,9 @@ fun formatBankCardNumber(number: String, scheme: BankCardScheme): String =
     }
 
 fun schemeFor(number: String): BankCardScheme = when {
+    number.startsWith("36") || number.startsWith("38") ||
+        number.take(3).toIntOrNull()?.let { it in 300..305 } == true ->
+        BankCardScheme.DINERS
     number.startsWith("62") -> BankCardScheme.UNIONPAY
     number.startsWith("4") -> BankCardScheme.VISA
     number.startsWith("5") || number.startsWith("2") -> BankCardScheme.MASTERCARD
@@ -83,11 +87,12 @@ private val canonicalLengths = mapOf(
     BankCardScheme.VISA to setOf(13, 16, 19),
     BankCardScheme.MASTERCARD to setOf(16),
     BankCardScheme.AMEX to setOf(15),
+    BankCardScheme.DINERS to setOf(14, 16, 17, 18, 19),
     BankCardScheme.DISCOVER to setOf(16, 19),
     BankCardScheme.UNIONPAY to setOf(16, 17, 18, 19),
 )
 
-/** A window with a valid known-scheme length, or an unknown IIN and Luhn checksum. */
+/** A window with a valid known-scheme length, or a 16–19 digit unknown IIN. */
 private fun looksLikeCard(number: String): Boolean {
     val scheme = schemeFor(number)
     return scheme != BankCardScheme.UNKNOWN && number.length in canonicalLengths.getValue(scheme)
@@ -95,7 +100,7 @@ private fun looksLikeCard(number: String): Boolean {
 
 private fun hasAcceptedLength(number: String): Boolean =
     when (val scheme = schemeFor(number)) {
-        BankCardScheme.UNKNOWN -> number.length in 12..19
+        BankCardScheme.UNKNOWN -> number.length in 16..19
         else -> number.length in canonicalLengths.getValue(scheme)
     }
 
@@ -109,7 +114,7 @@ private fun hasAcceptedLength(number: String): Boolean =
  * passed on "42424242424242429999"), and longest-first then ranks a bogus
  * 19-digit window above the real card. So windows are additionally required to
  * carry a known scheme prefix at a length that scheme issues. Unknown IINs
- * retain the 12–19 digit Luhn fallback.
+ * retain the 16–19 digit Luhn fallback.
  */
 private fun blobCandidates(digits: String): List<String> {
     if (digits.length < 12) return emptyList()
@@ -126,7 +131,7 @@ private fun blobCandidates(digits: String): List<String> {
 
 /**
  * Extracts Luhn-valid card candidates from [text], enforcing known scheme lengths
- * while retaining a 12–19 digit fallback for unknown IINs. OCR often splits the
+ * while retaining a 16–19 digit fallback for unknown IINs. OCR often splits the
  * number across lines, so a candidate may span spaces, dashes and newlines within
  * one digit run. The whole text must NOT be joined into one digit stream: digits
  * elsewhere (e.g. a CVV) could be glued onto the card and lock the wrong number.

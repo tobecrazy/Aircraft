@@ -80,6 +80,16 @@ class BankCardTest {
     }
 
     @Test
+    fun `parse rejects short unknown-network Luhn candidates`() {
+        val partialUnknown = "99999999999993"
+
+        assertTrue(isLuhnValid(partialUnknown))
+        assertTrue(parseBankCards(partialUnknown).isEmpty())
+        assertEquals("30569309025904", firstBankCard("30569309025904")?.number)
+        assertEquals(BankCardScheme.DINERS, firstBankCard("30569309025904")?.scheme)
+    }
+
+    @Test
     fun `parse rejects a luhn-valid partial known-network number`() {
         val partial = "555555555559"
 

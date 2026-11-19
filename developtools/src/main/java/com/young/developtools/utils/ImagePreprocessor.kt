@@ -23,6 +23,10 @@ internal object ImagePreprocessor {
     private const val CLIP_RATIO = 0.025f
     private const val GOLD_RATIO_THRESHOLD = 0.04f
     private const val GLARE_RATIO_THRESHOLD = 0.01f
+    // shortcut: uses a centered band, upgrade to card-boundary localization if varied layouts miss.
+    private const val NUMBER_BAND_HEIGHT_RATIO = 0.42f
+    private const val ADAPTIVE_RADIUS = 12
+    private const val EDGE_THRESHOLD = 10
 
     /** Detects gold-like surfaces and clipped neutral highlights before OCR. */
     internal fun needsBankCardEnhancement(source: Bitmap): Boolean {
@@ -54,6 +58,64 @@ internal object ImagePreprocessor {
     internal fun prepareBankCardForOcr(source: Bitmap, maxLongSide: Int): Bitmap =
         if (needsBankCardEnhancement(source)) enhanceForOcr(source, maxLongSide)
         else enforceMaxLongSide(source, maxLongSide)
+
+    /** Crops the centered number band, then boosts local embossed edges for a fallback OCR pass. */
+    internal fun prepareBankCardNumberBandForOcr(source: Bitmap, maxLongSide: Int): Bitmap {
+        val bounded = enforceMaxLongSide(source, maxLongSide)
+        val bandHeight = (bounded.height * NUMBER_BAND_HEIGHT_RATIO).roundToInt().coerceAtLeast(1)
+        val top = (bounded.height - bandHeight) / 2
+        val band = Bitmap.createBitmap(bounded, 0, top, bounded.width, bandHeight)
+        if (bounded !== source && bounded !== band) bounded.recycle()
+        return enhanceForOcr(band, maxLongSide).also { if (it !== band) band.recycle() }
+    }
+
+    /** Makes a locally thresholded edge image for embossed digits with little color contrast. */
+    internal fun prepareBankCardNumberBandBinaryForOcr(source: Bitmap, maxLongSide: Int): Bitmap {
+        val bounded = enforceMaxLongSide(source, maxLongSide)
+        val bandHeight = (bounded.height * NUMBER_BAND_HEIGHT_RATIO).roundToInt().coerceAtLeast(1)
+        val band = Bitmap.createBitmap(
+            bounded, 0, (bounded.height - bandHeight) / 2, bounded.width, bandHeight
+        )
+        if (bounded !== source && bounded !== band) bounded.recycle()
+
+        val width = band.width
+        val height = band.height
+        val pixels = IntArray(width * height)
+        band.getPixels(pixels, 0, width, 0, 0, width, height)
+        band.recycle()
+        val gray = IntArray(pixels.size) { index ->
+            val color = pixels[index]
+            (0.2126f * Color.red(color) + 0.7152f * Color.green(color) +
+                0.0722f * Color.blue(color)).roundToInt()
+        }
+        val stride = width + 1
+        val integral = LongArray((width + 1) * (height + 1))
+        for (y in 0 until height) {
+            var rowSum = 0L
+            for (x in 0 until width) {
+                rowSum += gray[y * width + x]
+                integral[(y + 1) * stride + x + 1] = integral[y * stride + x + 1] + rowSum
+            }
+        }
+        val output = IntArray(gray.size)
+        for (y in 0 until height) for (x in 0 until width) {
+            val left = (x - ADAPTIVE_RADIUS).coerceAtLeast(0)
+            val right = (x + ADAPTIVE_RADIUS + 1).coerceAtMost(width)
+            val top = (y - ADAPTIVE_RADIUS).coerceAtLeast(0)
+            val bottom = (y + ADAPTIVE_RADIUS + 1).coerceAtMost(height)
+            val localSum = integral[bottom * stride + right] - integral[top * stride + right] -
+                integral[bottom * stride + left] + integral[top * stride + left]
+            val localMean = localSum / ((right - left) * (bottom - top))
+            output[y * width + x] = if (kotlin.math.abs(gray[y * width + x] - localMean) >= EDGE_THRESHOLD) {
+                Color.BLACK
+            } else {
+                Color.WHITE
+            }
+        }
+        return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+            setPixels(output, 0, width, 0, 0, width, height)
+        }
+    }
 
     /**
      * Rotate so the card's long edge is horizontal. Returns a NEW bitmap;
@@ -109,6 +171,14 @@ internal object ImagePreprocessor {
             val color = src[i]
             src[i] = (0.2126f * Color.red(color) + 0.7152f * Color.green(color) +
                 0.0722f * Color.blue(color)).roundToInt().coerceIn(0, 255)
+        }
+        val grayscale = src.copyOf()
+        for (y in 1 until h - 1) for (x in 1 until w - 1) {
+            val index = y * w + x
+            val value = grayscale[index]
+            val localMean = (grayscale[index - 1] + grayscale[index + 1] +
+                grayscale[index - w] + grayscale[index + w]) / 4f
+            src[index] = (value + (value - localMean) * 0.75f).roundToInt().coerceIn(0, 255)
         }
 
         val tileW = minOf(CLAHE_TILES, w)
