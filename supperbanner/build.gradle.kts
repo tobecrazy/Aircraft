@@ -22,13 +22,14 @@ android {
 }
 
 dependencies {
+    implementation(libs.coil)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.recyclerview)
     implementation(libs.viewpager2)
-    implementation(libs.coil)
+
     testImplementation(libs.junit)
-    testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    testImplementation(libs.robolectric)
 }
 
 publishing {

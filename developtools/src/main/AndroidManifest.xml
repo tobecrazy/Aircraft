@@ -28,9 +28,9 @@
             android:label="@string/camera_scan_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
-            android:name=".gui.BankCardScanActivity"
+            android:name=".gui.CardScanActivity"
             android:exported="false"
-            android:label="@string/bank_card_scan_title"
+            android:label="@string/card_scan_title"
             android:theme="@style/Theme.Aircraft.Common" />
         <activity
             android:name=".gui.ApiDebugToolActivity"
