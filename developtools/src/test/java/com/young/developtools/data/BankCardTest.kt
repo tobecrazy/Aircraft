@@ -147,4 +147,80 @@ class BankCardTest {
         assertEquals(1, cards.size)
         assertEquals("4242424242424242", cards[0].number)
     }
+
+    @Test
+    fun `vote repairs a long number that no single reading got right`() {
+        // UnionPay 6222620110038083300 is Luhn-valid; two readings substitute a
+        // digit in a different position, so neither parses on its own.
+        val readings = listOf(
+            "6222670110038083300",
+            "6222620110033083300",
+            "6222620110038083300",
+            "6222620110038083300",
+        )
+
+        assertEquals("6222620110038083300", voteCardReadings(readings))
+        assertTrue(parseBankCards(readings[0]).isEmpty())
+        assertTrue(parseBankCards(readings[1]).isEmpty())
+    }
+
+    @Test
+    fun `vote never averages unrelated readings into a card`() {
+        // Each is a different misread; a per-position majority would synthesize
+        // 4242424242424242, which none of the three ever read.
+        assertNull(
+            voteCardReadings(
+                listOf(
+                    "4252424242424242",
+                    "4342424242424242",
+                    "5242424242424242",
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `vote only considers the largest cluster of readings`() {
+        // Two clusters of two; neither reaches the minimum cluster size.
+        assertNull(
+            voteCardReadings(
+                listOf(
+                    "6222620110038083300",
+                    "6222620110038083301",
+                    "6222629999999999999",
+                    "6222629999999999998",
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `vote needs a strict majority in every position`() {
+        val readings = listOf(
+            "6222620110038083300",
+            "6222620110033083300",
+            "6222670110038083300",
+            "6222670110033083300",
+        )
+
+        assertNull(voteCardReadings(readings))
+        // Fewer than four readings is not a vote; the exact-match path handles those.
+        assertNull(voteCardReadings(readings.take(3)))
+    }
+
+    @Test
+    fun `vote rejects a merged number that fails luhn`() {
+        val invalid = "4242424242424241"
+
+        assertNull(voteCardReadings(listOf(invalid, invalid, invalid)))
+    }
+
+    @Test
+    fun `card number runs keep near misses and skip other lengths`() {
+        assertEquals(
+            listOf("6222620110038083300"),
+            cardNumberRuns("6222 6201 1003 8083 300 exp 12/24"),
+        )
+        assertTrue(cardNumberRuns("4242 4242").isEmpty())
+    }
 }

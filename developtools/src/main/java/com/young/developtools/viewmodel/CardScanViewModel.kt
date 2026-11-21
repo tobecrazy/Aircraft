@@ -18,9 +18,11 @@ import com.young.developtools.data.IdCardPortrait
 import com.young.developtools.data.OcrLine
 import com.young.developtools.data.ScanHint
 import com.young.developtools.data.birthDateFromIdNumber
+import com.young.developtools.data.cardNumberRuns
 import com.young.developtools.data.parseBankCards
 import com.young.developtools.data.parseIdCardEmblem
 import com.young.developtools.data.parseIdCardPortrait
+import com.young.developtools.data.voteCardReadings
 import com.young.developtools.utils.ImagePreprocessor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -106,6 +108,14 @@ class CardScanViewModel : ViewModel() {
     private var preferredBankCardRotation: Float? = null
     @Volatile
     private var missedPreferredRotationFrames = 0
+
+    // Redacted stage summary of the last gallery scan. Never contains OCR text,
+    // card digits, bitmaps, or hashes; cleared when a scan starts or resets.
+    @Volatile
+    private var lastScanTrace: List<BankCardScanTraceEntry> = emptyList()
+
+    /** Redacted per-pass diagnostics for manual validation; empty between scans. */
+    internal fun scanTrace(): List<BankCardScanTraceEntry> = lastScanTrace
 
     fun selectCardType(cardType: CardType) {
         if (_uiState.value.cardType == cardType) return
@@ -242,7 +252,7 @@ class CardScanViewModel : ViewModel() {
             return
         }
         val cardType = _uiState.value.cardType
-        val rotation = if (cardType == CardType.BANK_CARD) {
+        val frameRotation = if (cardType == CardType.BANK_CARD) {
             preferredBankCardRotation ?: BANK_CARD_ROTATION_ANGLES[nextBankCardRotationIndex].also {
                 nextBankCardRotationIndex = (nextBankCardRotationIndex + 1) % BANK_CARD_ROTATION_ANGLES.size
             }
@@ -250,100 +260,128 @@ class CardScanViewModel : ViewModel() {
             0f
         }
         viewModelScope.launch {
-            var preparedBitmap: Bitmap? = null
-            var rotatedBitmap: Bitmap? = null
-            var rawRotatedBitmap: Bitmap? = null
-            var numberBandBitmap: Bitmap? = null
-            var binaryNumberBandBitmap: Bitmap? = null
-            var enhancementRequired = false
             try {
-                val recognitionBitmap = if (cardType == CardType.BANK_CARD) {
-                    withContext(Dispatchers.Default) {
-                        enhancementRequired = ImagePreprocessor.needsBankCardEnhancement(bitmap)
-                        val prepared = ImagePreprocessor.prepareBankCardForOcr(bitmap, LIVE_OCR_LONG_SIDE)
-                        preparedBitmap = prepared
-                        ImagePreprocessor.rotateForOcr(prepared, rotation, LIVE_OCR_LONG_SIDE)
-                            .also { rotatedBitmap = it }
-                    }
-                } else {
-                    bitmap
-                }
-                val text = recognizerFor(cardType)
-                    .process(InputImage.fromBitmap(recognitionBitmap, 0))
-                    .await()
-                var confirmedBankText = if (cardType == CardType.BANK_CARD && enhancementRequired) {
-                    val rawBitmap = withContext(Dispatchers.Default) {
-                        ImagePreprocessor.rotateForOcr(bitmap, rotation, LIVE_OCR_LONG_SIDE)
-                            .also { rawRotatedBitmap = it }
-                    }
-                    val rawText = recognizerFor(cardType)
-                        .process(InputImage.fromBitmap(rawBitmap, 0))
-                        .await()
-                        .text
-                    matchingBankCardText(rawText, text.text)
-                } else {
-                    text.text
-                }
-                if (cardType == CardType.BANK_CARD && enhancementRequired && rotation % 90f == 0f &&
-                    parseBankCards(confirmedBankText).isEmpty()
-                ) {
-                    val rawBitmap = rawRotatedBitmap ?: withContext(Dispatchers.Default) {
-                        ImagePreprocessor.rotateForOcr(bitmap, rotation, LIVE_OCR_LONG_SIDE)
-                            .also { rawRotatedBitmap = it }
-                    }
-                    val numberBand = withContext(Dispatchers.Default) {
-                        ImagePreprocessor.prepareBankCardNumberBandForOcr(
-                            rawBitmap, LIVE_OCR_LONG_SIDE
-                        ).also { numberBandBitmap = it }
-                    }
-                    val bandText = recognizerFor(cardType)
-                        .process(InputImage.fromBitmap(numberBand, 0)).await().text
-                    if (parseBankCards(bandText).isNotEmpty()) confirmedBankText = bandText
-                    else {
-                        val binaryBand = withContext(Dispatchers.Default) {
-                            ImagePreprocessor.prepareBankCardNumberBandBinaryForOcr(
-                                rawBitmap, LIVE_OCR_LONG_SIDE
-                            ).also { binaryNumberBandBitmap = it }
-                        }
-                        val binaryText = recognizerFor(cardType)
-                            .process(InputImage.fromBitmap(binaryBand, 0)).await().text
-                        if (parseBankCards(binaryText).isNotEmpty()) confirmedBankText = binaryText
+                when (cardType) {
+                    CardType.BANK_CARD -> recognizeLiveBankCard(bitmap, frameRotation)
+                    CardType.ID_CARD -> {
+                        val visionText = recognizerFor(cardType)
+                            .process(InputImage.fromBitmap(bitmap, 0))
+                            .await()
+                        onTextRecognized(visionText.text, visionText.toOcrLines())
                     }
                 }
-                if (cardType == CardType.BANK_CARD) {
-                    if (parseBankCards(confirmedBankText).isNotEmpty()) {
-                        preferredBankCardRotation = rotation
-                        missedPreferredRotationFrames = 0
-                    } else if (preferredBankCardRotation != null) {
-                        missedPreferredRotationFrames++
-                        if (missedPreferredRotationFrames >= PREFERRED_ROTATION_MISS_LIMIT) {
-                            preferredBankCardRotation = null
-                            missedPreferredRotationFrames = 0
-                        }
-                    }
-                }
-                onTextRecognized(
-                    confirmedBankText,
-                    if (confirmedBankText == text.text) text.toOcrLines() else emptyList(),
-                )
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
                 _uiState.update { it.copy(errorRes = R.string.card_scan_error) }
             } finally {
                 recognitionBusy.set(false)
-                rotatedBitmap?.takeIf {
-                    it !== bitmap && it !== preparedBitmap && !it.isRecycled
-                }?.recycle()
-                rawRotatedBitmap?.takeIf {
-                    it !== bitmap && it !== preparedBitmap && it !== rotatedBitmap && !it.isRecycled
-                }?.recycle()
-                numberBandBitmap?.takeIf { it !== bitmap && !it.isRecycled }?.recycle()
-                binaryNumberBandBitmap?.takeIf { it !== bitmap && !it.isRecycled }?.recycle()
-                preparedBitmap?.takeIf { it !== bitmap && !it.isRecycled }?.recycle()
                 if (!bitmap.isRecycled) bitmap.recycle()
             }
         }
+    }
+
+    /**
+     * Live bank-card path. The frame is localized and rectified first, so the
+     * number line no longer depends on the card sitting in the centred crop.
+     * Raw OCR is always first; the heavier variants only run when it produced
+     * no card. The arbitrary rotation sweep stays as the fallback for a frame
+     * where the card outline could not be found.
+     */
+    private suspend fun recognizeLiveBankCard(frame: Bitmap, frameRotation: Float) {
+        val region = withContext(Dispatchers.Default) {
+            ImagePreprocessor.localizeCardForOcr(frame, LIVE_OCR_LONG_SIDE)
+        }
+        val card = region.bitmap
+        var recognizedText = ""
+        var successfulOrientation: Float? = null
+        try {
+            val orientations = if (region.rectified) {
+                if (preferredBankCardRotation == 180f) listOf(180f, 0f) else listOf(0f, 180f)
+            } else {
+                listOf(frameRotation)
+            }
+            for (orientation in orientations) {
+                val oriented = if (orientation == 0f) {
+                    card
+                } else {
+                    withContext(Dispatchers.Default) {
+                        ImagePreprocessor.rotateForOcr(card, orientation, LIVE_OCR_LONG_SIDE)
+                    }
+                }
+                try {
+                    recognizedText = recognizerFor(CardType.BANK_CARD)
+                        .process(InputImage.fromBitmap(oriented, 0))
+                        .await()
+                        .text
+                    if (parseBankCards(recognizedText).isEmpty()) {
+                        val enhanced = withContext(Dispatchers.Default) {
+                            ImagePreprocessor.enhanceForOcr(oriented, LIVE_OCR_LONG_SIDE)
+                        }
+                        try {
+                            recognizedText = recognizerFor(CardType.BANK_CARD)
+                                .process(InputImage.fromBitmap(enhanced, 0))
+                                .await()
+                                .text
+                        } finally {
+                            if (!enhanced.isRecycled) enhanced.recycle()
+                        }
+                    }
+                    if (parseBankCards(recognizedText).isEmpty() &&
+                        (region.rectified || orientation % 90f == 0f)
+                    ) {
+                        liveRowPass(oriented)?.let { recognizedText = it }
+                    }
+                } finally {
+                    if (oriented !== card && !oriented.isRecycled) oriented.recycle()
+                }
+                if (parseBankCards(recognizedText).isNotEmpty()) {
+                    successfulOrientation = orientation
+                    break
+                }
+            }
+
+            if (successfulOrientation != null) {
+                preferredBankCardRotation = successfulOrientation
+                missedPreferredRotationFrames = 0
+            } else if (preferredBankCardRotation != null) {
+                missedPreferredRotationFrames++
+                if (missedPreferredRotationFrames >= PREFERRED_ROTATION_MISS_LIMIT) {
+                    preferredBankCardRotation = null
+                    missedPreferredRotationFrames = 0
+                }
+            }
+            onTextRecognized(recognizedText)
+        } finally {
+            if (card !== frame && !card.isRecycled) card.recycle()
+        }
+    }
+
+    /** Bounded live fallback: wide band, binary band, then the flattened number line. */
+    private suspend fun liveRowPass(card: Bitmap): String? {
+        val variants = listOf<() -> Bitmap?>(
+            { ImagePreprocessor.prepareBankCardNumberBandForOcr(card, LIVE_OCR_LONG_SIDE) },
+            { ImagePreprocessor.prepareBankCardNumberBandBinaryForOcr(card, LIVE_OCR_LONG_SIDE) },
+            { ImagePreprocessor.prepareBankCardNumberLineForOcr(card, LIVE_OCR_LONG_SIDE) },
+            {
+                ImagePreprocessor.prepareBankCardNumberLineAdaptiveForOcr(
+                    card, LIVE_OCR_LONG_SIDE
+                )
+            },
+        )
+        for (create in variants) {
+            val bitmap = withContext(Dispatchers.Default) { create() } ?: continue
+            try {
+                val text = recognizerFor(CardType.BANK_CARD)
+                    .process(InputImage.fromBitmap(bitmap, 0))
+                    .await()
+                    .text
+                if (parseBankCards(text).isNotEmpty()) return text
+            } finally {
+                if (!bitmap.isRecycled) bitmap.recycle()
+            }
+        }
+        return null
     }
 
     /**
@@ -355,116 +393,33 @@ class CardScanViewModel : ViewModel() {
     fun recognizeImage(image: InputImage, ownedBitmap: Bitmap? = null) {
         val cardType = _uiState.value.cardType
         _uiState.update { it.copy(isImageRecognitionInProgress = true, errorRes = null) }
-        val rotationConfirmer = BankCardRotationConfirmer()
+        lastScanTrace = emptyList()
         viewModelScope.launch(Dispatchers.Default) {
             try {
-                val visionText = recognizerFor(cardType).process(image).await()
-                val text = visionText.text
-                val lines = visionText.toOcrLines()
                 when (cardType) {
                     CardType.BANK_CARD -> {
-                        val enhance = ownedBitmap != null && withContext(Dispatchers.Default) {
-                            ImagePreprocessor.needsBankCardEnhancement(ownedBitmap)
-                        }
-                        var enhancedBitmap: Bitmap? = null
-                        try {
-                            var finalCards = if (enhance) {
-                                val enhanced = withContext(Dispatchers.Default) {
-                                    ImagePreprocessor.prepareBankCardForOcr(
-                                        checkNotNull(ownedBitmap), MAX_OCR_LONG_SIDE
-                                    ).also { enhancedBitmap = it }
-                                }
-                                val enhancedText = recognizerFor(cardType)
-                                    .process(InputImage.fromBitmap(enhanced, 0)).await().text
-                                (rotationConfirmer.observe(text, 0f, BankCardOcrPass.FULL) +
-                                    rotationConfirmer.observe(enhancedText, 0f, BankCardOcrPass.FULL))
-                                    .distinctBy { it.number }
-                            } else {
-                                rotationConfirmer.observe(text, 0f, BankCardOcrPass.FULL)
-                            }
-                            if (finalCards.isEmpty() && ownedBitmap != null) {
-                                for (rotation in BANK_CARD_GALLERY_ROTATION_ANGLES) {
-                                    var rawRotated: Bitmap? = null
-                                    var enhancedRotated: Bitmap? = null
-                                    var numberBand: Bitmap? = null
-                                    var binaryNumberBand: Bitmap? = null
-                                    try {
-                                        val raw = withContext(Dispatchers.Default) {
-                                            ImagePreprocessor.rotateForOcr(
-                                                ownedBitmap, rotation, MAX_OCR_LONG_SIDE
-                                            ).also { rawRotated = it }
-                                        }
-                                        val rawText = recognizerFor(cardType)
-                                            .process(InputImage.fromBitmap(raw, 0)).await().text
-                                        val enhancedSource = enhancedBitmap
-                                        val enhancedText = if (enhance && enhancedSource != null) {
-                                            val enhanced = withContext(Dispatchers.Default) {
-                                                ImagePreprocessor.rotateForOcr(
-                                                    enhancedSource, rotation, MAX_OCR_LONG_SIDE
-                                                ).also { enhancedRotated = it }
-                                            }
-                                            recognizerFor(cardType)
-                                                .process(InputImage.fromBitmap(enhanced, 0)).await().text
-                                        } else rawText
-                                        finalCards = (rotationConfirmer.observe(
-                                            rawText, rotation, BankCardOcrPass.FULL
-                                        ) +
-                                            if (enhancedText != rawText) {
-                                                rotationConfirmer.observe(
-                                                    enhancedText, rotation, BankCardOcrPass.FULL
-                                                )
-                                            } else {
-                                                emptyList()
-                                            }).distinctBy { it.number }
-                                        if (finalCards.isEmpty() && rotation % 90f == 0f) {
-                                            val band = withContext(Dispatchers.Default) {
-                                                ImagePreprocessor.prepareBankCardNumberBandForOcr(
-                                                    raw, MAX_OCR_LONG_SIDE
-                                                ).also { numberBand = it }
-                                            }
-                                            finalCards = rotationConfirmer.observe(
-                                                recognizerFor(cardType)
-                                                    .process(InputImage.fromBitmap(band, 0)).await().text,
-                                                rotation,
-                                                BankCardOcrPass.NUMBER_BAND,
-                                            )
-                                            if (finalCards.isEmpty()) {
-                                                val binaryBand = withContext(Dispatchers.Default) {
-                                                    ImagePreprocessor.prepareBankCardNumberBandBinaryForOcr(
-                                                        raw, MAX_OCR_LONG_SIDE
-                                                    ).also { binaryNumberBand = it }
-                                                }
-                                                finalCards = rotationConfirmer.observe(
-                                                    recognizerFor(cardType)
-                                                        .process(InputImage.fromBitmap(binaryBand, 0)).await().text,
-                                                    rotation,
-                                                    BankCardOcrPass.BINARY_NUMBER_BAND,
-                                                )
-                                            }
-                                        }
-                                    } finally {
-                                        rawRotated?.takeIf { it !== ownedBitmap && !it.isRecycled }?.recycle()
-                                        enhancedRotated?.takeIf {
-                                            it !== enhancedBitmap && !it.isRecycled
-                                        }?.recycle()
-                                        numberBand?.takeIf { !it.isRecycled }?.recycle()
-                                        binaryNumberBand?.takeIf { !it.isRecycled }?.recycle()
-                                    }
-                                    if (finalCards.isNotEmpty()) break
-                                }
-                            }
+                        if (ownedBitmap == null) {
+                            val visionText = recognizerFor(cardType).process(image).await()
+                            val accepted = BankCardRotationConfirmer()
+                                .observe(visionText.text, 0f, BankCardOcrPass.FULL)
                             _uiState.update {
                                 it.copy(
-                                    bankCard = finalCards.firstOrNull(),
-                                    errorRes = if (finalCards.isEmpty()) R.string.card_scan_no_card else null,
+                                    bankCard = accepted.firstOrNull(),
+                                    errorRes = if (accepted.isEmpty()) {
+                                        R.string.card_scan_no_card
+                                    } else {
+                                        null
+                                    },
                                 )
                             }
-                        } finally {
-                            enhancedBitmap?.takeIf { it !== ownedBitmap && !it.isRecycled }?.recycle()
+                        } else {
+                            recognizeBankCardFromGallery(ownedBitmap)
                         }
                     }
                     CardType.ID_CARD -> {
-                        val parseLines = lines.ifEmpty { text.toOcrLines() }
+                        val visionText = recognizerFor(cardType).process(image).await()
+                        val text = visionText.text
+                        val parseLines = visionText.toOcrLines().ifEmpty { text.toOcrLines() }
                         val portrait = parseIdCardPortrait(parseLines)
                         val emblem = if (portrait == null) parseIdCardEmblem(parseLines) else null
                         _uiState.update {
@@ -491,12 +446,264 @@ class CardScanViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Gallery bank-card path: localize and rectify the card, run the raw pass
+     * first, and only then the bounded enhancement variants. A card that was
+     * not localized keeps the rotation sweep as its fallback. All temporary
+     * bitmaps are recycled as soon as their awaited ML Kit task completes.
+     */
+    private suspend fun recognizeBankCardFromGallery(source: Bitmap) {
+        val confirmer = BankCardRotationConfirmer()
+        val trace = mutableListOf<BankCardScanTraceEntry>()
+        var cards: List<BankCard> = emptyList()
+        val region = withContext(Dispatchers.Default) {
+            ImagePreprocessor.localizeCardForOcr(source, MAX_OCR_LONG_SIDE)
+        }
+        val card = region.bitmap
+        try {
+            // A rectified card is already landscape; only its upright direction
+            // is unknown, so 0 and 180 degrees cover it. An unrectified source
+            // keeps the single pass and defers to the rotation sweep.
+            val orientations = if (region.rectified) floatArrayOf(0f, 180f) else floatArrayOf(0f)
+            for (orientation in orientations) {
+                val oriented = if (orientation == 0f) {
+                    card
+                } else {
+                    withContext(Dispatchers.Default) {
+                        ImagePreprocessor.rotateForOcr(card, orientation, MAX_OCR_LONG_SIDE)
+                    }
+                }
+                try {
+                    val full = runBankPass(
+                        bitmap = oriented,
+                        recognizer = latinRecognizer,
+                        pass = BankCardOcrPass.FULL,
+                        rotation = orientation,
+                        crop = null,
+                        confirmer = confirmer,
+                        trace = trace,
+                    )
+                    cards = full.accepted
+                    if (cards.isEmpty()) {
+                        val enhanced = withContext(Dispatchers.Default) {
+                            ImagePreprocessor.enhanceForOcr(oriented, MAX_OCR_LONG_SIDE)
+                        }
+                        try {
+                            cards = runBankPass(
+                                bitmap = enhanced,
+                                recognizer = latinRecognizer,
+                                pass = BankCardOcrPass.ENHANCED_FULL,
+                                rotation = orientation,
+                                crop = null,
+                                confirmer = confirmer,
+                                trace = trace,
+                            ).accepted
+                        } finally {
+                            if (!enhanced.isRecycled) enhanced.recycle()
+                        }
+                    }
+                    if (cards.isEmpty()) {
+                        val row = ImagePreprocessor.numberRowFromLines(
+                            full.text.toOcrLines(),
+                            oriented.width,
+                            oriented.height,
+                        )
+                        cards = runBankRowPasses(oriented, row, orientation, confirmer, trace)
+                    }
+                    if (cards.isEmpty()) cards = confirmer.vote(orientation)
+                } finally {
+                    if (oriented !== card && !oriented.isRecycled) oriented.recycle()
+                }
+                if (cards.isNotEmpty()) break
+            }
+
+            // A rectified card that still produced nothing may have been warped
+            // from an imprecise quad, so the full-image rotation route stays as
+            // the last resort instead of failing the scan outright.
+            if (cards.isEmpty()) {
+                cards = runBankRotationFallback(source, confirmer, trace)
+            }
+            lastScanTrace = trace
+            _uiState.update {
+                it.copy(
+                    bankCard = cards.firstOrNull(),
+                    errorRes = if (cards.isEmpty()) R.string.card_scan_no_card else null,
+                )
+            }
+        } finally {
+            if (card !== source && !card.isRecycled) card.recycle()
+        }
+    }
+
+    /**
+     * Band, binary band and number-line variants on a card image. Rows are
+     * card-normalized; an OCR-derived row is preferred when the full pass saw
+     * the number, otherwise three nearby rows are tried.
+     */
+    private suspend fun runBankRowPasses(
+        card: Bitmap,
+        row: ImagePreprocessor.NumberRow?,
+        rotation: Float,
+        confirmer: BankCardRotationConfirmer,
+        trace: MutableList<BankCardScanTraceEntry>,
+    ): List<BankCard> {
+        suspend fun runVariant(
+            recognizer: TextRecognizer,
+            pass: BankCardOcrPass,
+            bounds: IntArray,
+            create: () -> Bitmap,
+        ): List<BankCard> {
+            val bitmap = withContext(Dispatchers.Default) { create() }
+            return try {
+                runBankPass(bitmap, recognizer, pass, rotation, bounds, confirmer, trace).accepted
+            } finally {
+                if (!bitmap.isRecycled) bitmap.recycle()
+            }
+        }
+
+        val bandRow = row?.band() ?: ImagePreprocessor.NUMBER_BAND_ROW
+        val bandBounds = ImagePreprocessor.rowCropBounds(card.width, card.height, bandRow)
+        var cards = runVariant(latinRecognizer, BankCardOcrPass.NUMBER_BAND, bandBounds) {
+            ImagePreprocessor.prepareBankCardNumberBandForOcr(card, MAX_OCR_LONG_SIDE, bandRow)
+        }
+        if (cards.isNotEmpty()) return cards
+
+        cards = runVariant(latinRecognizer, BankCardOcrPass.BINARY_NUMBER_BAND, bandBounds) {
+            ImagePreprocessor.prepareBankCardNumberBandBinaryForOcr(card, MAX_OCR_LONG_SIDE, bandRow)
+        }
+        if (cards.isNotEmpty()) return cards
+
+        val rows = if (row != null) {
+            listOf(row)
+        } else {
+            listOf(
+                ImagePreprocessor.NUMBER_LINE_ROW,
+                ImagePreprocessor.UPPER_NUMBER_LINE_ROW,
+                ImagePreprocessor.LOWER_NUMBER_LINE_ROW,
+            )
+        }
+        for ((index, lineRow) in rows.withIndex()) {
+            val linePass = when (index) {
+                1 -> BankCardOcrPass.UPPER_NUMBER_LINE
+                2 -> BankCardOcrPass.LOWER_NUMBER_LINE
+                else -> BankCardOcrPass.NUMBER_LINE
+            }
+            val adaptivePass = when (index) {
+                1 -> BankCardOcrPass.UPPER_ADAPTIVE_NUMBER_LINE
+                2 -> BankCardOcrPass.LOWER_ADAPTIVE_NUMBER_LINE
+                else -> BankCardOcrPass.ADAPTIVE_NUMBER_LINE
+            }
+            val bounds = ImagePreprocessor.rowCropBounds(card.width, card.height, lineRow)
+            cards = runVariant(latinRecognizer, linePass, bounds) {
+                ImagePreprocessor.prepareBankCardNumberLineForOcr(card, MAX_OCR_LONG_SIDE, lineRow)
+            }
+            if (cards.isNotEmpty()) return cards
+
+            val adaptive = withContext(Dispatchers.Default) {
+                ImagePreprocessor.prepareBankCardNumberLineAdaptiveForOcr(
+                    card, MAX_OCR_LONG_SIDE, lineRow
+                )
+            }
+            if (adaptive != null) {
+                try {
+                    cards = runBankPass(
+                        bitmap = adaptive,
+                        recognizer = latinRecognizer,
+                        pass = adaptivePass,
+                        rotation = rotation,
+                        crop = bounds,
+                        confirmer = confirmer,
+                        trace = trace,
+                    ).accepted
+                } finally {
+                    if (!adaptive.isRecycled) adaptive.recycle()
+                }
+                if (cards.isNotEmpty()) return cards
+            }
+        }
+
+        // The bundled Chinese model segments low-contrast strokes differently
+        // and also covers Latin digits, so it gets the last word on the primary line.
+        val primaryRow = rows.first()
+        return runVariant(
+            chineseRecognizer,
+            BankCardOcrPass.CHINESE_NUMBER_LINE,
+            ImagePreprocessor.rowCropBounds(card.width, card.height, primaryRow),
+        ) {
+            ImagePreprocessor.prepareBankCardNumberLineForOcr(card, MAX_OCR_LONG_SIDE, primaryRow)
+        }
+    }
+
+    /**
+     * Rotation fallback for a photo where the card outline was not found.
+     * The raw pass runs at every angle; the heavier row variants only at the
+     * cardinal angles, so the sweep stays bounded.
+     */
+    private suspend fun runBankRotationFallback(
+        source: Bitmap,
+        confirmer: BankCardRotationConfirmer,
+        trace: MutableList<BankCardScanTraceEntry>,
+    ): List<BankCard> {
+        for (rotation in BANK_CARD_GALLERY_ROTATION_ANGLES) {
+            val raw = withContext(Dispatchers.Default) {
+                ImagePreprocessor.rotateForOcr(source, rotation, MAX_OCR_LONG_SIDE)
+            }
+            try {
+                var cards = runBankPass(
+                    bitmap = raw,
+                    recognizer = latinRecognizer,
+                    pass = BankCardOcrPass.FULL,
+                    rotation = rotation,
+                    crop = null,
+                    confirmer = confirmer,
+                    trace = trace,
+                ).accepted
+                if (cards.isEmpty() && rotation % 90f == 0f) {
+                    cards = runBankRowPasses(raw, null, rotation, confirmer, trace)
+                }
+                if (cards.isEmpty()) cards = confirmer.vote(rotation)
+                if (cards.isNotEmpty()) return cards
+            } finally {
+                if (raw !== source && !raw.isRecycled) raw.recycle()
+            }
+        }
+        return emptyList()
+    }
+
+    /** One OCR pass plus its redacted trace entry. Never records OCR text. */
+    private suspend fun runBankPass(
+        bitmap: Bitmap,
+        recognizer: TextRecognizer,
+        pass: BankCardOcrPass,
+        rotation: Float,
+        crop: IntArray?,
+        confirmer: BankCardRotationConfirmer,
+        trace: MutableList<BankCardScanTraceEntry>,
+    ): BankPassOutcome {
+        val text = recognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
+        val accepted = confirmer.observe(text.text, rotation, pass)
+        trace += BankCardScanTraceEntry(
+            pass = pass,
+            rotation = rotation,
+            sourceWidth = bitmap.width,
+            sourceHeight = bitmap.height,
+            crop = crop?.toList(),
+            blockCount = text.textBlocks.size,
+            lineCount = text.textBlocks.sumOf { it.lines.size },
+            digitRunLengths = cardNumberRuns(text.text).map(String::length),
+            candidateCount = parseBankCards(text.text).size,
+            acceptedCount = accepted.size,
+        )
+        return BankPassOutcome(text, accepted)
+    }
+
     fun setImageRecognitionInProgress(inProgress: Boolean) {
         _uiState.update { it.copy(isImageRecognitionInProgress = inProgress) }
     }
 
     fun resetScan() {
         clearVotes()
+        lastScanTrace = emptyList()
         _uiState.update {
             it.copy(
                 bankCard = null,
@@ -577,22 +784,34 @@ private fun String.toOcrLines(): List<OcrLine> =
         OcrLine(text = text, top = index, bottom = index + 1)
     }
 
-internal fun matchingBankCardText(rawText: String, enhancedText: String): String {
-    val rawNumbers = parseBankCards(rawText).mapTo(mutableSetOf()) { it.number }
-    val enhancedNumbers = parseBankCards(enhancedText).mapTo(mutableSetOf()) { it.number }
-    return when {
-        rawNumbers.isEmpty() -> enhancedNumbers.firstOrNull().orEmpty()
-        enhancedNumbers.isEmpty() -> rawNumbers.firstOrNull().orEmpty()
-        else -> rawNumbers.firstOrNull { it in enhancedNumbers }.orEmpty()
-    }
-}
+/** Result of one OCR pass: the full ML Kit text plus any confirmed candidates. */
+private data class BankPassOutcome(val text: Text, val accepted: List<BankCard>)
+
+/**
+ * Redacted diagnostics for one gallery pass. Deliberately excludes OCR text,
+ * card digits, bitmap pixels, and stable hashes of either.
+ */
+internal data class BankCardScanTraceEntry(
+    val pass: BankCardOcrPass,
+    val rotation: Float,
+    val sourceWidth: Int,
+    val sourceHeight: Int,
+    val crop: List<Int>?,
+    val blockCount: Int,
+    val lineCount: Int,
+    val digitRunLengths: List<Int>,
+    val candidateCount: Int,
+    val acceptedCount: Int,
+)
 
 internal class BankCardRotationConfirmer {
     private val rotationsByCandidate = mutableMapOf<String, MutableSet<Float>>()
     private val passesByCandidateAndRotation = mutableMapOf<String, MutableMap<Float, MutableSet<BankCardOcrPass>>>()
+    private val readingsByRotation = mutableMapOf<Float, MutableList<String>>()
 
-    fun observe(text: String, rotation: Float, pass: BankCardOcrPass): List<BankCard> =
-        parseBankCards(text).filter { candidate ->
+    fun observe(text: String, rotation: Float, pass: BankCardOcrPass): List<BankCard> {
+        readingsByRotation.getOrPut(rotation) { mutableListOf() } += cardNumberRuns(text)
+        return parseBankCards(text).filter { candidate ->
             val rotations = rotationsByCandidate.getOrPut(candidate.number) { mutableSetOf() }
             rotations.add(rotation)
             val passes = passesByCandidateAndRotation
@@ -601,6 +820,29 @@ internal class BankCardRotationConfirmer {
             passes.add(pass)
             rotations.size >= GALLERY_ROTATION_CONFIRM_COUNT || passes.size >= 2
         }
+    }
+
+    /**
+     * Per-position majority over every reading taken at [rotation], then Luhn.
+     * Recovers a number no single pass read cleanly, which is the usual outcome
+     * for long embossed numbers.
+     */
+    fun vote(rotation: Float): List<BankCard> {
+        val number = voteCardReadings(readingsByRotation[rotation].orEmpty()) ?: return emptyList()
+        return parseBankCards(number)
+    }
 }
 
-internal enum class BankCardOcrPass { FULL, NUMBER_BAND, BINARY_NUMBER_BAND }
+internal enum class BankCardOcrPass {
+    FULL,
+    ENHANCED_FULL,
+    NUMBER_BAND,
+    BINARY_NUMBER_BAND,
+    NUMBER_LINE,
+    ADAPTIVE_NUMBER_LINE,
+    UPPER_NUMBER_LINE,
+    UPPER_ADAPTIVE_NUMBER_LINE,
+    LOWER_NUMBER_LINE,
+    LOWER_ADAPTIVE_NUMBER_LINE,
+    CHINESE_NUMBER_LINE,
+}

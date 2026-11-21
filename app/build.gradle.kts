@@ -51,6 +51,18 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    packaging {
+        jniLibs {
+            // OpenCV only backs the bank-card scanner. Ship its arm64 build and let
+            // every other ABI fall back to the pure-Kotlin filters in
+            // ImagePreprocessor instead of adding ~110 MB of native code to the APK.
+            excludes += listOf(
+                "lib/armeabi-v7a/libopencv_java4.so",
+                "lib/x86/libopencv_java4.so",
+                "lib/x86_64/libopencv_java4.so",
+            )
+        }
+    }
     namespace = "com.young.aircraft"
     buildToolsVersion = "37.0.0"
 }

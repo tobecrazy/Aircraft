@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.mlkit.text.recognition)
     // Bundled Chinese model: ID cards print Chinese glyphs, which the Latin model cannot read.
     implementation(libs.mlkit.text.recognition.chinese)
+    // Local-contrast filters for embossed card numbers whose ink matches the card face.
+    implementation(libs.opencv)
     implementation(libs.coroutines.play.services)
 
     implementation(libs.coil.compose)

@@ -174,3 +174,83 @@ fun parseBankCards(text: String): List<BankCard> {
 
 /** First (longest) Luhn-valid card in [text], or null. Live scan uses this. */
 fun firstBankCard(text: String): BankCard? = parseBankCards(text).firstOrNull()
+
+/** Card-length digit runs in one OCR result, before any checksum gate. */
+internal fun cardNumberRuns(text: String): List<String> {
+    if (text.isBlank()) return emptyList()
+    val runs = mutableListOf<String>()
+    digitRun.findAll(text).forEach { run ->
+        val digits = run.value.filter(Char::isDigit)
+        if (digits.length in 12..19) runs += digits
+    }
+    digitRunWithConfusions.findAll(text).forEach {
+        val digits = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
+        if (digits.length in 12..19) runs += digits
+    }
+    return runs.distinct()
+}
+
+/**
+ * Per-position majority over several readings of one card number, then a Luhn
+ * re-check.
+ *
+ * A 19-digit embossed number is long enough that one substituted glyph fails
+ * the checksum and [parseBankCards] throws the whole reading away, even though
+ * the passes usually misread *different* positions. A bare per-position
+ * majority would also average unrelated runs of the same length into a number
+ * no pass ever read, so the repair is fenced in four ways:
+ *
+ * - readings are clustered by Hamming distance and only the largest cluster is
+ *   voted on, so an unrelated run of the same length never takes part;
+ * - the cluster needs [MIN_VOTE_READINGS] members, so a couple of mutually
+ *   different near misses cannot average into a plausible number;
+ * - every position needs a strict majority of the cluster;
+ * - the merged number must still pass Luhn and the scheme-length gate.
+ */
+internal fun voteCardReadings(readings: List<String>): String? =
+    readings.filter { it.length in 12..19 }
+        .groupBy { it.length }
+        .entries
+        .sortedByDescending { it.key }
+        .firstNotNullOfOrNull { (_, sameLength) -> voteSameLength(largestCluster(sameLength)) }
+
+/** The biggest group of readings that differ only in a couple of glyphs. */
+private fun largestCluster(readings: List<String>): List<String> {
+    val clusters = mutableListOf<MutableList<String>>()
+    for (reading in readings) {
+        val cluster = clusters.firstOrNull { existing ->
+            hammingDistance(existing.first(), reading) <= MAX_VOTE_DISTANCE
+        }
+        if (cluster != null) cluster += reading else clusters += mutableListOf(reading)
+    }
+    return clusters.maxByOrNull { it.size }.orEmpty()
+}
+
+private fun hammingDistance(left: String, right: String): Int {
+    if (left.length != right.length) return Int.MAX_VALUE
+    return left.indices.count { left[it] != right[it] }
+}
+
+private fun voteSameLength(readings: List<String>): String? {
+    if (readings.size < MIN_VOTE_READINGS) return null
+    val merged = StringBuilder(readings.first().length)
+    for (position in 0 until readings.first().length) {
+        val winner = readings.map { it[position] }
+            .groupingBy { it }
+            .eachCount()
+            .entries
+            .maxByOrNull { it.value } ?: return null
+        if (winner.value * 2 <= readings.size) return null
+        merged.append(winner.key)
+    }
+    val number = merged.toString()
+    // The repair may only be a small correction of every reading it came from, which
+    // also stops a chained cluster from drifting onto a number none of them is near.
+    if (readings.any { hammingDistance(it, number) > MAX_VOTE_DISTANCE }) return null
+    return if (isLuhnValid(number) && hasAcceptedLength(number)) number else null
+}
+
+private const val MIN_VOTE_READINGS = 4
+
+/** Glyphs a cluster may disagree on; a real second number differs in far more. */
+private const val MAX_VOTE_DISTANCE = 2

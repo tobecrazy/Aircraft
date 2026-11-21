@@ -48,15 +48,73 @@ class CardScanViewModelTest {
     }
 
     @Test
-    fun `reflective card OCR accepts a valid result from either pass`() {
+    fun `number line and chinese passes corroborate a candidate`() {
+        val text = "4242424242424242"
+
+        val lineConfirmer = BankCardRotationConfirmer()
+        assertTrue(lineConfirmer.observe(text, 0f, BankCardOcrPass.FULL).isEmpty())
         assertEquals(
-            "4242424242424242",
-            matchingBankCardText("4242 4242 4242 4242", "4242 4242 4242 4242"),
+            text,
+            lineConfirmer.observe(text, 0f, BankCardOcrPass.NUMBER_LINE).single().number,
         )
+
+        val chineseConfirmer = BankCardRotationConfirmer()
+        assertTrue(chineseConfirmer.observe(text, 0f, BankCardOcrPass.ADAPTIVE_NUMBER_LINE).isEmpty())
         assertEquals(
-            "4242424242424242",
-            matchingBankCardText("", "4242 4242 4242 4242"),
+            text,
+            chineseConfirmer.observe(text, 0f, BankCardOcrPass.CHINESE_NUMBER_LINE).single().number,
         )
+    }
+
+    @Test
+    fun `enhanced full image pass corroborates the raw pass`() {
+        val text = "4242424242424242"
+        val confirmer = BankCardRotationConfirmer()
+
+        assertTrue(confirmer.observe(text, 0f, BankCardOcrPass.FULL).isEmpty())
+        assertEquals(text, confirmer.observe(text, 0f, BankCardOcrPass.ENHANCED_FULL).single().number)
+    }
+
+    @Test
+    fun `vote recovers a number that no single pass read cleanly`() {
+        val confirmer = BankCardRotationConfirmer()
+        listOf(
+            "6222670110038083300" to BankCardOcrPass.FULL,
+            "6222620110033083300" to BankCardOcrPass.NUMBER_LINE,
+            "6222690110038083300" to BankCardOcrPass.ADAPTIVE_NUMBER_LINE,
+            "6222620110038083300" to BankCardOcrPass.CHINESE_NUMBER_LINE,
+        ).forEach { (text, pass) -> confirmer.observe(text, 0f, pass) }
+
+        // Four readings split the disputed positions evenly; nothing is averaged.
+        assertTrue(confirmer.vote(0f).isEmpty())
+
+        confirmer.observe("6222620110038083300", 0f, BankCardOcrPass.ENHANCED_FULL)
+
+        assertEquals("6222620110038083300", confirmer.vote(0f).single().number)
+        // The vote is per rotation: another angle has no readings of its own.
+        assertTrue(confirmer.vote(90f).isEmpty())
+    }
+
+    @Test
+    fun `different number rows at one orientation corroborate`() {
+        val confirmer = BankCardRotationConfirmer()
+        val text = "4242424242424242"
+
+        assertTrue(confirmer.observe(text, 0f, BankCardOcrPass.NUMBER_LINE).isEmpty())
+        assertEquals(
+            text,
+            confirmer.observe(text, 0f, BankCardOcrPass.UPPER_NUMBER_LINE).single().number,
+        )
+    }
+
+    @Test
+    fun `repeating one pass does not corroborate itself`() {
+        val confirmer = BankCardRotationConfirmer()
+        val text = "4242424242424242"
+
+        repeat(3) {
+            assertTrue(confirmer.observe(text, 0f, BankCardOcrPass.NUMBER_LINE).isEmpty())
+        }
     }
 
     private fun portraitLines(idNumber: String = "11010519491231002X"): List<OcrLine> = listOf(
