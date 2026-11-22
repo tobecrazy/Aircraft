@@ -223,4 +223,32 @@ class BankCardTest {
         )
         assertTrue(cardNumberRuns("4242 4242").isEmpty())
     }
+
+    @Test
+    fun `full width digits and unicode spaces still form a card number`() {
+        val fullWidth = "６２２２　６２０１　１００３　８０８３　３００"
+        assertEquals(listOf("6222620110038083300"), cardNumberRuns(fullWidth))
+        assertEquals("6222620110038083300", parseBankCards(fullWidth).firstOrNull()?.number)
+
+        // Java's \s does not cover these spaces, so the run pattern would split.
+        val exoticSpaces = "6222\u00A06201\u202F1003\u20078083 300"
+        assertEquals(listOf("6222620110038083300"), cardNumberRuns(exoticSpaces))
+    }
+
+    @Test
+    fun `longest digit run reports fragments below the card length floor`() {
+        assertEquals(16, longestDigitRun("6222 6201 1003 8083"))
+        assertEquals(8, longestDigitRun("6222 6201 exp 12/24"))
+        assertEquals(0, longestDigitRun("no digits here"))
+    }
+
+    @Test
+    fun `a number broken by a stray glyph keeps no run but reports the fragment`() {
+        val broken = "6222 6201 X 1003 8083 300"
+
+        assertTrue(cardNumberRuns(broken).isEmpty())
+        // Longest fragment sits just under the 12-digit floor: the number was
+        // read, the crop is fine, only the separator broke the run.
+        assertEquals(11, longestDigitRun(broken))
+    }
 }

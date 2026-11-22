@@ -106,6 +106,8 @@ import com.young.developtools.ui.theme.TextSubtle
 import com.young.developtools.utils.DeveloperMode
 import com.young.developtools.utils.ImagePreprocessor
 import com.young.developtools.utils.ImageQuality
+import com.young.developtools.viewmodel.BankCardScanDiagnostics
+import com.young.developtools.viewmodel.BankCardScanTraceEntry
 import com.young.developtools.viewmodel.CardScanUiState
 import com.young.developtools.viewmodel.CardScanViewModel
 import com.young.developtools.viewmodel.ScanLens
@@ -227,8 +229,10 @@ class CardScanActivity : BaseAircraftActivity() {
         setContent {
             AircraftTheme {
                 val uiState by viewModel.uiState.collectAsState()
+                val diagnostics by viewModel.diagnostics.collectAsState()
                 CardScanScreen(
                     uiState = uiState,
+                    diagnostics = diagnostics,
                     hasCameraPermission = hasCameraPermission,
                     onSelectType = viewModel::selectCardType,
                     onFrame = viewModel::recognizeFrame,
@@ -286,6 +290,7 @@ class CardScanActivity : BaseAircraftActivity() {
 @Composable
 private fun CardScanScreen(
     uiState: CardScanUiState,
+    diagnostics: BankCardScanDiagnostics?,
     hasCameraPermission: Boolean,
     onSelectType: (CardType) -> Unit,
     onFrame: (Bitmap) -> Unit,
@@ -443,8 +448,17 @@ private fun CardScanScreen(
                     },
                     // Retry clears the error so the preview rebinds; it must not
                     // re-request the camera permission the user already granted.
-                    onPrimary = if (hasCameraPermission) onRescan else onOpenAppSettings
+                    onPrimary = if (hasCameraPermission) onRescan else onOpenAppSettings,
+                    detail = if (res == R.string.card_scan_no_card) {
+                        diagnostics?.summaryLine()
+                    } else {
+                        null
+                    },
                 )
+            }
+
+            if (uiState.errorRes != null && diagnostics != null) {
+                ScanDiagnosticsCard(diagnostics)
             }
 
             if (!hasCameraPermission && uiState.errorRes == null && !uiState.hasResult) {
@@ -881,7 +895,8 @@ private fun LivePreview(
 private fun ErrorCard(
     message: String,
     primaryText: String,
-    onPrimary: () -> Unit
+    onPrimary: () -> Unit,
+    detail: String? = null
 ) {
     Column(
         modifier = Modifier
@@ -897,6 +912,15 @@ private fun ErrorCard(
             fontSize = 13.sp,
             fontFamily = FontFamily.Monospace
         )
+        detail?.let {
+            Text(
+                text = it,
+                color = TextSubtle.copy(alpha = 0.7f),
+                fontSize = 9.sp,
+                lineHeight = 12.sp,
+                fontFamily = FontFamily.Monospace
+            )
+        }
         Button(
             onClick = onPrimary,
             modifier = Modifier.fillMaxWidth().height(48.dp).testTag("btn_scan_recovery"),
@@ -906,6 +930,77 @@ private fun ErrorCard(
             )
         ) {
             Text(primaryText, fontSize = 13.sp)
+        }
+    }
+}
+
+private fun BankCardScanDiagnostics.summaryLine(): String {
+    val entries = this.entries
+    return "rectified=$rectified passes=${entries.size} " +
+        "text=${entries.count { it.blockCount > 0 }} " +
+        "runs=${entries.count { it.digitRunLengths.isNotEmpty() }} " +
+        "maxDigits=${entries.maxOfOrNull { it.longestDigitRun } ?: 0} " +
+        "cand=${entries.sumOf { it.candidateCount }}"
+}
+
+@Composable
+private fun ScanDiagnosticsCard(diagnostics: BankCardScanDiagnostics) {
+    val entries = diagnostics.entries
+    // A failed scan runs dozens of passes. Showing the first and last few hides
+    // exactly the passes that matter, so rank by what was read instead.
+    val shown = entries
+        .sortedWith(
+            // Card-length runs first: they include runs stitched across OCR
+            // confusion letters, which a plain digit count misses.
+            compareByDescending<BankCardScanTraceEntry> { it.digitRunLengths.maxOrNull() ?: 0 }
+                .thenByDescending { it.longestDigitRun }
+                .thenByDescending { it.blockCount }
+        )
+        .take(16)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(BackgroundDark.copy(alpha = 0.9f), RoundedCornerShape(14.dp))
+            .border(1.dp, TextSubtle.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Text(
+            text = "OCR trace (redacted, top by digits)",
+            color = AccentGreen.copy(alpha = 0.75f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace
+        )
+        Text(
+            text = diagnostics.summaryLine(),
+            color = TextSubtle,
+            fontSize = 9.sp,
+            lineHeight = 12.sp,
+            fontFamily = FontFamily.Monospace
+        )
+        shown.forEach { entry ->
+            Text(
+                text = buildString {
+                    append(entry.pass.name)
+                    append(" rot=").append(entry.rotation.toInt())
+                    append(' ').append(entry.sourceWidth).append('x').append(entry.sourceHeight)
+                    entry.crop?.let { crop ->
+                        append(" crop=").append(crop[1]).append("..").append(crop[3])
+                    }
+                    append("\n  blocks=").append(entry.blockCount)
+                    append(" lines=").append(entry.lineCount)
+                    append(" runs=").append(entry.digitRunLengths)
+                    append(" max=").append(entry.longestDigitRun)
+                    append(" cand=").append(entry.candidateCount)
+                    append(" ok=").append(entry.acceptedCount)
+                },
+                color = TextSubtle,
+                fontSize = 9.sp,
+                lineHeight = 12.sp,
+                fontFamily = FontFamily.Monospace
+            )
         }
     }
 }

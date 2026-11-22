@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PointF
+import android.graphics.Rect
 import com.young.developtools.data.OcrLine
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
@@ -47,25 +48,31 @@ internal object ImagePreprocessor {
 
     private const val CLAHE_TILES = 8
     private const val CLIP_RATIO = 0.025f
-    private const val ADAPTIVE_RADIUS = 12
     private const val EDGE_THRESHOLD = 10
-    // Background window for illumination flattening: wide enough to ignore a stroke.
-    private const val ILLUMINATION_WINDOW_DIVISOR = 64
-    private const val ILLUMINATION_MIN_RADIUS = 8
+    // Local-mean window for the stroke filters, as a fraction of the crop
+    // height. It has to span several glyphs: a window close to one glyph lets
+    // the glyph dominate its own mean, which hollows a thick stroke out.
+    private const val STROKE_WINDOW_DIVISOR = 4
+    private const val MIN_STROKE_WINDOW_RADIUS = 8
+    private const val MAX_STROKE_WINDOW_RADIUS = 96
     private const val ILLUMINATION_GAIN = 2f
+    // A second, stronger relief for very low-contrast embossing on a bright face.
+    private const val ILLUMINATION_GAIN_STRONG = 3.5f
     // On the flattened image the card face sits at this level and raised strokes above it.
     private const val FLATTENED_LEVEL = 128
     // Half the amplification-adjusted noise floor: a stroke only has to clear ~8 grey levels.
     private const val STROKE_LEVEL_DELTA = 16
     // A flattened ROI outside this band has no digit strokes worth thresholding:
-    // below it there is nothing, above it the card artwork dominates.
+    // below it there is nothing, above it almost every pixel deviates, which is
+    // an unreadable mess rather than a number. Embossed card faces legitimately
+    // deviate a lot, so the upper bound only rejects the hopeless case.
     private const val MIN_STROKE_SIGNAL_RATIO = 0.0015f
-    private const val MAX_STROKE_SIGNAL_RATIO = 0.35f
+    private const val MAX_STROKE_SIGNAL_RATIO = 0.6f
 
     // Card detection runs on a downscaled copy; 480 px keeps a card edge accurate
     // to a few source pixels without the connected-component pass getting costly.
     private const val CARD_ANALYSIS_LONG_SIDE = 480
-    private const val CARD_BACKGROUND_DISTANCE = 44f
+    private const val CARD_BACKGROUND_DISTANCE = 36f
     private const val MIN_CARD_AREA_RATIO = 0.10f
     private const val MIN_CARD_EDGE_RATIO = 0.12f
     private const val MAX_EDGE_PAIR_RATIO = 1.9f
@@ -76,6 +83,9 @@ internal object ImagePreprocessor {
     // ISO/IEC 7810 ID-1: 85.60 x 53.98 mm.
     private const val CARD_ASPECT_RATIO = 1.586f
     private const val MIN_RECTIFIED_WIDTH = 640
+    // Grow the detected quad slightly so a mask that stops one pixel inside the
+    // card edge does not clip the first or last digit.
+    private const val RECTIFIED_MARGIN = 0.02f
 
     // Card-normalized rows. A number line normally sits a little below the
     // vertical centre; the band is wide enough to survive layout variation.
@@ -83,7 +93,13 @@ internal object ImagePreprocessor {
     internal val NUMBER_LINE_ROW = NumberRow(0.44f, 0.66f)
     internal val UPPER_NUMBER_LINE_ROW = NumberRow(0.36f, 0.56f)
     internal val LOWER_NUMBER_LINE_ROW = NumberRow(0.56f, 0.76f)
-    private const val MIN_ROW_DIGITS = 6
+    // Some vertical layouts print the number near the bottom edge.
+    internal val BOTTOM_NUMBER_LINE_ROW = NumberRow(0.64f, 0.84f)
+    // A line must carry a substantial digit run before its box is trusted as
+    // the number row. Eight is enough to beat a date or a BIN label while still
+    // matching a number that was read in fragments, and the row is picked by
+    // largest digit count, so a short line can never win over a longer one.
+    private const val MIN_ROW_DIGITS = 8
 
     /** A horizontal slice of a card, expressed as fractions of its height. */
     internal data class NumberRow(val topRatio: Float, val bottomRatio: Float) {
@@ -126,6 +142,17 @@ internal object ImagePreprocessor {
                 bottomRight = topRight,
                 bottomLeft = bottomRight,
             )
+        }
+
+        /** Grows the quad outward around its centre to avoid clipping edge digits. */
+        fun expanded(fraction: Float): CardQuad {
+            val centreX = (topLeft.x + topRight.x + bottomRight.x + bottomLeft.x) / 4f
+            val centreY = (topLeft.y + topRight.y + bottomRight.y + bottomLeft.y) / 4f
+            fun grow(point: PointF) = PointF(
+                point.x + (point.x - centreX) * fraction,
+                point.y + (point.y - centreY) * fraction,
+            )
+            return CardQuad(grow(topLeft), grow(topRight), grow(bottomRight), grow(bottomLeft))
         }
     }
 
@@ -180,7 +207,7 @@ internal object ImagePreprocessor {
             // capture the table rather than the card.
             if (!isCentreCovered(cleaned, width, height)) return null
             val openCvQuad = if (OpenCvSupport.isAvailable()) {
-                openCvLargestQuad(cleaned, width, height)
+                runCatching { openCvLargestQuad(cleaned, width, height) }.getOrNull()
             } else {
                 null
             }
@@ -205,7 +232,7 @@ internal object ImagePreprocessor {
      * transform cannot be built; the caller then keeps the unrectified source.
      */
     internal fun rectifyCard(source: Bitmap, quad: CardQuad, maxLongSide: Int): Bitmap? {
-        val landscape = quad.landscape()
+        val landscape = quad.landscape().expanded(RECTIFIED_MARGIN)
         val top = distance(landscape.topLeft, landscape.topRight)
         val bottom = distance(landscape.bottomLeft, landscape.bottomRight)
         val left = distance(landscape.topLeft, landscape.bottomLeft)
@@ -238,8 +265,12 @@ internal object ImagePreprocessor {
             .maxByOrNull { it.text.count(Char::isDigit) } ?: return null
         val center = ((best.top + best.bottom) / 2f) / cardHeight
         if (center !in 0.15f..0.85f) return null
+        // ML Kit's line box can merge neighbouring rows, so its height is an
+        // upper bound on the glyph size, not the glyph size. Padding by 1.3x and
+        // capping at a fifth of the card turned that into a 40% strip that read
+        // worse than the whole card. Keep the crop tight around the line.
         val half = (((best.bottom - best.top).toFloat() / cardHeight) * 1.3f)
-            .coerceIn(0.07f, 0.20f)
+            .coerceIn(0.07f, 0.10f)
         val top = (center - half).coerceIn(0.15f, 0.80f)
         val bottom = (center + half).coerceIn(top + 0.05f, 0.85f)
         return NumberRow(top, bottom)
@@ -252,17 +283,48 @@ internal object ImagePreprocessor {
         return intArrayOf(0, top, cardWidth, bottom)
     }
 
-    /** Crops the number band, then boosts local embossed edges for a fallback OCR pass. */
+    /**
+     * Crops a padded strip around an OCR line box and enlarges it to the size cap.
+     *
+     * A pass that already read part of the number has located the line, which is
+     * better information than any fixed card ratio. Re-reading just that strip,
+     * larger, is the cheapest way to pick up the digits the first pass dropped.
+     * Horizontal padding is small so neighbouring labels stay out; vertical
+     * padding is generous because the line box may clip the glyph edges.
+     */
+    internal fun cropLineForOcr(
+        source: Bitmap,
+        line: Rect,
+        maxLongSide: Int,
+        flatten: Boolean,
+    ): Bitmap {
+        val padY = (line.height() * 0.45f).roundToInt().coerceAtLeast(2)
+        val padX = (line.width() * 0.04f).roundToInt().coerceAtLeast(2)
+        val left = (line.left - padX).coerceIn(0, source.width - 1)
+        val right = (line.right + padX).coerceIn(left + 1, source.width)
+        val top = (line.top - padY).coerceIn(0, source.height - 1)
+        val bottom = (line.bottom + padY).coerceIn(top + 1, source.height)
+        val crop = Bitmap.createBitmap(source, left, top, right - left, bottom - top)
+        val scaled = scaleToCap(crop, maxLongSide)
+        if (scaled !== crop) crop.recycle()
+        if (!flatten) return scaled
+        return flattenIllumination(scaled).also { if (it !== scaled) scaled.recycle() }
+    }
+
+    /**
+     * Crops the number band and enlarges it to the size cap, with no filtering.
+     *
+     * The band is the widest crop that still excludes the card's other rows, so
+     * it survives a number printed away from the usual line. It stays
+     * unfiltered on purpose: equalisation on a band that is mostly one flat card
+     * face is close to the identity, and on a reflective face it amplifies the
+     * artwork into text-shaped noise the recognizer then reports as text.
+     */
     internal fun prepareBankCardNumberBandForOcr(
         source: Bitmap,
         maxLongSide: Int,
         row: NumberRow = NUMBER_BAND_ROW,
-    ): Bitmap {
-        val bounded = enforceMaxLongSide(source, maxLongSide)
-        val band = cropRow(bounded, row)
-        if (bounded !== source && bounded !== band) bounded.recycle()
-        return enhanceForOcr(band, maxLongSide).also { if (it !== band) band.recycle() }
-    }
+    ): Bitmap = cropBandAtCap(source, maxLongSide, row)
 
     /** Makes a locally thresholded edge image for embossed digits with little color contrast. */
     internal fun prepareBankCardNumberBandBinaryForOcr(
@@ -270,11 +332,40 @@ internal object ImagePreprocessor {
         maxLongSide: Int,
         row: NumberRow = NUMBER_BAND_ROW,
     ): Bitmap {
+        val scaled = cropBandAtCap(source, maxLongSide, row)
+        return adaptiveThresholdBitmap(scaled, EDGE_THRESHOLD)
+            .also { if (it !== scaled) scaled.recycle() }
+    }
+
+    /** Crops [row] and scales the long side to [maxLongSide]. Does not recycle [source]. */
+    private fun cropBandAtCap(source: Bitmap, maxLongSide: Int, row: NumberRow): Bitmap {
         val bounded = enforceMaxLongSide(source, maxLongSide)
         val band = cropRow(bounded, row)
         if (bounded !== source && bounded !== band) bounded.recycle()
-        return adaptiveThresholdBitmap(band, ADAPTIVE_RADIUS, EDGE_THRESHOLD)
-            .also { if (it !== band) band.recycle() }
+        return scaleToCap(band, maxLongSide).also { if (it !== band) band.recycle() }
+    }
+
+    /** Tight number-line crop at the size cap, with no filtering. */
+    internal fun prepareBankCardNumberLineRawForOcr(
+        source: Bitmap,
+        maxLongSide: Int,
+        row: NumberRow = NUMBER_LINE_ROW,
+    ): Bitmap = enlargeNumberLine(source, maxLongSide, row)
+
+    /**
+     * Same as [prepareBankCardNumberLineForOcr] but with a stronger relief for
+     * very low-contrast embossing on a bright card face. Clipping is expected;
+     * the point is to make the stroke direction visible to the recognizer.
+     */
+    internal fun prepareBankCardNumberLineStrongForOcr(
+        source: Bitmap,
+        maxLongSide: Int,
+        row: NumberRow = NUMBER_LINE_ROW,
+    ): Bitmap {
+        val enlarged = enlargeNumberLine(source, maxLongSide, row)
+        val result = flattenIllumination(enlarged, ILLUMINATION_GAIN_STRONG)
+        if (result !== enlarged) enlarged.recycle()
+        return result
     }
 
     /**
@@ -297,11 +388,7 @@ internal object ImagePreprocessor {
         row: NumberRow = NUMBER_LINE_ROW,
     ): Bitmap {
         val enlarged = enlargeNumberLine(source, maxLongSide, row)
-        val result = if (OpenCvSupport.isAvailable()) {
-            openCvFlattenIllumination(enlarged)
-        } else {
-            flattenIlluminationBitmap(enlarged)
-        }
+        val result = flattenIllumination(enlarged)
         if (result !== enlarged) enlarged.recycle()
         return result
     }
@@ -324,21 +411,13 @@ internal object ImagePreprocessor {
         row: NumberRow = NUMBER_LINE_ROW,
     ): Bitmap? {
         val enlarged = enlargeNumberLine(source, maxLongSide, row)
-        val flattened = if (OpenCvSupport.isAvailable()) {
-            openCvFlattenIllumination(enlarged)
-        } else {
-            flattenIlluminationBitmap(enlarged)
-        }
+        val flattened = flattenIllumination(enlarged)
         if (flattened !== enlarged) enlarged.recycle()
         if (!hasUsableStrokeSignal(flattened)) {
             flattened.recycle()
             return null
         }
-        val result = if (OpenCvSupport.isAvailable()) {
-            openCvStrokeThreshold(flattened)
-        } else {
-            strokeThresholdBitmap(flattened)
-        }
+        val result = strokeThreshold(flattened)
         if (result !== flattened) flattened.recycle()
         return result
     }
@@ -374,15 +453,20 @@ internal object ImagePreprocessor {
         val bounded = enforceMaxLongSide(source, maxLongSide)
         val line = cropRow(bounded, row)
         if (bounded !== source && bounded !== line) bounded.recycle()
-        val longest = maxOf(line.width, line.height)
-        if (longest == maxLongSide) return line
+        return scaleToCap(line, maxLongSide).also { if (it !== line) line.recycle() }
+    }
+
+    /** Scales the long side to [maxLongSide], up or down. Does not recycle [source]. */
+    private fun scaleToCap(source: Bitmap, maxLongSide: Int): Bitmap {
+        val longest = maxOf(source.width, source.height)
+        if (longest == maxLongSide) return source
         val scale = maxLongSide.toFloat() / longest
         return Bitmap.createScaledBitmap(
-            line,
-            (line.width * scale).roundToInt().coerceAtLeast(1),
-            (line.height * scale).roundToInt().coerceAtLeast(1),
-            true
-        ).also { if (it !== line) line.recycle() }
+            source,
+            (source.width * scale).roundToInt().coerceAtLeast(1),
+            (source.height * scale).roundToInt().coerceAtLeast(1),
+            true,
+        )
     }
 
     private fun cropRow(source: Bitmap, row: NumberRow): Bitmap {
@@ -788,9 +872,10 @@ internal object ImagePreprocessor {
     // ---------------------------------------------------------------------
 
     /** Integral-image local-mean threshold: strokes become black on white. */
-    private fun adaptiveThresholdBitmap(source: Bitmap, radius: Int, threshold: Int): Bitmap {
+    private fun adaptiveThresholdBitmap(source: Bitmap, threshold: Int): Bitmap {
         val width = source.width
         val height = source.height
+        val radius = strokeWindowRadius(source)
         val pixels = IntArray(width * height)
         source.getPixels(pixels, 0, width, 0, 0, width, height)
         val gray = IntArray(pixels.size) { index ->
@@ -827,8 +912,24 @@ internal object ImagePreprocessor {
         }
     }
 
+    /**
+     * Local-mean window radius for the stroke filters.
+     *
+     * Derived from the crop height, which tracks glyph size on a
+     * card-normalized crop. A fixed radius is smaller than a single embossed
+     * digit once the crop is enlarged to the size cap, so the window sat inside
+     * the stroke and its mean became the stroke's own tone; thick digits then
+     * came out as hollow outlines the recognizer could not read.
+     */
+    private fun strokeWindowRadius(source: Bitmap): Int =
+        (source.height / STROKE_WINDOW_DIVISOR)
+            .coerceIn(MIN_STROKE_WINDOW_RADIUS, MAX_STROKE_WINDOW_RADIUS)
+
     /** Grayscale minus its blurred self, amplified around mid-grey. */
-    private fun flattenIlluminationBitmap(source: Bitmap): Bitmap {
+    private fun flattenIlluminationBitmap(
+        source: Bitmap,
+        gain: Float = ILLUMINATION_GAIN,
+    ): Bitmap {
         val width = source.width
         val height = source.height
         val pixels = IntArray(width * height)
@@ -838,7 +939,7 @@ internal object ImagePreprocessor {
             (0.2126f * Color.red(color) + 0.7152f * Color.green(color) +
                 0.0722f * Color.blue(color)).roundToInt()
         }
-        val radius = (width / ILLUMINATION_WINDOW_DIVISOR).coerceAtLeast(ILLUMINATION_MIN_RADIUS)
+        val radius = strokeWindowRadius(source)
         val stride = width + 1
         val integral = LongArray((width + 1) * (height + 1))
         for (y in 0 until height) {
@@ -857,7 +958,7 @@ internal object ImagePreprocessor {
             val localSum = integral[bottom * stride + right] - integral[top * stride + right] -
                 integral[bottom * stride + left] + integral[top * stride + left]
             val localMean = localSum.toFloat() / ((right - left) * (bottom - top))
-            val flattened = FLATTENED_LEVEL + (gray[y * width + x] - localMean) * ILLUMINATION_GAIN
+            val flattened = FLATTENED_LEVEL + (gray[y * width + x] - localMean) * gain
             val level = flattened.roundToInt().coerceIn(0, 255)
             output[y * width + x] = Color.rgb(level, level, level)
         }
@@ -881,8 +982,30 @@ internal object ImagePreprocessor {
         }
     }
 
+    /**
+     * Native filter with a per-call Kotlin fallback: a native failure must
+     * degrade one variant, not abort the whole scan.
+     */
+    private fun flattenIllumination(source: Bitmap, gain: Float = ILLUMINATION_GAIN): Bitmap {
+        if (OpenCvSupport.isAvailable()) {
+            runCatching { openCvFlattenIllumination(source, gain) }.getOrNull()?.let { return it }
+        }
+        return flattenIlluminationBitmap(source, gain)
+    }
+
+    /** Native stroke threshold with the same per-call Kotlin fallback. */
+    private fun strokeThreshold(source: Bitmap): Bitmap {
+        if (OpenCvSupport.isAvailable()) {
+            runCatching { openCvStrokeThreshold(source) }.getOrNull()?.let { return it }
+        }
+        return strokeThresholdBitmap(source)
+    }
+
     /** OpenCV counterpart of [flattenIlluminationBitmap]. */
-    private fun openCvFlattenIllumination(source: Bitmap): Bitmap {
+    private fun openCvFlattenIllumination(
+        source: Bitmap,
+        gain: Float = ILLUMINATION_GAIN,
+    ): Bitmap {
         val rgba = Mat()
         val gray = Mat()
         val background = Mat()
@@ -890,17 +1013,16 @@ internal object ImagePreprocessor {
         try {
             Utils.bitmapToMat(source, rgba)
             Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY)
-            val radius = (source.width / ILLUMINATION_WINDOW_DIVISOR)
-                .coerceAtLeast(ILLUMINATION_MIN_RADIUS)
+            val radius = strokeWindowRadius(source)
             val window = (radius * 2 + 1).toDouble()
             // Box blur, not Gaussian: it matches the integral-image window the
             // Kotlin fallback uses, so both paths separate strokes the same way.
             Imgproc.blur(gray, background, Size(window, window))
             Core.addWeighted(
                 gray,
-                ILLUMINATION_GAIN.toDouble(),
+                gain.toDouble(),
                 background,
-                -ILLUMINATION_GAIN.toDouble(),
+                -gain.toDouble(),
                 FLATTENED_LEVEL.toDouble(),
                 flattened
             )

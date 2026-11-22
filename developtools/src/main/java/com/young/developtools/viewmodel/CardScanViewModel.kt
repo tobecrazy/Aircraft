@@ -1,6 +1,7 @@
 package com.young.developtools.viewmodel
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -19,10 +20,12 @@ import com.young.developtools.data.OcrLine
 import com.young.developtools.data.ScanHint
 import com.young.developtools.data.birthDateFromIdNumber
 import com.young.developtools.data.cardNumberRuns
+import com.young.developtools.data.longestDigitRun
 import com.young.developtools.data.parseBankCards
 import com.young.developtools.data.parseIdCardEmblem
 import com.young.developtools.data.parseIdCardPortrait
 import com.young.developtools.data.voteCardReadings
+import com.young.developtools.utils.DevLog
 import com.young.developtools.utils.ImagePreprocessor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.max
 
 // shortcut: five-degree sampling can miss a narrow OCR tolerance; reduce the step if field testing shows misses.
 internal val BANK_CARD_ROTATION_ANGLES = (
@@ -113,6 +117,9 @@ class CardScanViewModel : ViewModel() {
     // card digits, bitmaps, or hashes; cleared when a scan starts or resets.
     @Volatile
     private var lastScanTrace: List<BankCardScanTraceEntry> = emptyList()
+
+    private val _diagnostics = MutableStateFlow<BankCardScanDiagnostics?>(null)
+    internal val diagnostics: StateFlow<BankCardScanDiagnostics?> = _diagnostics.asStateFlow()
 
     /** Redacted per-pass diagnostics for manual validation; empty between scans. */
     internal fun scanTrace(): List<BankCardScanTraceEntry> = lastScanTrace
@@ -362,12 +369,14 @@ class CardScanViewModel : ViewModel() {
         val variants = listOf<() -> Bitmap?>(
             { ImagePreprocessor.prepareBankCardNumberBandForOcr(card, LIVE_OCR_LONG_SIDE) },
             { ImagePreprocessor.prepareBankCardNumberBandBinaryForOcr(card, LIVE_OCR_LONG_SIDE) },
+            { ImagePreprocessor.prepareBankCardNumberLineRawForOcr(card, LIVE_OCR_LONG_SIDE) },
             { ImagePreprocessor.prepareBankCardNumberLineForOcr(card, LIVE_OCR_LONG_SIDE) },
             {
                 ImagePreprocessor.prepareBankCardNumberLineAdaptiveForOcr(
                     card, LIVE_OCR_LONG_SIDE
                 )
             },
+            { ImagePreprocessor.prepareBankCardNumberLineStrongForOcr(card, LIVE_OCR_LONG_SIDE) },
         )
         for (create in variants) {
             val bitmap = withContext(Dispatchers.Default) { create() } ?: continue
@@ -394,6 +403,7 @@ class CardScanViewModel : ViewModel() {
         val cardType = _uiState.value.cardType
         _uiState.update { it.copy(isImageRecognitionInProgress = true, errorRes = null) }
         lastScanTrace = emptyList()
+        _diagnostics.value = null
         viewModelScope.launch(Dispatchers.Default) {
             try {
                 when (cardType) {
@@ -524,6 +534,20 @@ class CardScanViewModel : ViewModel() {
                 cards = runBankRotationFallback(source, confirmer, trace)
             }
             lastScanTrace = trace
+            _diagnostics.value = BankCardScanDiagnostics(region.rectified, trace)
+            // Redacted summary only: pass names, counts and run lengths. No OCR
+            // text, card digits, pixels or hashes are ever logged.
+            DevLog.i(
+                "CardScanTrace",
+                buildString {
+                    append("rectified=").append(region.rectified)
+                    append(" passes=").append(trace.size)
+                    append(" text=").append(trace.count { it.blockCount > 0 })
+                    append(" runs=").append(trace.count { it.digitRunLengths.isNotEmpty() })
+                    append(" maxDigits=").append(trace.maxOfOrNull { it.longestDigitRun } ?: 0)
+                    append(" candidates=").append(trace.sumOf { it.candidateCount })
+                },
+            )
             _uiState.update {
                 it.copy(
                     bankCard = cards.firstOrNull(),
@@ -573,27 +597,48 @@ class CardScanViewModel : ViewModel() {
         }
         if (cards.isNotEmpty()) return cards
 
-        val rows = if (row != null) {
-            listOf(row)
-        } else {
-            listOf(
-                ImagePreprocessor.NUMBER_LINE_ROW,
-                ImagePreprocessor.UPPER_NUMBER_LINE_ROW,
-                ImagePreprocessor.LOWER_NUMBER_LINE_ROW,
-            )
-        }
-        for ((index, lineRow) in rows.withIndex()) {
-            val linePass = when (index) {
-                1 -> BankCardOcrPass.UPPER_NUMBER_LINE
-                2 -> BankCardOcrPass.LOWER_NUMBER_LINE
+        // A derived row is only a hint. If it came from a fragment it can be
+        // off by a third of the card, so the default rows are still tried.
+        val rows = buildList {
+            if (row != null) add(row)
+            add(ImagePreprocessor.NUMBER_LINE_ROW)
+            add(ImagePreprocessor.UPPER_NUMBER_LINE_ROW)
+            add(ImagePreprocessor.LOWER_NUMBER_LINE_ROW)
+            add(ImagePreprocessor.BOTTOM_NUMBER_LINE_ROW)
+        }.distinct()
+        for (lineRow in rows) {
+            val rawPass = when (lineRow) {
+                ImagePreprocessor.UPPER_NUMBER_LINE_ROW -> BankCardOcrPass.UPPER_NUMBER_LINE_RAW
+                ImagePreprocessor.LOWER_NUMBER_LINE_ROW -> BankCardOcrPass.LOWER_NUMBER_LINE_RAW
+                ImagePreprocessor.BOTTOM_NUMBER_LINE_ROW -> BankCardOcrPass.BOTTOM_NUMBER_LINE_RAW
+                else -> BankCardOcrPass.NUMBER_LINE_RAW
+            }
+            val linePass = when (lineRow) {
+                ImagePreprocessor.UPPER_NUMBER_LINE_ROW -> BankCardOcrPass.UPPER_NUMBER_LINE
+                ImagePreprocessor.LOWER_NUMBER_LINE_ROW -> BankCardOcrPass.LOWER_NUMBER_LINE
+                ImagePreprocessor.BOTTOM_NUMBER_LINE_ROW -> BankCardOcrPass.BOTTOM_NUMBER_LINE
                 else -> BankCardOcrPass.NUMBER_LINE
             }
-            val adaptivePass = when (index) {
-                1 -> BankCardOcrPass.UPPER_ADAPTIVE_NUMBER_LINE
-                2 -> BankCardOcrPass.LOWER_ADAPTIVE_NUMBER_LINE
+            val adaptivePass = when (lineRow) {
+                ImagePreprocessor.UPPER_NUMBER_LINE_ROW ->
+                    BankCardOcrPass.UPPER_ADAPTIVE_NUMBER_LINE
+                ImagePreprocessor.LOWER_NUMBER_LINE_ROW ->
+                    BankCardOcrPass.LOWER_ADAPTIVE_NUMBER_LINE
+                ImagePreprocessor.BOTTOM_NUMBER_LINE_ROW ->
+                    BankCardOcrPass.BOTTOM_ADAPTIVE_NUMBER_LINE
                 else -> BankCardOcrPass.ADAPTIVE_NUMBER_LINE
             }
             val bounds = ImagePreprocessor.rowCropBounds(card.width, card.height, lineRow)
+
+            // Unfiltered first: if the embossing already has contrast, filters
+            // can only remove information the recognizer would have used.
+            cards = runVariant(latinRecognizer, rawPass, bounds) {
+                ImagePreprocessor.prepareBankCardNumberLineRawForOcr(
+                    card, MAX_OCR_LONG_SIDE, lineRow
+                )
+            }
+            if (cards.isNotEmpty()) return cards
+
             cards = runVariant(latinRecognizer, linePass, bounds) {
                 ImagePreprocessor.prepareBankCardNumberLineForOcr(card, MAX_OCR_LONG_SIDE, lineRow)
             }
@@ -622,13 +667,22 @@ class CardScanViewModel : ViewModel() {
             }
         }
 
+        // Very low-contrast embossing: one stronger relief on the primary row.
+        val primaryRow = rows.first()
+        val primaryBounds = ImagePreprocessor.rowCropBounds(card.width, card.height, primaryRow)
+        cards = runVariant(latinRecognizer, BankCardOcrPass.STRONG_NUMBER_LINE, primaryBounds) {
+            ImagePreprocessor.prepareBankCardNumberLineStrongForOcr(
+                card, MAX_OCR_LONG_SIDE, primaryRow
+            )
+        }
+        if (cards.isNotEmpty()) return cards
+
         // The bundled Chinese model segments low-contrast strokes differently
         // and also covers Latin digits, so it gets the last word on the primary line.
-        val primaryRow = rows.first()
         return runVariant(
             chineseRecognizer,
             BankCardOcrPass.CHINESE_NUMBER_LINE,
-            ImagePreprocessor.rowCropBounds(card.width, card.height, primaryRow),
+            primaryBounds,
         ) {
             ImagePreprocessor.prepareBankCardNumberLineForOcr(card, MAX_OCR_LONG_SIDE, primaryRow)
         }
@@ -659,7 +713,15 @@ class CardScanViewModel : ViewModel() {
                     trace = trace,
                 ).accepted
                 if (cards.isEmpty() && rotation % 90f == 0f) {
-                    cards = runBankRowPasses(raw, null, rotation, confirmer, trace)
+                    // One row only: the full sweep already spends a raw pass on
+                    // every angle, so the heavier variants stay bounded.
+                    cards = runBankRowPasses(
+                        raw,
+                        ImagePreprocessor.NUMBER_LINE_ROW,
+                        rotation,
+                        confirmer,
+                        trace,
+                    )
                 }
                 if (cards.isEmpty()) cards = confirmer.vote(rotation)
                 if (cards.isNotEmpty()) return cards
@@ -679,9 +741,10 @@ class CardScanViewModel : ViewModel() {
         crop: IntArray?,
         confirmer: BankCardRotationConfirmer,
         trace: MutableList<BankCardScanTraceEntry>,
+        lineGuided: Boolean = false,
     ): BankPassOutcome {
         val text = recognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
-        val accepted = confirmer.observe(text.text, rotation, pass)
+        var accepted = confirmer.observe(text.text, rotation, pass)
         trace += BankCardScanTraceEntry(
             pass = pass,
             rotation = rotation,
@@ -691,10 +754,108 @@ class CardScanViewModel : ViewModel() {
             blockCount = text.textBlocks.size,
             lineCount = text.textBlocks.sumOf { it.lines.size },
             digitRunLengths = cardNumberRuns(text.text).map(String::length),
+            longestDigitRun = longestDigitRun(text.text),
             candidateCount = parseBankCards(text.text).size,
             acceptedCount = accepted.size,
         )
+        // A card-length run that still failed validation means the recognizer
+        // found the number line but dropped or misread part of it. Re-read that
+        // strip alone, enlarged, rather than trying more blind crops.
+        if (!lineGuided && accepted.isEmpty() && cardNumberRuns(text.text).isNotEmpty()) {
+            val line = cardDigitLine(text)
+            if (line != null) {
+                accepted = runLineGuidedPass(bitmap, recognizer, rotation, line, confirmer, trace)
+            }
+        }
         return BankPassOutcome(text, accepted)
+    }
+
+    /**
+     * Bounding box of the digit lines that together read a card number, or null
+     * when they carry too few digits to be one.
+     *
+     * A long embossed number is regularly split across several OCR lines — a
+     * tilted print line, a reflection gap, a hologram — so requiring a single
+     * line to hold the whole run finds nothing. Digit-bearing lines are instead
+     * clustered by vertical proximity and the cluster with the most digits wins;
+     * the expiry date sits far enough below to stay in its own cluster.
+     */
+    private fun cardDigitLine(text: Text): Rect? {
+        val candidates = text.textBlocks
+            .flatMap { it.lines }
+            .mapNotNull { line -> line.boundingBox?.let { box -> line to box } }
+            .filter { (line, _) -> line.text.count(Char::isDigit) >= MIN_GUIDED_LINE_DIGITS }
+            .sortedBy { (_, box) -> (box.top + box.bottom) / 2f }
+        if (candidates.isEmpty()) return null
+
+        val clusters = mutableListOf<MutableList<Pair<Text.Line, Rect>>>()
+        for (candidate in candidates) {
+            val cluster = clusters.lastOrNull()
+            val previous = cluster?.lastOrNull()
+            val gapLimit = if (previous == null) {
+                0f
+            } else {
+                max(previous.second.height(), candidate.second.height())
+                    .coerceAtLeast(1) * GUIDED_CLUSTER_GAP
+            }
+            val centre = (candidate.second.top + candidate.second.bottom) / 2f
+            val previousCentre = previous?.let { (it.second.top + it.second.bottom) / 2f }
+            if (cluster != null && previousCentre != null && centre - previousCentre <= gapLimit) {
+                cluster += candidate
+            } else {
+                clusters += mutableListOf(candidate)
+            }
+        }
+
+        val best = clusters.maxByOrNull { cluster ->
+            cluster.sumOf { (line, _) -> line.text.count(Char::isDigit) }
+        } ?: return null
+        if (best.sumOf { (line, _) -> line.text.count(Char::isDigit) } < MIN_GUIDED_CLUSTER_DIGITS) {
+            return null
+        }
+        return Rect(
+            best.minOf { (_, box) -> box.left },
+            best.minOf { (_, box) -> box.top },
+            best.maxOf { (_, box) -> box.right },
+            best.maxOf { (_, box) -> box.bottom },
+        )
+    }
+
+    /** Re-reads one located number line, raw first and then flattened. */
+    private suspend fun runLineGuidedPass(
+        source: Bitmap,
+        recognizer: TextRecognizer,
+        rotation: Float,
+        line: Rect,
+        confirmer: BankCardRotationConfirmer,
+        trace: MutableList<BankCardScanTraceEntry>,
+    ): List<BankCard> {
+        var accepted: List<BankCard> = emptyList()
+        for (flatten in booleanArrayOf(false, true)) {
+            val crop = withContext(Dispatchers.Default) {
+                ImagePreprocessor.cropLineForOcr(source, line, MAX_OCR_LONG_SIDE, flatten)
+            }
+            try {
+                accepted = runBankPass(
+                    bitmap = crop,
+                    recognizer = recognizer,
+                    pass = if (flatten) {
+                        BankCardOcrPass.LINE_GUIDED_FLAT
+                    } else {
+                        BankCardOcrPass.LINE_GUIDED
+                    },
+                    rotation = rotation,
+                    crop = intArrayOf(0, line.top, source.width, line.bottom),
+                    confirmer = confirmer,
+                    trace = trace,
+                    lineGuided = true,
+                ).accepted
+            } finally {
+                if (!crop.isRecycled) crop.recycle()
+            }
+            if (accepted.isNotEmpty()) break
+        }
+        return accepted
     }
 
     fun setImageRecognitionInProgress(inProgress: Boolean) {
@@ -704,6 +865,7 @@ class CardScanViewModel : ViewModel() {
     fun resetScan() {
         clearVotes()
         lastScanTrace = emptyList()
+        _diagnostics.value = null
         _uiState.update {
             it.copy(
                 bankCard = null,
@@ -767,6 +929,15 @@ class CardScanViewModel : ViewModel() {
         const val PREFERRED_ROTATION_MISS_LIMIT = 5
         const val LIVE_OCR_LONG_SIDE = 1600
         const val MAX_OCR_LONG_SIDE = 2048
+        // A line needs a few digits to count as a fragment of the number; the
+        // cluster it joins must then carry enough of them to be worth cropping.
+        const val MIN_GUIDED_LINE_DIGITS = 4
+        const val MIN_GUIDED_CLUSTER_DIGITS = 8
+        // Line centres further apart than this many line heights are separate
+        // rows (the expiry date), not fragments of one number. A tilted print
+        // line drifts by more than one line height across the card, so the gap
+        // has to tolerate that or the fragments never merge.
+        const val GUIDED_CLUSTER_GAP = 2.2f
     }
 }
 
@@ -787,6 +958,12 @@ private fun String.toOcrLines(): List<OcrLine> =
 /** Result of one OCR pass: the full ML Kit text plus any confirmed candidates. */
 private data class BankPassOutcome(val text: Text, val accepted: List<BankCard>)
 
+/** Redacted scan summary for the developer diagnostics panel. */
+internal data class BankCardScanDiagnostics(
+    val rectified: Boolean,
+    val entries: List<BankCardScanTraceEntry>,
+)
+
 /**
  * Redacted diagnostics for one gallery pass. Deliberately excludes OCR text,
  * card digits, bitmap pixels, and stable hashes of either.
@@ -800,6 +977,7 @@ internal data class BankCardScanTraceEntry(
     val blockCount: Int,
     val lineCount: Int,
     val digitRunLengths: List<Int>,
+    val longestDigitRun: Int,
     val candidateCount: Int,
     val acceptedCount: Int,
 )
@@ -838,11 +1016,20 @@ internal enum class BankCardOcrPass {
     ENHANCED_FULL,
     NUMBER_BAND,
     BINARY_NUMBER_BAND,
+    NUMBER_LINE_RAW,
     NUMBER_LINE,
     ADAPTIVE_NUMBER_LINE,
+    UPPER_NUMBER_LINE_RAW,
     UPPER_NUMBER_LINE,
     UPPER_ADAPTIVE_NUMBER_LINE,
+    LOWER_NUMBER_LINE_RAW,
     LOWER_NUMBER_LINE,
     LOWER_ADAPTIVE_NUMBER_LINE,
+    BOTTOM_NUMBER_LINE_RAW,
+    BOTTOM_NUMBER_LINE,
+    BOTTOM_ADAPTIVE_NUMBER_LINE,
+    STRONG_NUMBER_LINE,
     CHINESE_NUMBER_LINE,
+    LINE_GUIDED,
+    LINE_GUIDED_FLAT,
 }

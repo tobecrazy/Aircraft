@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Rect
 import com.young.developtools.data.OcrLine
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -106,6 +107,51 @@ class ImagePreprocessorTest {
     }
 
     @Test
+    fun `binary band keeps a wide embossed stroke solid`() {
+        // A 12 px stroke is far wider than one digit's ink at the enlarged size.
+        // The local-mean window has to span several glyphs or it sits inside the
+        // stroke, takes the stroke's own tone as the background, and leaves a
+        // hollow outline that no recognizer can read.
+        val source = solidBitmap(Color.rgb(100, 100, 100), width = 400, height = 260)
+        for (y in 120..140) for (x in 80..91) source.setPixel(x, y, Color.WHITE)
+
+        val binary = ImagePreprocessor.prepareBankCardNumberBandBinaryForOcr(source, maxLongSide = 2048)
+
+        val scale = binary.width.toFloat() / source.width
+        val bandTop = (source.height * 0.34f).roundToInt()
+        val strokeRow = (((120 + 140) / 2f - bandTop) * scale).toInt()
+        val strokeColumn = ((80 + 91) / 2f * scale).toInt()
+
+        assertEquals(Color.BLACK, binary.getPixel(strokeColumn, strokeRow))
+        assertEquals(Color.WHITE, binary.getPixel((20 * scale).toInt(), strokeRow))
+        source.recycle()
+        binary.recycle()
+    }
+
+    @Test
+    fun `line guided crop keeps the located line and enlarges it`() {
+        val source = solidBitmap(Color.rgb(90, 90, 90), width = 800, height = 600)
+        for (y in 300..320) for (x in 200..500) source.setPixel(x, y, Color.WHITE)
+
+        val crop = ImagePreprocessor.cropLineForOcr(
+            source = source,
+            line = Rect(200, 300, 500, 321),
+            maxLongSide = 1024,
+            flatten = false,
+        )
+
+        // Padded horizontally and vertically, then scaled to the cap.
+        assertEquals(1024, crop.width)
+        assertTrue("height ${crop.height}", crop.height < crop.width / 3)
+        // The line's own pixels survive the crop and the enlargement.
+        val strokeRow = (crop.height / 2f).toInt()
+        assertTrue(luminance(crop.getPixel(crop.width / 2, strokeRow)) > 200)
+        assertTrue(luminance(crop.getPixel(2, 2)) < 140)
+        source.recycle()
+        crop.recycle()
+    }
+
+    @Test
     fun `number line flattening lifts strokes off a bright card graphic`() {
         val card = embossedBlueCard()
 
@@ -147,6 +193,25 @@ class ImagePreprocessorTest {
     fun `number row follows the OCR line box`() {
         val row = ImagePreprocessor.numberRowFromLines(
             listOf(OcrLine("4242 4242 4242 4242", top = 500, bottom = 560)),
+            cardWidth = 1000,
+            cardHeight = 1000,
+        )
+
+        assertNotNull(row)
+        assertTrue(row!!.topRatio < 0.55f)
+        assertTrue(row.bottomRatio > 0.55f)
+    }
+
+    @Test
+    fun `a fragmented number line still defines the number row`() {
+        // A long embossed number often comes back in fragments. Eight digits
+        // still beat the expiry date, so the tight crop can follow the real line
+        // instead of guessing from fixed ratios.
+        val row = ImagePreprocessor.numberRowFromLines(
+            listOf(
+                OcrLine("VALID THRU 12/29", top = 780, bottom = 830),
+                OcrLine("6222 0212", top = 500, bottom = 560),
+            ),
             cardWidth = 1000,
             cardHeight = 1000,
         )

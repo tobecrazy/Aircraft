@@ -65,6 +65,37 @@ fun isLuhnValid(number: String): Boolean {
 /** digit, space or dash run; requires at least 12 digits. */
 private val digitRun = Regex("""\d[\d\s-]{10,}\d""")
 
+/** Any digit run, with no length floor; used only for diagnostics. */
+private val looseDigitRun = Regex("""\d[\d\s-]*""")
+
+/**
+ * Folds the characters ML Kit emits for a printed number onto the ASCII the run
+ * patterns above expect: full-width forms (the bundled Chinese recognizer's
+ * default output) and the Unicode spaces Java's `\s` does not cover. Without
+ * this a correctly read number can produce no digit run at all.
+ */
+internal fun normalizeOcrDigits(text: String): String = buildString(text.length) {
+    for (ch in text) {
+        when {
+            ch in '\uFF01'..'\uFF5E' -> append(ch - 0xFEE0)
+            ch == '\u3000' || ch == '\u00A0' || ch == '\u2007' || ch == '\u202F' -> append(' ')
+            else -> append(ch)
+        }
+    }
+}
+
+/**
+ * Length of the longest digit run in [text] before the 12-digit acceptance
+ * floor. A card read as two 8-digit fragments reports 8 here and 0 from
+ * [cardNumberRuns], which separates "the number is being read but broken" from
+ * "the crop holds no digits at all".
+ */
+internal fun longestDigitRun(text: String): Int {
+    if (text.isBlank()) return 0
+    return looseDigitRun.findAll(normalizeOcrDigits(text))
+        .maxOfOrNull { run -> run.value.count(Char::isDigit) } ?: 0
+}
+
 // Letter-to-digit confusions ML Kit emits inside card numbers: O/l from
 // embossed digits, B/S/G/Z from contour confusion. Included in the run pattern
 // so a misread inside the number doesn't split it into sub-12-digit fragments.
@@ -139,8 +170,9 @@ private fun blobCandidates(digits: String): List<String> {
  */
 fun parseBankCards(text: String): List<BankCard> {
     if (text.isBlank()) return emptyList()
+    val readable = normalizeOcrDigits(text)
     val rawCandidates = mutableListOf<String>()
-    digitRun.findAll(text).forEach { rawCandidates += it.value.filter(Char::isDigit) }
+    digitRun.findAll(readable).forEach { rawCandidates += it.value.filter(Char::isDigit) }
     // Pass 1: exact digit runs (covers clean OCR).
     val rawValid = mutableListOf<String>()
     rawCandidates.forEach { run ->
@@ -154,7 +186,7 @@ fun parseBankCards(text: String): List<BankCard> {
     // Pass 2: the same runs with OCR confusion letters mapped back to digits.
     // Only map confusions in standalone card-like runs, avoiding adjacent labels.
     val normalizedCandidates = mutableListOf<String>()
-    digitRunWithConfusions.findAll(text).forEach {
+    digitRunWithConfusions.findAll(readable).forEach {
         val normalized = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
         if (normalized.length in 12..19) {
             if (isLuhnValid(normalized) && hasAcceptedLength(normalized)) normalizedCandidates += normalized
@@ -178,12 +210,13 @@ fun firstBankCard(text: String): BankCard? = parseBankCards(text).firstOrNull()
 /** Card-length digit runs in one OCR result, before any checksum gate. */
 internal fun cardNumberRuns(text: String): List<String> {
     if (text.isBlank()) return emptyList()
+    val readable = normalizeOcrDigits(text)
     val runs = mutableListOf<String>()
-    digitRun.findAll(text).forEach { run ->
+    digitRun.findAll(readable).forEach { run ->
         val digits = run.value.filter(Char::isDigit)
         if (digits.length in 12..19) runs += digits
     }
-    digitRunWithConfusions.findAll(text).forEach {
+    digitRunWithConfusions.findAll(readable).forEach {
         val digits = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
         if (digits.length in 12..19) runs += digits
     }
