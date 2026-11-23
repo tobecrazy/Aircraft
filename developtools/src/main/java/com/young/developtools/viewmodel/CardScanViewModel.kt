@@ -21,6 +21,7 @@ import com.young.developtools.data.ScanHint
 import com.young.developtools.data.birthDateFromIdNumber
 import com.young.developtools.data.cardNumberRuns
 import com.young.developtools.data.longestDigitRun
+import com.young.developtools.data.normalizeOcrDigits
 import com.young.developtools.data.parseBankCards
 import com.young.developtools.data.parseIdCardEmblem
 import com.young.developtools.data.parseIdCardPortrait
@@ -334,6 +335,29 @@ class CardScanViewModel : ViewModel() {
                             if (!enhanced.isRecycled) enhanced.recycle()
                         }
                     }
+                    // Silver-embossed: min(R,G,B) separates silver/white
+                    // digits from coloured backgrounds far better than
+                    // standard grayscale. Try only the first (soft) variant
+                    // in the live path to stay bounded.
+                    if (parseBankCards(recognizedText).isEmpty()) {
+                        val silverVariants = withContext(Dispatchers.Default) {
+                            ImagePreprocessor.enhanceForOcrSilverEmbossed(oriented, LIVE_OCR_LONG_SIDE)
+                        }
+                        for (variant in silverVariants) {
+                            try {
+                                val silverText = recognizerFor(CardType.BANK_CARD)
+                                    .process(InputImage.fromBitmap(variant, 0))
+                                    .await()
+                                    .text
+                                if (parseBankCards(silverText).isNotEmpty()) {
+                                    recognizedText = silverText
+                                    break
+                                }
+                            } finally {
+                                if (!variant.isRecycled) variant.recycle()
+                            }
+                        }
+                    }
                     if (parseBankCards(recognizedText).isEmpty() &&
                         (region.rectified || orientation % 90f == 0f)
                     ) {
@@ -469,7 +493,14 @@ class CardScanViewModel : ViewModel() {
         val region = withContext(Dispatchers.Default) {
             ImagePreprocessor.localizeCardForOcr(source, MAX_OCR_LONG_SIDE)
         }
-        val card = region.bitmap
+        val card = region.bitmap.let { original ->
+            // Only downscale to the cap; upscaling a low-res photo just blurs
+            // strokes and makes ML Kit worse. Number-line crops upscale their
+            // narrow strip via scaleToCap, which is enough for small glyphs.
+            ImagePreprocessor.enforceMaxLongSide(original, MAX_OCR_LONG_SIDE).also {
+                if (it !== original) original.recycle()
+            }
+        }
         try {
             // A rectified card is already landscape; only its upright direction
             // is unknown, so 0 and 180 degrees cover it. An unrectified source
@@ -512,6 +543,34 @@ class CardScanViewModel : ViewModel() {
                             if (!enhanced.isRecycled) enhanced.recycle()
                         }
                     }
+                    // Silver-embossed: min(R,G,B) → CLAHE → soft/binary
+                    // variants. Much better than standard grayscale for
+                    // silver/white digits on coloured backgrounds.
+                    if (cards.isEmpty()) {
+                        val silverVariants = withContext(Dispatchers.Default) {
+                            ImagePreprocessor.enhanceForOcrSilverEmbossed(oriented, MAX_OCR_LONG_SIDE)
+                        }
+                        for ((idx, variant) in silverVariants.withIndex()) {
+                            try {
+                                cards = runBankPass(
+                                    bitmap = variant,
+                                    recognizer = latinRecognizer,
+                                    pass = if (idx == 0) {
+                                        BankCardOcrPass.SILVER_SOFT_FULL
+                                    } else {
+                                        BankCardOcrPass.SILVER_BINARY_FULL
+                                    },
+                                    rotation = orientation,
+                                    crop = null,
+                                    confirmer = confirmer,
+                                    trace = trace,
+                                ).accepted
+                                if (cards.isNotEmpty()) break
+                            } finally {
+                                if (!variant.isRecycled) variant.recycle()
+                            }
+                        }
+                    }
                     if (cards.isEmpty()) {
                         val row = ImagePreprocessor.numberRowFromLines(
                             full.text.toOcrLines(),
@@ -532,6 +591,12 @@ class CardScanViewModel : ViewModel() {
             // the last resort instead of failing the scan outright.
             if (cards.isEmpty()) {
                 cards = runBankRotationFallback(source, confirmer, trace)
+            }
+            // Last resort: pool stitched readings across all rotations and
+            // vote. A card that only produced 1-2 stitched runs per rotation
+            // may have 4+ readings total when every rotation is counted.
+            if (cards.isEmpty()) {
+                cards = confirmer.voteAllRotations()
             }
             lastScanTrace = trace
             _diagnostics.value = BankCardScanDiagnostics(region.rectified, trace)
@@ -745,6 +810,14 @@ class CardScanViewModel : ViewModel() {
     ): BankPassOutcome {
         val text = recognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
         var accepted = confirmer.observe(text.text, rotation, pass)
+        // Per-fragment digit counts: every consecutive-digit chunk in the
+        // normalized text, sorted descending. Redacted: lengths only, never
+        // the digits themselves.
+        val normalized = normalizeOcrDigits(text.text)
+        val fragments = Regex("""\d+""").findAll(normalized)
+            .map { it.value.length }
+            .sortedDescending()
+            .toList()
         trace += BankCardScanTraceEntry(
             pass = pass,
             rotation = rotation,
@@ -757,6 +830,7 @@ class CardScanViewModel : ViewModel() {
             longestDigitRun = longestDigitRun(text.text),
             candidateCount = parseBankCards(text.text).size,
             acceptedCount = accepted.size,
+            fragmentLengths = fragments,
         )
         // A card-length run that still failed validation means the recognizer
         // found the number line but dropped or misread part of it. Re-read that
@@ -980,6 +1054,8 @@ internal data class BankCardScanTraceEntry(
     val longestDigitRun: Int,
     val candidateCount: Int,
     val acceptedCount: Int,
+    /** Lengths of every consecutive-digit fragment (no minimum), sorted descending. */
+    val fragmentLengths: List<Int> = emptyList(),
 )
 
 internal class BankCardRotationConfirmer {
@@ -1009,6 +1085,18 @@ internal class BankCardRotationConfirmer {
         val number = voteCardReadings(readingsByRotation[rotation].orEmpty()) ?: return emptyList()
         return parseBankCards(number)
     }
+
+    /**
+     * Cross-rotation vote: pools readings from ALL rotations and votes across
+     * them. This collects more readings for cards where each rotation only
+     * produces 1-2 stitched runs (too few for a per-rotation vote to reach
+     * [MIN_VOTE_READINGS]).
+     */
+    fun voteAllRotations(): List<BankCard> {
+        val allReadings = readingsByRotation.values.flatten()
+        val number = voteCardReadings(allReadings) ?: return emptyList()
+        return parseBankCards(number)
+    }
 }
 
 internal enum class BankCardOcrPass {
@@ -1032,4 +1120,6 @@ internal enum class BankCardOcrPass {
     CHINESE_NUMBER_LINE,
     LINE_GUIDED,
     LINE_GUIDED_FLAT,
+    SILVER_SOFT_FULL,
+    SILVER_BINARY_FULL,
 }

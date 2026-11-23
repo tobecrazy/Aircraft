@@ -19,7 +19,6 @@ import android.view.HapticFeedbackConstants
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -152,7 +151,7 @@ class CardScanActivity : BaseAircraftActivity() {
     }
 
     private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
+        ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri == null) return@registerForActivityResult
         viewModel.setImageRecognitionInProgress(true)
@@ -258,9 +257,7 @@ class CardScanActivity : BaseAircraftActivity() {
                         )
                     },
                     onPickImage = {
-                        imagePickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
+                        imagePickerLauncher.launch(arrayOf("image/*"))
                     },
                     onCopy = ::copySensitiveText,
                     onRescan = { viewModel.resetScan() },
@@ -458,7 +455,7 @@ private fun CardScanScreen(
             }
 
             if (uiState.errorRes != null && diagnostics != null) {
-                ScanDiagnosticsCard(diagnostics)
+                ScanDiagnosticsCard(diagnostics, onCopy = onCopy)
             }
 
             if (!hasCameraPermission && uiState.errorRes == null && !uiState.hasResult) {
@@ -944,19 +941,22 @@ private fun BankCardScanDiagnostics.summaryLine(): String {
 }
 
 @Composable
-private fun ScanDiagnosticsCard(diagnostics: BankCardScanDiagnostics) {
+private fun ScanDiagnosticsCard(
+    diagnostics: BankCardScanDiagnostics,
+    onCopy: (String) -> Unit,
+) {
     val entries = diagnostics.entries
-    // A failed scan runs dozens of passes. Showing the first and last few hides
-    // exactly the passes that matter, so rank by what was read instead.
     val shown = entries
         .sortedWith(
-            // Card-length runs first: they include runs stitched across OCR
-            // confusion letters, which a plain digit count misses.
             compareByDescending<BankCardScanTraceEntry> { it.digitRunLengths.maxOrNull() ?: 0 }
                 .thenByDescending { it.longestDigitRun }
                 .thenByDescending { it.blockCount }
         )
         .take(16)
+
+    var expanded by remember { mutableStateOf(false) }
+    val displayEntries = if (expanded) shown else shown.take(5)
+    val traceText = remember(diagnostics) { formatTraceForCopy(diagnostics, shown) }
 
     Column(
         modifier = Modifier
@@ -964,43 +964,181 @@ private fun ScanDiagnosticsCard(diagnostics: BankCardScanDiagnostics) {
             .background(BackgroundDark.copy(alpha = 0.9f), RoundedCornerShape(14.dp))
             .border(1.dp, TextSubtle.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
             .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Text(
-            text = "OCR trace (redacted, top by digits)",
-            color = AccentGreen.copy(alpha = 0.75f),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace
-        )
+        // Header row with title and copy button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "OCR trace (redacted)",
+                color = AccentGreen.copy(alpha = 0.75f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "⎘ Copy",
+                color = AccentGreen,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(AccentGreen.copy(alpha = 0.12f))
+                    .clickable { onCopy(traceText) }
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                    .testTag("btn_copy_ocr_trace")
+            )
+        }
+
+        // Summary line
         Text(
             text = diagnostics.summaryLine(),
-            color = TextSubtle,
+            color = AccentGreen.copy(alpha = 0.55f),
             fontSize = 9.sp,
             lineHeight = 12.sp,
-            fontFamily = FontFamily.Monospace
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(BackgroundDark.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                .padding(horizontal = 8.dp, vertical = 5.dp)
         )
-        shown.forEach { entry ->
+
+        // Pass entries
+        displayEntries.forEach { entry ->
+            DiagnosticsPassRow(entry)
+        }
+
+        // Expand/collapse toggle
+        if (shown.size > 5) {
             Text(
-                text = buildString {
-                    append(entry.pass.name)
-                    append(" rot=").append(entry.rotation.toInt())
-                    append(' ').append(entry.sourceWidth).append('x').append(entry.sourceHeight)
-                    entry.crop?.let { crop ->
-                        append(" crop=").append(crop[1]).append("..").append(crop[3])
-                    }
-                    append("\n  blocks=").append(entry.blockCount)
-                    append(" lines=").append(entry.lineCount)
-                    append(" runs=").append(entry.digitRunLengths)
-                    append(" max=").append(entry.longestDigitRun)
-                    append(" cand=").append(entry.candidateCount)
-                    append(" ok=").append(entry.acceptedCount)
+                text = if (expanded) {
+                    "▲ Show less"
+                } else {
+                    "▼ Show all ${shown.size} passes"
                 },
-                color = TextSubtle,
+                color = AccentGreen.copy(alpha = 0.6f),
                 fontSize = 9.sp,
-                lineHeight = 12.sp,
-                fontFamily = FontFamily.Monospace
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable { expanded = !expanded }
+                    .padding(vertical = 4.dp),
+                textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Composable
+private fun DiagnosticsPassRow(entry: BankCardScanTraceEntry) {
+    val hasDigits = entry.longestDigitRun > 0
+    val hasRuns = entry.digitRunLengths.isNotEmpty()
+    // Highlight passes that found card-length runs.
+    val accentColor = when {
+        hasRuns -> AccentGreen.copy(alpha = 0.65f)
+        hasDigits -> Color(0xFFFFC107).copy(alpha = 0.6f)
+        else -> TextSubtle.copy(alpha = 0.5f)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                if (hasRuns) AccentGreen.copy(alpha = 0.04f)
+                else Color.Transparent,
+                RoundedCornerShape(6.dp),
+            )
+            .padding(horizontal = 6.dp, vertical = 3.dp)
+    ) {
+        // Pass header: name, rotation, dimensions
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = entry.pass.name,
+                color = accentColor,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+            )
+            Text(
+                text = "${entry.rotation.toInt()}° ${entry.sourceWidth}×${entry.sourceHeight}",
+                color = TextSubtle.copy(alpha = 0.5f),
+                fontSize = 8.sp,
+                fontFamily = FontFamily.Monospace,
+            )
+            entry.crop?.let { crop ->
+                Text(
+                    text = "crop=${crop[1]}..${crop[3]}",
+                    color = TextSubtle.copy(alpha = 0.4f),
+                    fontSize = 8.sp,
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+        }
+        // Metrics row
+        Text(
+            text = buildString {
+                append("blk=").append(entry.blockCount)
+                append(" ln=").append(entry.lineCount)
+                append(" max=").append(entry.longestDigitRun)
+                if (entry.digitRunLengths.isNotEmpty()) {
+                    append(" runs=").append(entry.digitRunLengths)
+                }
+                append(" cand=").append(entry.candidateCount)
+                if (entry.acceptedCount > 0) append(" ✓ok=").append(entry.acceptedCount)
+            },
+            color = TextSubtle.copy(alpha = 0.6f),
+            fontSize = 8.sp,
+            lineHeight = 11.sp,
+            fontFamily = FontFamily.Monospace,
+        )
+        // Fragment distribution (most diagnostic value)
+        if (entry.fragmentLengths.isNotEmpty()) {
+            Text(
+                text = "frags=${entry.fragmentLengths} Σ=${entry.fragmentLengths.sum()}",
+                color = if (hasRuns) AccentGreen.copy(alpha = 0.5f)
+                else TextSubtle.copy(alpha = 0.45f),
+                fontSize = 8.sp,
+                lineHeight = 11.sp,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
+    }
+}
+
+/** Formats the full trace for clipboard export. Redacted: no OCR text or card digits. */
+private fun formatTraceForCopy(
+    diagnostics: BankCardScanDiagnostics,
+    shown: List<BankCardScanTraceEntry>,
+): String = buildString {
+    appendLine("=== Card Scan OCR Trace ===")
+    appendLine(diagnostics.summaryLine())
+    appendLine()
+    for (entry in shown) {
+        append(entry.pass.name)
+        append(" rot=").append(entry.rotation.toInt())
+        append(' ').append(entry.sourceWidth).append('x').append(entry.sourceHeight)
+        entry.crop?.let { crop -> append(" crop=").append(crop[1]).append("..").append(crop[3]) }
+        appendLine()
+        append("  blk=").append(entry.blockCount)
+        append(" ln=").append(entry.lineCount)
+        append(" max=").append(entry.longestDigitRun)
+        if (entry.digitRunLengths.isNotEmpty()) append(" runs=").append(entry.digitRunLengths)
+        append(" cand=").append(entry.candidateCount)
+        append(" ok=").append(entry.acceptedCount)
+        appendLine()
+        if (entry.fragmentLengths.isNotEmpty()) {
+            append("  frags=").append(entry.fragmentLengths)
+            append(" sum=").append(entry.fragmentLengths.sum())
+            appendLine()
         }
     }
 }

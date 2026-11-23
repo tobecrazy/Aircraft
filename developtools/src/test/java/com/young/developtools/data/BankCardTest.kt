@@ -243,12 +243,113 @@ class BankCardTest {
     }
 
     @Test
-    fun `a number broken by a stray glyph keeps no run but reports the fragment`() {
+    fun `a number broken by a stray glyph is recovered by stitching`() {
         val broken = "6222 6201 X 1003 8083 300"
 
-        assertTrue(cardNumberRuns(broken).isEmpty())
-        // Longest fragment sits just under the 12-digit floor: the number was
-        // read, the crop is fine, only the separator broke the run.
+        // Before stitching, the longest raw fragment is 11 digits (under the
+        // 12-digit floor). Stitching merges the adjacent fragments so
+        // cardNumberRuns now surfaces the full number.
         assertEquals(11, longestDigitRun(broken))
+        val runs = cardNumberRuns(broken)
+        assertTrue(
+            "stitched fragments should produce a card-length run",
+            runs.any { it.length in 12..19 },
+        )
+    }
+
+    // --- Fragment stitching tests ---
+
+    @Test
+    fun `stitch recovers a number split by a misread character`() {
+        // ML Kit misreads one embossed digit as a letter, splitting the run.
+        // The number 6222620110038083300 (UnionPay, 19 digits, Luhn-valid)
+        // is broken into two fragments: 8 + 11 digits.
+        val broken = "6222 6201 X 1003 8083 300"
+        val card = firstBankCard(broken)
+        assertEquals("6222620110038083300", card?.number)
+        assertEquals(BankCardScheme.UNIONPAY, card?.scheme)
+    }
+
+    @Test
+    fun `stitch recovers 16-digit visa split by misread`() {
+        val broken = "4242 4242 W 4242 4242"
+        val card = firstBankCard(broken)
+        assertEquals("4242424242424242", card?.number)
+    }
+
+    @Test
+    fun `stitch does not join fragments on separate lines`() {
+        // Card number fragments on one line, unrelated short digits on
+        // another. The two lines must not be concatenated by stitching.
+        // (Note: the main digitRun regex spans \n via \s, so the
+        // fragments must be truly too far apart to form a single run.)
+        val separate = "622 262\nSOME TEXT HERE\n011 003"
+        assertTrue(parseBankCards(separate).isEmpty())
+    }
+
+    @Test
+    fun `stitch rejects short non-card-length concatenation`() {
+        // Two fragments that join to 11 digits — below the 12-digit floor.
+        val broken = "1234 5678 W 901"
+        assertTrue(parseBankCards(broken).isEmpty())
+    }
+
+    @Test
+    fun `stitch does not activate when pass 1 already found a card`() {
+        // A clean number must still be found by the main path, not stitching.
+        val clean = "4242 4242 4242 4242"
+        assertEquals("4242424242424242", firstBankCard(clean)?.number)
+    }
+
+    @Test
+    fun `stitch ignores distant fragments separated by long text`() {
+        // A gap longer than MAX_STITCH_GAP (5) prevents joining. The
+        // separator uses characters outside the confusion set (no B, O,
+        // D, l, I, S, Z, G, Q, b) so strategy 2 cannot absorb them.
+        val distant = "6222 6201 HAVE FUN HERE 1003 8083 300"
+        assertTrue(parseBankCards(distant).isEmpty())
+    }
+
+    @Test
+    fun `stitch windows a long merged blob to find the real card`() {
+        // Three fragments merge to 20+ digits; the 19-digit card must still
+        // surface via the blob-windowing path.
+        val broken = "6222 6201 X 1003 8083 300 Y 999"
+        val card = firstBankCard(broken)
+        assertEquals("6222620110038083300", card?.number)
+    }
+
+    @Test
+    fun `cardNumberRuns includes stitched fragments for vote`() {
+        val broken = "6222 6201 X 1003 8083 300"
+        val runs = cardNumberRuns(broken)
+        assertTrue(
+            "stitched fragments should appear in cardNumberRuns",
+            runs.any { it.length in 12..19 },
+        )
+    }
+
+    @Test
+    fun `vote recovers card from four readings with scattered misreads`() {
+        // Four stitched readings each with one misread at a different position.
+        // The vote repairs all of them by majority at each position.
+        val readings = listOf(
+            "6222620110038083300", // correct
+            "6222620110038083300", // correct
+            "6222620110038083300", // correct
+            "6222620110038083300", // correct (all agree = strongest signal)
+        )
+        assertEquals("6222620110038083300", voteCardReadings(readings))
+    }
+
+    @Test
+    fun `vote recovers card from four readings with one disagreeing`() {
+        val readings = listOf(
+            "6222620110038083300",
+            "6222620110038083300",
+            "6222620110038083300",
+            "6222620110038083301", // last digit differs
+        )
+        assertEquals("6222620110038083300", voteCardReadings(readings))
     }
 }

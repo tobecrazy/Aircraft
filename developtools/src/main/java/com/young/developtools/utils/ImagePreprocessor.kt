@@ -1091,6 +1091,23 @@ internal object ImagePreprocessor {
     }
 
     /**
+     * Scale so the long side is exactly [targetLongSide], up or down.
+     * Returns [bitmap] unchanged when already at the target size.
+     * Does NOT recycle [bitmap]; the caller keeps owning it.
+     */
+    internal fun scaleToLongSide(bitmap: Bitmap, targetLongSide: Int): Bitmap {
+        val longest = maxOf(bitmap.width, bitmap.height)
+        if (longest == targetLongSide) return bitmap
+        val scale = targetLongSide.toFloat() / longest
+        return Bitmap.createScaledBitmap(
+            bitmap,
+            (bitmap.width * scale).roundToInt().coerceAtLeast(1),
+            (bitmap.height * scale).roundToInt().coerceAtLeast(1),
+            true,
+        )
+    }
+
+    /**
      * Downscale so the long side is at most [maxLongSide], keeping aspect.
      * Does NOT recycle [bitmap]; the caller keeps owning it.
      */
@@ -1186,6 +1203,216 @@ internal object ImagePreprocessor {
         // enforceMaxLongSide no longer recycles, so we own the scaled copy.
         if (input !== source) input.recycle()
         return result
+    }
+
+    // -----------------------------------------------------------------
+    // Silver-embossed digit preprocessing
+    // -----------------------------------------------------------------
+
+    private const val OCR_BORDER_PX = 32
+    private const val SILVER_MIN_BLOB_RATIO = 0.0008
+
+    /**
+     * Preprocessing for silver or white embossed digits on a coloured card.
+     *
+     * Standard grayscale averages colour channels, which loses contrast when
+     * the card background is saturated (blue, green, gold). Silver/white text
+     * has high values in ALL channels; a coloured background has at least one
+     * low channel. `min(R,G,B)` extracts the "silver brightness": it stays
+     * high for silver text and drops to the lowest channel of the background,
+     * maximising the gap.
+     *
+     * Pipeline:
+     * 1. Upscale to [maxLongSide] so each glyph has enough pixels.
+     * 2. `min(R,G,B)` → single-channel "silver brightness" image.
+     * 3. OpenCV CLAHE (clip=3.0, 8×8 tiles) for local contrast.
+     * 4. Light Gaussian blur to suppress embossing speckle.
+     * 5. Two output variants:
+     *    - Soft: inverted grayscale (black text on white), retains detail.
+     *    - Binary: Otsu threshold + small-blob removal + invert + white border.
+     *
+     * Returns up to 2 bitmaps (soft, binary). The caller owns them.
+     * Falls back to Kotlin min-channel extraction when OpenCV is unavailable.
+     */
+    internal fun enhanceForOcrSilverEmbossed(
+        source: Bitmap,
+        maxLongSide: Int = 2048,
+    ): List<Bitmap> {
+        // Only downscale; upscaling a low-res card just blurs strokes.
+        val input = enforceMaxLongSide(source, maxLongSide)
+        return if (OpenCvSupport.isAvailable()) {
+            val result = runCatching { openCvSilverEmbossed(input) }.getOrNull()
+            if (input !== source) input.recycle()
+            result ?: kotlinSilverEmbossed(source, maxLongSide)
+        } else {
+            if (input !== source) input.recycle()
+            kotlinSilverEmbossed(source, maxLongSide)
+        }
+    }
+
+    /** OpenCV path: min(R,G,B) → CLAHE → Gaussian → soft + binary variants. */
+    private fun openCvSilverEmbossed(input: Bitmap): List<Bitmap> {
+        val rgba = Mat()
+        val rgb = Mat()
+        try {
+            Utils.bitmapToMat(input, rgba)
+            Imgproc.cvtColor(rgba, rgb, Imgproc.COLOR_RGBA2RGB)
+
+            // min(R,G,B) → silver brightness
+            val channels = ArrayList<Mat>()
+            Core.split(rgb, channels)
+            val silver = Mat()
+            Core.min(channels[0], channels[1], silver)
+            Core.min(silver, channels[2], silver)
+            channels.forEach { it.release() }
+
+            // CLAHE: real OpenCV implementation, clip=3.0, 8×8 tiles
+            val enhanced = Mat()
+            Imgproc.createCLAHE(3.0, Size(8.0, 8.0)).apply(silver, enhanced)
+            Imgproc.GaussianBlur(enhanced, enhanced, Size(3.0, 3.0), 0.0)
+
+            val results = mutableListOf<Bitmap>()
+
+            // Variant A: soft inverted (black text on white, retains gradients)
+            val soft = Mat()
+            Core.bitwise_not(enhanced, soft)
+            results += addOcrBorderMat(soft).toBitmap()
+            soft.release()
+
+            // Variant B: Otsu binary + small-blob removal + invert + border
+            val binary = Mat()
+            Imgproc.threshold(
+                enhanced, binary, 0.0, 255.0,
+                Imgproc.THRESH_BINARY or Imgproc.THRESH_OTSU,
+            )
+            removeSmallBlobsMat(binary, (binary.total() * SILVER_MIN_BLOB_RATIO).toInt())
+            Core.bitwise_not(binary, binary)
+            results += addOcrBorderMat(binary).toBitmap()
+            binary.release()
+
+            silver.release()
+            enhanced.release()
+            return results
+        } finally {
+            rgba.release()
+            rgb.release()
+        }
+    }
+
+    /** Remove white connected components smaller than [minArea] pixels. */
+    private fun removeSmallBlobsMat(bw: Mat, minArea: Int) {
+        val labels = Mat()
+        val stats = Mat()
+        val centroids = Mat()
+        try {
+            val n = Imgproc.connectedComponentsWithStats(bw, labels, stats, centroids, 8)
+            for (i in 1 until n) {
+                val data = IntArray(5)
+                stats.get(i, 0, data)
+                if (data[Imgproc.CC_STAT_AREA] < minArea) {
+                    val mask = Mat()
+                    Core.compare(labels, Scalar(i.toDouble()), mask, Core.CMP_EQ)
+                    bw.setTo(Scalar(0.0), mask)
+                    mask.release()
+                }
+            }
+        } finally {
+            labels.release()
+            stats.release()
+            centroids.release()
+        }
+    }
+
+    /** Adds a white border around a grayscale Mat for OCR edge tolerance. */
+    private fun addOcrBorderMat(m: Mat, px: Int = OCR_BORDER_PX): Mat {
+        val out = Mat()
+        Core.copyMakeBorder(m, out, px, px, px, px, Core.BORDER_CONSTANT, Scalar(255.0))
+        return out
+    }
+
+    /**
+     * Kotlin fallback: extracts min(R,G,B), runs the custom CLAHE, and
+     * returns a single soft-inverted variant (no blob removal without
+     * OpenCV connected-components).
+     */
+    private fun kotlinSilverEmbossed(source: Bitmap, maxLongSide: Int): List<Bitmap> {
+        val input = enforceMaxLongSide(source, maxLongSide)
+        val w = input.width
+        val h = input.height
+        val pixels = IntArray(w * h)
+        input.getPixels(pixels, 0, w, 0, 0, w, h)
+
+        // min(R,G,B) extraction
+        val src = IntArray(w * h)
+        for (i in src.indices) {
+            val color = pixels[i]
+            src[i] = minOf(Color.red(color), Color.green(color), Color.blue(color))
+        }
+
+        // Local contrast sharpening
+        val grayscale = src.copyOf()
+        for (y in 1 until h - 1) for (x in 1 until w - 1) {
+            val idx = y * w + x
+            val value = grayscale[idx]
+            val localMean = (grayscale[idx - 1] + grayscale[idx + 1] +
+                grayscale[idx - w] + grayscale[idx + w]) / 4f
+            src[idx] = (value + (value - localMean) * 0.75f).roundToInt().coerceIn(0, 255)
+        }
+
+        // Custom CLAHE
+        val tileW = minOf(CLAHE_TILES, w)
+        val tileH = minOf(CLAHE_TILES, h)
+        val tileLuts = Array(tileW * tileH) { t ->
+            val tx = t % tileW; val ty = t / tileW
+            val x0 = tx * w / tileW; val y0 = ty * h / tileH
+            val x1 = (tx + 1) * w / tileW; val y1 = (ty + 1) * h / tileH
+            val hist = IntArray(256)
+            for (y in y0 until y1) for (x in x0 until x1) hist[src[y * w + x]]++
+            val total = (x1 - x0) * (y1 - y0)
+            val clip = (total * CLIP_RATIO).toInt().coerceAtLeast(1)
+            var excess = 0
+            for (i in 0..255) if (hist[i] > clip) { excess += hist[i] - clip; hist[i] = clip }
+            val redistribute = excess / 256; var remainder = excess % 256
+            var cumulative = 0
+            val lut = IntArray(256)
+            for (v in 0..255) {
+                cumulative += hist[v] + redistribute + if (remainder-- > 0) 1 else 0
+                lut[v] = (cumulative.toFloat() / total * 255f).roundToInt().coerceIn(0, 255)
+            }
+            lut
+        }
+
+        // Apply CLAHE and invert (black text on white)
+        val border = OCR_BORDER_PX
+        val outW = w + border * 2; val outH = h + border * 2
+        val out = IntArray(outW * outH) { Color.WHITE }
+        for (y in 0 until h) {
+            val gridY = (y + 0.5f) * tileH / h - 0.5f
+            val floorY = kotlin.math.floor(gridY).toInt()
+            val ty = floorY.coerceIn(0, tileH - 1)
+            val tyNext = (floorY + 1).coerceIn(0, tileH - 1)
+            val fy = if (floorY in 0 until tileH - 1) gridY - floorY else 0f
+            for (x in 0 until w) {
+                val gridX = (x + 0.5f) * tileW / w - 0.5f
+                val floorX = kotlin.math.floor(gridX).toInt()
+                val tx = floorX.coerceIn(0, tileW - 1)
+                val txNext = (floorX + 1).coerceIn(0, tileW - 1)
+                val fx = if (floorX in 0 until tileW - 1) gridX - floorX else 0f
+                val v = src[y * w + x]
+                val a = tileLuts[ty * tileW + tx][v]
+                val b = tileLuts[ty * tileW + txNext][v]
+                val c = tileLuts[tyNext * tileW + tx][v]
+                val d = tileLuts[tyNext * tileW + txNext][v]
+                val top = (a * (1 - fx) + b * fx).roundToInt()
+                val bottom = (c * (1 - fx) + d * fx).roundToInt()
+                val boosted = 255 - (top * (1 - fy) + bottom * fy).roundToInt().coerceIn(0, 255)
+                out[(y + border) * outW + (x + border)] = Color.rgb(boosted, boosted, boosted)
+            }
+        }
+        val result = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
+        result.setPixels(out, 0, outW, 0, 0, outW, outH)
+        if (input !== source) input.recycle()
+        return listOf(result)
     }
 }
 
