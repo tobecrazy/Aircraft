@@ -150,6 +150,8 @@ class CardScanActivity : BaseAircraftActivity() {
         }
     }
 
+    // OpenDocument opens the system file browser, so any folder holding an image is
+    // reachable; the media-store photo picker only lists indexed gallery albums.
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->

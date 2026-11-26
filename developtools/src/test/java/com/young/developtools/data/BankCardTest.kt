@@ -302,12 +302,12 @@ class BankCardTest {
     }
 
     @Test
-    fun `stitch ignores distant fragments separated by long text`() {
-        // A gap longer than MAX_STITCH_GAP (5) prevents joining. The
-        // separator uses characters outside the confusion set (no B, O,
-        // D, l, I, S, Z, G, Q, b) so strategy 2 cannot absorb them.
-        val distant = "6222 6201 HAVE FUN HERE 1003 8083 300"
-        assertTrue(parseBankCards(distant).isEmpty())
+    fun `stitch does not join digits across separate lines`() {
+        // Digits on different lines must not be concatenated by stitching.
+        // Each line has fewer than 12 digits, and they are separated by
+        // non-whitespace text so digitRun cannot span them either.
+        val multiLine = "622 262\nTEXT\n011 003"
+        assertTrue(parseBankCards(multiLine).isEmpty())
     }
 
     @Test

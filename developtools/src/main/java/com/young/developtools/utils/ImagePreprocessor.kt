@@ -16,6 +16,7 @@ import org.opencv.core.Mat
 import org.opencv.core.MatOfPoint
 import org.opencv.core.Scalar
 import org.opencv.core.Size
+import org.opencv.geometry.Geometry
 import org.opencv.imgproc.Imgproc
 import kotlin.math.abs
 import kotlin.math.acos
@@ -623,7 +624,7 @@ internal object ImagePreprocessor {
             var largest: MatOfPoint? = null
             var largestArea = 0.0
             for (contour in contours) {
-                val area = Imgproc.contourArea(contour)
+                val area = Geometry.contourArea(contour)
                 if (area > largestArea) {
                     largestArea = area
                     largest = contour
@@ -845,7 +846,7 @@ internal object ImagePreprocessor {
                     0f, (height - 1).toFloat(),
                 ),
             )
-            val perspective = Imgproc.getPerspectiveTransform(src, dst)
+            val perspective = Geometry.getPerspectiveTransform(src, dst)
             transform = perspective
             Utils.bitmapToMat(source, rgba)
             Imgproc.warpPerspective(

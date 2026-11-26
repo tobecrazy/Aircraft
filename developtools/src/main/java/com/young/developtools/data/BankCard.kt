@@ -68,22 +68,6 @@ private val digitRun = Regex("""\d[\d\s-]{10,}\d""")
 /** Any digit run, with no length floor; used only for diagnostics. */
 private val looseDigitRun = Regex("""\d[\d\s-]*""")
 
-/**
- * Short digit fragment: one or more digits optionally separated by spaces or
- * dashes. A single digit counts — the tail of "300" misread as "3OO" leaves
- * just "3", and dropping it loses the last three card digits.
- */
-private val digitFragment = Regex("""\d[\d\s-]*\d|\d""")
-private const val MIN_FRAGMENT_DIGITS = 1
-/**
- * Max gap characters between two fragments that can be stitched.
- *
- * ML Kit on embossed cards sometimes inserts a short word or several
- * misread characters between two digit groups. A gap of 8 covers
- * gaps like "300 X 6201" (3 non-digit chars) up to cases where a
- * Chinese character or a small label sits between digit clusters.
- */
-private const val MAX_STITCH_GAP = 8
 
 /**
  * Folds the characters ML Kit emits for a printed number onto the ASCII the run
@@ -129,15 +113,6 @@ private val CONFUSION_CHARS = digitConfusions.keys.joinToString("")
 private val digitRunWithConfusions = Regex(
     """(?<![A-Za-z0-9])[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS\s-]{10,}[\d$CONFUSION_CHARS](?![A-Za-z0-9])"""
 )
-/**
- * Broader fragment pattern that also spans known OCR confusion characters.
- * After confusion normalization the characters become digits, so the
- * fragment may be longer than the pure-digit one.
- */
-private val digitFragmentWithConfusions = Regex(
-    """[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS\s-]*[\d$CONFUSION_CHARS]|[\d$CONFUSION_CHARS]"""
-)
-
 /** Lengths a scheme actually issues; used to reject windows inside a long blob. */
 private val canonicalLengths = mapOf(
     BankCardScheme.VISA to setOf(13, 16, 19),
@@ -212,139 +187,46 @@ private fun blobCandidates(digits: String): List<String> {
  */
 internal fun stitchFragments(text: String): List<String> {
     val results = mutableListOf<String>()
-    for (line in text.split('\n')) {
+    val readable = normalizeOcrDigits(text)
+
+    // Strategy 1: per-line collection. Collects all digits on each line
+    // and windows them. Prevents cross-line gluing (card + expiry).
+    for (line in readable.split('\n')) {
         if (line.isBlank()) continue
-        val normalized = normalizeOcrDigits(line)
+        val fragmentCount = Regex("""\d+""").findAll(line).count()
+        if (fragmentCount < 2) continue
+        val digits = line.filter(Char::isDigit)
+        if (digits.length >= 12) results += blobCandidates(digits)
+        if (results.isEmpty()) {
+            val confusionDigits = line.normalizeOcrDigitConfusions().filter(Char::isDigit)
+            if (confusionDigits.length >= 12 && confusionDigits != digits) {
+                results += blobCandidates(confusionDigits)
+            }
+        }
+    }
+    if (results.isNotEmpty()) return results.distinct()
 
-        // Strategy 1: stitch pure digit fragments.
-        results += stitchLine(normalized, digitFragment, filterDigits = true)
-        if (results.isNotEmpty()) continue
-
-        // Strategy 2: stitch confusion-aware fragments where confusion
-        // characters inside each fragment are mapped to digits.
-        results += stitchLine(normalized, digitFragmentWithConfusions, filterDigits = false)
-        if (results.isNotEmpty()) continue
-
-        // Strategy 3: bridge small gaps by treating intervening confusion
-        // characters as potential digits. The whole gap between two
-        // fragments is confusion-normalized, so "6222X0038" where X is a
-        // non-confusion letter still breaks the stitch, but "6222O0038"
-        // where O→0 produces "622200038".
-        results += stitchLineWithGapRecovery(normalized)
+    // Strategy 2: cross-line collection. ML Kit often splits one embossed
+    // number across multiple OCR lines (a reflection gap, the chip, a tilt).
+    // Collect all digits from the entire text and window them.
+    // Only when the text holds more digits across fragments than any single
+    // digitRun or per-line collection found — otherwise a contiguous misread
+    // number would be windowed into a spurious sub-length match.
+    val allDigits = readable.filter(Char::isDigit)
+    val totalFragments = Regex("""\d+""").findAll(readable).count()
+    if (allDigits.length >= 12 && totalFragments >= 2) {
+        results += blobCandidates(allDigits)
+    }
+    if (results.isEmpty() && totalFragments >= 2) {
+        val allConfusion = readable.normalizeOcrDigitConfusions().filter(Char::isDigit)
+        if (allConfusion.length >= 12 && allConfusion != allDigits) {
+            results += blobCandidates(allConfusion)
+        }
     }
     return results.distinct()
 }
 
-/**
- * Core stitching: finds fragments via [pattern], merges adjacent ones whose
- * gap is ≤ [MAX_STITCH_GAP], extracts digits, and validates via Luhn.
- */
-private fun stitchLine(
-    line: String,
-    pattern: Regex,
-    filterDigits: Boolean,
-): List<String> {
-    val results = mutableListOf<String>()
-    val fragments = pattern.findAll(line)
-        .filter { it.value.count(Char::isDigit) >= MIN_FRAGMENT_DIGITS ||
-            (!filterDigits && it.value.normalizeOcrDigitConfusions().count(Char::isDigit) >= MIN_FRAGMENT_DIGITS) }
-        .toList()
-    if (fragments.size < 2) return emptyList()
-    var i = 0
-    while (i < fragments.size) {
-        val merged = StringBuilder()
-        val extractDigits: (String) -> String = if (filterDigits) {
-            { it.filter(Char::isDigit) }
-        } else {
-            { it.normalizeOcrDigitConfusions().filter(Char::isDigit) }
-        }
-        merged.append(extractDigits(fragments[i].value))
-        var endIndex = fragments[i].range.last
-        var j = i + 1
-        while (j < fragments.size) {
-            val gap = fragments[j].range.first - endIndex - 1
-            if (gap > MAX_STITCH_GAP) break
-            merged.append(extractDigits(fragments[j].value))
-            endIndex = fragments[j].range.last
-            j++
-        }
-        if (j > i + 1) { // at least two fragments were merged
-            val digits = merged.toString()
-            results += validateStitched(digits)
-        }
-        i++
-    }
-    return results
-}
 
-/**
- * Last-resort stitching: takes the text between fragment end and next
- * fragment start, confusion-normalizes it, and includes any resulting
- * digits. This recovers a gap character that is itself a misread digit
- * (e.g., "O" between two digit groups that should be "0").
- */
-private fun stitchLineWithGapRecovery(line: String): List<String> {
-    val results = mutableListOf<String>()
-    val fragments = digitFragment.findAll(line)
-        .filter { it.value.count(Char::isDigit) >= MIN_FRAGMENT_DIGITS }
-        .toList()
-    if (fragments.size < 2) return emptyList()
-    var i = 0
-    while (i < fragments.size) {
-        val merged = StringBuilder()
-        merged.append(fragments[i].value.filter(Char::isDigit))
-        var endIndex = fragments[i].range.last
-        var j = i + 1
-        while (j < fragments.size) {
-            val gapStart = endIndex + 1
-            val gapEnd = fragments[j].range.first
-            if (gapEnd - gapStart > MAX_STITCH_GAP) break
-            // Confusion-normalize gap characters and include any resulting digits.
-            if (gapStart < gapEnd) {
-                val gapText = line.substring(gapStart, gapEnd)
-                val recoveredDigits = gapText.normalizeOcrDigitConfusions().filter(Char::isDigit)
-                merged.append(recoveredDigits)
-            }
-            merged.append(fragments[j].value.filter(Char::isDigit))
-            endIndex = fragments[j].range.last
-            j++
-        }
-        if (j > i + 1) {
-            val digits = merged.toString()
-            results += validateStitched(digits)
-        }
-        i++
-    }
-    return results
-}
-
-/**
- * Validates a stitched digit string: exact match, blob windowing, or
- * single-digit repair when one misread position breaks the Luhn checksum.
- */
-private fun validateStitched(digits: String): List<String> {
-    if (digits.length in 12..19) {
-        if (isLuhnValid(digits) && hasAcceptedLength(digits)) return listOf(digits)
-        // Also try blob windowing — a prefix or suffix may be an expiry
-        // fragment that shouldn't be part of the card number.
-        return blobCandidates(digits)
-    }
-    if (digits.length > 19) {
-        return blobCandidates(digits)
-    }
-    return emptyList()
-}
-
-/**
- * Finds the single-digit change that makes [digits] Luhn-valid at a known
- * scheme length. Returns the repaired number, or null when no single
- * substitution produces a plausible card.
- *
- * Multiple positions may yield a Luhn-valid result, so a known-scheme
- * match (prefix + canonical length) is preferred over an unknown-IIN
- * fallback. Without this priority a repair at position 0 would change the
- * scheme prefix and win by iteration order alone.
- */
 // Luhn single-digit repair removed: an ambiguous single reading cannot
 // distinguish which position was misread. Cross-pass voting is the
 // correct path and is handled by voteCardReadings / BankCardRotationConfirmer.
@@ -415,93 +297,32 @@ internal fun cardNumberRuns(text: String): List<String> {
         val digits = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
         if (digits.length in 12..19) runs += digits
     }
-    // Include stitched fragments so the vote mechanism can accumulate readings
-    // from passes where the number was broken into short pieces. Stitching
-    // may produce validated candidates, but here we only need card-length
-    // runs (no Luhn gate) so the vote can decide.
-    if (runs.isEmpty()) {
-        for (line in text.split('\n')) {
-            if (line.isBlank()) continue
-            val normalized = normalizeOcrDigits(line)
-            stitchRunsFromLine(normalized, digitFragment, filterDigits = true, runs)
-            if (runs.isEmpty()) {
-                stitchRunsFromLine(normalized, digitFragmentWithConfusions, filterDigits = false, runs)
-            }
-            if (runs.isEmpty()) {
-                stitchRunsFromLineWithGapRecovery(normalized, runs)
-            }
+    // Per-line digit collection, then cross-line. Collects all digits
+    // ignoring non-digit gaps so fragments separated by misread characters
+    // rejoin. Always runs because digitRun may match a partial (e.g. 15
+    // digits) while the full set across gaps is 16+.
+    for (line in readable.split('\n')) {
+        if (line.isBlank()) continue
+        val fragmentCount = Regex("""\d+""").findAll(line).count()
+        if (fragmentCount < 2) continue
+        val lineDigits = line.filter(Char::isDigit)
+        if (lineDigits.length in 12..19) runs += lineDigits
+        val confusionDigits = line.normalizeOcrDigitConfusions().filter(Char::isDigit)
+        if (confusionDigits.length in 12..19 && confusionDigits != lineDigits) {
+            runs += confusionDigits
+        }
+    }
+    // Cross-line: when per-line didn't reach card length, collect all
+    // digits from the entire text (the number may span OCR lines).
+    if (runs.none { it.length in 16..19 }) {
+        val allDigits = readable.filter(Char::isDigit)
+        if (allDigits.length in 12..19) runs += allDigits
+        val allConfusion = readable.normalizeOcrDigitConfusions().filter(Char::isDigit)
+        if (allConfusion.length in 12..19 && allConfusion != allDigits) {
+            runs += allConfusion
         }
     }
     return runs.distinct()
-}
-
-/** Stitches fragments on one line using [pattern] and appends card-length runs (no Luhn gate). */
-private fun stitchRunsFromLine(
-    line: String,
-    pattern: Regex,
-    filterDigits: Boolean,
-    out: MutableList<String>,
-) {
-    val extractDigits: (String) -> String = if (filterDigits) {
-        { it.filter(Char::isDigit) }
-    } else {
-        { it.normalizeOcrDigitConfusions().filter(Char::isDigit) }
-    }
-    val fragments = pattern.findAll(line)
-        .filter { extractDigits(it.value).length >= MIN_FRAGMENT_DIGITS }
-        .toList()
-    if (fragments.size < 2) return
-    var i = 0
-    while (i < fragments.size) {
-        val merged = StringBuilder()
-        merged.append(extractDigits(fragments[i].value))
-        var endIndex = fragments[i].range.last
-        var j = i + 1
-        while (j < fragments.size) {
-            val gap = fragments[j].range.first - endIndex - 1
-            if (gap > MAX_STITCH_GAP) break
-            merged.append(extractDigits(fragments[j].value))
-            endIndex = fragments[j].range.last
-            j++
-        }
-        if (j > i + 1) {
-            val digits = merged.toString()
-            if (digits.length in 12..19) out += digits
-        }
-        i++
-    }
-}
-
-/** Stitches fragments on one line, recovering confusion chars in gaps. */
-private fun stitchRunsFromLineWithGapRecovery(line: String, out: MutableList<String>) {
-    val fragments = digitFragment.findAll(line)
-        .filter { it.value.count(Char::isDigit) >= MIN_FRAGMENT_DIGITS }
-        .toList()
-    if (fragments.size < 2) return
-    var i = 0
-    while (i < fragments.size) {
-        val merged = StringBuilder()
-        merged.append(fragments[i].value.filter(Char::isDigit))
-        var endIndex = fragments[i].range.last
-        var j = i + 1
-        while (j < fragments.size) {
-            val gapStart = endIndex + 1
-            val gapEnd = fragments[j].range.first
-            if (gapEnd - gapStart > MAX_STITCH_GAP) break
-            if (gapStart < gapEnd) {
-                val gapText = line.substring(gapStart, gapEnd)
-                merged.append(gapText.normalizeOcrDigitConfusions().filter(Char::isDigit))
-            }
-            merged.append(fragments[j].value.filter(Char::isDigit))
-            endIndex = fragments[j].range.last
-            j++
-        }
-        if (j > i + 1) {
-            val digits = merged.toString()
-            if (digits.length in 12..19) out += digits
-        }
-        i++
-    }
 }
 
 /**

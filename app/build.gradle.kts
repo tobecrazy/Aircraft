@@ -57,9 +57,9 @@ android {
             // every other ABI fall back to the pure-Kotlin filters in
             // ImagePreprocessor instead of adding ~110 MB of native code to the APK.
             excludes += listOf(
-                "lib/armeabi-v7a/libopencv_java4.so",
-                "lib/x86/libopencv_java4.so",
-                "lib/x86_64/libopencv_java4.so",
+                "lib/armeabi-v7a/libopencv_java5.so",
+                "lib/x86/libopencv_java5.so",
+                "lib/x86_64/libopencv_java5.so",
             )
         }
     }
