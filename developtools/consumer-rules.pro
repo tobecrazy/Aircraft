@@ -1,6 +1,15 @@
 # Consumer rules for :developtools.
 #
-# No keep rules are required:
+# One keep rule is required:
+#
+# - OpenCV resolves its Java entry points (org.opencv.android.Utils, Imgproc,
+#   Mat, ...) from the native library by name through JNI. Renaming or
+#   stripping them makes initLocal() succeed and the first Mat call fail, so the
+#   whole org.opencv tree stays. ImagePreprocessor only reaches OpenCV through
+#   these classes; when the native library is absent (non-arm64 APK, unit
+#   tests) the pure-Kotlin fallbacks run instead.
+#
+# Everything else needs no rules:
 #
 # - Manifest-merged components (all dev-tool activities + FlashlightService) are
 #   entry points: AAPT2 emits `-keep class <component> { <init>(); }` for each of
@@ -21,3 +30,5 @@
 #   GameMode/GameDifficulty (persisted by name), nothing in this module restores
 #   an enum from a persisted string. Gson only touches Map<String, String> /
 #   Map<String, List<String>> / Any, so no model-class keeps are needed either.
+
+-keep class org.opencv.** { *; }

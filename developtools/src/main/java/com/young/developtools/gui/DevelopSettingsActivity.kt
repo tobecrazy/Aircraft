@@ -154,7 +154,7 @@ class DevelopSettingsActivity : BaseAircraftActivity() {
                     onOpenRichText = { startActivity(Intent(this, RichTextEditorActivity::class.java)) },
                     onNotificationTest = ::showNotificationConfirmationDialog,
                     onOpenCameraScan = { startActivity(Intent(this, CameraScanActivity::class.java)) },
-                    onOpenBankCardScan = { startActivity(Intent(this, BankCardScanActivity::class.java)) },
+                    onOpenCardScan = { startActivity(Intent(this, CardScanActivity::class.java)) },
                     onOpenApiDebug = { startActivity(Intent(this, ApiDebugToolActivity::class.java)) },
                     onOpenPdfReader = { startActivity(Intent(this, PdfReaderActivity::class.java)) },
                     onOpenBannerItem = { item ->
@@ -266,7 +266,7 @@ internal fun DevelopSettingsScreen(
     onOpenRichText: () -> Unit,
     onNotificationTest: () -> Unit,
     onOpenCameraScan: () -> Unit,
-    onOpenBankCardScan: () -> Unit,
+    onOpenCardScan: () -> Unit,
     onOpenApiDebug: () -> Unit,
     onOpenPdfReader: () -> Unit,
     onOpenBannerItem: (SupperBannerItem) -> Unit,
@@ -561,11 +561,11 @@ internal fun DevelopSettingsScreen(
                             .testTag("btn_camera_scan")
                     )
                     ToolButton(
-                        textRes = R.string.develop_settings_bank_card_scan_button,
-                        onClick = onOpenBankCardScan,
+                        textRes = R.string.develop_settings_card_scan_button,
+                        onClick = onOpenCardScan,
                         modifier = Modifier
                             .padding(top = 10.dp)
-                            .testTag("btn_bank_card_scan")
+                            .testTag("btn_card_scan")
                     )
                     ToolButton(
                         textRes = R.string.develop_settings_api_debug_button,

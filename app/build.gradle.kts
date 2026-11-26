@@ -29,8 +29,8 @@ android {
 
     defaultConfig {
         applicationId = "com.young.aircraft"
-        versionCode = 31
-        versionName = "1.5.9"
+        versionCode = 32
+        versionName = "1.6.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("release")
     }
@@ -50,6 +50,18 @@ android {
     }
     buildFeatures {
         buildConfig = true
+    }
+    packaging {
+        jniLibs {
+            // OpenCV only backs the bank-card scanner. Ship its arm64 build and let
+            // every other ABI fall back to the pure-Kotlin filters in
+            // ImagePreprocessor instead of adding ~110 MB of native code to the APK.
+            excludes += listOf(
+                "lib/armeabi-v7a/libopencv_java5.so",
+                "lib/x86/libopencv_java5.so",
+                "lib/x86_64/libopencv_java5.so",
+            )
+        }
     }
     namespace = "com.young.aircraft"
     buildToolsVersion = "37.0.0"
@@ -122,61 +134,65 @@ dependencies {
     implementation(project(":richtexteditor"))
     implementation(project(":supperbanner"))
     implementation(project(":developtools"))
+
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.foundation.layout)
-    implementation(libs.zxing)
-    implementation(libs.retrofit)
-    implementation(libs.okhttp)
-    implementation(libs.gson)
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
+    implementation(libs.androidx.window)
+    implementation(libs.constraintlayout)
     implementation(libs.datastore.preferences)
+    implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.media)
+    implementation(libs.material)
+    implementation(libs.preference.ktx)
+    implementation(libs.viewpager2)
+
+    implementation(libs.activity.compose)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
+
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.core)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.mlkit.vision)
+    implementation(libs.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.config)
+    implementation(libs.firebase.crashlytics)
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
+    implementation(libs.coil.svg)
+
+    implementation(libs.gson)
+    implementation(libs.okhttp)
+    implementation(libs.retrofit)
+    implementation(libs.zxing)
+
+    implementation(libs.room.ktx)
+    implementation(libs.room.runtime)
     // Force the latest graphics-path over the older transitive copy pulled in
     // by Compose UI (all LOAD segments 16 KB-aligned; see the 16 KB doc for
     // the residual upstream RELRO note).
     implementation(libs.graphics.path)
     ksp(libs.room.compiler)
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.constraintlayout)
-    implementation(libs.viewpager2)
-    implementation(libs.media)
-    implementation(libs.preference.ktx)
-    implementation(libs.lifecycle.viewmodel.ktx)
-    implementation(libs.lifecycle.runtime.compose)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.config)
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.coil.compose)
-    implementation(libs.coil.gif)
-    implementation(libs.coil.svg)
-
-    implementation(libs.compose.ui)
-    implementation(libs.compose.foundation)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.activity.compose)
-    implementation(libs.androidx.window)
-    implementation(libs.camera.core)
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
-    implementation(libs.camera.mlkit.vision)
-    implementation(libs.mlkit.barcode.scanning)
     debugImplementation(libs.compose.ui.tooling)
+
     testImplementation(libs.compose.ui.test.junit4)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.androidx.test.core)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.robolectric)
-    testImplementation(libs.coroutines.test)
-    testImplementation(libs.androidx.test.core)
-    testImplementation(libs.androidx.test.junit)
-    testImplementation(libs.androidx.runner)
-    androidTestImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.test.core)
+
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.runner)
 }

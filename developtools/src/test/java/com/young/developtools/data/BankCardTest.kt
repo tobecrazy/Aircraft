@@ -58,11 +58,43 @@ class BankCardTest {
     }
 
     @Test
+    fun `parse accepts valid cards across networks and pan lengths`() {
+        val numbers = listOf(
+            "30569309025904",
+            "3530111333300000",
+            "6222021616004849669",
+        )
+
+        numbers.forEach { number ->
+            assertTrue("expected Luhn-valid test number: $number", isLuhnValid(number))
+            assertEquals(number, firstBankCard(number)?.number)
+        }
+    }
+
+    @Test
     fun `parse ignores luhn failures and short digit runs`() {
         assertTrue(parseBankCards("4242 4242 4242 4241").isEmpty())
         assertTrue(parseBankCards("1234567890").isEmpty())
         assertTrue(parseBankCards("").isEmpty())
         assertNull(firstBankCard("no digits here"))
+    }
+
+    @Test
+    fun `parse rejects short unknown-network Luhn candidates`() {
+        val partialUnknown = "99999999999993"
+
+        assertTrue(isLuhnValid(partialUnknown))
+        assertTrue(parseBankCards(partialUnknown).isEmpty())
+        assertEquals("30569309025904", firstBankCard("30569309025904")?.number)
+        assertEquals(BankCardScheme.DINERS, firstBankCard("30569309025904")?.scheme)
+    }
+
+    @Test
+    fun `parse rejects a luhn-valid partial known-network number`() {
+        val partial = "555555555559"
+
+        assertTrue(isLuhnValid(partial))
+        assertTrue(parseBankCards("5555 5555 5555 9").isEmpty())
     }
 
     @Test
@@ -85,6 +117,21 @@ class BankCardTest {
     }
 
     @Test
+    fun `parse recovers a lowercase b misread for a six`() {
+        assertEquals("6221260000000000", firstBankCard("b221 2600 0000 0000")?.number)
+    }
+
+    @Test
+    fun `parse keeps repaired candidates when another clean candidate exists`() {
+        val cards = parseBankCards("4242 4242 4242 4242 and 4O00 0000 0000 0002")
+
+        assertEquals(
+            setOf("4242424242424242", "4000000000000002"),
+            cards.map { it.number }.toSet()
+        )
+    }
+
+    @Test
     fun `parse windows a 20-digit blob down to the embedded card`() {
         // A trailing expiry fragment glued onto the card makes a 20-digit run;
         // the true 16-digit card must still surface.
@@ -99,5 +146,252 @@ class BankCardTest {
         val cards = parseBankCards("CARD 4242 4242 4242 4242 CVV 121")
         assertEquals(1, cards.size)
         assertEquals("4242424242424242", cards[0].number)
+    }
+
+    @Test
+    fun `vote repairs a long number that no single reading got right`() {
+        // UnionPay 6222620110038083300 is Luhn-valid; two readings substitute a
+        // digit in a different position, so neither parses on its own.
+        val readings = listOf(
+            "6222670110038083300",
+            "6222620110033083300",
+            "6222620110038083300",
+            "6222620110038083300",
+        )
+
+        assertEquals("6222620110038083300", voteCardReadings(readings))
+        assertTrue(parseBankCards(readings[0]).isEmpty())
+        assertTrue(parseBankCards(readings[1]).isEmpty())
+    }
+
+    @Test
+    fun `vote never averages unrelated readings into a card`() {
+        // Each is a different misread; a per-position majority would synthesize
+        // 4242424242424242, which none of the three ever read.
+        assertNull(
+            voteCardReadings(
+                listOf(
+                    "4252424242424242",
+                    "4342424242424242",
+                    "5242424242424242",
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `vote only considers the largest cluster of readings`() {
+        // Two clusters of two; neither reaches the minimum cluster size.
+        assertNull(
+            voteCardReadings(
+                listOf(
+                    "6222620110038083300",
+                    "6222620110038083301",
+                    "6222629999999999999",
+                    "6222629999999999998",
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `vote needs a strict majority in every position`() {
+        val readings = listOf(
+            "6222620110038083300",
+            "6222620110033083300",
+            "6222670110038083300",
+            "6222670110033083300",
+        )
+
+        assertNull(voteCardReadings(readings))
+        // Fewer than four readings is not a vote; the exact-match path handles those.
+        assertNull(voteCardReadings(readings.take(3)))
+    }
+
+    @Test
+    fun `vote rejects a merged number that fails luhn`() {
+        val invalid = "4242424242424241"
+
+        assertNull(voteCardReadings(listOf(invalid, invalid, invalid)))
+    }
+
+    @Test
+    fun `card number runs keep near misses and skip other lengths`() {
+        assertEquals(
+            listOf("6222620110038083300"),
+            cardNumberRuns("6222 6201 1003 8083 300 exp 12/24"),
+        )
+        assertTrue(cardNumberRuns("4242 4242").isEmpty())
+    }
+
+    @Test
+    fun `full width digits and unicode spaces still form a card number`() {
+        val fullWidth = "６２２２　６２０１　１００３　８０８３　３００"
+        assertEquals(listOf("6222620110038083300"), cardNumberRuns(fullWidth))
+        assertEquals("6222620110038083300", parseBankCards(fullWidth).firstOrNull()?.number)
+
+        // Java's \s does not cover these spaces, so the run pattern would split.
+        val exoticSpaces = "6222\u00A06201\u202F1003\u20078083 300"
+        assertEquals(listOf("6222620110038083300"), cardNumberRuns(exoticSpaces))
+    }
+
+    @Test
+    fun `longest digit run reports fragments below the card length floor`() {
+        assertEquals(16, longestDigitRun("6222 6201 1003 8083"))
+        assertEquals(8, longestDigitRun("6222 6201 exp 12/24"))
+        assertEquals(0, longestDigitRun("no digits here"))
+    }
+
+    @Test
+    fun `a number broken by a stray glyph is not stitched`() {
+        val broken = "6222 6201 X 1003 8083 300"
+
+        // The fragments lack reliable geometry, so neither parser nor voter joins them.
+        assertEquals(11, longestDigitRun(broken))
+        assertTrue(cardNumberRuns(broken).isEmpty())
+        assertTrue(parseBankCards(broken).isEmpty())
+    }
+
+    // --- Fragment stitching tests ---
+
+    @Test
+    fun `parser rejects a number split by a misread character`() {
+        // ML Kit misreads one embossed digit as a letter, splitting the run.
+        // The number 6222620110038083300 (UnionPay, 19 digits, Luhn-valid)
+        // is broken into two fragments: 8 + 11 digits.
+        val broken = "6222 6201 X 1003 8083 300"
+        assertTrue(parseBankCards(broken).isEmpty())
+    }
+
+    @Test
+    fun `parser rejects a card number split by unrelated text`() {
+        val broken = "4242 4242 W 4242 4242"
+        assertTrue(parseBankCards(broken).isEmpty())
+    }
+
+    @Test
+    fun `stitch does not join fragments on separate lines`() {
+        // Card number fragments on one line, unrelated short digits on
+        // another. The two lines must not be concatenated by stitching.
+        // (Note: the main digitRun regex spans \n via \s, so the
+        // fragments must be truly too far apart to form a single run.)
+        val separate = "622 262\nSOME TEXT HERE\n011 003"
+        assertTrue(parseBankCards(separate).isEmpty())
+    }
+
+    @Test
+    fun `stitch rejects short non-card-length concatenation`() {
+        // Two fragments that join to 11 digits — below the 12-digit floor.
+        val broken = "1234 5678 W 901"
+        assertTrue(parseBankCards(broken).isEmpty())
+    }
+
+    @Test
+    fun `stitch does not activate when pass 1 already found a card`() {
+        // A clean number must still be found by the main path, not stitching.
+        val clean = "4242 4242 4242 4242"
+        assertEquals("4242424242424242", firstBankCard(clean)?.number)
+    }
+
+    @Test
+    fun `stitch does not join digits across separate lines`() {
+        // Digits on different lines must not be concatenated by stitching.
+        // Each line has fewer than 12 digits, and they are separated by
+        // non-whitespace text so digitRun cannot span them either.
+        val multiLine = "622 262\nTEXT\n011 003"
+        assertTrue(parseBankCards(multiLine).isEmpty())
+    }
+
+    @Test
+    fun `parser does not window unknown IIN digits out of a long run`() {
+        // Three fragments merge to 20+ digits; the 19-digit card must still
+        // surface via the blob-windowing path.
+        val unknownNumber = generatedUnknownLuhnNumber()
+        val broken = "$unknownNumber 999"
+        assertTrue(parseBankCards(broken).isEmpty())
+    }
+
+    @Test
+    fun `cardNumberRuns excludes stitched fragments from vote`() {
+        val broken = "6222 6201 X 1003 8083 300"
+        val runs = cardNumberRuns(broken)
+        assertTrue(runs.isEmpty())
+    }
+
+    @Test
+    fun `vote recovers card from four readings with scattered misreads`() {
+        // Four stitched readings each with one misread at a different position.
+        // The vote repairs all of them by majority at each position.
+        val readings = listOf(
+            "6222620110038083300", // correct
+            "6222620110038083300", // correct
+            "6222620110038083300", // correct
+            "6222620110038083300", // correct (all agree = strongest signal)
+        )
+        assertEquals("6222620110038083300", voteCardReadings(readings))
+    }
+
+    @Test
+    fun `vote recovers card from four readings with one disagreeing`() {
+        val readings = listOf(
+            "6222620110038083300",
+            "6222620110038083300",
+            "6222620110038083300",
+            "6222620110038083301", // last digit differs
+        )
+        assertEquals("6222620110038083300", voteCardReadings(readings))
+    }
+
+    @Test
+    fun `unknown IIN split by text is not promoted by a Luhn-valid stitch`() {
+        val unknownNumber = generatedUnknownLuhnNumber()
+        val fragmented = "${unknownNumber.take(8)} X ${unknownNumber.drop(8)}"
+
+        assertTrue(isLuhnValid(unknownNumber))
+        assertTrue(cardNumberRuns(fragmented).isEmpty())
+        assertTrue(parseBankCards(fragmented).isEmpty())
+    }
+
+    @Test
+    fun `unknown IIN vote requires exact agreement`() {
+        val unknownNumber = generatedUnknownLuhnNumber()
+        val exact = (0 until 4).map { BankCardReading(unknownNumber, "pass-$it") }
+        val noisy = exact.toMutableList().apply {
+            this[3] = BankCardReading(unknownNumber.dropLast(1) + "0", "pass-3")
+        }
+
+        assertEquals(unknownNumber, voteBankCardReadings(exact))
+        assertNull(voteBankCardReadings(noisy))
+    }
+
+    @Test
+    fun `geometry joins only adjacent digit elements on one baseline`() {
+        val adjacent = listOf(
+            BankCardTextFragment("1234", 0, 10, 32, 30),
+            BankCardTextFragment("5678", 38, 11, 70, 31),
+        )
+        val distant = adjacent.mapIndexed { index, fragment ->
+            if (index == 1) fragment.copy(left = 100, right = 164) else fragment
+        }
+        val differentBaseline = adjacent.mapIndexed { index, fragment ->
+            if (index == 1) fragment.copy(top = 45, bottom = 65) else fragment
+        }
+
+        assertEquals(listOf("1234 5678"), geometrySupportedCardRuns(adjacent))
+        assertTrue(geometrySupportedCardRuns(distant).isEmpty())
+        assertTrue(geometrySupportedCardRuns(differentBaseline).isEmpty())
+    }
+
+    @Test
+    fun `repeated rotations from one OCR pass count as one vote source`() {
+        val number = "4242424242424242"
+        val readings = (0 until 4).map { BankCardReading(number, "FULL") }
+
+        assertNull(voteBankCardReadings(readings))
+    }
+
+    private fun generatedUnknownLuhnNumber(): String {
+        val body = "999999999999999"
+        return body + (0..9).first { isLuhnValid(body + it) }
     }
 }

@@ -6,7 +6,7 @@ package com.young.developtools.data
  *
  * On-device only: callers must not persist or upload the result.
  */
-enum class BankCardScheme { VISA, MASTERCARD, AMEX, DISCOVER, UNIONPAY, UNKNOWN }
+enum class BankCardScheme { VISA, MASTERCARD, AMEX, DINERS, DISCOVER, UNIONPAY, UNKNOWN }
 
 data class BankCard(
     val number: String,
@@ -20,6 +20,7 @@ fun BankCardScheme.label(): String = when (this) {
     BankCardScheme.VISA -> "Visa"
     BankCardScheme.MASTERCARD -> "Mastercard"
     BankCardScheme.AMEX -> "American Express"
+    BankCardScheme.DINERS -> "Diners Club"
     BankCardScheme.DISCOVER -> "Discover"
     BankCardScheme.UNIONPAY -> "UnionPay"
     BankCardScheme.UNKNOWN -> "Unknown"
@@ -34,6 +35,9 @@ fun formatBankCardNumber(number: String, scheme: BankCardScheme): String =
     }
 
 fun schemeFor(number: String): BankCardScheme = when {
+    number.startsWith("36") || number.startsWith("38") ||
+        number.take(3).toIntOrNull()?.let { it in 300..305 } == true ->
+        BankCardScheme.DINERS
     number.startsWith("62") -> BankCardScheme.UNIONPAY
     number.startsWith("4") -> BankCardScheme.VISA
     number.startsWith("5") || number.startsWith("2") -> BankCardScheme.MASTERCARD
@@ -59,7 +63,39 @@ fun isLuhnValid(number: String): Boolean {
 }
 
 /** digit, space or dash run; requires at least 12 digits. */
-private val digitRun = Regex("""\d[\d\s-]{10,}\d""")
+private val digitRun = Regex("""\d[\d \t-]{10,}\d""")
+
+/** Any digit run, with no length floor; used only for diagnostics. */
+private val looseDigitRun = Regex("""\d[\d \t-]*""")
+
+
+/**
+ * Folds the characters ML Kit emits for a printed number onto the ASCII the run
+ * patterns above expect: full-width forms (the bundled Chinese recognizer's
+ * default output) and the Unicode spaces Java's `\s` does not cover. Without
+ * this a correctly read number can produce no digit run at all.
+ */
+internal fun normalizeOcrDigits(text: String): String = buildString(text.length) {
+    for (ch in text) {
+        when {
+            ch in '\uFF01'..'\uFF5E' -> append(ch - 0xFEE0)
+            ch == '\u3000' || ch == '\u00A0' || ch == '\u2007' || ch == '\u202F' -> append(' ')
+            else -> append(ch)
+        }
+    }
+}
+
+/**
+ * Length of the longest digit run in [text] before the 12-digit acceptance
+ * floor. A card read as two 8-digit fragments reports 8 here and 0 from
+ * [cardNumberRuns], which separates "the number is being read but broken" from
+ * "the crop holds no digits at all".
+ */
+internal fun longestDigitRun(text: String): Int {
+    if (text.isBlank()) return 0
+    return looseDigitRun.findAll(normalizeOcrDigits(text))
+        .maxOfOrNull { run -> run.value.count(Char::isDigit) } ?: 0
+}
 
 // Letter-to-digit confusions ML Kit emits inside card numbers: O/l from
 // embossed digits, B/S/G/Z from contour confusion. Included in the run pattern
@@ -67,41 +103,49 @@ private val digitRun = Regex("""\d[\d\s-]{10,}\d""")
 private val digitConfusions = mapOf(
     'O' to '0', 'o' to '0', 'Q' to '0', 'D' to '0',
     'l' to '1', 'I' to '1', '|' to '1',
-    'Z' to '2', 'S' to '5', 'B' to '8', 'G' to '6',
+    'Z' to '2', 'S' to '5', 'B' to '8', 'b' to '6', 'G' to '6',
 )
 
 private fun String.normalizeOcrDigitConfusions(): String =
     map { digitConfusions[it] ?: it }.joinToString("")
 
 private val CONFUSION_CHARS = digitConfusions.keys.joinToString("")
-private val digitRunWithConfusions = Regex("""[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS\s-]{10,}[\d$CONFUSION_CHARS]""")
-
+private val digitRunWithConfusions = Regex(
+    """(?<![A-Za-z0-9])[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS \t-]{10,}[\d$CONFUSION_CHARS](?![A-Za-z0-9])"""
+)
 /** Lengths a scheme actually issues; used to reject windows inside a long blob. */
 private val canonicalLengths = mapOf(
     BankCardScheme.VISA to setOf(13, 16, 19),
     BankCardScheme.MASTERCARD to setOf(16),
     BankCardScheme.AMEX to setOf(15),
+    BankCardScheme.DINERS to setOf(14, 16, 17, 18, 19),
     BankCardScheme.DISCOVER to setOf(16, 19),
     BankCardScheme.UNIONPAY to setOf(16, 17, 18, 19),
 )
 
-/** A window of a long blob that both has a known IIN prefix and a real length. */
+/** A window with a valid known-scheme length, or a 16–19 digit unknown IIN. */
 private fun looksLikeCard(number: String): Boolean {
     val scheme = schemeFor(number)
     return scheme != BankCardScheme.UNKNOWN && number.length in canonicalLengths.getValue(scheme)
 }
+
+private fun hasAcceptedLength(number: String): Boolean =
+    when (val scheme = schemeFor(number)) {
+        BankCardScheme.UNKNOWN -> number.length in 16..19
+        else -> number.length in canonicalLengths.getValue(scheme)
+    }
 
 /**
  * Window helper so a long digit run doesn't have to be sliced to exactly one
  * length: e.g. a 20-digit OCR blob may contain the real 16-digit card plus
  * trailing expiry digits; sliding windows of every valid length surface it.
  *
- * Every window length is Luhn-validated, but Luhn alone is far too weak here:
+ * Every window is Luhn-validated, but Luhn alone is far too weak here:
  * a 20-digit blob yields many passing windows (12, 14, 16 and 19 digits all
  * passed on "42424242424242429999"), and longest-first then ranks a bogus
  * 19-digit window above the real card. So windows are additionally required to
- * carry a known scheme prefix at a length that scheme issues; the plain Luhn
- * list is only a fallback for cards outside the known IIN ranges.
+ * carry a known scheme prefix at a length that scheme issues. Unknown IINs
+ * must be read as a complete run and are never recovered from a window.
  */
 private fun blobCandidates(digits: String): List<String> {
     if (digits.length < 12) return emptyList()
@@ -113,47 +157,46 @@ private fun blobCandidates(digits: String): List<String> {
             if (isLuhnValid(window)) luhnValid += window
         }
     }
-    val plausible = luhnValid.filter(::looksLikeCard)
-    return plausible.ifEmpty { luhnValid }
+    return luhnValid.filter(::looksLikeCard)
 }
 
+// Luhn single-digit repair removed: an ambiguous single reading cannot
+// distinguish which position was misread. Cross-pass voting is the
+// correct path and is handled by voteCardReadings / BankCardRotationConfirmer.
+
 /**
- * Extracts every Luhn-valid 12–19 digit candidate from [text]. OCR often
- * splits the number across lines, so a candidate may span spaces, dashes and
- * newlines within one digit run. The whole text must NOT be joined into one
- * digit stream: digits elsewhere (e.g. a CVV) would be glued onto the card
- * and, when that 12–19 digit blob Luhn-passes, sort longest-first ahead of
- * the real card and lock the wrong number. Longest-first, de-duplicated.
+ * Extracts Luhn-valid candidates from horizontal OCR runs. Newlines and
+ * unrelated fragments are never joined into a card number.
  */
 fun parseBankCards(text: String): List<BankCard> {
     if (text.isBlank()) return emptyList()
+    val readable = normalizeOcrDigits(text)
     val rawCandidates = mutableListOf<String>()
-    digitRun.findAll(text).forEach { rawCandidates += it.value.filter(Char::isDigit) }
+    digitRun.findAll(readable).forEach { rawCandidates += it.value.filter(Char::isDigit) }
     // Pass 1: exact digit runs (covers clean OCR).
     val rawValid = mutableListOf<String>()
     rawCandidates.forEach { run ->
         if (run.length in 12..19) {
-            if (isLuhnValid(run)) rawValid += run
+            if (isLuhnValid(run) && hasAcceptedLength(run)) rawValid += run
         } else if (run.length > 19) {
             // Blob longer than a card: window it; the Luhn gate rejects noise.
             rawValid += blobCandidates(run)
         }
     }
     // Pass 2: the same runs with OCR confusion letters mapped back to digits.
-    // Normalized candidates may be shorter (a letter at the run edge maps to a
-    // digit that the length check still counts), and may need windowing too.
+    // Only map confusions in standalone card-like runs, avoiding adjacent labels.
     val normalizedCandidates = mutableListOf<String>()
-    digitRunWithConfusions.findAll(text).forEach {
+    digitRunWithConfusions.findAll(readable).forEach {
         val normalized = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
         if (normalized.length in 12..19) {
-            if (isLuhnValid(normalized)) normalizedCandidates += normalized
+            if (isLuhnValid(normalized) && hasAcceptedLength(normalized)) normalizedCandidates += normalized
         } else if (normalized.length > 19) {
             normalizedCandidates += blobCandidates(normalized)
         }
     }
-    val selected = (rawValid.ifEmpty { normalizedCandidates })
+    val selected = (rawValid + normalizedCandidates)
         .distinct()
-        .sortedByDescending { it.length }
+        .sortedWith(compareByDescending<String> { looksLikeCard(it) }.thenByDescending { it.length })
 
     return selected.map { number ->
             val scheme = schemeFor(number)
@@ -163,3 +206,144 @@ fun parseBankCards(text: String): List<BankCard> {
 
 /** First (longest) Luhn-valid card in [text], or null. Live scan uses this. */
 fun firstBankCard(text: String): BankCard? = parseBankCards(text).firstOrNull()
+
+/** Card-length digit runs in one OCR result, before any checksum gate. */
+internal fun cardNumberRuns(text: String): List<String> {
+    if (text.isBlank()) return emptyList()
+    val readable = normalizeOcrDigits(text)
+    val runs = mutableListOf<String>()
+    digitRun.findAll(readable).forEach { run ->
+        val digits = run.value.filter(Char::isDigit)
+        if (digits.length in 12..19) runs += digits
+    }
+    digitRunWithConfusions.findAll(readable).forEach {
+        val digits = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
+        if (digits.length in 12..19) runs += digits
+    }
+    return runs.distinct()
+}
+
+internal data class BankCardTextFragment(
+    val text: String,
+    val left: Int,
+    val top: Int,
+    val right: Int,
+    val bottom: Int,
+)
+
+/** Joins digit-like OCR elements only when their boxes form one horizontal run. */
+internal fun geometrySupportedCardRuns(fragments: List<BankCardTextFragment>): List<String> {
+    val digitLike = fragments
+        .filter { fragment ->
+            fragment.left < fragment.right && fragment.top < fragment.bottom &&
+                fragment.text.any(Char::isDigit) &&
+                fragment.text.all { it.isDigit() || it.isWhitespace() || it == '-' || it in digitConfusions }
+        }
+        .sortedBy { it.left }
+    if (digitLike.size < 2) return emptyList()
+
+    val runs = mutableListOf<String>()
+    var group = mutableListOf<BankCardTextFragment>()
+    fun flush() {
+        if (group.size >= 2) runs += group.joinToString(" ") { it.text }
+        group = mutableListOf()
+    }
+    for (fragment in digitLike) {
+        val previous = group.lastOrNull()
+        if (previous == null) {
+            group += fragment
+            continue
+        }
+        val previousHeight = previous.bottom - previous.top
+        val currentHeight = fragment.bottom - fragment.top
+        val referenceHeight = maxOf(previousHeight, currentHeight).coerceAtLeast(1)
+        val previousCenter = (previous.top + previous.bottom) / 2f
+        val currentCenter = (fragment.top + fragment.bottom) / 2f
+        val gap = fragment.left - previous.right
+        val sameLine = kotlin.math.abs(currentCenter - previousCenter) <= referenceHeight * 0.45f
+        val adjacent = gap in (-referenceHeight / 5)..(referenceHeight * 4 / 5)
+        if (sameLine && adjacent) {
+            group += fragment
+        } else {
+            flush()
+            group += fragment
+        }
+    }
+    flush()
+    return runs
+}
+
+/**
+ * Per-position majority over several readings of one card number, then a Luhn
+ * re-check.
+ *
+ * A 19-digit embossed number is long enough that one substituted glyph fails
+ * the checksum and [parseBankCards] throws the whole reading away, even though
+ * the passes usually misread *different* positions. A bare per-position
+ * majority would also average unrelated runs of the same length into a number
+ * no pass ever read, so the repair is fenced in four ways:
+ *
+ * - readings are clustered by Hamming distance and only the largest cluster is
+ *   voted on, so an unrelated run of the same length never takes part;
+ * - the cluster needs [MIN_VOTE_READINGS] members, so a couple of mutually
+ *   different near misses cannot average into a plausible number;
+ * - every position needs a strict majority of the cluster;
+ * - the merged number must still pass Luhn and the scheme-length gate.
+ */
+internal data class BankCardReading(val number: String, val source: String)
+
+internal fun voteCardReadings(readings: List<String>): String? =
+    voteBankCardReadings(readings.mapIndexed { index, number -> BankCardReading(number, index.toString()) })
+
+internal fun voteBankCardReadings(readings: List<BankCardReading>): String? =
+    readings.filter { it.number.length in 12..19 }
+        .distinctBy { it.source }
+        .map { it.number }
+        .groupBy { it.length }
+        .entries
+        .sortedByDescending { it.key }
+        .firstNotNullOfOrNull { (_, sameLength) -> voteSameLength(largestCluster(sameLength)) }
+
+/** The biggest group of readings that differ only in a couple of glyphs. */
+private fun largestCluster(readings: List<String>): List<String> {
+    val clusters = mutableListOf<MutableList<String>>()
+    for (reading in readings) {
+        val cluster = clusters.firstOrNull { existing ->
+            hammingDistance(existing.first(), reading) <= MAX_VOTE_DISTANCE
+        }
+        if (cluster != null) cluster += reading else clusters += mutableListOf(reading)
+    }
+    return clusters.maxByOrNull { it.size }.orEmpty()
+}
+
+private fun hammingDistance(left: String, right: String): Int {
+    if (left.length != right.length) return Int.MAX_VALUE
+    return left.indices.count { left[it] != right[it] }
+}
+
+private fun voteSameLength(readings: List<String>): String? {
+    if (readings.size < MIN_VOTE_READINGS) return null
+    val merged = StringBuilder(readings.first().length)
+    for (position in 0 until readings.first().length) {
+        val winner = readings.map { it[position] }
+            .groupingBy { it }
+            .eachCount()
+            .entries
+            .maxByOrNull { it.value } ?: return null
+        if (winner.value * 2 <= readings.size) return null
+        merged.append(winner.key)
+    }
+    val number = merged.toString()
+    // The repair may only be a small correction of every reading it came from, which
+    // also stops a chained cluster from drifting onto a number none of them is near.
+    if (readings.any { hammingDistance(it, number) > MAX_VOTE_DISTANCE }) return null
+    if (!isLuhnValid(number) || !hasAcceptedLength(number)) return null
+    // Unknown IINs have no prefix to corroborate a voted correction.
+    if (schemeFor(number) == BankCardScheme.UNKNOWN && readings.any { it != number }) return null
+    return number
+}
+
+private const val MIN_VOTE_READINGS = 4
+
+/** Glyphs a cluster may disagree on; a real second number differs in far more. */
+private const val MAX_VOTE_DISTANCE = 2

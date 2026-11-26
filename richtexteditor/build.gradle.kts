@@ -12,7 +12,8 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat.richtext)
+    implementation(libs.androidx.core.ktx)
+
     testImplementation(libs.junit)
 }

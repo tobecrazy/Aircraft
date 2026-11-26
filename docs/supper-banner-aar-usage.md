@@ -73,7 +73,7 @@ dependencies {
 
 The library is built with:
 
-- `compileSdk 37`
+- `compileSdk 37.1`
 - `minSdk 33`
 - Kotlin JVM target `17`
 
