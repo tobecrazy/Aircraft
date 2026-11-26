@@ -369,7 +369,7 @@ private fun CardScanScreen(
                 .align(Alignment.BottomCenter)
                 .maxContentWidth()
                 .then(
-                    if (scanning) {
+                    if (scanning || uiState.errorRes != null || diagnostics != null) {
                         Modifier
                             .heightIn(max = footerMaxHeight)
                             .verticalScroll(rememberScrollState())
@@ -456,7 +456,7 @@ private fun CardScanScreen(
                 )
             }
 
-            if (uiState.errorRes != null && diagnostics != null) {
+            if (diagnostics != null) {
                 ScanDiagnosticsCard(diagnostics, onCopy = onCopy)
             }
 
@@ -935,11 +935,14 @@ private fun ErrorCard(
 
 private fun BankCardScanDiagnostics.summaryLine(): String {
     val entries = this.entries
+    val selected = selectedCandidate?.let {
+        " result=${it.origin.name}/${it.length}/${it.scheme}/passes=${it.acceptedPassCount}"
+    }.orEmpty()
     return "rectified=$rectified passes=${entries.size} " +
         "text=${entries.count { it.blockCount > 0 }} " +
         "runs=${entries.count { it.digitRunLengths.isNotEmpty() }} " +
         "maxDigits=${entries.maxOfOrNull { it.longestDigitRun } ?: 0} " +
-        "cand=${entries.sumOf { it.candidateCount }}"
+        "cand=${entries.sumOf { it.candidateCount }}$selected"
 }
 
 @Composable
@@ -1013,6 +1016,16 @@ private fun ScanDiagnosticsCard(
         // Pass entries
         displayEntries.forEach { entry ->
             DiagnosticsPassRow(entry)
+        }
+
+        diagnostics.selectedCandidate?.let { candidate ->
+            Text(
+                text = "result=${candidate.origin.name} len=${candidate.length} " +
+                    "scheme=${candidate.scheme} passes=${candidate.acceptedPassCount}",
+                color = AccentGreen.copy(alpha = 0.7f),
+                fontSize = 9.sp,
+                fontFamily = FontFamily.Monospace,
+            )
         }
 
         // Expand/collapse toggle
@@ -1113,6 +1126,17 @@ private fun DiagnosticsPassRow(entry: BankCardScanTraceEntry) {
                 fontFamily = FontFamily.Monospace,
             )
         }
+        if (entry.candidates.isNotEmpty()) {
+            Text(
+                text = entry.candidates.joinToString(prefix = "candidates=") { candidate ->
+                    "${candidate.origin.name}:${candidate.length}/${candidate.scheme}/p${candidate.acceptedPassCount}"
+                },
+                color = AccentGreen.copy(alpha = 0.55f),
+                fontSize = 8.sp,
+                lineHeight = 11.sp,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
     }
 }
 
@@ -1140,6 +1164,13 @@ private fun formatTraceForCopy(
         if (entry.fragmentLengths.isNotEmpty()) {
             append("  frags=").append(entry.fragmentLengths)
             append(" sum=").append(entry.fragmentLengths.sum())
+            appendLine()
+        }
+        for (candidate in entry.candidates) {
+            append("  candidate=").append(candidate.origin.name)
+                .append(" len=").append(candidate.length)
+                .append(" scheme=").append(candidate.scheme)
+                .append(" passes=").append(candidate.acceptedPassCount)
             appendLine()
         }
     }

@@ -13,6 +13,9 @@ import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.young.developtools.R
 import com.young.developtools.data.BankCard
+import com.young.developtools.data.BankCardReading
+import com.young.developtools.data.BankCardScheme
+import com.young.developtools.data.BankCardTextFragment
 import com.young.developtools.data.CardType
 import com.young.developtools.data.IdCardEmblem
 import com.young.developtools.data.IdCardPortrait
@@ -20,12 +23,13 @@ import com.young.developtools.data.OcrLine
 import com.young.developtools.data.ScanHint
 import com.young.developtools.data.birthDateFromIdNumber
 import com.young.developtools.data.cardNumberRuns
+import com.young.developtools.data.geometrySupportedCardRuns
 import com.young.developtools.data.longestDigitRun
 import com.young.developtools.data.normalizeOcrDigits
 import com.young.developtools.data.parseBankCards
 import com.young.developtools.data.parseIdCardEmblem
 import com.young.developtools.data.parseIdCardPortrait
-import com.young.developtools.data.voteCardReadings
+import com.young.developtools.data.voteBankCardReadings
 import com.young.developtools.utils.DevLog
 import com.young.developtools.utils.ImagePreprocessor
 import kotlinx.coroutines.CancellationException
@@ -599,7 +603,11 @@ class CardScanViewModel : ViewModel() {
                 cards = confirmer.voteAllRotations()
             }
             lastScanTrace = trace
-            _diagnostics.value = BankCardScanDiagnostics(region.rectified, trace)
+            _diagnostics.value = BankCardScanDiagnostics(
+                rectified = region.rectified,
+                entries = trace,
+                selectedCandidate = cards.firstOrNull()?.let(confirmer::candidateTrace),
+            )
             // Redacted summary only: pass names, counts and run lengths. No OCR
             // text, card digits, pixels or hashes are ever logged.
             DevLog.i(
@@ -611,6 +619,12 @@ class CardScanViewModel : ViewModel() {
                     append(" runs=").append(trace.count { it.digitRunLengths.isNotEmpty() })
                     append(" maxDigits=").append(trace.maxOfOrNull { it.longestDigitRun } ?: 0)
                     append(" candidates=").append(trace.sumOf { it.candidateCount })
+                    _diagnostics.value?.selectedCandidate?.let { candidate ->
+                        append(" origin=").append(candidate.origin.name)
+                        append(" length=").append(candidate.length)
+                        append(" scheme=").append(candidate.scheme)
+                        append(" passCount=").append(candidate.acceptedPassCount)
+                    }
                 },
             )
             _uiState.update {
@@ -809,7 +823,13 @@ class CardScanViewModel : ViewModel() {
         lineGuided: Boolean = false,
     ): BankPassOutcome {
         val text = recognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
-        var accepted = confirmer.observe(text.text, rotation, pass)
+        val parsed = bankCardCandidates(text)
+        var accepted = confirmer.observe(
+            candidates = parsed,
+            readings = bankCardReadings(text),
+            rotation = rotation,
+            pass = pass,
+        )
         // Per-fragment digit counts: every consecutive-digit chunk in the
         // normalized text, sorted descending. Redacted: lengths only, never
         // the digits themselves.
@@ -828,14 +848,15 @@ class CardScanViewModel : ViewModel() {
             lineCount = text.textBlocks.sumOf { it.lines.size },
             digitRunLengths = cardNumberRuns(text.text).map(String::length),
             longestDigitRun = longestDigitRun(text.text),
-            candidateCount = parseBankCards(text.text).size,
+            candidateCount = parsed.size,
             acceptedCount = accepted.size,
             fragmentLengths = fragments,
+            candidates = parsed.map(confirmer::candidateTrace),
         )
         // A card-length run that still failed validation means the recognizer
         // found the number line but dropped or misread part of it. Re-read that
         // strip alone, enlarged, rather than trying more blind crops.
-        if (!lineGuided && accepted.isEmpty() && cardNumberRuns(text.text).isNotEmpty()) {
+        if (!lineGuided && accepted.isEmpty() && bankCardReadings(text).isNotEmpty()) {
             val line = cardDigitLine(text)
             if (line != null) {
                 accepted = runLineGuidedPass(bitmap, recognizer, rotation, line, confirmer, trace)
@@ -1036,6 +1057,16 @@ private data class BankPassOutcome(val text: Text, val accepted: List<BankCard>)
 internal data class BankCardScanDiagnostics(
     val rectified: Boolean,
     val entries: List<BankCardScanTraceEntry>,
+    val selectedCandidate: BankCardCandidateTrace?,
+)
+
+internal enum class BankCardCandidateOrigin { CONTIGUOUS, SAME_LINE_STITCH, CROSS_LINE_STITCH, VOTE }
+
+internal data class BankCardCandidateTrace(
+    val origin: BankCardCandidateOrigin,
+    val length: Int,
+    val scheme: String,
+    val acceptedPassCount: Int,
 )
 
 /**
@@ -1056,25 +1087,95 @@ internal data class BankCardScanTraceEntry(
     val acceptedCount: Int,
     /** Lengths of every consecutive-digit fragment (no minimum), sorted descending. */
     val fragmentLengths: List<Int> = emptyList(),
+    val candidates: List<BankCardCandidateTrace> = emptyList(),
 )
+
+private data class BankCardOcrCandidate(
+    val card: BankCard,
+    val origin: BankCardCandidateOrigin,
+)
+
+private fun bankCardCandidates(text: Text): List<BankCardOcrCandidate> {
+    val lines = text.textBlocks.flatMap { it.lines }
+    if (lines.isEmpty()) {
+        return parseBankCards(text.text).map { BankCardOcrCandidate(it, BankCardCandidateOrigin.CONTIGUOUS) }
+    }
+    val candidates = mutableListOf<BankCardOcrCandidate>()
+    for (line in lines) {
+        parseBankCards(line.text).forEach {
+            candidates += BankCardOcrCandidate(it, BankCardCandidateOrigin.CONTIGUOUS)
+        }
+        val fragments = line.elements.mapNotNull { element ->
+            val box = element.boundingBox ?: return@mapNotNull null
+            BankCardTextFragment(element.text, box.left, box.top, box.right, box.bottom)
+        }
+        geometrySupportedCardRuns(fragments).flatMap(::parseBankCards).forEach {
+            candidates += BankCardOcrCandidate(it, BankCardCandidateOrigin.SAME_LINE_STITCH)
+        }
+    }
+    return candidates
+        .distinctBy { it.card.number }
+        .sortedWith(
+            compareByDescending<BankCardOcrCandidate> { it.origin == BankCardCandidateOrigin.CONTIGUOUS }
+                .thenByDescending { it.card.number.length }
+        )
+}
+
+private fun bankCardReadings(text: Text): List<String> {
+    val lines = text.textBlocks.flatMap { it.lines }
+    return lines.flatMap { line ->
+        cardNumberRuns(line.text) + geometrySupportedCardRuns(
+            line.elements.mapNotNull { element ->
+                val box = element.boundingBox ?: return@mapNotNull null
+                BankCardTextFragment(element.text, box.left, box.top, box.right, box.bottom)
+            }
+        ).flatMap(::cardNumberRuns)
+    }.distinct()
+}
 
 internal class BankCardRotationConfirmer {
     private val rotationsByCandidate = mutableMapOf<String, MutableSet<Float>>()
     private val passesByCandidateAndRotation = mutableMapOf<String, MutableMap<Float, MutableSet<BankCardOcrPass>>>()
-    private val readingsByRotation = mutableMapOf<Float, MutableList<String>>()
+    private val readingsByRotation = mutableMapOf<Float, MutableList<BankCardReading>>()
+    private val originsByCandidate = mutableMapOf<String, BankCardCandidateOrigin>()
+    private val votedPassCounts = mutableMapOf<String, Int>()
 
-    fun observe(text: String, rotation: Float, pass: BankCardOcrPass): List<BankCard> {
-        readingsByRotation.getOrPut(rotation) { mutableListOf() } += cardNumberRuns(text)
-        return parseBankCards(text).filter { candidate ->
+    fun observe(
+        candidates: List<BankCardOcrCandidate>,
+        readings: List<String>,
+        rotation: Float,
+        pass: BankCardOcrPass,
+    ): List<BankCard> {
+        readingsByRotation.getOrPut(rotation) { mutableListOf() } += readings.map {
+            BankCardReading(it, pass.name)
+        }
+        return candidates.filter { ocrCandidate ->
+            val candidate = ocrCandidate.card
+            val currentOrigin = originsByCandidate[candidate.number]
+            if (currentOrigin == null || ocrCandidate.origin == BankCardCandidateOrigin.CONTIGUOUS) {
+                originsByCandidate[candidate.number] = ocrCandidate.origin
+            }
             val rotations = rotationsByCandidate.getOrPut(candidate.number) { mutableSetOf() }
             rotations.add(rotation)
             val passes = passesByCandidateAndRotation
                 .getOrPut(candidate.number) { mutableMapOf() }
                 .getOrPut(rotation) { mutableSetOf() }
             passes.add(pass)
-            rotations.size >= GALLERY_ROTATION_CONFIRM_COUNT || passes.size >= 2
+            if (candidate.scheme == BankCardScheme.UNKNOWN) {
+                passes.size >= 2
+            } else {
+                rotations.size >= GALLERY_ROTATION_CONFIRM_COUNT || passes.size >= 2
+            }
         }
     }
+
+    fun observe(text: String, rotation: Float, pass: BankCardOcrPass): List<BankCard> =
+        observe(
+            candidates = parseBankCards(text).map { BankCardOcrCandidate(it, BankCardCandidateOrigin.CONTIGUOUS) },
+            readings = cardNumberRuns(text),
+            rotation = rotation,
+            pass = pass,
+        )
 
     /**
      * Per-position majority over every reading taken at [rotation], then Luhn.
@@ -1082,8 +1183,12 @@ internal class BankCardRotationConfirmer {
      * for long embossed numbers.
      */
     fun vote(rotation: Float): List<BankCard> {
-        val number = voteCardReadings(readingsByRotation[rotation].orEmpty()) ?: return emptyList()
-        return parseBankCards(number)
+        val readings = readingsByRotation[rotation].orEmpty()
+        val number = voteBankCardReadings(readings) ?: return emptyList()
+        return parseBankCards(number).onEach {
+            originsByCandidate[it.number] = BankCardCandidateOrigin.VOTE
+            votedPassCounts[it.number] = readings.map { reading -> reading.source }.distinct().size
+        }
     }
 
     /**
@@ -1094,8 +1199,32 @@ internal class BankCardRotationConfirmer {
      */
     fun voteAllRotations(): List<BankCard> {
         val allReadings = readingsByRotation.values.flatten()
-        val number = voteCardReadings(allReadings) ?: return emptyList()
-        return parseBankCards(number)
+        val number = voteBankCardReadings(allReadings) ?: return emptyList()
+        return parseBankCards(number).onEach {
+            originsByCandidate[it.number] = BankCardCandidateOrigin.VOTE
+            votedPassCounts[it.number] = allReadings.map { reading -> reading.source }.distinct().size
+        }
+    }
+
+    fun candidateTrace(candidate: BankCardOcrCandidate): BankCardCandidateTrace =
+        candidateTrace(candidate.card, candidate.origin)
+
+    fun candidateTrace(candidate: BankCard): BankCardCandidateTrace =
+        candidateTrace(candidate, originsByCandidate[candidate.number] ?: BankCardCandidateOrigin.CONTIGUOUS)
+
+    private fun candidateTrace(candidate: BankCard, origin: BankCardCandidateOrigin): BankCardCandidateTrace {
+        val passCount = passesByCandidateAndRotation[candidate.number]
+            ?.values
+            ?.flatten()
+            ?.distinct()
+            ?.size
+            ?: 0
+        return BankCardCandidateTrace(
+            origin = originsByCandidate[candidate.number] ?: origin,
+            length = candidate.number.length,
+            scheme = candidate.scheme.name,
+            acceptedPassCount = maxOf(passCount, votedPassCounts[candidate.number] ?: 0),
+        )
     }
 }
 

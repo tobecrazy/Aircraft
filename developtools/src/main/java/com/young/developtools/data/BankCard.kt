@@ -63,10 +63,10 @@ fun isLuhnValid(number: String): Boolean {
 }
 
 /** digit, space or dash run; requires at least 12 digits. */
-private val digitRun = Regex("""\d[\d\s-]{10,}\d""")
+private val digitRun = Regex("""\d[\d \t-]{10,}\d""")
 
 /** Any digit run, with no length floor; used only for diagnostics. */
-private val looseDigitRun = Regex("""\d[\d\s-]*""")
+private val looseDigitRun = Regex("""\d[\d \t-]*""")
 
 
 /**
@@ -111,7 +111,7 @@ private fun String.normalizeOcrDigitConfusions(): String =
 
 private val CONFUSION_CHARS = digitConfusions.keys.joinToString("")
 private val digitRunWithConfusions = Regex(
-    """(?<![A-Za-z0-9])[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS\s-]{10,}[\d$CONFUSION_CHARS](?![A-Za-z0-9])"""
+    """(?<![A-Za-z0-9])[\d$CONFUSION_CHARS][\d$CONFUSION_CHARS \t-]{10,}[\d$CONFUSION_CHARS](?![A-Za-z0-9])"""
 )
 /** Lengths a scheme actually issues; used to reject windows inside a long blob. */
 private val canonicalLengths = mapOf(
@@ -145,7 +145,7 @@ private fun hasAcceptedLength(number: String): Boolean =
  * passed on "42424242424242429999"), and longest-first then ranks a bogus
  * 19-digit window above the real card. So windows are additionally required to
  * carry a known scheme prefix at a length that scheme issues. Unknown IINs
- * retain the 16–19 digit Luhn fallback.
+ * must be read as a complete run and are never recovered from a window.
  */
 private fun blobCandidates(digits: String): List<String> {
     if (digits.length < 12) return emptyList()
@@ -157,87 +157,16 @@ private fun blobCandidates(digits: String): List<String> {
             if (isLuhnValid(window)) luhnValid += window
         }
     }
-    return luhnValid.filter(::hasAcceptedLength)
+    return luhnValid.filter(::looksLikeCard)
 }
-
-/**
- * Stitches adjacent short digit fragments on each line of [text] into
- * card-length candidates. Only activated when the main digit-run paths
- * found nothing, so it cannot shadow a clean reading with a noisy one.
- *
- * ML Kit frequently splits an embossed number on a complex background
- * into two or three fragments separated by one misread character. This
- * function walks every line, finds digit-bearing fragments, and joins
- * neighbouring ones whose gap is at most [MAX_STITCH_GAP] characters.
- * The merged digits are then windowed and Luhn-validated exactly like a
- * long blob.
- *
- * Three strategies run per line, stopping at the first that produces a
- * candidate:
- * 1. Pure digit fragments stitched together.
- * 2. Confusion-aware fragments (O→0, l→1, etc.) stitched together —
- *    this widens each fragment to include confusion characters that
- *    would be digits, so "62226201" + "OO38O83" becomes a single run.
- * 3. The gap between fragments is bridged by treating intervening
- *    confusion characters as digits — a last resort that covers cases
- *    where the gap itself is a misread digit, not just a separator.
- *
- * Fragments are processed per-line so digits on separate text lines
- * (e.g. card number vs. expiry date) are never accidentally joined.
- */
-internal fun stitchFragments(text: String): List<String> {
-    val results = mutableListOf<String>()
-    val readable = normalizeOcrDigits(text)
-
-    // Strategy 1: per-line collection. Collects all digits on each line
-    // and windows them. Prevents cross-line gluing (card + expiry).
-    for (line in readable.split('\n')) {
-        if (line.isBlank()) continue
-        val fragmentCount = Regex("""\d+""").findAll(line).count()
-        if (fragmentCount < 2) continue
-        val digits = line.filter(Char::isDigit)
-        if (digits.length >= 12) results += blobCandidates(digits)
-        if (results.isEmpty()) {
-            val confusionDigits = line.normalizeOcrDigitConfusions().filter(Char::isDigit)
-            if (confusionDigits.length >= 12 && confusionDigits != digits) {
-                results += blobCandidates(confusionDigits)
-            }
-        }
-    }
-    if (results.isNotEmpty()) return results.distinct()
-
-    // Strategy 2: cross-line collection. ML Kit often splits one embossed
-    // number across multiple OCR lines (a reflection gap, the chip, a tilt).
-    // Collect all digits from the entire text and window them.
-    // Only when the text holds more digits across fragments than any single
-    // digitRun or per-line collection found — otherwise a contiguous misread
-    // number would be windowed into a spurious sub-length match.
-    val allDigits = readable.filter(Char::isDigit)
-    val totalFragments = Regex("""\d+""").findAll(readable).count()
-    if (allDigits.length >= 12 && totalFragments >= 2) {
-        results += blobCandidates(allDigits)
-    }
-    if (results.isEmpty() && totalFragments >= 2) {
-        val allConfusion = readable.normalizeOcrDigitConfusions().filter(Char::isDigit)
-        if (allConfusion.length >= 12 && allConfusion != allDigits) {
-            results += blobCandidates(allConfusion)
-        }
-    }
-    return results.distinct()
-}
-
 
 // Luhn single-digit repair removed: an ambiguous single reading cannot
 // distinguish which position was misread. Cross-pass voting is the
 // correct path and is handled by voteCardReadings / BankCardRotationConfirmer.
 
 /**
- * Extracts Luhn-valid card candidates from [text], enforcing known scheme lengths
- * while retaining a 16–19 digit fallback for unknown IINs. OCR often splits the
- * number across lines, so a candidate may span spaces, dashes and newlines within
- * one digit run. The whole text must NOT be joined into one digit stream: digits
- * elsewhere (e.g. a CVV) could be glued onto the card and lock the wrong number.
- * Longest-first, de-duplicated.
+ * Extracts Luhn-valid candidates from horizontal OCR runs. Newlines and
+ * unrelated fragments are never joined into a card number.
  */
 fun parseBankCards(text: String): List<BankCard> {
     if (text.isBlank()) return emptyList()
@@ -265,12 +194,6 @@ fun parseBankCards(text: String): List<BankCard> {
             normalizedCandidates += blobCandidates(normalized)
         }
     }
-    // Pass 3: stitch adjacent short fragments that Pass 1/2 missed. Only runs
-    // when no clean candidate was found, so a noisy stitch never shadows the
-    // primary path.
-    if (rawValid.isEmpty() && normalizedCandidates.isEmpty()) {
-        rawValid += stitchFragments(text)
-    }
     val selected = (rawValid + normalizedCandidates)
         .distinct()
         .sortedWith(compareByDescending<String> { looksLikeCard(it) }.thenByDescending { it.length })
@@ -297,32 +220,57 @@ internal fun cardNumberRuns(text: String): List<String> {
         val digits = it.value.normalizeOcrDigitConfusions().filter(Char::isDigit)
         if (digits.length in 12..19) runs += digits
     }
-    // Per-line digit collection, then cross-line. Collects all digits
-    // ignoring non-digit gaps so fragments separated by misread characters
-    // rejoin. Always runs because digitRun may match a partial (e.g. 15
-    // digits) while the full set across gaps is 16+.
-    for (line in readable.split('\n')) {
-        if (line.isBlank()) continue
-        val fragmentCount = Regex("""\d+""").findAll(line).count()
-        if (fragmentCount < 2) continue
-        val lineDigits = line.filter(Char::isDigit)
-        if (lineDigits.length in 12..19) runs += lineDigits
-        val confusionDigits = line.normalizeOcrDigitConfusions().filter(Char::isDigit)
-        if (confusionDigits.length in 12..19 && confusionDigits != lineDigits) {
-            runs += confusionDigits
-        }
-    }
-    // Cross-line: when per-line didn't reach card length, collect all
-    // digits from the entire text (the number may span OCR lines).
-    if (runs.none { it.length in 16..19 }) {
-        val allDigits = readable.filter(Char::isDigit)
-        if (allDigits.length in 12..19) runs += allDigits
-        val allConfusion = readable.normalizeOcrDigitConfusions().filter(Char::isDigit)
-        if (allConfusion.length in 12..19 && allConfusion != allDigits) {
-            runs += allConfusion
-        }
-    }
     return runs.distinct()
+}
+
+internal data class BankCardTextFragment(
+    val text: String,
+    val left: Int,
+    val top: Int,
+    val right: Int,
+    val bottom: Int,
+)
+
+/** Joins digit-like OCR elements only when their boxes form one horizontal run. */
+internal fun geometrySupportedCardRuns(fragments: List<BankCardTextFragment>): List<String> {
+    val digitLike = fragments
+        .filter { fragment ->
+            fragment.left < fragment.right && fragment.top < fragment.bottom &&
+                fragment.text.any(Char::isDigit) &&
+                fragment.text.all { it.isDigit() || it.isWhitespace() || it == '-' || it in digitConfusions }
+        }
+        .sortedBy { it.left }
+    if (digitLike.size < 2) return emptyList()
+
+    val runs = mutableListOf<String>()
+    var group = mutableListOf<BankCardTextFragment>()
+    fun flush() {
+        if (group.size >= 2) runs += group.joinToString(" ") { it.text }
+        group = mutableListOf()
+    }
+    for (fragment in digitLike) {
+        val previous = group.lastOrNull()
+        if (previous == null) {
+            group += fragment
+            continue
+        }
+        val previousHeight = previous.bottom - previous.top
+        val currentHeight = fragment.bottom - fragment.top
+        val referenceHeight = maxOf(previousHeight, currentHeight).coerceAtLeast(1)
+        val previousCenter = (previous.top + previous.bottom) / 2f
+        val currentCenter = (fragment.top + fragment.bottom) / 2f
+        val gap = fragment.left - previous.right
+        val sameLine = kotlin.math.abs(currentCenter - previousCenter) <= referenceHeight * 0.45f
+        val adjacent = gap in (-referenceHeight / 5)..(referenceHeight * 4 / 5)
+        if (sameLine && adjacent) {
+            group += fragment
+        } else {
+            flush()
+            group += fragment
+        }
+    }
+    flush()
+    return runs
 }
 
 /**
@@ -342,8 +290,15 @@ internal fun cardNumberRuns(text: String): List<String> {
  * - every position needs a strict majority of the cluster;
  * - the merged number must still pass Luhn and the scheme-length gate.
  */
+internal data class BankCardReading(val number: String, val source: String)
+
 internal fun voteCardReadings(readings: List<String>): String? =
-    readings.filter { it.length in 12..19 }
+    voteBankCardReadings(readings.mapIndexed { index, number -> BankCardReading(number, index.toString()) })
+
+internal fun voteBankCardReadings(readings: List<BankCardReading>): String? =
+    readings.filter { it.number.length in 12..19 }
+        .distinctBy { it.source }
+        .map { it.number }
         .groupBy { it.length }
         .entries
         .sortedByDescending { it.key }
@@ -382,7 +337,10 @@ private fun voteSameLength(readings: List<String>): String? {
     // The repair may only be a small correction of every reading it came from, which
     // also stops a chained cluster from drifting onto a number none of them is near.
     if (readings.any { hammingDistance(it, number) > MAX_VOTE_DISTANCE }) return null
-    return if (isLuhnValid(number) && hasAcceptedLength(number)) number else null
+    if (!isLuhnValid(number) || !hasAcceptedLength(number)) return null
+    // Unknown IINs have no prefix to corroborate a voted correction.
+    if (schemeFor(number) == BankCardScheme.UNKNOWN && readings.any { it != number }) return null
+    return number
 }
 
 private const val MIN_VOTE_READINGS = 4

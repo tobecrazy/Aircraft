@@ -52,9 +52,9 @@ Unit tests cover preprocessing and pass selection; only the on-device check vali
 
 ## Implementation notes
 
-- OpenCV ships for `arm64-v8a` only. The Maven artifact is 110 MB (four ABIs of
-  `libopencv_java4.so`), so `app/build.gradle.kts` excludes the armeabi-v7a, x86
-  and x86_64 copies from the APK instead of applying a global `abiFilters` —
+- OpenCV ships for `arm64-v8a` only. The 5.1.0 artifact carries ~185 MB of
+  `libopencv_java5.so` across four ABIs, so `app/build.gradle.kts` excludes the
+  armeabi-v7a, x86 and x86_64 copies from the APK instead of a global `abiFilters` —
   that keeps ML Kit's own natives for every ABI, so emulator runs still work.
   On a device without the library `OpenCvSupport.isAvailable()` returns false
   and the variants fall back to the pure-Kotlin filters, which is also the path
@@ -92,3 +92,63 @@ Unit tests cover preprocessing and pass selection; only the on-device check vali
   behave identically. Still outstanding: end-to-end recognition of the
   reflective UnionPay card and a matte control, plus fallback latency — those
   need the physical card and a manual gallery pick.
+
+## Latest real-device reproduction (2026-11-27)
+
+The supplied photo was selected locally on the attached Galaxy S22 Ultra
+(SM-S9080, Android API 36) using the current debug build. The screen reproduced
+the reported failure mode: it displayed an `Unknown` candidate instead of the
+UnionPay card. No OCR text or card digits were copied into this document.
+
+The device emitted this redacted stage summary:
+
+```text
+rectified=true passes=121 text=79 runs=17 maxDigits=10 candidates=56
+```
+
+The image was successfully localized and rectified. However, across 121 OCR
+passes no contiguous digit run exceeded 10 digits, while the parser still
+produced 56 card candidates. `cardNumberRuns` and `stitchFragments` collect
+digits across separated fragments (including a cross-line fallback), and
+`parseBankCards` permits an unknown IIN when a stitched 16–19 digit result
+passes Luhn. The displayed unknown result therefore came from fragmented OCR
+being promoted by permissive stitching and checksum validation, rather than
+from a clean recognition of the card number. The silver embossing and map
+artwork likely caused the fragmented OCR, but image enhancement is not the
+acceptance bug.
+
+The existing trace omits OCR strings, so this run cannot distinguish whether
+the winning candidate first passed through same-line stitching or the
+cross-line/vote fallback. Add a redacted candidate-origin field before
+changing image filters to capture that distinction on-device.
+
+## Focused fix plan
+
+1. Extend the debug-only scan trace to show candidate origin (`contiguous`,
+   `same-line stitch`, `cross-line stitch`, or `vote`), candidate length,
+   scheme classification, and accepted-pass count. Keep PAN, OCR text, image
+   data, and text hashes out of the trace. Show this trace for successful
+   results as well as failures so a false positive is diagnosable.
+2. Remove the parser's cross-line digit concatenation fallback. Treat each
+   ML Kit line independently; only join fragments when their bounding boxes
+   share a baseline and their horizontal gap is consistent with one interrupted
+   number. Do not collect every digit from an OCR line or full text regardless
+   of its geometry.
+3. Keep Luhn and scheme-length checks. For an unknown IIN, require stronger
+   independent evidence than a stitched candidate: accept only a contiguous
+   16–19 digit OCR run or the same geometry-supported number from distinct
+   preprocessing passes. Keep the existing unknown-IIN support for legitimate
+   issuers.
+4. Add parser tests for unrelated same-line fragments, card-plus-expiry digits
+   on separate lines, the cross-line fallback, and a Luhn-valid unknown-IIN
+   stitch. Add view-model tests proving a stitched candidate cannot lock from
+   repeated correlated rotation variants alone.
+5. Re-run the supplied photo on the phone and inspect only the redacted trace;
+   verify that no `Unknown` candidate is accepted, then check a matte known
+   scheme card and an unknown-IIN card to guard against false rejection. Remove
+   the temporary device copy after the run. Do not add this photo or its OCR
+   output to the repository or test fixtures.
+
+The test reproduction used the supplied still image on a physical device; a
+live-camera test with the physical card and a matte control remains necessary
+after the parser fix to validate the camera path and false-rejection rate.

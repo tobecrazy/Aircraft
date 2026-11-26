@@ -48,6 +48,34 @@ class CardScanViewModelTest {
     }
 
     @Test
+    fun `unknown IIN requires two independent passes not two rotations`() {
+        val number = generatedUnknownLuhnNumber()
+        val confirmer = BankCardRotationConfirmer()
+
+        assertTrue(confirmer.observe(number, 0f, BankCardOcrPass.FULL).isEmpty())
+        assertTrue(confirmer.observe(number, 180f, BankCardOcrPass.FULL).isEmpty())
+        val accepted = confirmer.observe(number, 0f, BankCardOcrPass.ENHANCED_FULL).single()
+        val trace = confirmer.candidateTrace(accepted)
+
+        assertEquals(number.length, trace.length)
+        assertEquals("UNKNOWN", trace.scheme)
+        assertEquals(2, trace.acceptedPassCount)
+        assertEquals(BankCardCandidateOrigin.CONTIGUOUS, trace.origin)
+    }
+
+    @Test
+    fun `unknown IIN vote cannot be built from repeated rotations of one pass`() {
+        val number = generatedUnknownLuhnNumber()
+        val confirmer = BankCardRotationConfirmer()
+
+        listOf(0f, 90f, 180f, 270f).forEach { rotation ->
+            assertTrue(confirmer.observe(number, rotation, BankCardOcrPass.FULL).isEmpty())
+        }
+
+        assertTrue(confirmer.voteAllRotations().isEmpty())
+    }
+
+    @Test
     fun `number line and chinese passes corroborate a candidate`() {
         val text = "4242424242424242"
 
@@ -129,6 +157,13 @@ class CardScanViewModelTest {
         OcrLine("签发机关 北京市公安局朝阳分局", top = 0, bottom = 20),
         OcrLine("有效期限 $validity", top = 30, bottom = 50),
     )
+
+    private fun generatedUnknownLuhnNumber(): String {
+        val body = "999999999999999"
+        return body + (0..9).first {
+            com.young.developtools.data.isLuhnValid(body + it)
+        }
+    }
 
     @Test
     fun `first luhn valid card locks the result`() {
